@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Constant Acceleration Demo with Logging</title>
+<style>
+  body { font-family: sans-serif; max-width: 1000px; margin: 20px auto; }
+  .controls { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+  .control { min-width: 220px; }
+  label { display: block; font-weight: bold; }
+  input[type=range] { width: 100%; }
+  canvas { border: 1px solid #444; margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<h2>Constant Acceleration: Position and Velocity vs Time</h2>
+<p>
+Adjust the parameters and observe the graphs. Your interactions are logged for instructor review.
+</p>
+
+<div class="controls">
+  <div class="control">
+    <label for="v0">Initial velocity v₀ (m/s)</label>
+    <input id="v0" type="range" min="-10" max="10" step="0.5" value="2">
+    <div id="v0Val">v₀ = 2 m/s</div>
+  </div>
+  <div class="control">
+    <label for="a">Acceleration a (m/s²)</label>
+    <input id="a" type="range" min="-5" max="5" step="0.25" value="1">
+    <div id="aVal">a = 1 m/s²</div>
+  </div>
+  <div class="control">
+    <label for="tProbe">Probe time t (s)</label>
+    <input id="tProbe" type="range" min="0" max="10" step="0.5" value="5">
+    <div id="tVal">t = 5 s</div>
+    <div id="numOut"></div>
+  </div>
+</div>
+
+<canvas id="xCanvas" width="900" height="250"></canvas>
+<canvas id="vCanvas" width="900" height="250"></canvas>
+
+<script>
+// --- student & activity identifiers ---
+// Option 1: hard-code for testing
+let studentId = 'anonymous';
+// Option 2: derive from URL ?student=...&activity=...
+const params = new URLSearchParams(window.location.search);
+if (params.has('student')) studentId = params.get('student');
+const activityId = params.get('activity') || 'kinematics-const-a-demo';
+
+// --- logging helper ---
+function logEvent(eventType, data) {
+  const payload = {
+    type: 'kinematicsDemoEvent', // used for filtering in parent
+    eventType,                   // e.g., 'sliderChange', 'pageLoaded'
+    studentId,
+    activityId,
+    timestamp: new Date().toISOString(),
+    data
+  };
+  // targetOrigin '*' for cross-domain; restrict to your domain if possible
+  window.parent.postMessage(payload, '*');
+}
+
+logEvent('pageLoaded', {});
+
+const v0Slider = document.getElementById('v0');
+const aSlider  = document.getElementById('a');
+const tSlider  = document.getElementById('tProbe');
+const v0Val    = document.getElementById('v0Val');
+const aVal     = document.getElementById('aVal');
+const tVal     = document.getElementById('tVal');
+const numOut   = document.getElementById('numOut');
+
+const xCanvas = document.getElementById('xCanvas');
+const vCanvas = document.getElementById('vCanvas');
+const xCtx = xCanvas.getContext('2d');
+const vCtx = vCanvas.getContext('2d');
+
+const tMax = 10;
+const xMin = -20, xMax = 80;
+const vMin = -20, vMax = 40;
+
+function worldToScreen(canvas, t, y, yMin, yMax) {
+  const padding = 40;
+  const w = canvas.width, h = canvas.height;
+  const sx = padding + (t / tMax) * (w - 2 * padding);
+  const sy = h - padding - ((y - yMin) / (yMax - yMin)) * (h - 2 * padding);
+  return { x: sx, y: sy };
+}
+
+function drawAxes(ctx, canvas, labelY) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const padding = 40;
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+
+  ctx.beginPath();
+  ctx.moveTo(padding, canvas.height - padding);
+  ctx.lineTo(canvas.width - padding, canvas.height - padding);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, canvas.height - padding);
+  ctx.stroke();
+
+  ctx.font = '14px sans-serif';
+  ctx.fillText('t (s)', canvas.width - padding + 5, canvas.height - padding + 15);
+  ctx.fillText(labelY, padding - 30, padding - 10);
+}
+
+function redraw(trigger = null) {
+  const v0 = parseFloat(v0Slider.value);
+  const a  = parseFloat(aSlider.value);
+  const tProbe = parseFloat(tSlider.value);
+  const x0 = 0;
+
+  v0Val.textContent = `v₀ = ${v0.toFixed(1)} m/s`;
+  aVal.textContent  = `a = ${a.toFixed(2)} m/s²`;
+  tVal.textContent  = `t = ${tProbe.toFixed(1)} s`;
+
+  // position-time
+  drawAxes(xCtx, xCanvas, 'x (m)');
+  xCtx.strokeStyle = '#0077cc';
+  xCtx.lineWidth = 2;
+  xCtx.beginPath();
+  for (let t = 0; t <= tMax; t += 0.1) {
+    const x = x0 + v0 * t + 0.5 * a * t * t;
+    const p = worldToScreen(xCanvas, t, x, xMin, xMax);
+    if (t === 0) xCtx.moveTo(p.x, p.y);
+    else xCtx.lineTo(p.x, p.y);
+  }
+  xCtx.stroke();
+
+  // velocity-time
+  drawAxes(vCtx, vCanvas, 'v (m/s)');
+  vCtx.strokeStyle = '#cc7700';
+  vCtx.lineWidth = 2;
+  vCtx.beginPath();
+  for (let t = 0; t <= tMax; t += 0.1) {
+    const v = v0 + a * t;
+    const p = worldToScreen(vCanvas, t, v, vMin, vMax);
+    if (t === 0) vCtx.moveTo(p.x, p.y);
+    else vCtx.lineTo(p.x, p.y);
+  }
+  vCtx.stroke();
+
+  // probe values
+  const xProbe = x0 + v0 * tProbe + 0.5 * a * tProbe * tProbe;
+  const vProbe = v0 + a * tProbe;
+
+  const pX = worldToScreen(xCanvas, tProbe, xProbe, xMin, xMax);
+  const pV = worldToScreen(vCanvas, tProbe, vProbe, vMin, vMax);
+  xCtx.fillStyle = '#d40000';
+  vCtx.fillStyle = '#d40000';
+  xCtx.beginPath();
+  xCtx.arc(pX.x, pX.y, 5, 0, 2 * Math.PI);
+  xCtx.fill();
+  vCtx.beginPath();
+  vCtx.arc(pV.x, pV.y, 5, 0, 2 * Math.PI);
+  vCtx.fill();
+
+  numOut.textContent =
+    `At t = ${tProbe.toFixed(1)} s: x(t) = ${xProbe.toFixed(2)} m, v(t) = ${vProbe.toFixed(2)} m/s.`;
+
+  if (trigger) {
+    // send detailed state for each student action
+    logEvent('sliderChange', {
+      trigger,
+      v0,
+      a,
+      tProbe,
+      xProbe,
+      vProbe
+    });
+  }
+}
+
+v0Slider.addEventListener('input', () => redraw('v0'));
+aSlider.addEventListener('input',  () => redraw('a'));
+tSlider.addEventListener('input',  () => redraw('tProbe'));
+
+redraw();
+</script>
+</body>
+</html>

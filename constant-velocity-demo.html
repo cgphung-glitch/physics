@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Constant Velocity: x(t) Graph</title>
+<style>
+  body { font-family: sans-serif; max-width: 900px; margin: 20px auto; }
+  .controls { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+  .control { min-width: 200px; }
+  label { display: block; font-weight: bold; }
+  input[type=range] { width: 100%; }
+  #output { margin-top: 0.5rem; }
+  canvas { border: 1px solid #444; }
+</style>
+</head>
+<body>
+<h2>Constant Velocity: Position vs Time</h2>
+<p>
+This demo shows motion with constant velocity. The position follows
+\( x(t) = x_0 + v t \). Adjust the sliders and observe the slope and intercept of the graph.
+</p>
+
+<div class="controls">
+  <div class="control">
+    <label for="x0">Initial position x₀ (m)</label>
+    <input id="x0" type="range" min="-10" max="10" step="0.5" value="0">
+    <div id="x0Val">x₀ = 0 m</div>
+  </div>
+  <div class="control">
+    <label for="v">Velocity v (m/s)</label>
+    <input id="v" type="range" min="-10" max="10" step="0.5" value="2">
+    <div id="vVal">v = 2 m/s</div>
+  </div>
+  <div class="control">
+    <label for="tPoint">Probe time t (s)</label>
+    <input id="tPoint" type="range" min="0" max="10" step="0.5" value="5">
+    <div id="tVal">t = 5 s</div>
+    <div id="output"></div>
+  </div>
+</div>
+
+<canvas id="plot" width="800" height="400"></canvas>
+
+<script>
+const x0Slider = document.getElementById('x0');
+const vSlider = document.getElementById('v');
+const tSlider = document.getElementById('tPoint');
+const x0Val = document.getElementById('x0Val');
+const vVal = document.getElementById('vVal');
+const tVal = document.getElementById('tVal');
+const output = document.getElementById('output');
+const canvas = document.getElementById('plot');
+const ctx = canvas.getContext('2d');
+
+const tMax = 10;   // seconds
+const xMin = -20;  // meters
+const xMax = 20;
+
+function worldToScreen(t, x) {
+  const padding = 40;
+  const w = canvas.width;
+  const h = canvas.height;
+  const tx = padding + (t / tMax) * (w - 2 * padding);
+  const ty = h - padding - ((x - xMin) / (xMax - xMin)) * (h - 2 * padding);
+  return { x: tx, y: ty };
+}
+
+function drawAxes() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const padding = 40;
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+
+  // time axis (horizontal)
+  const origin = worldToScreen(0, 0);
+  ctx.beginPath();
+  ctx.moveTo(padding, origin.y);
+  ctx.lineTo(canvas.width - padding, origin.y);
+  ctx.stroke();
+
+  // position axis (vertical)
+  ctx.beginPath();
+  ctx.moveTo(origin.x, padding);
+  ctx.lineTo(origin.x, canvas.height - padding);
+  ctx.stroke();
+
+  // labels
+  ctx.font = '14px sans-serif';
+  ctx.fillText('t (s)', canvas.width - padding + 5, origin.y + 15);
+  ctx.fillText('x (m)', origin.x - 25, padding - 10);
+}
+
+function drawCurve() {
+  drawAxes();
+  const x0 = parseFloat(x0Slider.value);
+  const v = parseFloat(vSlider.value);
+
+  ctx.strokeStyle = '#0077cc';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let t = 0; t <= tMax; t += 0.1) {
+    const x = x0 + v * t;
+    const p = worldToScreen(t, x);
+    if (t === 0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
+  }
+  ctx.stroke();
+
+  // probe point
+  const tProbe = parseFloat(tSlider.value);
+  const xProbe = x0 + v * tProbe;
+  const pProbe = worldToScreen(tProbe, xProbe);
+  ctx.fillStyle = '#d40000';
+  ctx.beginPath();
+  ctx.arc(pProbe.x, pProbe.y, 5, 0, 2 * Math.PI);
+  ctx.fill();
+
+  x0Val.textContent = `x₀ = ${x0.toFixed(1)} m`;
+  vVal.textContent = `v = ${v.toFixed(1)} m/s`;
+  tVal.textContent = `t = ${tProbe.toFixed(1)} s`;
+  output.textContent = `At t = ${tProbe.toFixed(1)} s, x(t) = ${xProbe.toFixed(2)} m.`;
+}
+
+[x0Slider, vSlider, tSlider].forEach(el => {
+  el.addEventListener('input', drawCurve);
+});
+
+drawCurve();
+</script>
+</body>
+</html>

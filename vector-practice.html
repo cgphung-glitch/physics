@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vector Suite Trainer</title>
+
+  <!-- MathJax for rendering math equations -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --correct: #22c55e;
+      --wrong: #ef4444;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    header {
+      text-align: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-size: 1.3rem;
+      color: var(--accent);
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .menu-group {
+      margin-bottom: 20px;
+    }
+
+    .menu-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .option-grid-2x3 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .btn-option {
+      background: var(--bg);
+      border: 2px solid var(--border);
+      color: var(--text);
+      padding: 12px 8px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .btn-option.selected {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent);
+    }
+
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .stats-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .score-badge {
+      background: var(--border);
+      padding: 4px 12px;
+      border-radius: 16px;
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .btn-reset {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--wrong);
+      border: 1px solid var(--wrong);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-reset:hover {
+      background: rgba(239, 68, 68, 0.3);
+    }
+
+    .question-text {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .input-field {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .input-field label {
+      min-width: 90px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    input[type="number"] {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--accent);
+    }
+
+    .unit-tag {
+      background: var(--border);
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+      color: var(--text-muted);
+      min-width: 50px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:active {
+      background: var(--accent-hover);
+    }
+
+    .feedback {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .feedback.correct {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid var(--correct);
+      color: var(--correct);
+    }
+
+    .feedback.wrong {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--wrong);
+      color: var(--wrong);
+    }
+
+    .view-toggle {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn-tab {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-tab.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .explanation-container {
+      margin-top: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 240px;
+      background: #020617;
+      border-radius: 6px;
+      display: block;
+    }
+
+    .results-card {
+      text-align: center;
+    }
+
+    .final-score {
+      font-size: 3rem;
+      font-weight: bold;
+      color: var(--accent);
+      margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header>
+      <h1>🧭 Vector Suite Trainer</h1>
+    </header>
+
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="card">
+      <div class="menu-group">
+        <label>Select Mode</label>
+        <div class="option-grid-2x3" id="mode-grid">
+          <button class="btn-option selected" onclick="selectMode('all', this)">All Combined</button>
+          <button class="btn-option" onclick="selectMode('2d', this)">2D Addition</button>
+          <button class="btn-option" onclick="selectMode('3d', this)">3D Addition</button>
+          <button class="btn-option" onclick="selectMode('dot', this)">Dot Product</button>
+          <button class="btn-option" onclick="selectMode('cross', this)">Cross Product</button>
+        </div>
+      </div>
+
+      <div class="menu-group">
+        <label>Select Length</label>
+        <div class="option-grid">
+          <button class="btn-option selected" onclick="selectLength(10, this)">10 Qs</button>
+          <button class="btn-option" onclick="selectLength(20, this)">20 Qs</button>
+          <button class="btn-option" onclick="selectLength(30, this)">30 Qs</button>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-screen" class="card hidden">
+      <div class="stats-bar">
+        <span id="question-tracker">Question 1/10</span>
+        <div class="stats-right">
+          <span class="score-badge" id="score-tracker">Score: 0</span>
+          <button class="btn-reset" onclick="confirmReset()">Restart</button>
+        </div>
+      </div>
+
+      <div class="question-text" id="question-text"></div>
+
+      <!-- Dynamic Input Container -->
+      <div class="input-row" id="input-container"></div>
+
+      <button class="btn-primary" id="action-btn" onclick="submitAnswer()">Submit Answer</button>
+
+      <div id="feedback-panel" class="hidden">
+        <div id="feedback-text" class="feedback"></div>
+
+        <div class="view-toggle">
+          <button class="btn-tab active" id="tab-math" onclick="switchTab('math')">Math Solution</button>
+          <button class="btn-tab" id="tab-graph" onclick="switchTab('graph')">Graphical View</button>
+        </div>
+
+        <div class="explanation-container">
+          <div id="math-view"></div>
+          <div id="graph-view" class="hidden">
+            <canvas id="vectorCanvas" width="400" height="240"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="results-screen" class="card results-card hidden">
+      <h2>Quiz Complete!</h2>
+      <div class="final-score" id="final-score">0%</div>
+      <p id="summary-text" style="color: var(--text-muted); margin-bottom: 20px;"></p>
+      <button class="btn-primary" onclick="resetQuiz()">Try Again</button>
+    </div>
+  </div>
+
+  <script>
+    let selectedMode = 'all';
+    let totalQuestions = 10;
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let currentQuestion = null;
+    let isAnswerSubmitted = false;
+
+    const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const toDeg = (rad) => (rad * 180) / Math.PI;
+
+    function renderMath() {
+      if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise();
+      }
+    }
+
+    function selectMode(mode, btn) {
+      selectedMode = mode;
+      document.querySelectorAll('#mode-grid .btn-option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
+    function selectLength(count, btn) {
+      totalQuestions = count;
+      btn.parentElement.querySelectorAll('.btn-option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
+    // Problem Generators Bank
+    const Generators = {
+      '2d': () => {
+        const m1 = rand(15, 60); const a1 = rand(10, 80);
+        const m2 = rand(20, 70); const a2 = rand(100, 250);
+
+        const v1x = m1 * Math.cos(toRad(a1)), v1y = m1 * Math.sin(toRad(a1));
+        const v2x = m2 * Math.cos(toRad(a2)), v2y = m2 * Math.sin(toRad(a2));
+
+        const rx = v1x + v2x, ry = v1y + v2y;
+        const rMag = Math.sqrt(rx*rx + ry*ry);
+        let rDeg = toDeg(Math.atan2(ry, rx));
+        if (rDeg < 0) rDeg += 360;
+
+        return {
+          type: '2d',
+          text: `Vector $\\vec{A}$ has magnitude **${m1}** at $\\theta_1 = ${a1}^\\circ$. Vector $\\vec{B}$ has magnitude **${m2}** at $\\theta_2 = ${a2}^\\circ$. Find magnitude and direction angle ($0^\\circ \\le \\theta < 360^\\circ$) of $\\vec{R} = \\vec{A} + \\vec{B}$.`,
+          inputs: [
+            { id: 'uMag', label: 'Magnitude:', unit: 'units' },
+            { id: 'uDir', label: 'Angle (°):', unit: 'deg' }
+          ],
+          target: { mag: rMag, dir: rDeg },
+          solution: { v1: {x:v1x, y:v1y, mag:m1, angle:a1}, v2: {x:v2x, y:v2y, mag:m2, angle:a2}, rx, ry, rMag, rDeg }
+        };
+      },
+      '3d': () => {
+        const a = [rand(-10, 10), rand(-10, 10), rand(-10, 10)];
+        const b = [rand(-10, 10), rand(-10, 10), rand(-10, 10)];
+        const r = [a[0]+b[0], a[1]+b[1], a[2]+b[2]];
+
+        return {
+          type: '3d',
+          text: `Given vectors $\\vec{A} = ${a[0]}\\hat{i} + ${a[1]}\\hat{j} + ${a[2]}\\hat{k}$ and $\\vec{B} = ${b[0]}\\hat{i} + ${b[1]}\\hat{j} + ${b[2]}\\hat{k}$, calculate the components of $\\vec{R} = \\vec{A} + \\vec{B}$.`,
+          inputs: [
+            { id: 'uRx', label: 'Rx (i):', unit: 'i' },
+            { id: 'uRy', label: 'Ry (j):', unit: 'j' },
+            { id: 'uRz', label: 'Rz (k):', unit: 'k' }
+          ],
+          target: { rx: r[0], ry: r[1], rz: r[2] },
+          solution: { a, b, r }
+        };
+      },
+      'dot': () => {
+        const a = [rand(-8, 8), rand(-8, 8), rand(-8, 8)];
+        const b = [rand(-8, 8), rand(-8, 8), rand(-8, 8)];
+        const dot = (a[0]*b[0]) + (a[1]*b[1]) + (a[2]*b[2]);
+
+        return {
+          type: 'dot',
+          text: `Calculate the scalar dot product $\\vec{A} \\cdot \\vec{B}$ for: <br>$\\vec{A} = (${a[0]})\\hat{i} + (${a[1]})\\hat{j} + (${a[2]})\\hat{k}$<br>$\\vec{B} = (${b[0]})\\hat{i} + (${b[1]})\\hat{j} + (${b[2]})\\hat{k}$`,
+          inputs: [
+            { id: 'uDot', label: 'Dot Product:', unit: 'scalar' }
+          ],
+          target: { dot },
+          solution: { a, b, dot }
+        };
+      },
+      'cross': () => {
+        const a = [rand(-6, 6), rand(-6, 6), rand(-6, 6)];
+        const b = [rand(-6, 6), rand(-6, 6), rand(-6, 6)];
+        const cx = a[1]*b[2] - a[2]*b[1];
+        const cy = a[2]*b[0] - a[0]*b[2];
+        const cz = a[0]*b[1] - a[1]*b[0];
+
+        return {
+          type: 'cross',
+          text: `Calculate the cross product $\\vec{C} = \\vec{A} \\times \\vec{B}$ for: <br>$\\vec{A} = (${a[0]})\\hat{i} + (${a[1]})\\hat{j} + (${a[2]})\\hat{k}$<br>$\\vec{B} = (${b[0]})\\hat{i} + (${b[1]})\\hat{j} + (${b[2]})\\hat{k}$`,
+          inputs: [
+            { id: 'uCx', label: 'Cx (i):', unit: 'i' },
+            { id: 'uCy', label: 'Cy (j):', unit: 'j' },
+            { id: 'uCz', label: 'Cz (k):', unit: 'k' }
+          ],
+          target: { cx, cy, cz },
+          solution: { a, b, c: [cx, cy, cz] }
+        };
+      }
+    };
+
+    function startQuiz() {
+      score = 0; currentQuestionIndex = 0;
+      document.getElementById('setup-screen').classList.add('hidden');
+      document.getElementById('results-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      nextQuestion();
+    }
+
+    function confirmReset() {
+      if (confirm("Are you sure you want to restart? Current progress will be lost.")) {
+        resetQuiz();
+      }
+    }
+
+    function getRandomQuestion() {
+      let activeKeys = (selectedMode === 'all') ? ['2d', '3d', 'dot', 'cross'] : [selectedMode];
+      const key = activeKeys[Math.floor(Math.random() * activeKeys.length)];
+      return Generators[key]();
+    }
+
+    function nextQuestion() {
+      isAnswerSubmitted = false;
+      document.getElementById('action-btn').textContent = "Submit Answer";
+      document.getElementById('feedback-panel').classList.add('hidden');
+
+      document.getElementById('question-tracker').textContent = `Question ${currentQuestionIndex + 1}/${totalQuestions}`;
+      document.getElementById('score-tracker').textContent = `Score: ${score}`;
+
+      currentQuestion = getRandomQuestion();
+      document.getElementById('question-text').innerHTML = currentQuestion.text;
+
+      // Generate dynamic input markup based on problem type
+      const inputContainer = document.getElementById('input-container');
+      inputContainer.innerHTML = '';
+      currentQuestion.inputs.forEach(inp => {
+        inputContainer.innerHTML += `
+          <div class="input-field">
+            <label for="${inp.id}">${inp.label}</label>
+            <input type="number" id="${inp.id}" step="any" placeholder="0" inputmode="decimal">
+            <div class="unit-tag">${inp.unit}</div>
+          </div>
+        `;
+      });
+
+      switchTab('math');
+      renderMath();
+    }
+
+    function submitAnswer() {
+      if (isAnswerSubmitted) {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < totalQuestions) {
+          nextQuestion();
+        } else {
+          showResults();
+        }
+        return;
+      }
+
+      let isCorrect = false;
+      const q = currentQuestion;
+
+      if (q.type === '2d') {
+        const uMag = parseFloat(document.getElementById('uMag').value);
+        const uDir = parseFloat(document.getElementById('uDir').value);
+        if (isNaN(uMag) || isNaN(uDir)) return;
+
+        const magDiff = Math.abs(uMag - q.target.mag) / q.target.mag;
+        let angleDiff = Math.abs(uDir - q.target.dir) % 360;
+        if (angleDiff > 180) angleDiff = 360 - angleDiff;
+
+        isCorrect = magDiff <= 0.04 && angleDiff <= 3.5;
+      } else if (q.type === '3d') {
+        const rx = parseFloat(document.getElementById('uRx').value);
+        const ry = parseFloat(document.getElementById('uRy').value);
+        const rz = parseFloat(document.getElementById('uRz').value);
+        if (isNaN(rx) || isNaN(ry) || isNaN(rz)) return;
+
+        isCorrect = (rx === q.target.rx) && (ry === q.target.ry) && (rz === q.target.rz);
+      } else if (q.type === 'dot') {
+        const dot = parseFloat(document.getElementById('uDot').value);
+        if (isNaN(dot)) return;
+
+        isCorrect = Math.abs(dot - q.target.dot) < 0.1;
+      } else if (q.type === 'cross') {
+        const cx = parseFloat(document.getElementById('uCx').value);
+        const cy = parseFloat(document.getElementById('uCy').value);
+        const cz = parseFloat(document.getElementById('uCz').value);
+        if (isNaN(cx) || isNaN(cy) || isNaN(cz)) return;
+
+        isCorrect = (cx === q.target.cx) && (cy === q.target.cy) && (cz === q.target.cz);
+      }
+
+      isAnswerSubmitted = true;
+      const feedbackText = document.getElementById('feedback-text');
+      document.getElementById('feedback-panel').classList.remove('hidden');
+
+      if (isCorrect) {
+        score++;
+        feedbackText.className = "feedback correct";
+        feedbackText.innerHTML = `<b>Correct!</b> Excellent calculation.`;
+      } else {
+        feedbackText.className = "feedback wrong";
+        feedbackText.innerHTML = `<b>Incorrect.</b> Check the worked mathematical solution below.`;
+      }
+
+      buildMathSolution();
+      drawVectorCanvas();
+
+      document.getElementById('score-tracker').textContent = `Score: ${score}`;
+      document.getElementById('action-btn').textContent = currentQuestionIndex === totalQuestions - 1 ? "See Results" : "Next Question";
+
+      renderMath();
+    }
+
+    function buildMathSolution() {
+      const q = currentQuestion;
+      let html = "";
+
+      if (q.type === '2d') {
+        const s = q.solution;
+        html = `
+          $\\vec{A}_x = ${s.v1.mag}\\cos(${s.v1.angle}^\\circ) = ${s.v1.x.toFixed(2)}$, $\\vec{A}_y = ${s.v1.y.toFixed(2)}$<br>
+          $\\vec{B}_x = ${s.v2.mag}\\cos(${s.v2.angle}^\\circ) = ${s.v2.x.toFixed(2)}$, $\\vec{B}_y = ${s.v2.y.toFixed(2)}$<br><br>
+          $R_x = ${s.rx.toFixed(2)}$, $R_y = ${s.ry.toFixed(2)}$<br>
+          $|\\vec{R}| = \\mathbf{${s.rMag.toFixed(2)}}$, $\\theta = \\mathbf{${s.rDeg.toFixed(1)}^\\circ}$
+        `;
+      } else if (q.type === '3d') {
+        const s = q.solution;
+        html = `
+          $R_x = ${s.a[0]} + (${s.b[0]}) = \\mathbf{${s.r[0]}}$<br>
+          $R_y = ${s.a[1]} + (${s.b[1]}) = \\mathbf{${s.r[1]}}$<br>
+          $R_z = ${s.a[2]} + (${s.b[2]}) = \\mathbf{${s.r[2]}}$<br><br>
+          $\\vec{R} = \\mathbf{${s.r[0]}\\hat{i} + (${s.r[1]})\\hat{j} + (${s.r[2]})\\hat{k}}$
+        `;
+      } else if (q.type === 'dot') {
+        const s = q.solution;
+        html = `
+          $\\vec{A} \\cdot \\vec{B} = (A_x B_x) + (A_y B_y) + (A_z B_z)$<br>
+          $= (${s.a[0]} \\cdot ${s.b[0]}) + (${s.a[1]} \\cdot ${s.b[1]}) + (${s.a[2]} \\cdot ${s.b[2]})$<br>
+          $= ${s.a[0]*s.b[0]} + (${s.a[1]*s.b[1]}) + (${s.a[2]*s.b[2]}) = \\mathbf{${s.dot}}$
+        `;
+      } else if (q.type === 'cross') {
+        const s = q.solution;
+        html = `
+          $\\begin{vmatrix} \\hat{i} & \\hat{j} & \\hat{k} \\\\ ${s.a[0]} & ${s.a[1]} & ${s.a[2]} \\\\ ${s.b[0]} & ${s.b[1]} & ${s.b[2]} \\end{vmatrix}$<br><br>
+          $\\hat{i}((${s.a[1]})(${s.b[2]}) - (${s.a[2]})(${s.b[1]})) = \\mathbf{${s.c[0]}\\hat{i}}$<br>
+          $-\\hat{j}((${s.a[0]})(${s.b[2]}) - (${s.a[2]})(${s.b[0]})) = \\mathbf{${s.c[1]}\\hat{j}}$<br>
+          $\\hat{k}((${s.a[0]})(${s.b[1]}) - (${s.a[1]})(${s.b[0]})) = \\mathbf{${s.c[2]}\\hat{k}}$
+        `;
+      }
+
+      document.getElementById('math-view').innerHTML = `<div style="font-size:0.9rem;">${html}</div>`;
+    }
+
+    function drawVectorCanvas() {
+      const canvas = document.getElementById('vectorCanvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const q = currentQuestion;
+
+      if (q.type === '2d') {
+        const s = q.solution;
+        const originX = w / 2, originY = h / 2;
+        const scale = Math.min(w, h) / (Math.max(s.v1.mag, s.v2.mag, s.rMag) * 2.8);
+
+        drawArrow(ctx, originX, originY, originX + s.v1.x * scale, originY - s.v1.y * scale, '#38bdf8', 'A');
+        drawArrow(ctx, originX + s.v1.x * scale, originY - s.v1.y * scale, originX + s.rx * scale, originY - s.ry * scale, '#f59e0b', 'B');
+        drawArrow(ctx, originX, originY, originX + s.rx * scale, originY - s.ry * scale, '#22c55e', 'R');
+      } else {
+        const cx = w / 2, cy = h / 2 + 20;
+        const isoX = (x, y, z) => cx + (x - y) * 12;
+        const isoY = (x, y, z) => cy + (x + y) * 6 - z * 12;
+
+        ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy); ctx.lineTo(isoX(10,0,0), isoY(10,0,0));
+        ctx.moveTo(cx, cy); ctx.lineTo(isoX(0,10,0), isoY(0,10,0));
+        ctx.moveTo(cx, cy); ctx.lineTo(isoX(0,0,10), isoY(0,0,10));
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8'; ctx.font = '10px sans-serif';
+        ctx.fillText('+X', isoX(11,0,0), isoY(11,0,0));
+        ctx.fillText('+Y', isoX(0,11,0), isoY(0,11,0));
+        ctx.fillText('+Z', isoX(0,0,11), isoY(0,0,11));
+
+        let vecA, vecB, vecC;
+        if (q.type === '3d') { vecA = q.solution.a; vecB = q.solution.b; vecC = q.solution.r; }
+        else if (q.type === 'cross') { vecA = q.solution.a; vecB = q.solution.b; vecC = q.solution.c; }
+        else { vecA = q.solution.a; vecB = q.solution.b; }
+
+        drawArrow(ctx, cx, cy, isoX(vecA[0], vecA[1], vecA[2]), isoY(vecA[0], vecA[1], vecA[2]), '#38bdf8', 'A');
+        drawArrow(ctx, cx, cy, isoX(vecB[0], vecB[1], vecB[2]), isoY(vecB[0], vecB[1], vecB[2]), '#f59e0b', 'B');
+        if (vecC) {
+          drawArrow(ctx, cx, cy, isoX(vecC[0], vecC[1], vecC[2]), isoY(vecC[0], vecC[1], vecC[2]), '#22c55e', q.type==='cross'?'AxB':'R');
+        }
+      }
+    }
+
+    function drawArrow(ctx, fromX, fromY, toX, toY, color, label) {
+      const headlen = 7;
+      const dx = toX - fromX, dy = toY - fromY;
+      const angle = Math.atan2(dy, dx);
+
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(fromX, fromY); ctx.lineTo(toX, toY); ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(toX, toY);
+      ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+      ctx.closePath(); ctx.fill();
+
+      if (label) {
+        ctx.font = "bold 11px sans-serif";
+        ctx.fillText(label, (fromX + toX) / 2 + 4, (fromY + toY) / 2 - 4);
+      }
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tab-math').className = (tab === 'math') ? 'btn-tab active' : 'btn-tab';
+      document.getElementById('tab-graph').className = (tab === 'graph') ? 'btn-tab active' : 'btn-tab';
+
+      if (tab === 'math') {
+        document.getElementById('math-view').classList.remove('hidden');
+        document.getElementById('graph-view').classList.add('hidden');
+      } else {
+        document.getElementById('math-view').classList.add('hidden');
+        document.getElementById('graph-view').classList.remove('hidden');
+        drawVectorCanvas();
+      }
+    }
+
+    function showResults() {
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('results-screen').classList.remove('hidden');
+
+      const percentage = Math.round((score / totalQuestions) * 100);
+      document.getElementById('final-score').textContent = `${percentage}%`;
+      document.getElementById('summary-text').textContent = `You answered ${score} out of ${totalQuestions} questions correctly.`;
+    }
+
+    function resetQuiz() {
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('results-screen').classList.add('hidden');
+      document.getElementById('setup-screen').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

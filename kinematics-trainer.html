@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physics Kinematics Trainer</title>
+
+  <!-- MathJax for rendering LaTeX -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --correct: #22c55e;
+      --wrong: #ef4444;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    header {
+      text-align: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-size: 1.3rem;
+      color: var(--accent);
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .menu-group {
+      margin-bottom: 20px;
+    }
+
+    .menu-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .option-grid-2x2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .btn-option {
+      background: var(--bg);
+      border: 2px solid var(--border);
+      color: var(--text);
+      padding: 12px 8px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .btn-option.selected {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent);
+    }
+
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .score-badge {
+      background: var(--border);
+      padding: 4px 12px;
+      border-radius: 16px;
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .question-text {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    input[type="number"] {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      outline: none;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--accent);
+    }
+
+    .unit-tag {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--border);
+      padding: 0 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      color: var(--text-muted);
+      min-width: 65px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:active {
+      background: var(--accent-hover);
+    }
+
+    .feedback {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .feedback.correct {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid var(--correct);
+      color: var(--correct);
+    }
+
+    .feedback.wrong {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--wrong);
+      color: var(--wrong);
+    }
+
+    .results-card {
+      text-align: center;
+    }
+
+    .final-score {
+      font-size: 3rem;
+      font-weight: bold;
+      color: var(--accent);
+      margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header>
+      <h1>⚡ Physics Kinematics Trainer</h1>
+    </header>
+
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="card">
+      <div class="menu-group">
+        <label>Select Category</label>
+        <div class="option-grid-2x2" id="category-grid">
+          <button class="btn-option selected" onclick="selectCategory('all', this)">All Topics</button>
+          <button class="btn-option" onclick="selectCategory('1d', this)">1D Linear</button>
+          <button class="btn-option" onclick="selectCategory('gravity', this)">Freefall (g)</button>
+          <button class="btn-option" onclick="selectCategory('2d', this)">2D Projectile</button>
+        </div>
+      </div>
+
+      <div class="menu-group">
+        <label>Select Length</label>
+        <div class="option-grid">
+          <button class="btn-option selected" onclick="selectLength(10, this)">10 Qs</button>
+          <button class="btn-option" onclick="selectLength(20, this)">20 Qs</button>
+          <button class="btn-option" onclick="selectLength(30, this)">30 Qs</button>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-screen" class="card hidden">
+      <div class="stats-bar">
+        <span id="question-tracker">Question 1/10</span>
+        <span class="score-badge" id="score-tracker">Score: 0</span>
+      </div>
+
+      <div class="question-text" id="question-text"></div>
+
+      <div class="input-group">
+        <input type="number" id="user-answer" step="any" placeholder="Enter value..." inputmode="decimal">
+        <div class="unit-tag" id="unit-tag">m/s</div>
+      </div>
+
+      <button class="btn-primary" id="action-btn" onclick="submitAnswer()">Submit Answer</button>
+
+      <div id="feedback" class="feedback hidden"></div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="results-screen" class="card results-card hidden">
+      <h2>Quiz Complete!</h2>
+      <div class="final-score" id="final-score">0%</div>
+      <p id="summary-text" style="color: var(--text-muted); margin-bottom: 20px;"></p>
+      <button class="btn-primary" onclick="resetQuiz()">Try Again</button>
+    </div>
+  </div>
+
+  <script>
+    const G = 9.8;
+
+    let selectedCategory = 'all';
+    let totalQuestions = 10;
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let currentQuestion = null;
+    let isAnswerSubmitted = false;
+
+    const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const toRad = (deg) => (deg * Math.PI) / 180;
+
+    // Triggers MathJax to re-render new dynamic text
+    function renderMath() {
+      if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise();
+      }
+    }
+
+    const Templates = {
+      '1d': [
+        {
+          unit: 'm/s',
+          generate: () => {
+            const u = rand(0, 25);
+            const a = rand(1, 8);
+            const t = rand(2, 12);
+            return {
+              text: `A vehicle starts with an initial velocity of $u = ${u}\\text{ m/s}$ and accelerates at $a = ${a}\\text{ m/s}^2$ for $t = ${t}\\text{ s}$. What is its final velocity?`,
+              ans: u + (a * t),
+              formula: `$v = u + at = ${u} + (${a} \\times ${t})$`
+            };
+          }
+        },
+        {
+          unit: 'm',
+          generate: () => {
+            const u = rand(0, 15);
+            const a = rand(1, 6);
+            const t = rand(2, 10);
+            return {
+              text: `A car travels with an initial speed of $u = ${u}\\text{ m/s}$. If it accelerates at $a = ${a}\\text{ m/s}^2$ for $t = ${t}\\text{ s}$, how far does it travel?`,
+              ans: (u * t) + (0.5 * a * t * t),
+              formula: `$s = ut + \\frac{1}{2}at^2 = (${u} \\times ${t}) + \\frac{1}{2}(${a} \\times ${t}^2)$`
+            };
+          }
+        },
+        {
+          unit: 'm/s²',
+          generate: () => {
+            const u = rand(5, 15);
+            const v = rand(u + 10, u + 40);
+            const t = rand(3, 10);
+            return {
+              text: `A train speeds up smoothly from $u = ${u}\\text{ m/s}$ to $v = ${v}\\text{ m/s}$ over $t = ${t}\\text{ s}$. Calculate its acceleration.`,
+              ans: (v - u) / t,
+              formula: `$a = \\frac{v - u}{t} = \\frac{${v} - ${u}}{${t}}$`
+            };
+          }
+        }
+      ],
+      'gravity': [
+        {
+          unit: 'm/s',
+          generate: () => {
+            const h = rand(10, 80);
+            const ans = Math.sqrt(2 * G * h);
+            return {
+              text: `A ball is dropped from rest from a cliff $h = ${h}\\text{ m}$ high. Assuming $g = 9.8\\text{ m/s}^2$ and ignoring air resistance, what is its impact speed?`,
+              ans: ans,
+              formula: `$v = \\sqrt{2gh} = \\sqrt{2 \\times 9.8 \\times ${h}}$`
+            };
+          }
+        },
+        {
+          unit: 's',
+          generate: () => {
+            const u = rand(15, 50);
+            const ans = (2 * u) / G;
+            return {
+              text: `A rock is thrown straight up into the air with an initial speed of $u = ${u}\\text{ m/s}$. How long is it in the air before returning to its release height? ($g = 9.8\\text{ m/s}^2$)`,
+              ans: ans,
+              formula: `$t_{\\text{total}} = \\frac{2u}{g} = \\frac{2 \\times ${u}}{9.8}$`
+            };
+          }
+        },
+        {
+          unit: 'm',
+          generate: () => {
+            const u = rand(10, 45);
+            const ans = (u * u) / (2 * G);
+            return {
+              text: `A stone is launched vertically upward at $u = ${u}\\text{ m/s}$. What is the maximum height reached above its launch point? ($g = 9.8\\text{ m/s}^2$)`,
+              ans: ans,
+              formula: `$h_{\\text{max}} = \\frac{u^2}{2g} = \\frac{${u}^2}{2 \\times 9.8}$`
+            };
+          }
+        }
+      ],
+      '2d': [
+        {
+          unit: 'm',
+          generate: () => {
+            const v0 = rand(15, 45);
+            const angle = rand(25, 65);
+            const rad = toRad(angle);
+            const ans = (v0 * v0 * Math.sin(2 * rad)) / G;
+            return {
+              text: `A projectile is fired at $v_0 = ${v0}\\text{ m/s}$ at an angle of $\\theta = ${angle}^\\circ$ above horizontal over flat ground. Find its horizontal range ($R$). ($g = 9.8\\text{ m/s}^2$)`,
+              ans: ans,
+              formula: `$R = \\frac{v_0^2 \\sin(2\\theta)}{g} = \\frac{${v0}^2 \\sin(${2 * angle}^\\circ)}{9.8}$`
+            };
+          }
+        },
+        {
+          unit: 'm',
+          generate: () => {
+            const v0 = rand(12, 40);
+            const angle = rand(30, 70);
+            const rad = toRad(angle);
+            const vy0 = v0 * Math.sin(rad);
+            const ans = (vy0 * vy0) / (2 * G);
+            return {
+              text: `A cannonball is launched at $v_0 = ${v0}\\text{ m/s}$ at $\\theta = ${angle}^\\circ$ to the horizontal. Calculate the peak height reached during flight. ($g = 9.8\\text{ m/s}^2$)`,
+              ans: ans,
+              formula: `$H = \\frac{(v_0 \\sin\\theta)^2}{2g} = \\frac{(${v0} \\sin ${angle}^\\circ)^2}{2 \\times 9.8}$`
+            };
+          }
+        },
+        {
+          unit: 's',
+          generate: () => {
+            const v0 = rand(20, 50);
+            const angle = rand(20, 60);
+            const rad = toRad(angle);
+            const ans = (2 * v0 * Math.sin(rad)) / G;
+            return {
+              text: `A football is kicked at $v_0 = ${v0}\\text{ m/s}$ at an angle of $\\theta = ${angle}^\\circ$. How many seconds does it stay in the air before landing? ($g = 9.8\\text{ m/s}^2$)`,
+              ans: ans,
+              formula: `$t = \\frac{2 v_0 \\sin\\theta}{g} = \\frac{2 (${v0} \\sin ${angle}^\\circ)}{9.8}$`
+            };
+          }
+        },
+        {
+          unit: 'm',
+          generate: () => {
+            const v0 = rand(10, 30);
+            const h = rand(20, 60);
+            const t = Math.sqrt((2 * h) / G);
+            const ans = v0 * t;
+            return {
+              text: `A ball rolls horizontally off a cliff height $h = ${h}\\text{ m}$ with initial velocity $v_0 = ${v0}\\text{ m/s}$. How far from the cliff base does it land? ($g = 9.8\\text{ m/s}^2$)`,
+              ans: ans,
+              formula: `$t = \\sqrt{\\frac{2h}{g}} = ${t.toFixed(2)}\\text{ s} \\implies x = v_0 t = ${v0} \\times ${t.toFixed(2)}$`
+            };
+          }
+        }
+      ]
+    };
+
+    function selectCategory(cat, btn) {
+      selectedCategory = cat;
+      document.querySelectorAll('#category-grid .btn-option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
+    function selectLength(count, btn) {
+      totalQuestions = count;
+      btn.parentElement.querySelectorAll('.btn-option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
+    function startQuiz() {
+      score = 0;
+      currentQuestionIndex = 0;
+      document.getElementById('setup-screen').classList.add('hidden');
+      document.getElementById('results-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      nextQuestion();
+    }
+
+    function getRandomTemplate() {
+      let activeKeys = (selectedCategory === 'all') ? ['1d', 'gravity', '2d'] : [selectedCategory];
+      const categoryKey = activeKeys[Math.floor(Math.random() * activeKeys.length)];
+      const list = Templates[categoryKey];
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function nextQuestion() {
+      isAnswerSubmitted = false;
+      document.getElementById('action-btn').textContent = "Submit Answer";
+      document.getElementById('user-answer').value = "";
+      document.getElementById('feedback').className = "feedback hidden";
+      
+      document.getElementById('question-tracker').textContent = `Question ${currentQuestionIndex + 1}/${totalQuestions}`;
+      document.getElementById('score-tracker').textContent = `Score: ${score}`;
+
+      const template = getRandomTemplate();
+      currentQuestion = template.generate();
+      currentQuestion.unit = template.unit;
+
+      document.getElementById('question-text').innerHTML = currentQuestion.text;
+      document.getElementById('unit-tag').textContent = currentQuestion.unit;
+
+      renderMath();
+    }
+
+    function submitAnswer() {
+      if (isAnswerSubmitted) {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < totalQuestions) {
+          nextQuestion();
+        } else {
+          showResults();
+        }
+        return;
+      }
+
+      const inputVal = parseFloat(document.getElementById('user-answer').value);
+      if (isNaN(inputVal)) return;
+
+      isAnswerSubmitted = true;
+      const expected = currentQuestion.ans;
+      
+      const relativeDiff = Math.abs(inputVal - expected) / Math.abs(expected);
+      const isCorrect = relativeDiff <= 0.03 || Math.abs(inputVal - expected) < 0.2;
+
+      const feedbackEl = document.getElementById('feedback');
+      feedbackEl.classList.remove('hidden');
+
+      if (isCorrect) {
+        score++;
+        feedbackEl.className = "feedback correct";
+        feedbackEl.innerHTML = `<b>Correct!</b><br>Formula: ${currentQuestion.formula}`;
+      } else {
+        feedbackEl.className = "feedback wrong";
+        feedbackEl.innerHTML = `<b>Incorrect.</b> Correct answer: <b>${expected.toFixed(2)} ${currentQuestion.unit}</b><br>Formula: ${currentQuestion.formula}`;
+      }
+
+      document.getElementById('score-tracker').textContent = `Score: ${score}`;
+      document.getElementById('action-btn').textContent = currentQuestionIndex === totalQuestions - 1 ? "See Results" : "Next Question";
+
+      renderMath();
+    }
+
+    function showResults() {
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('results-screen').classList.remove('hidden');
+      
+      const percentage = Math.round((score / totalQuestions) * 100);
+      document.getElementById('final-score').textContent = `${percentage}%`;
+      document.getElementById('summary-text').textContent = `You answered ${score} out of ${totalQuestions} questions correctly.`;
+    }
+
+    function resetQuiz() {
+      document.getElementById('results-screen').classList.add('hidden');
+      document.getElementById('setup-screen').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

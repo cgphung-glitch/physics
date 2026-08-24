@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Free-Body Diagram Practice - Inclines Included</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --correct: #22c55e;
+      --incorrect: #ef4444;
+      --border: #334155;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: 12px; }
+
+    .app-container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* Header & Stats */
+    .header { background: var(--card-bg); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; font-size: 0.75rem; color: var(--text-muted); gap: 4px; }
+    .stat-val { font-size: 1rem; font-weight: bold; color: var(--text); }
+
+    .quiz-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; pt-2; border-top: 1px solid var(--border); }
+    .btn-sm { background: #334155; color: var(--text); border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
+
+    /* Card Layouts */
+    .card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
+    .scenario-title { font-size: 1.1rem; font-weight: 600; line-height: 1.3; }
+    .scenario-desc { font-size: 0.9rem; color: var(--text-muted); }
+
+    /* Canvas Area */
+    .diagram-area { width: 100%; height: 210px; background: #090d16; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    /* Force Selection & Direction Pad */
+    .palette-label { font-size: 0.75rem; color: var(--text-muted); font-weight: bold; text-transform: uppercase; }
+    .force-selector { display: flex; gap: 6px; flex-wrap: wrap; }
+    .force-btn { background: #334155; color: var(--text); border: 2px solid transparent; padding: 8px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; flex: 1 1 30%; text-align: center; }
+    .force-btn.active { border-color: var(--accent); background: #1e3a8a; }
+
+    /* 8-Way Directional Pad for Incline & Standard Forces */
+    .directional-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 180px; margin: 0 auto; }
+    .dir-btn { background: #334155; color: var(--text); border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.85rem; }
+    .dir-btn:active { background: var(--accent); }
+
+    .placed-vectors { font-size: 0.85rem; background: #090d16; padding: 8px; border-radius: 6px; min-height: 38px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .tag { background: #334155; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; display: flex; align-items: center; gap: 6px; }
+    .tag-remove { color: var(--incorrect); cursor: pointer; font-weight: bold; }
+
+    /* Action Buttons */
+    .btn-main { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; }
+    .btn-main:active { background: var(--accent-hover); }
+
+    /* Feedback Display */
+    .feedback-box { padding: 12px; border-radius: 8px; font-size: 0.9rem; line-height: 1.4; display: none; }
+    .feedback-box.correct { background: rgba(34, 197, 94, 0.15); border: 1px solid var(--correct); color: #4ade80; }
+    .feedback-box.incorrect { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--incorrect); color: #f87171; }
+
+    .comparison-container { display: none; gap: 8px; }
+    .comparison-box { flex: 1; text-align: center; font-size: 0.75rem; color: var(--text-muted); }
+    .comparison-box canvas { position: relative; height: 140px; border-radius: 6px; margin-top: 4px; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- Stats Header -->
+  <div class="header">
+    <div class="stats-grid">
+      <div>Score<div id="stat-score" class="stat-val">0/0</div></div>
+      <div>Streak<div id="stat-streak" class="stat-val">0</div></div>
+      <div>High<div id="stat-high" class="stat-val">0</div></div>
+      <div>Last<div id="stat-last" class="stat-val">-</div></div>
+    </div>
+    <div class="quiz-bar">
+      <span id="progress-text" style="font-size:0.8rem; color: var(--text-muted);">Question 1 of 10</span>
+      <button class="btn-sm" onclick="restartQuiz()">Restart Quiz</button>
+    </div>
+  </div>
+
+  <!-- Main Quiz Area -->
+  <div id="quiz-card" class="card">
+    <div>
+      <div id="scenario-title" class="scenario-title">Scenario Title</div>
+      <div id="scenario-desc" class="scenario-desc">Scenario description will load here...</div>
+    </div>
+
+    <!-- Canvas -->
+    <div class="diagram-area">
+      <canvas id="mainCanvas"></canvas>
+    </div>
+
+    <!-- Controls -->
+    <div id="interactive-controls">
+      <div class="palette-label">1. Select Force Type</div>
+      <div class="force-selector" id="force-selector">
+        <button class="force-btn active" data-force="Fg">Fg (Gravity)</button>
+        <button class="force-btn" data-force="Fn">Fn (Normal)</button>
+        <button class="force-btn" data-force="Ff">Ff (Friction)</button>
+        <button class="force-btn" data-force="Ft">Ft (Tension)</button>
+        <button class="force-btn" data-force="Fapp">Fapp (Applied)</button>
+        <button class="force-btn" data-force="Fair">Fair (Drag)</button>
+      </div>
+
+      <div class="palette-label" style="margin-top:8px;">2. Choose Direction</div>
+      <div class="directional-pad">
+        <button class="dir-btn" onclick="addVector('UP-LEFT')">↖</button>
+        <button class="dir-btn" onclick="addVector('UP')">↑</button>
+        <button class="dir-btn" onclick="addVector('UP-RIGHT')">↗</button>
+        <button class="dir-btn" onclick="addVector('LEFT')">←</button>
+        <div style="text-align:center; font-size:0.6rem; color:var(--text-muted); align-self:center;">ORIGIN</div>
+        <button class="dir-btn" onclick="addVector('RIGHT')">→</button>
+        <button class="dir-btn" onclick="addVector('DOWN-LEFT')">↙</button>
+        <button class="dir-btn" onclick="addVector('DOWN')">↓</button>
+        <button class="dir-btn" onclick="addVector('DOWN-RIGHT')">↘</button>
+      </div>
+
+      <div class="palette-label" style="margin-top:8px;">Active Vectors</div>
+      <div class="placed-vectors" id="vector-tags">
+        <span style="color:var(--text-muted); font-size:0.75rem;">No vectors placed yet.</span>
+      </div>
+
+      <button class="btn-main" style="margin-top:10px;" onclick="submitAnswer()">Submit Diagram</button>
+    </div>
+
+    <!-- Feedback Area -->
+    <div id="feedback-card" class="hidden" style="display:flex; flex-direction:column; gap:12px;">
+      <div id="feedback-box" class="feedback-box"></div>
+
+      <div id="comparison-container" class="comparison-container">
+        <div class="comparison-box">
+          YOUR DIAGRAM
+          <div class="diagram-area" style="height:140px;"><canvas id="userCanvas"></canvas></div>
+        </div>
+        <div class="comparison-box">
+          CORRECT DIAGRAM
+          <div class="diagram-area" style="height:140px;"><canvas id="correctCanvas"></canvas></div>
+        </div>
+      </div>
+
+      <button id="next-btn" class="btn-main" onclick="nextQuestion()">Next Scenario</button>
+    </div>
+  </div>
+
+  <!-- Settings Screen -->
+  <div id="setup-card" class="card hidden">
+    <div class="scenario-title">Start New Quiz</div>
+    <div class="scenario-desc">Select the total number of problems for this session:</div>
+    <div style="display:flex; gap:10px; margin: 10px 0;">
+      <button class="btn-main" style="background:#334155" onclick="startQuiz(10)">10 Problems</button>
+      <button class="btn-main" style="background:#334155" onclick="startQuiz(20)">20 Problems</button>
+      <button class="btn-main" style="background:#334155" onclick="startQuiz(30)">30 Problems</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Database containing 30 physics scenarios including Incline Problems
+  const scenarios = [
+    // --- INCLINE SCENARIOS ---
+    { title: "Incline: Stationary Block (Friction)", desc: "A block rests stationary on a ramp sloped up to the right. Static friction holds it in place.", incline: 30, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP-LEFT" }, { type: "Ff", dir: "UP-RIGHT" }], explanation: "Gravity acts straight DOWN. Normal force acts perpendicular to ramp (UP-LEFT). Static friction prevents sliding by pointing UP the incline (UP-RIGHT)." },
+    { title: "Incline: Block Sliding Down Rough Ramp", desc: "A block slides DOWN a ramp angled up to the right, with friction present.", incline: 30, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP-LEFT" }, { type: "Ff", dir: "UP-RIGHT" }], explanation: "Gravity acts straight DOWN. Normal force points UP-LEFT. Kinetic friction opposes motion, pointing back UP the ramp (UP-RIGHT)." },
+    { title: "Incline: Frictionless Ramp Acceleration", desc: "A box slides down a completely smooth (frictionless) ramp sloping up to the right.", incline: 30, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP-LEFT" }], explanation: "Without friction, only two forces exist: Gravity straight DOWN and Normal force perpendicular to the ramp (UP-LEFT)." },
+    { title: "Incline: Pulled UP Ramp at Constant Speed", desc: "A crate is pulled UP a rough ramp (sloped up-right) by a rope attached to a winch.", incline: 30, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP-LEFT" }, { type: "Ft", dir: "UP-RIGHT" }, { type: "Ff", dir: "DOWN-LEFT" }], explanation: "Tension pulls UP the ramp (UP-RIGHT). Friction opposes motion DOWN the ramp (DOWN-LEFT). Fn is perpendicular, Fg is DOWN." },
+    { title: "Incline: Crate Pushed UP Smooth Ramp", desc: "An applied force pushes a crate UP a frictionless ramp sloped up to the right.", incline: 30, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP-LEFT" }, { type: "Fapp", dir: "UP-RIGHT" }], explanation: "Applied force acts up along the ramp (UP-RIGHT). Normal force acts perpendicular (UP-LEFT), and Gravity acts DOWN." },
+    { title: "Incline: Box Sliding UP Slope to a Stop", desc: "A box was kicked and is now sliding UP a rough slope (sloped up-right), slowing down.", incline: 30, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP-LEFT" }, { type: "Ff", dir: "DOWN-LEFT" }], explanation: "There is no forward applied force! Friction points DOWN the slope (DOWN-LEFT) opposing the upward velocity." },
+    { title: "Incline: Ramp Sloped Up-Left (Stationary)", desc: "A block rests stationary on a hill sloped UP to the LEFT.", incline: -30, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP-RIGHT" }, { type: "Ff", dir: "UP-LEFT" }], explanation: "Gravity acts DOWN. Normal force points perpendicular (UP-RIGHT). Static friction points UP the incline (UP-LEFT)." },
+    { title: "Incline: Car Parked on Steep Hill", desc: "A car is parked facing down a steep hill (sloped up-right). Brakes are locked.", incline: 30, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP-LEFT" }, { type: "Ff", dir: "UP-RIGHT" }], explanation: "Gravity points DOWN. Fn is perpendicular (UP-LEFT). Static friction points up the hill (UP-RIGHT)." },
+
+    // --- STANDARD FLAT & VERTICAL SCENARIOS ---
+    { title: "Book at Rest on Desk", desc: "A physics textbook sits motionless on a flat, horizontal desk.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP" }], explanation: "Gravity acts downward. Normal force acts straight upward." },
+    { title: "Block Pushed Across Floor", desc: "A block is pushed right at constant speed across a rough horizontal floor.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP" }, { type: "Fapp", dir: "RIGHT" }, { type: "Ff", dir: "LEFT" }], explanation: "Constant speed: Fapp equals Friction (Ff), Gravity (Fg) equals Normal force (Fn)." },
+    { title: "Hanging Weight", desc: "A mass hangs stationary from a vertical string.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Ft", dir: "UP" }], explanation: "Tension in the string acts UP to balance Gravity DOWN." },
+    { title: "Terminal Velocity Skydiver", desc: "A skydiver falls straight down at terminal velocity.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fair", dir: "UP" }], explanation: "Air resistance (Fair) equals downward Gravity (Fg)." },
+    { title: "Sled Accelerating Right", desc: "A sled is pulled right across snow with increasing speed (friction present).", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP" }, { type: "Fapp", dir: "RIGHT" }, { type: "Ff", dir: "LEFT" }], explanation: "Applied force to the right exceeds kinetic friction to the left." },
+    { title: "Elevator Accelerating Upward", desc: "An elevator speeds up while moving upward.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP" }], explanation: "Normal force pointing UP is greater than Gravity pointing DOWN." },
+    { title: "Elevator Slowing Down Moving Up", desc: "An elevator moves upward while slowing down to stop.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP" }], explanation: "Downward net acceleration means Gravity exceeds Normal force." },
+    { title: "Rocket Liftoff", desc: "A rocket accelerates straight up off its pad.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fapp", dir: "UP" }], explanation: "Thrust (Fapp) upward exceeds downward Gravity." },
+    { title: "Box Sliding to a Stop", desc: "A box slides right across a rough floor, slowing down. Unpushed.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP" }, { type: "Ff", dir: "LEFT" }], explanation: "No forward force exists! Friction acts left opposing motion." },
+    { title: "Car Braking to the Left", desc: "A car moving left applies brakes and slows down.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP" }, { type: "Ff", dir: "RIGHT" }], explanation: "Friction acts opposite to motion, pointing right." },
+    { title: "Crate Pulled Left at Constant Speed", desc: "A crate is pulled left across a rough floor at constant velocity.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP" }, { type: "Ft", dir: "LEFT" }, { type: "Ff", dir: "RIGHT" }], explanation: "Tension left is balanced by kinetic friction right." },
+    { title: "Ball Free-Falling", desc: "A ball is dropped from a cliff (ignore air resistance).", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }], explanation: "Only Gravity acts on the ball during free fall." },
+    { title: "Ball Tossed Upward (Rising)", desc: "A ball moves upward through the air after release (ignore drag).", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }], explanation: "Once released, no upward force exists. Gravity acts downward." },
+    { title: "Magnet Attached to Ceiling", desc: "A magnetic block stays attached to a metal ceiling.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "DOWN" }, { type: "Fapp", dir: "UP" }], explanation: "Magnetic force pulls UP while Gravity and Normal force push DOWN." },
+    { title: "Parachutist Accelerating Down", desc: "A parachutist falls down and speeds up before terminal velocity.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fair", dir: "UP" }], explanation: "Gravity DOWN is larger than upward drag." },
+    { title: "Submarine Floating at Depth", desc: "A submarine floats stationary underwater.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP" }], explanation: "Buoyancy (Fn equivalent) balances Gravity." },
+    { title: "Puck Gliding on Frictionless Ice", desc: "A puck glides right across smooth ice at constant speed.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP" }], explanation: "No horizontal forces exist on frictionless surface." },
+    { title: "Water Bucket Lifted Vertically", desc: "A bucket is pulled upward out of a well at constant speed.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Ft", dir: "UP" }], explanation: "Tension equals Gravity during constant speed." },
+    { title: "Base Runner Sliding Right", desc: "A player slides right across dirt, slowing down.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fn", dir: "UP" }, { type: "Ff", dir: "LEFT" }], explanation: "Friction acts left opposing slide." },
+    { title: "Tug of War Rope Stationary", desc: "A knot in a rope stays still while both teams pull.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Ft", dir: "LEFT" }, { type: "Ft", dir: "RIGHT" }], explanation: "Tension pulls equally in both horizontal directions." },
+    { title: "Ceiling Fan at Rest", desc: "A fan hangs stationary from a ceiling beam.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Ft", dir: "UP" }], explanation: "Tension in mount balances Gravity." },
+    { title: "Object Dropped with Drag", desc: "A heavy object drops through fluid, accelerating down against drag.", incline: 0, forces: [{ type: "Fg", dir: "DOWN" }, { type: "Fair", dir: "UP" }], explanation: "Gravity downward exceeds fluid drag upward." }
+  ];
+
+  // Game State
+  let quizLength = 10;
+  let currentQuestions = [];
+  let currentIndex = 0;
+  let score = 0;
+  let streak = 0;
+  let selectedForce = "Fg";
+  let userVectors = [];
+
+  let highScore = localStorage.getItem("fbd_high") || 0;
+  let lastScore = localStorage.getItem("fbd_last") || "-";
+
+  const forceButtons = document.querySelectorAll(".force-btn");
+
+  window.onload = () => {
+    updateStatsDisplay();
+    setupForcePalette();
+    startQuiz(10);
+  };
+
+  function updateStatsDisplay() {
+    document.getElementById("stat-score").innerText = `${score}/${currentIndex}`;
+    document.getElementById("stat-streak").innerText = streak;
+    document.getElementById("stat-high").innerText = highScore;
+    document.getElementById("stat-last").innerText = lastScore;
+  }
+
+  function setupForcePalette() {
+    forceButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        forceButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        selectedForce = btn.dataset.force;
+      });
+    });
+  }
+
+  function startQuiz(length) {
+    quizLength = length;
+    currentQuestions = [...scenarios].sort(() => 0.5 - Math.random()).slice(0, quizLength);
+    currentIndex = 0;
+    score = 0;
+    streak = 0;
+    
+    document.getElementById("setup-card").classList.add("hidden");
+    document.getElementById("quiz-card").classList.remove("hidden");
+    loadQuestion();
+  }
+
+  function restartQuiz() {
+    document.getElementById("quiz-card").classList.add("hidden");
+    document.getElementById("setup-card").classList.remove("hidden");
+  }
+
+  function loadQuestion() {
+    userVectors = [];
+    updateTags();
+    document.getElementById("interactive-controls").classList.remove("hidden");
+    document.getElementById("feedback-card").classList.add("hidden");
+    document.getElementById("comparison-container").style.display = "none";
+    
+    const q = currentQuestions[currentIndex];
+    document.getElementById("scenario-title").innerText = `${currentIndex + 1}. ${q.title}`;
+    document.getElementById("scenario-desc").innerText = q.desc;
+    document.getElementById("progress-text").innerText = `Question ${currentIndex + 1} of ${quizLength}`;
+    
+    updateStatsDisplay();
+    renderCanvas("mainCanvas", userVectors, q.incline || 0);
+  }
+
+  function addVector(dir) {
+    if (!userVectors.some(v => v.type === selectedForce && v.dir === dir)) {
+      userVectors.push({ type: selectedForce, dir: dir });
+      updateTags();
+      const q = currentQuestions[currentIndex];
+      renderCanvas("mainCanvas", userVectors, q.incline || 0);
+    }
+  }
+
+  function removeVector(index) {
+    userVectors.splice(index, 1);
+    updateTags();
+    const q = currentQuestions[currentIndex];
+    renderCanvas("mainCanvas", userVectors, q.incline || 0);
+  }
+
+  function updateTags() {
+    const container = document.getElementById("vector-tags");
+    if (userVectors.length === 0) {
+      container.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem;">No vectors placed yet.</span>';
+      return;
+    }
+    container.innerHTML = userVectors.map((v, i) => `
+      <div class="tag">
+        ${v.type} (${v.dir})
+        <span class="tag-remove" onclick="removeVector(${i})">&times;</span>
+      </div>
+    `).join("");
+  }
+
+  function submitAnswer() {
+    const q = currentQuestions[currentIndex];
+    const isCorrect = userVectors.length === q.forces.length &&
+      q.forces.every(target => userVectors.some(uv => uv.type === target.type && uv.dir === target.dir));
+
+    document.getElementById("interactive-controls").classList.add("hidden");
+    const feedbackBox = document.getElementById("feedback-box");
+    const feedbackCard = document.getElementById("feedback-card");
+    feedbackCard.classList.remove("hidden");
+
+    if (isCorrect) {
+      score++;
+      streak++;
+      if (streak > highScore) {
+        highScore = streak;
+        localStorage.setItem("fbd_high", highScore);
+      }
+      feedbackBox.className = "feedback-box correct";
+      feedbackBox.innerHTML = `<strong>Correct!</strong><br>${q.explanation}`;
+    } else {
+      streak = 0;
+      feedbackBox.className = "feedback-box incorrect";
+      feedbackBox.innerHTML = `<strong>Incorrect.</strong><br>${q.explanation}`;
+      
+      document.getElementById("comparison-container").style.display = "flex";
+      setTimeout(() => {
+        renderCanvas("userCanvas", userVectors, q.incline || 0);
+        renderCanvas("correctCanvas", q.forces, q.incline || 0);
+      }, 50);
+    }
+
+    updateStatsDisplay();
+  }
+
+  function nextQuestion() {
+    currentIndex++;
+    if (currentIndex >= currentQuestions.length) {
+      lastScore = `${score}/${quizLength}`;
+      localStorage.setItem("fbd_last", lastScore);
+      alert(`Quiz Finished! Score: ${score}/${quizLength}`);
+      restartQuiz();
+    } else {
+      loadQuestion();
+    }
+  }
+
+  /* Rendering Visual Diagrams */
+  function renderCanvas(canvasId, vectors, inclineAngle = 0) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const w = rect.width;
+    const h = rect.height;
+    const cx = w / 2;
+    const cy = h / 2;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Draw Incline surface if applicable
+    if (inclineAngle !== 0) {
+      ctx.save();
+      ctx.strokeStyle = "#475569";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      const rad = (inclineAngle * Math.PI) / 180;
+      const rLen = 120;
+      ctx.moveTo(cx - Math.cos(rad)*rLen, cy + Math.sin(rad)*rLen);
+      ctx.lineTo(cx + Math.cos(rad)*rLen, cy - Math.sin(rad)*rLen);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Draw Central Object Box
+    ctx.save();
+    if (inclineAngle !== 0) {
+      ctx.translate(cx, cy);
+      ctx.rotate(- (inclineAngle * Math.PI) / 180);
+      ctx.translate(-cx, -cy);
+    }
+    const boxSize = 34;
+    ctx.fillStyle = "#3b82f6";
+    ctx.strokeStyle = "#93c5fd";
+    ctx.lineWidth = 2;
+    ctx.fillRect(cx - boxSize/2, cy - boxSize/2, boxSize, boxSize);
+    ctx.strokeRect(cx - boxSize/2, cy - boxSize/2, boxSize, boxSize);
+    ctx.restore();
+
+    // Draw Vectors
+    vectors.forEach(v => {
+      let dx = 0, dy = 0;
+      const len = 48;
+
+      if (v.dir === "UP") dy = -len;
+      if (v.dir === "DOWN") dy = len;
+      if (v.dir === "LEFT") dx = -len;
+      if (v.dir === "RIGHT") dx = len;
+      if (v.dir === "UP-LEFT") { dx = -len * 0.707; dy = -len * 0.707; }
+      if (v.dir === "UP-RIGHT") { dx = len * 0.707; dy = -len * 0.707; }
+      if (v.dir === "DOWN-LEFT") { dx = -len * 0.707; dy = len * 0.707; }
+      if (v.dir === "DOWN-RIGHT") { dx = len * 0.707; dy = len * 0.707; }
+
+      drawArrow(ctx, cx, cy, cx + dx, cy + dy, v.type);
+    });
+  }
+
+  function drawArrow(ctx, fromx, fromy, tox, toy, label) {
+    const headlen = 10;
+    const dx = tox - fromx;
+    const dy = toy - fromy;
+    const angle = Math.atan2(dy, dx);
+
+    ctx.strokeStyle = "#f59e0b";
+    ctx.fillStyle = "#f59e0b";
+    ctx.lineWidth = 3;
+
+    ctx.beginPath();
+    ctx.moveTo(fromx, fromy);
+    ctx.lineTo(tox, toy);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(tox, toy);
+    ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.font = "bold 11px sans-serif";
+    ctx.fillStyle = "#f8fafc";
+    let lx = tox + Math.cos(angle) * 12;
+    let ly = toy + Math.sin(angle) * 12;
+    ctx.fillText(label, lx - 8, ly + 4);
+  }
+</script>
+</body>
+</html>

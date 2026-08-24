@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acceleration vs Time and Δv</title>
+<style>
+  body { font-family: sans-serif; max-width: 900px; margin: 20px auto; }
+  .controls { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+  .control { min-width: 220px; }
+  canvas { border: 1px solid #444; margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<h2>Acceleration vs Time and Change in Velocity</h2>
+<p>
+Two constant-acceleration phases: \(a_1\) for time \(T_1\), then \(a_2\) for time \(T_2\).
+The area under \(a(t)\) in each interval gives the change in velocity.
+</p>
+
+<div class="controls">
+  <div class="control">
+    <label for="a1">a₁ (m/s²)</label>
+    <input id="a1" type="range" min="-5" max="5" step="0.5" value="2">
+    <div id="a1Val">a₁ = 2 m/s²</div>
+  </div>
+  <div class="control">
+    <label for="T1">T₁ (s)</label>
+    <input id="T1" type="range" min="1" max="8" step="1" value="4">
+    <div id="T1Val">T₁ = 4 s</div>
+  </div>
+  <div class="control">
+    <label for="a2">a₂ (m/s²)</label>
+    <input id="a2" type="range" min="-5" max="5" step="0.5" value="-1">
+    <div id="a2Val">a₂ = -1 m/s²</div>
+  </div>
+  <div class="control">
+    <label for="T2">T₂ (s)</label>
+    <input id="T2" type="range" min="1" max="8" step="1" value="4">
+    <div id="T2Val">T₂ = 4 s</div>
+  </div>
+</div>
+
+<canvas id="aCanvas" width="850" height="220"></canvas>
+<canvas id="vCanvas" width="850" height="220"></canvas>
+<div id="numbers"></div>
+
+<script>
+const a1Slider = document.getElementById('a1');
+const T1Slider = document.getElementById('T1');
+const a2Slider = document.getElementById('a2');
+const T2Slider = document.getElementById('T2');
+const a1Val = document.getElementById('a1Val');
+const T1Val = document.getElementById('T1Val');
+const a2Val = document.getElementById('a2Val');
+const T2Val = document.getElementById('T2Val');
+const numbers = document.getElementById('numbers');
+
+const aCanvas = document.getElementById('aCanvas');
+const vCanvas = document.getElementById('vCanvas');
+const aCtx = aCanvas.getContext('2d');
+const vCtx = vCanvas.getContext('2d');
+
+function redraw() {
+  const a1 = parseFloat(a1Slider.value);
+  const T1 = parseFloat(T1Slider.value);
+  const a2 = parseFloat(a2Slider.value);
+  const T2 = parseFloat(T2Slider.value);
+
+  a1Val.textContent = `a₁ = ${a1.toFixed(1)} m/s²`;
+  T1Val.textContent = `T₁ = ${T1.toFixed(1)} s`;
+  a2Val.textContent = `a₂ = ${a2.toFixed(1)} m/s²`;
+  T2Val.textContent = `T₂ = ${T2.toFixed(1)} s`;
+
+  const tTotal = T1 + T2;
+  const padding = 40;
+  const w = aCanvas.width, h = aCanvas.height;
+
+  function toScreen(canvas, t, y, tTotal, yMin, yMax) {
+    const w = canvas.width, h = canvas.height;
+    const padding = 40;
+    const sx = padding + (t / tTotal) * (w - 2 * padding);
+    const sy = h - padding - ((y - yMin) / (yMax - yMin)) * (h - 2 * padding);
+    return { x: sx, y: sy };
+  }
+
+  // Draw a(t)
+  aCtx.clearRect(0, 0, w, h);
+  aCtx.strokeStyle = '#000';
+  aCtx.beginPath();
+  aCtx.moveTo(padding, h - padding);
+  aCtx.lineTo(w - padding, h - padding);
+  aCtx.moveTo(padding, padding);
+  aCtx.lineTo(padding, h - padding);
+  aCtx.stroke();
+  aCtx.font = '14px sans-serif';
+  aCtx.fillText('t (s)', w - padding + 5, h - padding + 15);
+  aCtx.fillText('a (m/s²)', padding - 40, padding - 10);
+
+  const aMin = -6, aMax = 6;
+
+  // first interval rectangle
+  const p1Start = toScreen(aCanvas, 0, a1, tTotal, aMin, aMax);
+  const p1End = toScreen(aCanvas, T1, a1, tTotal, aMin, aMax);
+  aCtx.fillStyle = 'rgba(0, 119, 204, 0.3)';
+  aCtx.beginPath();
+  aCtx.moveTo(p1Start.x, p1Start.y);
+  aCtx.lineTo(p1End.x, p1End.y);
+  const base1 = toScreen(aCanvas, T1, 0, tTotal, aMin, aMax);
+  const base0 = toScreen(aCanvas, 0, 0, tTotal, aMin, aMax);
+  aCtx.lineTo(base1.x, base1.y);
+  aCtx.lineTo(base0.x, base0.y);
+  aCtx.closePath();
+  aCtx.fill();
+
+  // second interval rectangle
+  const p2Start = toScreen(aCanvas, T1, a2, tTotal, aMin, aMax);
+  const p2End = toScreen(aCanvas, tTotal, a2, tTotal, aMin, aMax);
+  const base2Start = toScreen(aCanvas, T1, 0, tTotal, aMin, aMax);
+  const base2End = toScreen(aCanvas, tTotal, 0, tTotal, aMin, aMax);
+  aCtx.fillStyle = 'rgba(204, 119, 0, 0.3)';
+  aCtx.beginPath();
+  aCtx.moveTo(p2Start.x, p2Start.y);
+  aCtx.lineTo(p2End.x, p2End.y);
+  aCtx.lineTo(base2End.x, base2End.y);
+  aCtx.lineTo(base2Start.x, base2Start.y);
+  aCtx.closePath();
+  aCtx.fill();
+
+  // Draw v(t) from integrating a(t)
+  vCtx.clearRect(0, 0, vCanvas.width, vCanvas.height);
+  vCtx.strokeStyle = '#000';
+  vCtx.beginPath();
+  vCtx.moveTo(padding, vCanvas.height - padding);
+  vCtx.lineTo(vCanvas.width - padding, vCanvas.height - padding);
+  vCtx.moveTo(padding, padding);
+  vCtx.lineTo(padding, vCanvas.height - padding);
+  vCtx.stroke();
+  vCtx.font = '14px sans-serif';
+  vCtx.fillText('t (s)', vCanvas.width - padding + 5, vCanvas.height - padding + 15);
+  vCtx.fillText('v (m/s)', padding - 35, padding - 10);
+
+  const vMin = -20, vMax = 40;
+  const v0 = 0;
+  const dv1 = a1 * T1;
+  const v1 = v0 + dv1;
+  const dv2 = a2 * T2;
+  const v2 = v1 + dv2;
+
+  vCtx.strokeStyle = '#0077cc';
+  vCtx.lineWidth = 2;
+  vCtx.beginPath();
+  let p = toScreen(vCanvas, 0, v0, tTotal, vMin, vMax);
+  vCtx.moveTo(p.x, p.y);
+  p = toScreen(vCanvas, T1, v1, tTotal, vMin, vMax);
+  vCtx.lineTo(p.x, p.y);
+  p = toScreen(vCanvas, tTotal, v2, tTotal, vMin, vMax);
+  vCtx.lineTo(p.x, p.y);
+  vCtx.stroke();
+
+  numbers.textContent =
+    `Δv₁ = a₁ T₁ = ${(dv1).toFixed(2)} m/s, Δv₂ = a₂ T₂ = ${(dv2).toFixed(2)} m/s, total Δv = ${(dv1 + dv2).toFixed(2)} m/s.`;
+}
+
+[a1Slider, T1Slider, a2Slider, T2Slider].forEach(el => el.addEventListener('input', redraw));
+redraw();
+</script>
+</body>
+</html>
