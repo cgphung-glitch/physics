@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kinematics Graph Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1117;
+    --panel:#141a20;
+    --panel2:#171e25;
+    --border:#232b33;
+    --text:#e6edf3;
+    --text-dim:#8b98a5;
+    --amber:#e8a33d;
+    --teal:#4fd1c5;
+    --blue:#5b9bd5;
+    --orange:#e8934a;
+    --red:#d9534f;
+    --danger:#e5534b;
+    --mono:'JetBrains Mono', ui-monospace, monospace;
+    --serif:'Fraunces', Georgia, serif;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:
+      linear-gradient(var(--bg), var(--bg)),
+      repeating-linear-gradient(0deg, rgba(79,209,197,0.035) 0px, rgba(79,209,197,0.035) 1px, transparent 1px, transparent 28px),
+      repeating-linear-gradient(90deg, rgba(79,209,197,0.035) 0px, rgba(79,209,197,0.035) 1px, transparent 1px, transparent 28px);
+    color:var(--text);
+    font-family:var(--mono);
+    min-height:100vh;
+    padding:16px;
+  }
+  .wrap{ max-width:1100px; margin:0 auto; }
+  header{ margin-bottom:14px; }
+  header h1{
+    font-family:var(--serif); font-weight:700; font-size:28px; margin:0 0 2px 0;
+    letter-spacing:0.2px;
+  }
+  header h1 .accent{ color:var(--amber); }
+  header p{ margin:0; color:var(--text-dim); font-size:13px; }
+
+  nav.modes{
+    display:flex; gap:6px; margin:14px 0; border-bottom:1px solid var(--border); padding-bottom:0;
+    flex-wrap:wrap;
+  }
+  nav.modes button{
+    background:transparent; border:1px solid transparent; border-bottom:none;
+    color:var(--text-dim); font-family:var(--mono); font-size:12.5px; font-weight:600;
+    padding:9px 14px; border-radius:8px 8px 0 0; cursor:pointer; letter-spacing:0.3px;
+    text-transform:uppercase;
+  }
+  nav.modes button.active{
+    color:var(--amber); background:var(--panel); border-color:var(--border);
+    border-bottom:2px solid var(--panel); margin-bottom:-1px;
+  }
+  nav.modes button:hover:not(.active){ color:var(--text); }
+
+  .mode-panel{ display:none; }
+  .mode-panel.active{ display:block; }
+
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:14px; margin-bottom:14px;
+  }
+  .card h2{
+    font-family:var(--serif); font-size:15px; font-weight:600; margin:0 0 10px 0;
+    color:var(--teal); text-transform:none;
+  }
+  .split{ display:grid; grid-template-columns:1.15fr 0.85fr; gap:14px; align-items:start; }
+  @media (max-width:820px){ .split{ grid-template-columns:1fr; } }
+
+  /* track */
+  .track-wrap{ position:relative; }
+  #trackSvg-explore, #trackSvg-draw, #trackSvg-match{
+    width:100%; height:96px; display:block; touch-action:none;
+    background:var(--panel2); border:1px solid var(--border); border-radius:8px;
+  }
+  .track-label{ font-size:11px; color:var(--text-dim); margin-top:4px; }
+
+  /* controls */
+  .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
+  .row.tight{ margin-bottom:4px; }
+  .field{ display:flex; flex-direction:column; gap:3px; flex:1; min-width:120px; }
+  .field label{ font-size:11px; color:var(--text-dim); display:flex; justify-content:space-between; }
+  .field label b{ color:var(--text); font-weight:600; }
+  input[type=range]{
+    width:100%; accent-color:var(--amber); height:20px; cursor:pointer;
+  }
+  input[type=number]{
+    background:#0b1015; border:1px solid var(--border); color:var(--text);
+    font-family:var(--mono); font-size:12.5px; padding:5px 6px; border-radius:6px; width:100%;
+  }
+  button.btn{
+    background:#182029; border:1px solid var(--border); color:var(--text);
+    font-family:var(--mono); font-size:12px; font-weight:600; padding:7px 12px;
+    border-radius:7px; cursor:pointer; white-space:nowrap;
+  }
+  button.btn:hover{ border-color:var(--teal); color:var(--teal); }
+  button.btn.primary{ border-color:var(--amber); color:var(--amber); }
+  button.btn.primary:hover{ background:var(--amber); color:#0d1117; }
+  button.btn.small{ padding:5px 9px; font-size:11px; }
+  button.btn:disabled{ opacity:0.35; cursor:not-allowed; }
+  .preset-grid{ display:flex; flex-wrap:wrap; gap:6px; }
+
+  .playbar{
+    display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--panel2);
+    border:1px solid var(--border); border-radius:8px; margin-top:10px;
+    position:sticky; bottom:8px; z-index:5;
+  }
+  .playbar .time{ font-size:12px; color:var(--text-dim); min-width:74px; }
+  .playbar .spacer{ flex:1; }
+  .speedbtns{ display:flex; gap:4px; }
+  .speedbtns button{ padding:4px 8px; font-size:11px; }
+  .speedbtns button.active{ border-color:var(--teal); color:var(--teal); }
+
+  /* graphs */
+  .graphs{ display:flex; flex-direction:column; gap:6px; }
+  .graph-box{ background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:4px 4px 0 4px; }
+  .glabel{ font-size:11px; color:var(--text-dim); padding:4px 6px 0 6px; }
+  .glabel .sw{ display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; vertical-align:middle; }
+
+  .callout{
+    font-size:12px; color:var(--text-dim); background:var(--panel2); border:1px solid var(--border);
+    border-left:3px solid var(--amber); border-radius:6px; padding:8px 10px; margin-top:8px; line-height:1.45;
+  }
+  .callout b{ color:var(--text); }
+
+  /* draw-to-move handles */
+  .handle{
+    position:absolute; width:16px; height:16px; margin-left:-8px; margin-top:-8px;
+    border-radius:50%; background:var(--amber); border:2px solid #0d1117; cursor:ns-resize;
+    touch-action:none; box-shadow:0 0 0 3px rgba(232,163,61,0.18);
+  }
+  .handle:active{ background:var(--teal); }
+
+  /* scenario / match */
+  .scenario-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap; }
+  .diff-pill{
+    font-size:10px; text-transform:uppercase; letter-spacing:0.4px; padding:2px 8px; border-radius:20px;
+    border:1px solid var(--border); color:var(--text-dim);
+  }
+  .diff-pill.basic{ color:var(--teal); border-color:var(--teal); }
+  .diff-pill.intermediate{ color:var(--amber); border-color:var(--amber); }
+  .diff-pill.advanced{ color:var(--red); border-color:var(--red); }
+  .scenario-text{ font-size:13.5px; line-height:1.5; margin:8px 0; }
+  .score-panel{ display:flex; align-items:center; gap:14px; margin-top:8px; flex-wrap:wrap; }
+  .score-num{ font-family:var(--serif); font-size:30px; font-weight:700; color:var(--amber); min-width:70px; }
+  .score-sub{ font-size:12px; color:var(--text-dim); }
+  .best{ font-size:11px; color:var(--teal); }
+  .hint-box{ font-size:12px; color:var(--text-dim); display:none; margin-top:6px; }
+  .hint-box.shown{ display:block; }
+  .diff-filter{ display:flex; gap:6px; margin-bottom:8px; }
+  .diff-filter button.active{ border-color:var(--teal); color:var(--teal); }
+
+  #status{ font-size:11px; color:var(--text-dim); }
+  footer{ text-align:center; color:var(--text-dim); font-size:11px; margin:22px 0 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Kinematics <span class="accent">Graph Lab</span></h1>
+    <p>Explore, edit, and match motion through linked position–velocity–acceleration graphs. <span id="status"></span></p>
+  </header>
+
+  <nav class="modes">
+    <button class="mode-btn active" data-mode="explore">Explore</button>
+    <button class="mode-btn" data-mode="draw">Draw-to-Move</button>
+    <button class="mode-btn" data-mode="match">Match the Motion</button>
+  </nav>
+
+  <!-- ============================= EXPLORE ============================= -->
+  <section class="mode-panel active" id="panel-explore">
+    <div class="split">
+      <div>
+        <div class="card">
+          <h2>Motion track</h2>
+          <div class="track-wrap"><svg id="trackSvg-explore" viewBox="0 0 700 96"></svg></div>
+          <div class="track-label">Positive direction points right. Dots mark equal time intervals — wider spacing means faster motion.</div>
+
+          <div class="playbar">
+            <button class="btn primary" id="playBtn-explore">▶ Play</button>
+            <div class="time" id="timeLabel-explore">t = 0.00 s</div>
+            <div class="spacer"></div>
+            <div class="speedbtns" id="speedBtns-explore">
+              <button class="btn small" data-speed="0.25">0.25×</button>
+              <button class="btn small active" data-speed="1">1×</button>
+              <button class="btn small" data-speed="2">2×</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Parameters</h2>
+          <div class="row">
+            <div class="field">
+              <label>Initial position x₀ <b id="x0val-explore">0.0 m</b></label>
+              <input type="range" id="x0-explore" min="-10" max="10" step="0.5" value="0">
+            </div>
+            <div class="field">
+              <label>Initial velocity v₀ <b id="v0val-explore">1.0 m/s</b></label>
+              <input type="range" id="v0-explore" min="-6" max="6" step="0.25" value="1">
+            </div>
+            <div class="field">
+              <label>Acceleration a <b id="aval-explore">0.0 m/s²</b></label>
+              <input type="range" id="a-explore" min="-3" max="3" step="0.1" value="0">
+            </div>
+          </div>
+          <div class="row tight">
+            <div class="field" style="max-width:140px;">
+              <label>Duration <b id="durval-explore">10 s</b></label>
+              <input type="range" id="dur-explore" min="4" max="20" step="1" value="10">
+            </div>
+          </div>
+          <div class="preset-grid" id="presets-explore"></div>
+          <div class="callout" id="explore-callout"><b>Reading the graphs:</b> watch how the sign of v(t) tells you the direction of motion, and how the sign of a(t) tells you whether the object is speeding up or slowing down — not whether it's above or below the ground.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Linked graphs</h2>
+        <div class="graphs">
+          <div class="graph-box"><div class="glabel"><span class="sw" style="background:var(--blue)"></span>Position x(t) — m</div><div id="gx-explore" style="height:150px;"></div></div>
+          <div class="graph-box"><div class="glabel"><span class="sw" style="background:var(--orange)"></span>Velocity v(t) — m/s</div><div id="gv-explore" style="height:150px;"></div></div>
+          <div class="graph-box"><div class="glabel"><span class="sw" style="background:var(--red)"></span>Acceleration a(t) — m/s²</div><div id="ga-explore" style="height:150px;"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= DRAW-TO-MOVE ============================= -->
+  <section class="mode-panel" id="panel-draw">
+    <div class="split">
+      <div>
+        <div class="card">
+          <h2>Motion track</h2>
+          <div class="track-wrap"><svg id="trackSvg-draw" viewBox="0 0 700 96"></svg></div>
+          <div class="playbar">
+            <button class="btn primary" id="playBtn-draw">▶ Play</button>
+            <div class="time" id="timeLabel-draw">t = 0.00 s</div>
+            <div class="spacer"></div>
+            <button class="btn small" id="resetBtn-draw">Reset points</button>
+          </div>
+        </div>
+        <div class="callout"><b>Drag the amber points</b> on the velocity graph up or down. Position and acceleration update instantly: acceleration is the slope of each segment, and position is the running total (integral) of velocity.
+          <div style="margin-top:6px;">
+            • A flat segment on v(t) → zero acceleration.<br>
+            • A rising segment → positive acceleration.<br>
+            • A point below the axis → moving in the negative direction.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Linked graphs — edit v(t)</h2>
+        <div class="graphs">
+          <div class="graph-box"><div class="glabel"><span class="sw" style="background:var(--blue)"></span>Position x(t) — m (from integrating v)</div><div id="gx-draw" style="height:150px;"></div></div>
+          <div class="graph-box" style="position:relative;">
+            <div class="glabel"><span class="sw" style="background:var(--orange)"></span>Velocity v(t) — m/s (drag the points)</div>
+            <div id="gv-draw" style="height:170px; position:relative;"></div>
+            <div id="handles-draw" style="position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none;"></div>
+          </div>
+          <div class="graph-box"><div class="glabel"><span class="sw" style="background:var(--red)"></span>Acceleration a(t) — m/s² (slope of each segment)</div><div id="ga-draw" style="height:150px;"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= MATCH THE MOTION ============================= -->
+  <section class="mode-panel" id="panel-match">
+    <div class="card">
+      <div class="scenario-head">
+        <div>
+          <h2 style="margin-bottom:4px;">Scenario <span id="scenarioIdx">1</span> of <span id="scenarioTotal"></span> <span class="diff-pill" id="scenarioDiff">basic</span></h2>
+          <div class="scenario-text" id="scenarioText"></div>
+        </div>
+        <div class="row" style="margin:0;">
+          <button class="btn small" id="prevScenario">◀ Prev</button>
+          <button class="btn small" id="nextScenario">Next ▶</button>
+        </div>
+      </div>
+      <div class="diff-filter" id="diffFilter">
+        <button class="btn small active" data-diff="all">All</button>
+        <button class="btn small" data-diff="basic">Basic</button>
+        <button class="btn small" data-diff="intermediate">Intermediate</button>
+        <button class="btn small" data-diff="advanced">Advanced</button>
+      </div>
+      <button class="btn small" id="hintBtn">Show hint</button>
+      <div class="hint-box" id="hintBox"></div>
+    </div>
+
+    <div class="split">
+      <div>
+        <div class="card">
+          <h2>Your motion</h2>
+          <div class="track-wrap"><svg id="trackSvg-match" viewBox="0 0 700 96"></svg></div>
+          <div class="playbar">
+            <button class="btn primary" id="playBtn-match">▶ Play</button>
+            <div class="time" id="timeLabel-match">t = 0.00 s</div>
+            <div class="spacer"></div>
+            <button class="btn small primary" id="checkBtn">Check match</button>
+          </div>
+        </div>
+
+        <div class="card" id="matchControlsCard-params">
+          <h2>Adjust your motion</h2>
+          <div class="row">
+            <div class="field">
+              <label>Initial position x₀ <b id="x0val-match">0.0 m</b></label>
+              <input type="range" id="x0-match" min="-10" max="10" step="0.5" value="0">
+            </div>
+            <div class="field">
+              <label>Initial velocity v₀ <b id="v0val-match">0.0 m/s</b></label>
+              <input type="range" id="v0-match" min="-6" max="6" step="0.25" value="0">
+            </div>
+            <div class="field">
+              <label>Acceleration a <b id="aval-match">0.0 m/s²</b></label>
+              <input type="range" id="a-match" min="-3" max="3" step="0.1" value="0">
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="matchControlsCard-points" style="display:none;">
+          <h2>Drag the velocity points to match</h2>
+          <div style="font-size:11.5px; color:var(--text-dim);">Same control-point editor as Draw-to-Move — drag the amber points on the v(t) graph below.</div>
+        </div>
+
+        <div class="score-panel">
+          <div class="score-num" id="scoreNum">—</div>
+          <div>
+            <div class="score-sub" id="scoreSub">Adjust your motion, then press "Check match."</div>
+            <div class="best" id="bestScore"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Target (dashed) vs. your motion (solid)</h2>
+        <div class="graphs">
+          <div class="graph-box"><div class="glabel"><span class="sw" style="background:var(--blue)"></span>Position x(t) — m</div><div id="gx-match" style="height:150px;"></div></div>
+          <div class="graph-box" style="position:relative;">
+            <div class="glabel"><span class="sw" style="background:var(--orange)"></span>Velocity v(t) — m/s</div>
+            <div id="gv-match" style="height:170px; position:relative;"></div>
+            <div id="handles-match" style="position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none;"></div>
+          </div>
+          <div class="graph-box"><div class="glabel"><span class="sw" style="background:var(--red)"></span>Acceleration a(t) — m/s²</div><div id="ga-match" style="height:150px;"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Kinematics Graph Lab · single-file, offline-capable · General Physics teaching tool</footer>
+</div>
+
+<script>
+function loadScript(src, onload, onerror){
+  const s = document.createElement('script');
+  s.src = src; s.onload = onload; s.onerror = onerror;
+  document.head.appendChild(s);
+}
+
+function initApp(){
+'use strict';
+
+// ============================================================
+// Shared physics helpers
+// ============================================================
+function calcConst(t, x0, v0, a){
+  return { t, x: x0 + v0*t + 0.5*a*t*t, v: v0 + a*t, a };
+}
+// Sample a constant-acceleration motion at fixed dt across [0,duration]
+function sampleConst(x0, v0, a, duration, dt){
+  const n = Math.round(duration/dt);
+  const T=[], X=[], V=[], A=[];
+  for(let i=0;i<=n;i++){
+    const t = i*dt;
+    const m = calcConst(t, x0, v0, a);
+    T.push(t); X.push(m.x); V.push(m.v); A.push(m.a);
+  }
+  return {T,X,V,A};
+}
+// Sample a piecewise-linear-v(t) motion defined by control points {t,v} (sorted by t)
+// x0 is the starting position. Returns dense arrays plus per-point cumulative x.
+function samplePoints(points, x0, dt){
+  const duration = points[points.length-1].t;
+  const n = Math.round(duration/dt);
+  const T=[], X=[], V=[], A=[];
+  // cumulative position + slope at each control point
+  const cumX = [x0];
+  const slopes = [];
+  for(let i=0;i<points.length-1;i++){
+    const p0=points[i], p1=points[i+1];
+    const segDur = p1.t - p0.t;
+    const slope = segDur>0 ? (p1.v-p0.v)/segDur : 0;
+    slopes.push(slope);
+    cumX.push(cumX[i] + p0.v*segDur + 0.5*slope*segDur*segDur);
+  }
+  let seg = 0;
+  for(let i=0;i<=n;i++){
+    const t = i*dt;
+    while(seg < points.length-2 && t > points[seg+1].t + 1e-9) seg++;
+    const p0 = points[seg], p1 = points[seg+1];
+    const dtseg = t - p0.t;
+    const slope = slopes[seg];
+    const v = p0.v + slope*dtseg;
+    const x = cumX[seg] + p0.v*dtseg + 0.5*slope*dtseg*dtseg;
+    T.push(t); X.push(x); V.push(v); A.push(slope);
+  }
+  return {T,X,V,A, duration};
+}
+function valueAt(T, arr, t){
+  // nearest-index lookup (T is uniform grid starting at 0)
+  const dt = T[1]-T[0];
+  let i = Math.round(t/dt);
+  if(i<0) i=0; if(i>=T.length) i=T.length-1;
+  return arr[i];
+}
+
+// ============================================================
+// Track renderer (SVG): draws number line, direction arrow, cart, motion dots
+// ============================================================
+const TRACK_XMIN=-12, TRACK_XMAX=12;
+function trackXToPixel(x){ return 40 + (x-TRACK_XMIN)/(TRACK_XMAX-TRACK_XMIN) * 620; }
+
+function buildTrack(svgId){
+  const svg = document.getElementById(svgId);
+  svg.innerHTML = '';
+  const ns='http://www.w3.org/2000/svg';
+  // baseline
+  const line = document.createElementNS(ns,'line');
+  line.setAttribute('x1',40); line.setAttribute('x2',660); line.setAttribute('y1',52); line.setAttribute('y2',52);
+  line.setAttribute('stroke','#324150'); line.setAttribute('stroke-width','2');
+  svg.appendChild(line);
+  // ticks every 2 m
+  for(let x=TRACK_XMIN; x<=TRACK_XMAX; x+=2){
+    const px = trackXToPixel(x);
+    const t = document.createElementNS(ns,'line');
+    t.setAttribute('x1',px); t.setAttribute('x2',px); t.setAttribute('y1',46); t.setAttribute('y2',58);
+    t.setAttribute('stroke','#324150'); t.setAttribute('stroke-width', x===0?2:1);
+    svg.appendChild(t);
+    if(x % 4 === 0){
+      const lbl = document.createElementNS(ns,'text');
+      lbl.setAttribute('x',px); lbl.setAttribute('y',72); lbl.setAttribute('text-anchor','middle');
+      lbl.setAttribute('font-size','10'); lbl.setAttribute('fill','#8b98a5'); lbl.setAttribute('font-family','var(--mono)');
+      lbl.textContent = x;
+      svg.appendChild(lbl);
+    }
+  }
+  // origin label
+  const originLbl = document.createElementNS(ns,'text');
+  originLbl.setAttribute('x',trackXToPixel(0)); originLbl.setAttribute('y',86); originLbl.setAttribute('text-anchor','middle');
+  originLbl.setAttribute('font-size','9'); originLbl.setAttribute('fill','#4fd1c5'); originLbl.textContent='origin';
+  svg.appendChild(originLbl);
+  // positive-direction arrow
+  const arrow = document.createElementNS(ns,'g');
+  const shaft = document.createElementNS(ns,'line');
+  shaft.setAttribute('x1',trackXToPixel(9)); shaft.setAttribute('x2',trackXToPixel(11.6));
+  shaft.setAttribute('y1',18); shaft.setAttribute('y2',18);
+  shaft.setAttribute('stroke','#e8a33d'); shaft.setAttribute('stroke-width','2');
+  arrow.appendChild(shaft);
+  const head = document.createElementNS(ns,'polygon');
+  const hx = trackXToPixel(11.6);
+  head.setAttribute('points', `${hx-6},13 ${hx-6},23 ${hx+4},18`);
+  head.setAttribute('fill','#e8a33d');
+  arrow.appendChild(head);
+  const alabel = document.createElementNS(ns,'text');
+  alabel.setAttribute('x',trackXToPixel(9)); alabel.setAttribute('y',12); alabel.setAttribute('font-size','9'); alabel.setAttribute('fill','#e8a33d');
+  alabel.textContent='+x';
+  arrow.appendChild(alabel);
+  svg.appendChild(arrow);
+  // dots group + cart group (populated per-frame)
+  const dotsG = document.createElementNS(ns,'g'); dotsG.setAttribute('id', svgId+'-dots');
+  svg.appendChild(dotsG);
+  const cart = document.createElementNS(ns,'g'); cart.setAttribute('id', svgId+'-cart');
+  const body = document.createElementNS(ns,'rect');
+  body.setAttribute('x',-13); body.setAttribute('y',-11); body.setAttribute('width',26); body.setAttribute('height',16);
+  body.setAttribute('rx',4); body.setAttribute('fill','#4fd1c5'); body.setAttribute('stroke','#0d1117'); body.setAttribute('stroke-width','1.5');
+  cart.appendChild(body);
+  const head2 = document.createElementNS(ns,'circle');
+  head2.setAttribute('cx',0); head2.setAttribute('cy',-19); head2.setAttribute('r',6);
+  head2.setAttribute('fill','#e8a33d'); head2.setAttribute('stroke','#0d1117'); head2.setAttribute('stroke-width','1.5');
+  cart.appendChild(head2);
+  const antenna = document.createElementNS(ns,'line');
+  antenna.setAttribute('x1',0); antenna.setAttribute('y1',-25); antenna.setAttribute('x2',0); antenna.setAttribute('y2',-29);
+  antenna.setAttribute('stroke','#e8a33d'); antenna.setAttribute('stroke-width','1.5');
+  cart.appendChild(antenna);
+  const wheel1 = document.createElementNS(ns,'circle');
+  wheel1.setAttribute('cx',-8); wheel1.setAttribute('cy',7); wheel1.setAttribute('r',3.2); wheel1.setAttribute('fill','#0d1117');
+  cart.appendChild(wheel1);
+  const wheel2 = document.createElementNS(ns,'circle');
+  wheel2.setAttribute('cx',8); wheel2.setAttribute('cy',7); wheel2.setAttribute('r',3.2); wheel2.setAttribute('fill','#0d1117');
+  cart.appendChild(wheel2);
+  svg.appendChild(cart);
+  return { svg, cart, dotsG };
+}
+function updateTrackDots(track, T, X, currentT){
+  track.dotsG.innerHTML = '';
+  const ns='http://www.w3.org/2000/svg';
+  const step = Math.max(1, Math.floor(T.length/22));
+  for(let i=0;i<T.length;i+=step){
+    if(T[i] > currentT+1e-9) break;
+    const px = trackXToPixel(Math.max(TRACK_XMIN, Math.min(TRACK_XMAX, X[i])));
+    const d = document.createElementNS(ns,'circle');
+    d.setAttribute('cx',px); d.setAttribute('cy',52); d.setAttribute('r',2.1);
+    d.setAttribute('fill','#324150');
+    track.dotsG.appendChild(d);
+  }
+}
+function updateCartPos(track, x){
+  const px = trackXToPixel(Math.max(TRACK_XMIN, Math.min(TRACK_XMAX, x)));
+  track.cart.setAttribute('transform', `translate(${px},52)`);
+}
+
+// ============================================================
+// Graph triplet manager (Plotly) — full/faint curve, revealed/solid curve,
+// optional dashed target curve, shared vertical time-cursor.
+// ============================================================
+function darkAxis(title, rangeHint){
+  return {
+    title:{text:title, font:{size:10, color:'#8b98a5'}},
+    color:'#8b98a5', gridcolor:'#232b33', zerolinecolor:'#324150', zerolinewidth:1,
+    tickfont:{size:9}, fixedrange:true, automargin:true
+  };
+}
+function makeGraphTriplet(ids, colors){
+  // ids: {x:'gx-...', v:'gv-...', a:'ga-...'}
+  const common = {
+    margin:{l:38,r:10,t:6,b:22}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
+    showlegend:false,
+    shapes:[{type:'line', x0:0, x1:0, y0:0, y1:1, yref:'paper', line:{color:'#e6edf3', width:1, dash:'dash'}}]
+  };
+  function baseTraces(color){
+    return [
+      { x:[], y:[], mode:'lines', line:{color:color, width:1, dash:'solid'}, opacity:0.28, hoverinfo:'skip', name:'full' },
+      { x:[], y:[], mode:'lines', line:{color:color, width:2.5}, hoverinfo:'skip', name:'revealed' },
+      { x:[], y:[], mode:'lines', line:{color:'#e6edf3', width:1.5, dash:'dot'}, hoverinfo:'skip', name:'target' },
+      { x:[], y:[], mode:'markers', marker:{color:color, size:7, line:{color:'#0d1117', width:1}}, hoverinfo:'skip', name:'points', visible:false }
+    ];
+  }
+  const cfg = {displayModeBar:false, responsive:true, staticPlot:false};
+  Plotly.newPlot(ids.x, baseTraces(colors.x), Object.assign({}, common, {xaxis:darkAxis('t (s)'), yaxis:darkAxis('x (m)')}), cfg);
+  Plotly.newPlot(ids.v, baseTraces(colors.v), Object.assign({}, common, {xaxis:darkAxis('t (s)'), yaxis:darkAxis('v (m/s)')}), cfg);
+  Plotly.newPlot(ids.a, baseTraces(colors.a), Object.assign({}, common, {xaxis:darkAxis('t (s)'), yaxis:darkAxis('a (m/s²)')}), cfg);
+
+  const divs = { x:document.getElementById(ids.x), v:document.getElementById(ids.v), a:document.getElementById(ids.a) };
+
+  return {
+    ids, divs,
+    setFull(which, T, Y){ Plotly.restyle(divs[which], {x:[T], y:[Y]}, [0]); },
+    setRevealed(which, T, Y){ Plotly.restyle(divs[which], {x:[T], y:[Y]}, [1]); },
+    setTarget(which, T, Y){ Plotly.restyle(divs[which], {x:[T], y:[Y]}, [2]); },
+    clearTarget(which){ Plotly.restyle(divs[which], {x:[[]], y:[[]]}, [2]); },
+    setPoints(which, T, Y, visible){ Plotly.restyle(divs[which], {x:[T], y:[Y], visible:visible}, [3]); },
+    setCursor(t){
+      ['x','v','a'].forEach(w=>{
+        Plotly.relayout(divs[w], {'shapes[0].x0':t, 'shapes[0].x1':t});
+      });
+    },
+    relayoutAll(){ ['x','v','a'].forEach(w=> Plotly.relayout(divs[w], {})); }
+  };
+}
+
+const COLORS = { x:'#5b9bd5', v:'#e8934a', a:'#d9534f' };
+
+// ============================================================
+// Generic play/pause animation driver
+// ============================================================
+function makeAnimator(getDuration, onFrame){
+  let playing=false, time=0, speed=1, timer=null;
+  function tick(){
+    time += 0.033*speed;
+    const dur = getDuration();
+    if(time >= dur){ time = dur; pause(); }
+    onFrame(time);
+  }
+  function play(){ if(playing) return; playing=true; timer=setInterval(tick, 33); }
+  function pause(){ playing=false; if(timer) clearInterval(timer); timer=null; }
+  function reset(){ pause(); time=0; onFrame(0); }
+  function setSpeed(s){ speed=s; }
+  function setTime(t){ time=Math.max(0,Math.min(getDuration(),t)); onFrame(time); }
+  return { play, pause, reset, setSpeed, setTime, isPlaying:()=>playing, getTime:()=>time };
+}
+function wirePlaybar(prefix, animator, playBtnId, timeLabelId, speedBtnsId){
+  const playBtn = document.getElementById(playBtnId);
+  playBtn.addEventListener('click', ()=>{
+    if(animator.isPlaying()){ animator.pause(); playBtn.textContent='▶ Play'; }
+    else {
+      if(animator.getTime() >= 0.001 && animator.getTime() >= (animator._dur? animator._dur():0)) animator.reset();
+      animator.play(); playBtn.textContent='⏸ Pause';
+    }
+  });
+  if(speedBtnsId){
+    const box = document.getElementById(speedBtnsId);
+    if(box){
+      box.querySelectorAll('button').forEach(b=>{
+        b.addEventListener('click', ()=>{
+          box.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+          b.classList.add('active');
+          animator.setSpeed(parseFloat(b.dataset.speed));
+        });
+      });
+    }
+  }
+  return playBtn;
+}
+
+// ============================================================
+// EXPLORE MODE
+// ============================================================
+const explore = {};
+function initExplore(){
+  explore.track = buildTrack('trackSvg-explore');
+  explore.graphs = makeGraphTriplet({x:'gx-explore', v:'gv-explore', a:'ga-explore'}, COLORS);
+  explore.x0=0; explore.v0=1; explore.a=0; explore.duration=10; explore.dt=0.05;
+  explore.data = sampleConst(explore.x0, explore.v0, explore.a, explore.duration, explore.dt);
+
+  const x0s=document.getElementById('x0-explore'), v0s=document.getElementById('v0-explore'),
+        as=document.getElementById('a-explore'), durs=document.getElementById('dur-explore');
+  function readParams(){
+    explore.x0=parseFloat(x0s.value); explore.v0=parseFloat(v0s.value);
+    explore.a=parseFloat(as.value); explore.duration=parseFloat(durs.value);
+    document.getElementById('x0val-explore').textContent = explore.x0.toFixed(1)+' m';
+    document.getElementById('v0val-explore').textContent = explore.v0.toFixed(2)+' m/s';
+    document.getElementById('aval-explore').textContent = explore.a.toFixed(1)+' m/s²';
+    document.getElementById('durval-explore').textContent = explore.duration+' s';
+    explore.data = sampleConst(explore.x0, explore.v0, explore.a, explore.duration, explore.dt);
+    explore.graphs.setFull('x', explore.data.T, explore.data.X);
+    explore.graphs.setFull('v', explore.data.T, explore.data.V);
+    explore.graphs.setFull('a', explore.data.T, explore.data.A);
+    explore.animator.setTime(Math.min(explore.animator.getTime(), explore.duration));
+    renderExploreFrame(explore.animator.getTime());
+  }
+  [x0s,v0s,as,durs].forEach(el=> el.addEventListener('input', readParams));
+
+  explore.animator = makeAnimator(()=>explore.duration, renderExploreFrame);
+  explore.animator._dur = ()=>explore.duration;
+  wirePlaybar('explore', explore.animator, 'playBtn-explore', 'timeLabel-explore', 'speedBtns-explore');
+
+  const presets = [
+    {label:'At rest', x0:2, v0:0, a:0},
+    {label:'Const. +v', x0:-6, v0:1.5, a:0},
+    {label:'Const. −v', x0:6, v0:-1.5, a:0},
+    {label:'Speeding up →', x0:-8, v0:0.5, a:0.8},
+    {label:'Slowing, still moving →', x0:-8, v0:4, a:-0.5},
+    {label:'Turning around', x0:0, v0:4, a:-1.2},
+    {label:'Free-fall style (+down)', x0:0, v0:0, a:2.5},
+  ];
+  const grid = document.getElementById('presets-explore');
+  presets.forEach(p=>{
+    const b = document.createElement('button'); b.className='btn small'; b.textContent=p.label;
+    b.addEventListener('click', ()=>{
+      x0s.value=p.x0; v0s.value=p.v0; as.value=p.a; readParams();
+    });
+    grid.appendChild(b);
+  });
+
+  readParams();
+}
+function renderExploreFrame(t){
+  document.getElementById('timeLabel-explore').textContent = 't = '+t.toFixed(2)+' s';
+  const d = explore.data;
+  const idx = Math.min(d.T.length-1, Math.round(t/explore.dt));
+  explore.graphs.setRevealed('x', d.T.slice(0,idx+1), d.X.slice(0,idx+1));
+  explore.graphs.setRevealed('v', d.T.slice(0,idx+1), d.V.slice(0,idx+1));
+  explore.graphs.setRevealed('a', d.T.slice(0,idx+1), d.A.slice(0,idx+1));
+  explore.graphs.setCursor(t);
+  updateTrackDots(explore.track, d.T, d.X, t);
+  updateCartPos(explore.track, d.X[idx]);
+  if(t>=explore.duration-1e-6){ document.getElementById('playBtn-explore').textContent='▶ Play'; }
+}
+
+// ============================================================
+// DRAW-TO-MOVE MODE
+// ============================================================
+const draw = {};
+function defaultDrawPoints(){
+  return [ {t:0,v:1}, {t:2,v:1}, {t:4,v:-0.5}, {t:6,v:-0.5}, {t:8,v:2}, {t:10,v:2} ];
+}
+function initDraw(){
+  draw.track = buildTrack('trackSvg-draw');
+  draw.graphs = makeGraphTriplet({x:'gx-draw', v:'gv-draw', a:'ga-draw'}, COLORS);
+  draw.dt=0.05;
+  draw.points = defaultDrawPoints();
+  draw.vRange = [-6,6];
+  recomputeDraw();
+
+  draw.animator = makeAnimator(()=>draw.points[draw.points.length-1].t, renderDrawFrame);
+  draw.animator._dur = ()=>draw.points[draw.points.length-1].t;
+  wirePlaybar('draw', draw.animator, 'playBtn-draw', 'timeLabel-draw', null);
+
+  document.getElementById('resetBtn-draw').addEventListener('click', ()=>{
+    draw.points = defaultDrawPoints();
+    recomputeDraw(); layoutDrawHandles();
+  });
+
+  window.addEventListener('resize', ()=> layoutDrawHandles());
+  setTimeout(layoutDrawHandles, 60);
+}
+function recomputeDraw(){
+  draw.data = samplePoints(draw.points, 0, draw.dt);
+  draw.graphs.setFull('x', draw.data.T, draw.data.X);
+  draw.graphs.setFull('v', draw.data.T, draw.data.V);
+  draw.graphs.setFull('a', draw.data.T, draw.data.A);
+  draw.graphs.setPoints('v', draw.points.map(p=>p.t), draw.points.map(p=>p.v), true);
+  renderDrawFrame(Math.min(draw.animator ? draw.animator.getTime() : 0, draw.data.duration));
+}
+function renderDrawFrame(t){
+  document.getElementById('timeLabel-draw').textContent = 't = '+t.toFixed(2)+' s';
+  const d = draw.data;
+  const idx = Math.min(d.T.length-1, Math.round(t/draw.dt));
+  draw.graphs.setRevealed('x', d.T.slice(0,idx+1), d.X.slice(0,idx+1));
+  draw.graphs.setRevealed('v', d.T.slice(0,idx+1), d.V.slice(0,idx+1));
+  draw.graphs.setRevealed('a', d.T.slice(0,idx+1), d.A.slice(0,idx+1));
+  draw.graphs.setCursor(t);
+  updateTrackDots(draw.track, d.T, d.X, t);
+  updateCartPos(draw.track, d.X[idx]);
+  if(draw.animator && t>=d.duration-1e-6){ document.getElementById('playBtn-draw').textContent='▶ Play'; }
+}
+
+// --- draggable handle overlay for a points-editor on a given graph triplet ---
+function makePointsEditor(opts){
+  // opts: { graphDiv, handlesDivId, getPoints, setPointValue, vRange, onChange }
+  const handlesDiv = document.getElementById(opts.handlesDivId);
+  function layout(){
+    handlesDiv.innerHTML = '';
+    const gd = opts.graphDiv();
+    if(!gd || !gd._fullLayout) return;
+    const fl = gd._fullLayout;
+    const xa = fl.xaxis, ya = fl.yaxis;
+    const pts = opts.getPoints();
+    pts.forEach((p,i)=>{
+      const px = xa.d2p(p.t) + fl.margin.l;
+      const py = ya.d2p(p.v) + fl.margin.t;
+      const h = document.createElement('div');
+      h.className='handle'; h.style.left=px+'px'; h.style.top=py+'px';
+      h.style.pointerEvents='auto';
+      h.dataset.idx = i;
+      handlesDiv.appendChild(h);
+      function beginDrag(clientY){
+        function move(cy){
+          const gd2 = opts.graphDiv();
+          const fl2 = gd2._fullLayout;
+          const rect = gd2.getBoundingClientRect();
+          const localY = cy - rect.top - fl2.margin.t;
+          let v = fl2.yaxis.p2d(localY);
+          v = Math.max(opts.vRange[0], Math.min(opts.vRange[1], v));
+          opts.setPointValue(i, v);
+          opts.onChange();
+          layout();
+        }
+        function onMouseMove(e){ move(e.clientY); }
+        function onMouseUp(){
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('mouseup', onMouseUp);
+        }
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+      }
+      h.addEventListener('mousedown', e=>{ e.preventDefault(); beginDrag(e.clientY); });
+      h.addEventListener('touchstart', e=>{
+        e.preventDefault();
+        const t0 = e.touches[0];
+        function onTouchMove(e2){
+          e2.preventDefault();
+          const gd2 = opts.graphDiv();
+          const fl2 = gd2._fullLayout;
+          const rect = gd2.getBoundingClientRect();
+          const localY = e2.touches[0].clientY - rect.top - fl2.margin.t;
+          let v = fl2.yaxis.p2d(localY);
+          v = Math.max(opts.vRange[0], Math.min(opts.vRange[1], v));
+          opts.setPointValue(i, v);
+          opts.onChange();
+          layout();
+        }
+        function onTouchEnd(){
+          window.removeEventListener('touchmove', onTouchMove);
+          window.removeEventListener('touchend', onTouchEnd);
+        }
+        window.addEventListener('touchmove', onTouchMove, {passive:false});
+        window.addEventListener('touchend', onTouchEnd);
+      }, {passive:false});
+    });
+  }
+  return { layout };
+}
+
+let drawPointsEditor=null;
+function layoutDrawHandles(){
+  if(!drawPointsEditor){
+    drawPointsEditor = makePointsEditor({
+      graphDiv: ()=>document.getElementById('gv-draw'),
+      handlesDivId: 'handles-draw',
+      getPoints: ()=>draw.points,
+      setPointValue: (i,v)=>{ draw.points[i].v = v; },
+      vRange: draw.vRange,
+      onChange: ()=>recomputeDraw()
+    });
+  }
+  drawPointsEditor.layout();
+}
+
+// ============================================================
+// MATCH THE MOTION MODE
+// ============================================================
+const SCENARIOS = [
+  { id:'s1', difficulty:'basic', type:'params',
+    text:'A ball sits still, resting at the +3 m mark, for the whole trip.',
+    hint:'If it never moves, both v₀ and a must be zero.',
+    target:{x0:3, v0:0, a:0, duration:6} },
+  { id:'s2', difficulty:'basic', type:'params',
+    text:'A cart starts at the origin and rolls steadily to the right at 1.5 m/s.',
+    hint:'"Steadily" means constant velocity — acceleration is zero.',
+    target:{x0:0, v0:1.5, a:0, duration:6} },
+  { id:'s3', difficulty:'intermediate', type:'params',
+    text:'A cart starts at −4 m moving right at 3 m/s and steadily slows down, coming to a complete stop at t = 6 s.',
+    hint:'If it stops at t=6s, then v(6)=0=v0+a·6, so a=−v0/6.',
+    target:{x0:-4, v0:3, a:-0.5, duration:8} },
+  { id:'s4', difficulty:'intermediate', type:'params',
+    text:'A cart starts at the origin moving right at 4 m/s, steadily slows down, and reverses — ending up moving left.',
+    hint:'Reversing means the acceleration is negative and large enough to flip the sign of v before the trip ends.',
+    target:{x0:0, v0:4, a:-2, duration:6} },
+  { id:'s5', difficulty:'advanced', type:'points',
+    text:'A cart starts 2 m to the right of the origin, cruises left at a steady speed, gradually comes to a stop, pauses briefly, then speeds up moving right — faster than its original leftward speed.',
+    hint:'Look for: a flat negative segment, a ramp back up to zero, a flat zero segment (the pause), then a rising segment ending higher than the first segment was low.',
+    target:{x0:2, points:[{t:0,v:-3},{t:2,v:-3},{t:4,v:0},{t:6,v:0},{t:9,v:4}], duration:9} },
+];
+const match = {};
+function initMatch(){
+  match.track = buildTrack('trackSvg-match');
+  match.graphs = makeGraphTriplet({x:'gx-match', v:'gv-match', a:'ga-match'}, COLORS);
+  match.filtered = SCENARIOS.slice();
+  match.index = 0;
+  match.studentPoints = null;
+  match.dt = 0.05;
+
+  document.getElementById('scenarioTotal').textContent = SCENARIOS.length;
+
+  document.getElementById('diffFilter').querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.getElementById('diffFilter').querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      const d = b.dataset.diff;
+      match.filtered = d==='all' ? SCENARIOS.slice() : SCENARIOS.filter(s=>s.difficulty===d);
+      match.index = 0;
+      loadScenario();
+    });
+  });
+  document.getElementById('prevScenario').addEventListener('click', ()=>{
+    match.index = (match.index-1+match.filtered.length)%match.filtered.length; loadScenario();
+  });
+  document.getElementById('nextScenario').addEventListener('click', ()=>{
+    match.index = (match.index+1)%match.filtered.length; loadScenario();
+  });
+  document.getElementById('hintBtn').addEventListener('click', ()=>{
+    const box = document.getElementById('hintBox');
+    box.classList.toggle('shown');
+  });
+  document.getElementById('checkBtn').addEventListener('click', checkMatch);
+
+  const x0s=document.getElementById('x0-match'), v0s=document.getElementById('v0-match'), as=document.getElementById('a-match');
+  function readParams(){
+    if(match.filtered[match.index].type!=='params') return;
+    match.studentParams = { x0:parseFloat(x0s.value), v0:parseFloat(v0s.value), a:parseFloat(as.value) };
+    document.getElementById('x0val-match').textContent = match.studentParams.x0.toFixed(1)+' m';
+    document.getElementById('v0val-match').textContent = match.studentParams.v0.toFixed(2)+' m/s';
+    document.getElementById('aval-match').textContent = match.studentParams.a.toFixed(1)+' m/s²';
+    recomputeMatch();
+  }
+  [x0s,v0s,as].forEach(el=>el.addEventListener('input', readParams));
+  match._readParams = readParams;
+
+  match.animator = makeAnimator(()=>match.duration, renderMatchFrame);
+  match.animator._dur = ()=>match.duration;
+  wirePlaybar('match', match.animator, 'playBtn-match', 'timeLabel-match', null);
+
+  window.addEventListener('resize', ()=> layoutMatchHandles());
+  loadScenario();
+}
+function loadScenario(){
+  const sc = match.filtered[match.index];
+  document.getElementById('scenarioIdx').textContent = match.index+1;
+  document.getElementById('scenarioText').textContent = sc.text;
+  document.getElementById('hintBox').textContent = sc.hint;
+  document.getElementById('hintBox').classList.remove('shown');
+  const pill = document.getElementById('scenarioDiff');
+  pill.textContent = sc.difficulty; pill.className = 'diff-pill '+sc.difficulty;
+  document.getElementById('scoreNum').textContent = '—';
+  document.getElementById('scoreSub').textContent = 'Adjust your motion, then press "Check match."';
+  const best = localStorage.getItem('kinGraphLab_best_'+sc.id);
+  document.getElementById('bestScore').textContent = best ? ('Best: '+best+'/100') : '';
+
+  match.duration = sc.target.duration;
+
+  const isParams = sc.type==='params';
+  document.getElementById('matchControlsCard-params').style.display = isParams ? '' : 'none';
+  document.getElementById('matchControlsCard-points').style.display = isParams ? 'none' : '';
+
+  if(isParams){
+    document.getElementById('x0-match').value = 0;
+    document.getElementById('v0-match').value = 0;
+    document.getElementById('a-match').value = 0;
+    match._readParams();
+  } else {
+    match.studentPoints = sc.target.points.map(p=>({t:p.t, v:0}));
+    match.studentPoints[0].v = 0;
+    recomputeMatch();
+    setTimeout(layoutMatchHandles, 60);
+  }
+
+  // target curve
+  const tgt = isParams ? sampleConst(sc.target.x0, sc.target.v0, sc.target.a, sc.target.duration, match.dt)
+                       : samplePoints(sc.target.points, sc.target.x0, match.dt);
+  match.targetData = tgt;
+  match.graphs.setTarget('x', tgt.T, tgt.X);
+  match.graphs.setTarget('v', tgt.T, tgt.V);
+  match.graphs.setTarget('a', tgt.T, tgt.A);
+  match.graphs.setPoints('v', [], [], false);
+
+  match.animator.reset();
+  document.getElementById('playBtn-match').textContent = '▶ Play';
+}
+function recomputeMatch(){
+  const sc = match.filtered[match.index];
+  if(sc.type==='params'){
+    const p = match.studentParams;
+    match.data = sampleConst(p.x0, p.v0, p.a, sc.target.duration, match.dt);
+  } else {
+    match.data = samplePoints(match.studentPoints, sc.target.x0, match.dt);
+    match.graphs.setPoints('v', match.studentPoints.map(p=>p.t), match.studentPoints.map(p=>p.v), true);
+  }
+  renderMatchFrame(Math.min(match.animator ? match.animator.getTime() : 0, match.duration));
+}
+function renderMatchFrame(t){
+  document.getElementById('timeLabel-match').textContent = 't = '+t.toFixed(2)+' s';
+  const d = match.data;
+  const idx = Math.min(d.T.length-1, Math.round(t/match.dt));
+  match.graphs.setRevealed('x', d.T.slice(0,idx+1), d.X.slice(0,idx+1));
+  match.graphs.setRevealed('v', d.T.slice(0,idx+1), d.V.slice(0,idx+1));
+  match.graphs.setRevealed('a', d.T.slice(0,idx+1), d.A.slice(0,idx+1));
+  match.graphs.setCursor(t);
+  updateTrackDots(match.track, d.T, d.X, t);
+  updateCartPos(match.track, d.X[idx]);
+  if(t>=match.duration-1e-6){ document.getElementById('playBtn-match').textContent='▶ Play'; }
+}
+function checkMatch(){
+  const sc = match.filtered[match.index];
+  const tgt = match.targetData, stu = match.data;
+  const N = 60;
+  let sumSq = 0;
+  for(let i=0;i<=N;i++){
+    const t = (i/N)*sc.target.duration;
+    const tv = valueAt(tgt.T, tgt.V, t);
+    const sv = valueAt(stu.T, stu.V, t);
+    sumSq += (tv-sv)*(tv-sv);
+  }
+  const rmse = Math.sqrt(sumSq/(N+1));
+  const acceptable = 1.2;
+  let score = Math.round(100*(1 - rmse/acceptable));
+  score = Math.max(0, Math.min(100, score));
+  document.getElementById('scoreNum').textContent = score;
+  let msg;
+  if(score>=90) msg='Excellent match!';
+  else if(score>=70) msg='Good — quite close.';
+  else if(score>=40) msg='Getting there — check the graph shapes.';
+  else msg='Not yet a match — try the hint.';
+  document.getElementById('scoreSub').textContent = msg + '  (RMSE on v(t): '+rmse.toFixed(2)+' m/s)';
+  const key = 'kinGraphLab_best_'+sc.id;
+  const prevBest = parseInt(localStorage.getItem(key)||'0', 10);
+  if(score>prevBest){ localStorage.setItem(key, String(score)); }
+  const best = localStorage.getItem(key);
+  document.getElementById('bestScore').textContent = 'Best: '+best+'/100';
+}
+let matchPointsEditor=null;
+function layoutMatchHandles(){
+  const sc = match.filtered[match.index];
+  if(sc.type!=='points') return;
+  if(!matchPointsEditor){
+    matchPointsEditor = makePointsEditor({
+      graphDiv: ()=>document.getElementById('gv-match'),
+      handlesDivId: 'handles-match',
+      getPoints: ()=>match.studentPoints,
+      setPointValue: (i,v)=>{ match.studentPoints[i].v = v; },
+      vRange: [-6,6],
+      onChange: ()=>recomputeMatch()
+    });
+  }
+  matchPointsEditor.layout();
+}
+
+// ============================================================
+// Mode tab switching
+// ============================================================
+document.querySelectorAll('.mode-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const mode = btn.dataset.mode;
+    document.querySelectorAll('.mode-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-'+mode).classList.add('active');
+    if(mode==='draw') setTimeout(layoutDrawHandles, 30);
+    if(mode==='match') setTimeout(layoutMatchHandles, 30);
+    setTimeout(()=>{
+      ['explore','draw','match'].forEach(m=>{});
+    }, 0);
+  });
+});
+
+// ============================================================
+// Boot
+// ============================================================
+initExplore();
+initDraw();
+initMatch();
+
+} // end initApp
+
+loadScript('https://cdn.plot.ly/plotly-2.35.2.min.js', initApp,
+  ()=>{ document.getElementById('status').textContent = '— could not load Plotly from the CDN; graphs unavailable offline.'; });
+</script>
+</body>
+</html>
