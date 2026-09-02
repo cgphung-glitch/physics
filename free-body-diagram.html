@@ -395,18 +395,46 @@
     ctx.restore();
 
     // Draw Vectors
+    // On an incline, the diagonal compass directions ("UP-LEFT" etc.) used to describe Fn
+    // (normal force) and the along-ramp forces (Ff/Ft/Fapp) were previously drawn at a fixed
+    // 45 degrees no matter what the actual ramp angle was - so Fn was only ever truly
+    // perpendicular to the surface when inclineAngle happened to be 45. It's now computed from
+    // the real incline angle: Fn is always exactly perpendicular to the ramp, and the along-ramp
+    // forces are always exactly parallel to it (pointing uphill or downhill per their given
+    // direction label).
+    const inclineRad = (inclineAngle * Math.PI) / 180;
+    const inclinePhi = Math.abs(inclineRad);
+    const inclineSign = inclineAngle >= 0 ? 1 : -1;
+    const DIAGONAL_DIRS = ["UP-LEFT", "UP-RIGHT", "DOWN-LEFT", "DOWN-RIGHT"];
+
     vectors.forEach(v => {
       let dx = 0, dy = 0;
       const len = 48;
 
-      if (v.dir === "UP") dy = -len;
-      if (v.dir === "DOWN") dy = len;
-      if (v.dir === "LEFT") dx = -len;
-      if (v.dir === "RIGHT") dx = len;
-      if (v.dir === "UP-LEFT") { dx = -len * 0.707; dy = -len * 0.707; }
-      if (v.dir === "UP-RIGHT") { dx = len * 0.707; dy = -len * 0.707; }
-      if (v.dir === "DOWN-LEFT") { dx = -len * 0.707; dy = len * 0.707; }
-      if (v.dir === "DOWN-RIGHT") { dx = len * 0.707; dy = len * 0.707; }
+      if (inclineAngle !== 0 && DIAGONAL_DIRS.includes(v.dir)) {
+        if (v.type === "Fn") {
+          // Normal force: exactly perpendicular to the incline surface, pointing away from it
+          dx = -inclineSign * Math.sin(inclinePhi);
+          dy = -Math.cos(inclinePhi);
+        } else {
+          // Any other force acting along the ramp (friction, tension, applied force): exactly
+          // parallel to the incline surface, pointing uphill or downhill per the label
+          const uphill = v.dir.startsWith("UP");
+          const along = uphill ? 1 : -1;
+          dx = along * inclineSign * Math.cos(inclinePhi);
+          dy = -along * Math.sin(inclinePhi);
+        }
+        dx *= len; dy *= len;
+      } else {
+        if (v.dir === "UP") dy = -len;
+        if (v.dir === "DOWN") dy = len;
+        if (v.dir === "LEFT") dx = -len;
+        if (v.dir === "RIGHT") dx = len;
+        if (v.dir === "UP-LEFT") { dx = -len * 0.707; dy = -len * 0.707; }
+        if (v.dir === "UP-RIGHT") { dx = len * 0.707; dy = -len * 0.707; }
+        if (v.dir === "DOWN-LEFT") { dx = -len * 0.707; dy = len * 0.707; }
+        if (v.dir === "DOWN-RIGHT") { dx = len * 0.707; dy = len * 0.707; }
+      }
 
       drawArrow(ctx, cx, cy, cx + dx, cy + dy, v.type);
     });
