@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kinematics Demos: Position, Velocity &amp; Acceleration</title>
+<style>
+  :root {
+    --bg: #14181c;
+    --panel-bg: #1c2126;
+    --panel-bg-2: #20262c;
+    --text: #e8e6df;
+    --text-dim: #9aa4ac;
+    --border: #333c44;
+    --grid-line: rgba(255,255,255,0.055);
+    --axis: #cfd6db;
+    --amber: #e8a33d;
+    --amber-dim: rgba(232,163,61,0.28);
+    --teal: #4fb3a9;
+    --teal-dim: rgba(79,179,169,0.28);
+    --probe: #e05a4e;
+    --canvas-bg: #101316;
+    --shadow: 0 6px 18px rgba(0,0,0,0.35);
+  }
+
+  body.light {
+    --bg: #f4f1e9;
+    --panel-bg: #ffffff;
+    --panel-bg-2: #f8f6f0;
+    --text: #22262b;
+    --text-dim: #5b6570;
+    --border: #d8d2c4;
+    --grid-line: rgba(0,0,0,0.06);
+    --axis: #2b2f33;
+    --amber: #b9740f;
+    --amber-dim: rgba(185,116,15,0.18);
+    --teal: #1f7f76;
+    --teal-dim: rgba(31,127,118,0.18);
+    --probe: #c23b2e;
+    --canvas-bg: #fffdf8;
+    --shadow: 0 4px 14px rgba(0,0,0,0.10);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 24px 20px 60px;
+    background:
+      linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 28px 28px,
+      var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  .wrap { max-width: 1000px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.7rem;
+    margin: 0 0 0.15rem;
+    letter-spacing: 0.01em;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    max-width: 60ch;
+    line-height: 1.4;
+  }
+
+  /* --- theme toggle switch --- */
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .switch {
+    position: relative;
+    width: 46px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider-toggle {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: var(--panel-bg-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    transition: 0.2s;
+  }
+  .slider-toggle::before {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 3px;
+    top: 3px;
+    background: var(--amber);
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  .switch input:checked + .slider-toggle::before {
+    transform: translateX(21px);
+    background: var(--teal);
+  }
+
+  /* --- tabs --- */
+  .tabs {
+    display: flex;
+    gap: 0.4rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    font-family: inherit;
+    background: none;
+    border: 1px solid transparent;
+    border-bottom: none;
+    color: var(--text-dim);
+    padding: 0.55rem 0.9rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+    border-radius: 6px 6px 0 0;
+    transition: 0.15s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    color: var(--text);
+    background: var(--panel-bg);
+    border-color: var(--border);
+    position: relative;
+    top: 1px;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fade 0.2s ease; }
+  @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+
+  .card {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem 1.35rem;
+    box-shadow: var(--shadow);
+  }
+
+  .card > p.desc {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-top: 0;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.1rem;
+    margin-bottom: 1rem;
+    padding: 0.9rem 1rem;
+    background: var(--panel-bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .control { min-width: 190px; flex: 1; }
+  .control label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.3rem;
+    color: var(--text);
+  }
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--teal);
+    background: transparent;
+  }
+  .control .val {
+    font-size: 0.78rem;
+    color: var(--amber);
+    margin-top: 0.25rem;
+    font-weight: 600;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    background: var(--canvas-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 0.9rem;
+  }
+
+  .readout {
+    font-size: 0.85rem;
+    background: var(--panel-bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+    color: var(--text);
+  }
+  .readout b { color: var(--teal); }
+
+  .log-note {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 0.6rem;
+    border-top: 1px dashed var(--border);
+    padding-top: 0.5rem;
+  }
+
+  @media (max-width: 560px) {
+    h1 { font-size: 1.35rem; }
+    .control { min-width: 140px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>Kinematics Demos</h1>
+      <div class="subtitle">Constant velocity, constant acceleration, and piecewise acceleration &amp; Δv — three linked motion explorers in one lab notebook.</div>
+    </div>
+    <label class="theme-toggle">
+      <span id="themeLabel">Dark</span>
+      <span class="switch">
+        <input type="checkbox" id="themeSwitch">
+        <span class="slider-toggle"></span>
+      </span>
+    </label>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="cv">Constant Velocity</button>
+    <button class="tab-btn" data-tab="ca">Constant Acceleration</button>
+    <button class="tab-btn" data-tab="at">a(t) &amp; Δv</button>
+  </div>
+
+  <!-- ============ TAB 1: CONSTANT VELOCITY ============ -->
+  <section class="panel active" id="panel-cv">
+    <div class="card">
+      <p class="desc">Motion with constant velocity follows x(t) = x₀ + v·t. Adjust the sliders and watch the slope and intercept of the graph respond.</p>
+      <div class="controls">
+        <div class="control">
+          <label for="cv-x0">Initial position x₀ (m)</label>
+          <input id="cv-x0" type="range" min="-10" max="10" step="0.5" value="0">
+          <div class="val" id="cv-x0Val">x₀ = 0 m</div>
+        </div>
+        <div class="control">
+          <label for="cv-v">Velocity v (m/s)</label>
+          <input id="cv-v" type="range" min="-10" max="10" step="0.5" value="2">
+          <div class="val" id="cv-vVal">v = 2 m/s</div>
+        </div>
+        <div class="control">
+          <label for="cv-t">Probe time t (s)</label>
+          <input id="cv-t" type="range" min="0" max="10" step="0.5" value="5">
+          <div class="val" id="cv-tVal">t = 5 s</div>
+        </div>
+      </div>
+      <canvas id="cv-canvas" width="900" height="380"></canvas>
+      <div class="readout" id="cv-output"></div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 2: CONSTANT ACCELERATION ============ -->
+  <section class="panel" id="panel-ca">
+    <div class="card">
+      <p class="desc">x(t) = x₀ + v₀t + ½at² and v(t) = v₀ + at, plotted together. Interactions are logged for instructor review.</p>
+      <div class="controls">
+        <div class="control">
+          <label for="ca-v0">Initial velocity v₀ (m/s)</label>
+          <input id="ca-v0" type="range" min="-10" max="10" step="0.5" value="2">
+          <div class="val" id="ca-v0Val">v₀ = 2 m/s</div>
+        </div>
+        <div class="control">
+          <label for="ca-a">Acceleration a (m/s²)</label>
+          <input id="ca-a" type="range" min="-5" max="5" step="0.25" value="1">
+          <div class="val" id="ca-aVal">a = 1 m/s²</div>
+        </div>
+        <div class="control">
+          <label for="ca-t">Probe time t (s)</label>
+          <input id="ca-t" type="range" min="0" max="10" step="0.5" value="5">
+          <div class="val" id="ca-tVal">t = 5 s</div>
+        </div>
+      </div>
+      <canvas id="ca-xCanvas" width="900" height="260"></canvas>
+      <canvas id="ca-vCanvas" width="900" height="260"></canvas>
+      <div class="readout" id="ca-output"></div>
+      <div class="log-note">Slider interactions post a <code>kinematicsDemoEvent</code> message to the parent window for activity tracking.</div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 3: ACCELERATION-TIME & Δv ============ -->
+  <section class="panel" id="panel-at">
+    <div class="card">
+      <p class="desc">Two constant-acceleration phases: a₁ for time T₁, then a₂ for time T₂. The shaded area under a(t) in each interval equals the change in velocity for that interval.</p>
+      <div class="controls">
+        <div class="control">
+          <label for="at-a1">a₁ (m/s²)</label>
+          <input id="at-a1" type="range" min="-5" max="5" step="0.5" value="2">
+          <div class="val" id="at-a1Val">a₁ = 2 m/s²</div>
+        </div>
+        <div class="control">
+          <label for="at-T1">T₁ (s)</label>
+          <input id="at-T1" type="range" min="1" max="8" step="1" value="4">
+          <div class="val" id="at-T1Val">T₁ = 4 s</div>
+        </div>
+        <div class="control">
+          <label for="at-a2">a₂ (m/s²)</label>
+          <input id="at-a2" type="range" min="-5" max="5" step="0.5" value="-1">
+          <div class="val" id="at-a2Val">a₂ = -1 m/s²</div>
+        </div>
+        <div class="control">
+          <label for="at-T2">T₂ (s)</label>
+          <input id="at-T2" type="range" min="1" max="8" step="1" value="4">
+          <div class="val" id="at-T2Val">T₂ = 4 s</div>
+        </div>
+      </div>
+      <canvas id="at-aCanvas" width="900" height="230"></canvas>
+      <canvas id="at-vCanvas" width="900" height="230"></canvas>
+      <div class="readout" id="at-output"></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   THEME
+   ============================================================ */
+const body = document.body;
+const themeSwitch = document.getElementById('themeSwitch');
+const themeLabel = document.getElementById('themeLabel');
+
+function currentColors() {
+  const cs = getComputedStyle(body);
+  return {
+    axis: cs.getPropertyValue('--axis').trim(),
+    text: cs.getPropertyValue('--text').trim(),
+    textDim: cs.getPropertyValue('--text-dim').trim(),
+    amber: cs.getPropertyValue('--amber').trim(),
+    amberDim: cs.getPropertyValue('--amber-dim').trim(),
+    teal: cs.getPropertyValue('--teal').trim(),
+    tealDim: cs.getPropertyValue('--teal-dim').trim(),
+    probe: cs.getPropertyValue('--probe').trim(),
+  };
+}
+
+function applyTheme(light) {
+  body.classList.toggle('light', light);
+  themeLabel.textContent = light ? 'Light' : 'Dark';
+  redrawAll();
+}
+
+themeSwitch.addEventListener('change', () => applyTheme(themeSwitch.checked));
+
+/* ============================================================
+   TABS
+   ============================================================ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    redrawAll();
+  });
+});
+
+/* ============================================================
+   TAB 1: CONSTANT VELOCITY
+   ============================================================ */
+(function () {
+  const x0Slider = document.getElementById('cv-x0');
+  const vSlider = document.getElementById('cv-v');
+  const tSlider = document.getElementById('cv-t');
+  const x0Val = document.getElementById('cv-x0Val');
+  const vVal = document.getElementById('cv-vVal');
+  const tVal = document.getElementById('cv-tVal');
+  const output = document.getElementById('cv-output');
+  const canvas = document.getElementById('cv-canvas');
+  const ctx = canvas.getContext('2d');
+
+  const tMax = 10, xMin = -20, xMax = 20;
+
+  function worldToScreen(t, x) {
+    const padding = 44;
+    const w = canvas.width, h = canvas.height;
+    return {
+      x: padding + (t / tMax) * (w - 2 * padding),
+      y: h - padding - ((x - xMin) / (xMax - xMin)) * (h - 2 * padding)
+    };
+  }
+
+  function drawAxes(colors) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const padding = 44;
+    ctx.strokeStyle = colors.axis;
+    ctx.lineWidth = 1;
+    const origin = worldToScreen(0, 0);
+    ctx.beginPath();
+    ctx.moveTo(padding, origin.y);
+    ctx.lineTo(canvas.width - padding, origin.y);
+    ctx.moveTo(origin.x, padding);
+    ctx.lineTo(origin.x, canvas.height - padding);
+    ctx.stroke();
+    ctx.fillStyle = colors.textDim;
+    ctx.font = '13px JetBrains Mono, monospace';
+    ctx.fillText('t (s)', canvas.width - padding + 6, origin.y + 16);
+    ctx.fillText('x (m)', origin.x - 28, padding - 12);
+  }
+
+  window.cvRedraw = function () {
+    const colors = currentColors();
+    drawAxes(colors);
+    const x0 = parseFloat(x0Slider.value);
+    const v = parseFloat(vSlider.value);
+
+    ctx.strokeStyle = colors.teal;
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    for (let t = 0; t <= tMax; t += 0.1) {
+      const x = x0 + v * t;
+      const p = worldToScreen(t, x);
+      if (t === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+
+    const tProbe = parseFloat(tSlider.value);
+    const xProbe = x0 + v * tProbe;
+    const pProbe = worldToScreen(tProbe, xProbe);
+    ctx.fillStyle = colors.probe;
+    ctx.beginPath();
+    ctx.arc(pProbe.x, pProbe.y, 5, 0, 2 * Math.PI);
+    ctx.fill();
+
+    x0Val.textContent = `x₀ = ${x0.toFixed(1)} m`;
+    vVal.textContent = `v = ${v.toFixed(1)} m/s`;
+    tVal.textContent = `t = ${tProbe.toFixed(1)} s`;
+    output.innerHTML = `At t = ${tProbe.toFixed(1)} s, <b>x(t) = ${xProbe.toFixed(2)} m</b>.`;
+  };
+
+  [x0Slider, vSlider, tSlider].forEach(el => el.addEventListener('input', window.cvRedraw));
+})();
+
+/* ============================================================
+   TAB 2: CONSTANT ACCELERATION (with logging)
+   ============================================================ */
+(function () {
+  let studentId = 'anonymous';
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('student')) studentId = params.get('student');
+  const activityId = params.get('activity') || 'kinematics-const-a-demo';
+
+  function logEvent(eventType, data) {
+    const payload = {
+      type: 'kinematicsDemoEvent',
+      eventType,
+      studentId,
+      activityId,
+      timestamp: new Date().toISOString(),
+      data
+    };
+    window.parent.postMessage(payload, '*');
+  }
+
+  logEvent('pageLoaded', {});
+
+  const v0Slider = document.getElementById('ca-v0');
+  const aSlider = document.getElementById('ca-a');
+  const tSlider = document.getElementById('ca-t');
+  const v0Val = document.getElementById('ca-v0Val');
+  const aVal = document.getElementById('ca-aVal');
+  const tVal = document.getElementById('ca-tVal');
+  const output = document.getElementById('ca-output');
+
+  const xCanvas = document.getElementById('ca-xCanvas');
+  const vCanvas = document.getElementById('ca-vCanvas');
+  const xCtx = xCanvas.getContext('2d');
+  const vCtx = vCanvas.getContext('2d');
+
+  const tMax = 10;
+  const xMin = -20, xMax = 80;
+  const vMin = -20, vMax = 40;
+
+  function worldToScreen(canvas, t, y, yMin, yMax) {
+    const padding = 44;
+    const w = canvas.width, h = canvas.height;
+    return {
+      x: padding + (t / tMax) * (w - 2 * padding),
+      y: h - padding - ((y - yMin) / (yMax - yMin)) * (h - 2 * padding)
+    };
+  }
+
+  function drawAxes(ctx, canvas, labelY, colors) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const padding = 44;
+    ctx.strokeStyle = colors.axis;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padding, canvas.height - padding);
+    ctx.lineTo(canvas.width - padding, canvas.height - padding);
+    ctx.moveTo(padding, padding);
+    ctx.lineTo(padding, canvas.height - padding);
+    ctx.stroke();
+    ctx.fillStyle = colors.textDim;
+    ctx.font = '13px JetBrains Mono, monospace';
+    ctx.fillText('t (s)', canvas.width - padding + 6, canvas.height - padding + 16);
+    ctx.fillText(labelY, padding - 34, padding - 12);
+  }
+
+  window.caRedraw = function (trigger) {
+    const colors = currentColors();
+    const v0 = parseFloat(v0Slider.value);
+    const a = parseFloat(aSlider.value);
+    const tProbe = parseFloat(tSlider.value);
+    const x0 = 0;
+
+    v0Val.textContent = `v₀ = ${v0.toFixed(1)} m/s`;
+    aVal.textContent = `a = ${a.toFixed(2)} m/s²`;
+    tVal.textContent = `t = ${tProbe.toFixed(1)} s`;
+
+    drawAxes(xCtx, xCanvas, 'x (m)', colors);
+    xCtx.strokeStyle = colors.teal;
+    xCtx.lineWidth = 2.4;
+    xCtx.beginPath();
+    for (let t = 0; t <= tMax; t += 0.1) {
+      const x = x0 + v0 * t + 0.5 * a * t * t;
+      const p = worldToScreen(xCanvas, t, x, xMin, xMax);
+      if (t === 0) xCtx.moveTo(p.x, p.y); else xCtx.lineTo(p.x, p.y);
+    }
+    xCtx.stroke();
+
+    drawAxes(vCtx, vCanvas, 'v (m/s)', colors);
+    vCtx.strokeStyle = colors.amber;
+    vCtx.lineWidth = 2.4;
+    vCtx.beginPath();
+    for (let t = 0; t <= tMax; t += 0.1) {
+      const v = v0 + a * t;
+      const p = worldToScreen(vCanvas, t, v, vMin, vMax);
+      if (t === 0) vCtx.moveTo(p.x, p.y); else vCtx.lineTo(p.x, p.y);
+    }
+    vCtx.stroke();
+
+    const xProbe = x0 + v0 * tProbe + 0.5 * a * tProbe * tProbe;
+    const vProbe = v0 + a * tProbe;
+    const pX = worldToScreen(xCanvas, tProbe, xProbe, xMin, xMax);
+    const pV = worldToScreen(vCanvas, tProbe, vProbe, vMin, vMax);
+    xCtx.fillStyle = colors.probe;
+    vCtx.fillStyle = colors.probe;
+    xCtx.beginPath(); xCtx.arc(pX.x, pX.y, 5, 0, 2 * Math.PI); xCtx.fill();
+    vCtx.beginPath(); vCtx.arc(pV.x, pV.y, 5, 0, 2 * Math.PI); vCtx.fill();
+
+    output.innerHTML = `At t = ${tProbe.toFixed(1)} s: <b>x(t) = ${xProbe.toFixed(2)} m</b>, <b>v(t) = ${vProbe.toFixed(2)} m/s</b>.`;
+
+    if (trigger) {
+      logEvent('sliderChange', { trigger, v0, a, tProbe, xProbe, vProbe });
+    }
+  };
+
+  v0Slider.addEventListener('input', () => window.caRedraw('v0'));
+  aSlider.addEventListener('input', () => window.caRedraw('a'));
+  tSlider.addEventListener('input', () => window.caRedraw('tProbe'));
+})();
+
+/* ============================================================
+   TAB 3: ACCELERATION-TIME & Δv
+   ============================================================ */
+(function () {
+  const a1Slider = document.getElementById('at-a1');
+  const T1Slider = document.getElementById('at-T1');
+  const a2Slider = document.getElementById('at-a2');
+  const T2Slider = document.getElementById('at-T2');
+  const a1Val = document.getElementById('at-a1Val');
+  const T1Val = document.getElementById('at-T1Val');
+  const a2Val = document.getElementById('at-a2Val');
+  const T2Val = document.getElementById('at-T2Val');
+  const output = document.getElementById('at-output');
+
+  const aCanvas = document.getElementById('at-aCanvas');
+  const vCanvas = document.getElementById('at-vCanvas');
+  const aCtx = aCanvas.getContext('2d');
+  const vCtx = vCanvas.getContext('2d');
+
+  function toScreen(canvas, t, y, tTotal, yMin, yMax) {
+    const w = canvas.width, h = canvas.height, padding = 44;
+    return {
+      x: padding + (t / tTotal) * (w - 2 * padding),
+      y: h - padding - ((y - yMin) / (yMax - yMin)) * (h - 2 * padding)
+    };
+  }
+
+  window.atRedraw = function () {
+    const colors = currentColors();
+    const a1 = parseFloat(a1Slider.value);
+    const T1 = parseFloat(T1Slider.value);
+    const a2 = parseFloat(a2Slider.value);
+    const T2 = parseFloat(T2Slider.value);
+
+    a1Val.textContent = `a₁ = ${a1.toFixed(1)} m/s²`;
+    T1Val.textContent = `T₁ = ${T1.toFixed(1)} s`;
+    a2Val.textContent = `a₂ = ${a2.toFixed(1)} m/s²`;
+    T2Val.textContent = `T₂ = ${T2.toFixed(1)} s`;
+
+    const tTotal = T1 + T2;
+    const padding = 44;
+    const w = aCanvas.width, h = aCanvas.height;
+
+    // a(t)
+    aCtx.clearRect(0, 0, w, h);
+    aCtx.strokeStyle = colors.axis;
+    aCtx.lineWidth = 1;
+    aCtx.beginPath();
+    aCtx.moveTo(padding, h - padding);
+    aCtx.lineTo(w - padding, h - padding);
+    aCtx.moveTo(padding, padding);
+    aCtx.lineTo(padding, h - padding);
+    aCtx.stroke();
+    aCtx.fillStyle = colors.textDim;
+    aCtx.font = '13px JetBrains Mono, monospace';
+    aCtx.fillText('t (s)', w - padding + 6, h - padding + 16);
+    aCtx.fillText('a (m/s²)', padding - 40, padding - 12);
+
+    const aMin = -6, aMax = 6;
+
+    const p1Start = toScreen(aCanvas, 0, a1, tTotal, aMin, aMax);
+    const p1End = toScreen(aCanvas, T1, a1, tTotal, aMin, aMax);
+    const base0 = toScreen(aCanvas, 0, 0, tTotal, aMin, aMax);
+    const base1 = toScreen(aCanvas, T1, 0, tTotal, aMin, aMax);
+    aCtx.fillStyle = colors.tealDim;
+    aCtx.beginPath();
+    aCtx.moveTo(p1Start.x, p1Start.y);
+    aCtx.lineTo(p1End.x, p1End.y);
+    aCtx.lineTo(base1.x, base1.y);
+    aCtx.lineTo(base0.x, base0.y);
+    aCtx.closePath();
+    aCtx.fill();
+
+    const p2Start = toScreen(aCanvas, T1, a2, tTotal, aMin, aMax);
+    const p2End = toScreen(aCanvas, tTotal, a2, tTotal, aMin, aMax);
+    const base2Start = toScreen(aCanvas, T1, 0, tTotal, aMin, aMax);
+    const base2End = toScreen(aCanvas, tTotal, 0, tTotal, aMin, aMax);
+    aCtx.fillStyle = colors.amberDim;
+    aCtx.beginPath();
+    aCtx.moveTo(p2Start.x, p2Start.y);
+    aCtx.lineTo(p2End.x, p2End.y);
+    aCtx.lineTo(base2End.x, base2End.y);
+    aCtx.lineTo(base2Start.x, base2Start.y);
+    aCtx.closePath();
+    aCtx.fill();
+
+    // v(t)
+    vCtx.clearRect(0, 0, vCanvas.width, vCanvas.height);
+    vCtx.strokeStyle = colors.axis;
+    vCtx.lineWidth = 1;
+    vCtx.beginPath();
+    vCtx.moveTo(padding, vCanvas.height - padding);
+    vCtx.lineTo(vCanvas.width - padding, vCanvas.height - padding);
+    vCtx.moveTo(padding, padding);
+    vCtx.lineTo(padding, vCanvas.height - padding);
+    vCtx.stroke();
+    vCtx.fillStyle = colors.textDim;
+    vCtx.font = '13px JetBrains Mono, monospace';
+    vCtx.fillText('t (s)', vCanvas.width - padding + 6, vCanvas.height - padding + 16);
+    vCtx.fillText('v (m/s)', padding - 36, padding - 12);
+
+    const vMin = -20, vMax = 40;
+    const v0 = 0;
+    const dv1 = a1 * T1;
+    const v1 = v0 + dv1;
+    const dv2 = a2 * T2;
+    const v2 = v1 + dv2;
+
+    vCtx.strokeStyle = colors.teal;
+    vCtx.lineWidth = 2.4;
+    vCtx.beginPath();
+    let p = toScreen(vCanvas, 0, v0, tTotal, vMin, vMax);
+    vCtx.moveTo(p.x, p.y);
+    p = toScreen(vCanvas, T1, v1, tTotal, vMin, vMax);
+    vCtx.lineTo(p.x, p.y);
+    p = toScreen(vCanvas, tTotal, v2, tTotal, vMin, vMax);
+    vCtx.lineTo(p.x, p.y);
+    vCtx.stroke();
+
+    output.innerHTML = `Δv₁ = a₁T₁ = <b>${dv1.toFixed(2)} m/s</b>, Δv₂ = a₂T₂ = <b>${dv2.toFixed(2)} m/s</b>, total Δv = <b>${(dv1 + dv2).toFixed(2)} m/s</b>.`;
+  };
+
+  [a1Slider, T1Slider, a2Slider, T2Slider].forEach(el => el.addEventListener('input', window.atRedraw));
+})();
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function redrawAll() {
+  if (window.cvRedraw) window.cvRedraw();
+  if (window.caRedraw) window.caRedraw(null);
+  if (window.atRedraw) window.atRedraw();
+}
+redrawAll();
+</script>
+</body>
+</html>
