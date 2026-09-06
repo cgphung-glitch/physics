@@ -228,6 +228,22 @@
     padding-top: 0.5rem;
   }
 
+  .preset-btn {
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--bg);
+    background: var(--amber);
+    border: none;
+    border-radius: 5px;
+    padding: 0.28rem 0.55rem;
+    margin-top: 0.4rem;
+    cursor: pointer;
+    transition: filter 0.15s;
+  }
+  .preset-btn:hover { filter: brightness(1.1); }
+
   @media (max-width: 560px) {
     h1 { font-size: 1.35rem; }
     .control { min-width: 140px; }
@@ -274,7 +290,7 @@
         </div>
         <div class="control">
           <label for="cv-t">Probe time t (s)</label>
-          <input id="cv-t" type="range" min="0" max="10" step="0.5" value="5">
+          <input id="cv-t" type="range" min="0" max="20" step="0.5" value="5">
           <div class="val" id="cv-tVal">t = 5 s</div>
         </div>
       </div>
@@ -295,12 +311,13 @@
         </div>
         <div class="control">
           <label for="ca-a">Acceleration a (m/s²)</label>
-          <input id="ca-a" type="range" min="-5" max="5" step="0.25" value="1">
+          <input id="ca-a" type="range" min="-10" max="10" step="0.2" value="1">
           <div class="val" id="ca-aVal">a = 1 m/s²</div>
+          <button type="button" class="preset-btn" id="ca-freefall">Free fall: a = −9.8 m/s²</button>
         </div>
         <div class="control">
           <label for="ca-t">Probe time t (s)</label>
-          <input id="ca-t" type="range" min="0" max="10" step="0.5" value="5">
+          <input id="ca-t" type="range" min="0" max="20" step="0.5" value="5">
           <div class="val" id="ca-tVal">t = 5 s</div>
         </div>
       </div>
@@ -318,22 +335,24 @@
       <div class="controls">
         <div class="control">
           <label for="at-a1">a₁ (m/s²)</label>
-          <input id="at-a1" type="range" min="-5" max="5" step="0.5" value="2">
+          <input id="at-a1" type="range" min="-10" max="10" step="0.2" value="2">
           <div class="val" id="at-a1Val">a₁ = 2 m/s²</div>
+          <button type="button" class="preset-btn" id="at-freefall1">Free fall: a₁ = −9.8 m/s²</button>
         </div>
         <div class="control">
           <label for="at-T1">T₁ (s)</label>
-          <input id="at-T1" type="range" min="1" max="8" step="1" value="4">
+          <input id="at-T1" type="range" min="1" max="10" step="1" value="4">
           <div class="val" id="at-T1Val">T₁ = 4 s</div>
         </div>
         <div class="control">
           <label for="at-a2">a₂ (m/s²)</label>
-          <input id="at-a2" type="range" min="-5" max="5" step="0.5" value="-1">
+          <input id="at-a2" type="range" min="-10" max="10" step="0.2" value="-1">
           <div class="val" id="at-a2Val">a₂ = -1 m/s²</div>
+          <button type="button" class="preset-btn" id="at-freefall2">Free fall: a₂ = −9.8 m/s²</button>
         </div>
         <div class="control">
           <label for="at-T2">T₂ (s)</label>
-          <input id="at-T2" type="range" min="1" max="8" step="1" value="4">
+          <input id="at-T2" type="range" min="1" max="10" step="1" value="4">
           <div class="val" id="at-T2Val">T₂ = 4 s</div>
         </div>
       </div>
@@ -376,6 +395,22 @@ function applyTheme(light) {
 themeSwitch.addEventListener('change', () => applyTheme(themeSwitch.checked));
 
 /* ============================================================
+   SHARED HELPERS
+   ============================================================ */
+// Computes a padded [min, max] range from a set of values, always
+// including 0 so the time/reference axis stays on-canvas.
+function autoRange(values, padFrac = 0.12) {
+  let min = 0, max = 0;
+  for (const v of values) {
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
+  if (min === max) { min -= 1; max += 1; }
+  const pad = (max - min) * padFrac;
+  return [min - pad, max + pad];
+}
+
+/* ============================================================
    TABS
    ============================================================ */
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -402,7 +437,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   const canvas = document.getElementById('cv-canvas');
   const ctx = canvas.getContext('2d');
 
-  const tMax = 10, xMin = -20, xMax = 20;
+  const tMax = 20;
+  let xMin = -20, xMax = 20;
 
   function worldToScreen(t, x) {
     const padding = 44;
@@ -433,9 +469,17 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
   window.cvRedraw = function () {
     const colors = currentColors();
-    drawAxes(colors);
     const x0 = parseFloat(x0Slider.value);
     const v = parseFloat(vSlider.value);
+    const tProbe = parseFloat(tSlider.value);
+
+    // autoscale x-axis to the curve's actual range over [0, tMax]
+    const sampleVals = [];
+    for (let t = 0; t <= tMax; t += 1) sampleVals.push(x0 + v * t);
+    sampleVals.push(x0 + v * tProbe);
+    [xMin, xMax] = autoRange(sampleVals);
+
+    drawAxes(colors);
 
     ctx.strokeStyle = colors.teal;
     ctx.lineWidth = 2.4;
@@ -447,7 +491,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     }
     ctx.stroke();
 
-    const tProbe = parseFloat(tSlider.value);
     const xProbe = x0 + v * tProbe;
     const pProbe = worldToScreen(tProbe, xProbe);
     ctx.fillStyle = colors.probe;
@@ -500,9 +543,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   const xCtx = xCanvas.getContext('2d');
   const vCtx = vCanvas.getContext('2d');
 
-  const tMax = 10;
-  const xMin = -20, xMax = 80;
-  const vMin = -20, vMax = 40;
+  const tMax = 20;
+  let xMin = -20, xMax = 80;
+  let vMin = -20, vMax = 40;
 
   function worldToScreen(canvas, t, y, yMin, yMax) {
     const padding = 44;
@@ -540,6 +583,17 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     v0Val.textContent = `v₀ = ${v0.toFixed(1)} m/s`;
     aVal.textContent = `a = ${a.toFixed(2)} m/s²`;
     tVal.textContent = `t = ${tProbe.toFixed(1)} s`;
+
+    // autoscale both axes to the curves' actual ranges over [0, tMax]
+    const xVals = [], vVals = [];
+    for (let t = 0; t <= tMax; t += 1) {
+      xVals.push(0 + v0 * t + 0.5 * a * t * t);
+      vVals.push(v0 + a * t);
+    }
+    xVals.push(0 + v0 * tProbe + 0.5 * a * tProbe * tProbe);
+    vVals.push(v0 + a * tProbe);
+    [xMin, xMax] = autoRange(xVals);
+    [vMin, vMax] = autoRange(vVals);
 
     drawAxes(xCtx, xCanvas, 'x (m)', colors);
     xCtx.strokeStyle = colors.teal;
@@ -582,6 +636,11 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   v0Slider.addEventListener('input', () => window.caRedraw('v0'));
   aSlider.addEventListener('input', () => window.caRedraw('a'));
   tSlider.addEventListener('input', () => window.caRedraw('tProbe'));
+
+  document.getElementById('ca-freefall').addEventListener('click', () => {
+    aSlider.value = -9.8;
+    window.caRedraw('freefall-preset');
+  });
 })();
 
 /* ============================================================
@@ -642,7 +701,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     aCtx.fillText('t (s)', w - padding + 6, h - padding + 16);
     aCtx.fillText('a (m/s²)', padding - 40, padding - 12);
 
-    const aMin = -6, aMax = 6;
+    const [aMin, aMax] = autoRange([a1, a2]);
 
     const p1Start = toScreen(aCanvas, 0, a1, tTotal, aMin, aMax);
     const p1End = toScreen(aCanvas, T1, a1, tTotal, aMin, aMax);
@@ -685,12 +744,12 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     vCtx.fillText('t (s)', vCanvas.width - padding + 6, vCanvas.height - padding + 16);
     vCtx.fillText('v (m/s)', padding - 36, padding - 12);
 
-    const vMin = -20, vMax = 40;
     const v0 = 0;
     const dv1 = a1 * T1;
     const v1 = v0 + dv1;
     const dv2 = a2 * T2;
     const v2 = v1 + dv2;
+    const [vMin, vMax] = autoRange([v0, v1, v2]);
 
     vCtx.strokeStyle = colors.teal;
     vCtx.lineWidth = 2.4;
@@ -707,6 +766,15 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   };
 
   [a1Slider, T1Slider, a2Slider, T2Slider].forEach(el => el.addEventListener('input', window.atRedraw));
+
+  document.getElementById('at-freefall1').addEventListener('click', () => {
+    a1Slider.value = -9.8;
+    window.atRedraw();
+  });
+  document.getElementById('at-freefall2').addEventListener('click', () => {
+    a2Slider.value = -9.8;
+    window.atRedraw();
+  });
 })();
 
 /* ============================================================
