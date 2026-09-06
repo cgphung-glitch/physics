@@ -410,6 +410,84 @@ function autoRange(values, padFrac = 0.12) {
   return [min - pad, max + pad];
 }
 
+// "Nice" round numbers for axis tick spacing (classic Heckbert algorithm).
+function niceNum(range, round) {
+  if (range === 0) return 1;
+  const exponent = Math.floor(Math.log10(range));
+  const fraction = range / Math.pow(10, exponent);
+  let niceFraction;
+  if (round) {
+    if (fraction < 1.5) niceFraction = 1;
+    else if (fraction < 3) niceFraction = 2;
+    else if (fraction < 7) niceFraction = 5;
+    else niceFraction = 10;
+  } else {
+    if (fraction <= 1) niceFraction = 1;
+    else if (fraction <= 2) niceFraction = 2;
+    else if (fraction <= 5) niceFraction = 5;
+    else niceFraction = 10;
+  }
+  return niceFraction * Math.pow(10, exponent);
+}
+
+function niceTicks(min, max, maxTicks = 6) {
+  if (min === max) { min -= 1; max += 1; }
+  const range = niceNum(max - min, false);
+  const step = niceNum(range / (maxTicks - 1), true);
+  const niceMin = Math.floor(min / step) * step;
+  const niceMax = Math.ceil(max / step) * step;
+  const ticks = [];
+  for (let v = niceMin; v <= niceMax + step / 2; v += step) {
+    ticks.push(Math.round(v / step) * step);
+  }
+  return ticks;
+}
+
+function formatTick(v) {
+  const r = Math.round(v * 100) / 100;
+  return Object.is(r, -0) ? '0' : Number(r.toFixed(2)).toString();
+}
+
+// Draws tick marks + value labels along the time axis (anchored at
+// value = xAxisValue) and the value axis (anchored at t = tMin).
+// mapFn(t, value) must return the {x, y} screen position for that point.
+function drawTickMarks(ctx, mapFn, tMin, tMax, yMin, yMax, colors, xAxisValue = 0) {
+  const tTicks = niceTicks(tMin, tMax, 7);
+  const yTicks = niceTicks(yMin, yMax, 6);
+
+  ctx.save();
+  ctx.strokeStyle = colors.axis;
+  ctx.fillStyle = colors.textDim;
+  ctx.font = '11px JetBrains Mono, monospace';
+  ctx.lineWidth = 1;
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  tTicks.forEach(t => {
+    if (t < tMin - 1e-9 || t > tMax + 1e-9) return;
+    if (Math.abs(t - tMin) < 1e-9) return; // skip the corner tick (covered by the value axis)
+    const p = mapFn(t, xAxisValue);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y - 4);
+    ctx.lineTo(p.x, p.y + 4);
+    ctx.stroke();
+    ctx.fillText(formatTick(t), p.x, p.y + 6);
+  });
+
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  yTicks.forEach(v => {
+    if (v < yMin - 1e-9 || v > yMax + 1e-9) return;
+    const p = mapFn(tMin, v);
+    ctx.beginPath();
+    ctx.moveTo(p.x - 4, p.y);
+    ctx.lineTo(p.x + 4, p.y);
+    ctx.stroke();
+    ctx.fillText(formatTick(v), p.x - 7, p.y);
+  });
+  ctx.restore();
+}
+
 /* ============================================================
    TABS
    ============================================================ */
@@ -461,8 +539,13 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     ctx.moveTo(origin.x, padding);
     ctx.lineTo(origin.x, canvas.height - padding);
     ctx.stroke();
+
+    drawTickMarks(ctx, worldToScreen, 0, tMax, xMin, xMax, colors, 0);
+
     ctx.fillStyle = colors.textDim;
     ctx.font = '13px JetBrains Mono, monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
     ctx.fillText('t (s)', canvas.width - padding + 6, origin.y + 16);
     ctx.fillText('x (m)', origin.x - 28, padding - 12);
   }
@@ -556,7 +639,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     };
   }
 
-  function drawAxes(ctx, canvas, labelY, colors) {
+  function drawAxes(ctx, canvas, labelY, colors, yMin, yMax) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const padding = 44;
     ctx.strokeStyle = colors.axis;
@@ -567,8 +650,13 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     ctx.moveTo(padding, padding);
     ctx.lineTo(padding, canvas.height - padding);
     ctx.stroke();
+
+    drawTickMarks(ctx, (t, y) => worldToScreen(canvas, t, y, yMin, yMax), 0, tMax, yMin, yMax, colors, yMin);
+
     ctx.fillStyle = colors.textDim;
     ctx.font = '13px JetBrains Mono, monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
     ctx.fillText('t (s)', canvas.width - padding + 6, canvas.height - padding + 16);
     ctx.fillText(labelY, padding - 34, padding - 12);
   }
@@ -595,7 +683,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     [xMin, xMax] = autoRange(xVals);
     [vMin, vMax] = autoRange(vVals);
 
-    drawAxes(xCtx, xCanvas, 'x (m)', colors);
+    drawAxes(xCtx, xCanvas, 'x (m)', colors, xMin, xMax);
     xCtx.strokeStyle = colors.teal;
     xCtx.lineWidth = 2.4;
     xCtx.beginPath();
@@ -606,7 +694,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     }
     xCtx.stroke();
 
-    drawAxes(vCtx, vCanvas, 'v (m/s)', colors);
+    drawAxes(vCtx, vCanvas, 'v (m/s)', colors, vMin, vMax);
     vCtx.strokeStyle = colors.amber;
     vCtx.lineWidth = 2.4;
     vCtx.beginPath();
@@ -696,12 +784,16 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     aCtx.moveTo(padding, padding);
     aCtx.lineTo(padding, h - padding);
     aCtx.stroke();
-    aCtx.fillStyle = colors.textDim;
-    aCtx.font = '13px JetBrains Mono, monospace';
-    aCtx.fillText('t (s)', w - padding + 6, h - padding + 16);
-    aCtx.fillText('a (m/s²)', padding - 40, padding - 12);
 
     const [aMin, aMax] = autoRange([a1, a2]);
+    drawTickMarks(aCtx, (t, y) => toScreen(aCanvas, t, y, tTotal, aMin, aMax), 0, tTotal, aMin, aMax, colors, aMin);
+
+    aCtx.fillStyle = colors.textDim;
+    aCtx.font = '13px JetBrains Mono, monospace';
+    aCtx.textAlign = 'left';
+    aCtx.textBaseline = 'alphabetic';
+    aCtx.fillText('t (s)', w - padding + 6, h - padding + 16);
+    aCtx.fillText('a (m/s²)', padding - 40, padding - 12);
 
     const p1Start = toScreen(aCanvas, 0, a1, tTotal, aMin, aMax);
     const p1End = toScreen(aCanvas, T1, a1, tTotal, aMin, aMax);
@@ -739,10 +831,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     vCtx.moveTo(padding, padding);
     vCtx.lineTo(padding, vCanvas.height - padding);
     vCtx.stroke();
-    vCtx.fillStyle = colors.textDim;
-    vCtx.font = '13px JetBrains Mono, monospace';
-    vCtx.fillText('t (s)', vCanvas.width - padding + 6, vCanvas.height - padding + 16);
-    vCtx.fillText('v (m/s)', padding - 36, padding - 12);
 
     const v0 = 0;
     const dv1 = a1 * T1;
@@ -750,6 +838,15 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     const dv2 = a2 * T2;
     const v2 = v1 + dv2;
     const [vMin, vMax] = autoRange([v0, v1, v2]);
+
+    drawTickMarks(vCtx, (t, y) => toScreen(vCanvas, t, y, tTotal, vMin, vMax), 0, tTotal, vMin, vMax, colors, vMin);
+
+    vCtx.fillStyle = colors.textDim;
+    vCtx.font = '13px JetBrains Mono, monospace';
+    vCtx.textAlign = 'left';
+    vCtx.textBaseline = 'alphabetic';
+    vCtx.fillText('t (s)', vCanvas.width - padding + 6, vCanvas.height - padding + 16);
+    vCtx.fillText('v (m/s)', padding - 36, padding - 12);
 
     vCtx.strokeStyle = colors.teal;
     vCtx.lineWidth = 2.4;
