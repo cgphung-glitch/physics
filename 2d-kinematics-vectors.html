@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2D Kinematics & Vectors Practice</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- KaTeX for LaTeX Math Rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    // Helper for LaTeX rendering
+    function renderLaTeX(element = document.body) {
+      if (window.renderMathInElement) {
+        try {
+          renderMathInElement(element, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false },
+              { left: '\\[', right: '\\]', display: true }
+            ],
+            throwOnError: false
+          });
+        } catch (e) {
+          console.error("LaTeX rendering error:", e);
+        }
+      } else {
+        setTimeout(() => renderLaTeX(element), 100);
+      }
+    }
+
+    // App State
+    const state = {
+      currentSetIndex: 'mixed', // Default to Mixed Practice across all sets
+      currentProblemIndex: 0,
+      activeMixedSet: 0,        // Active set when in mixed mode
+      activeMixedProblem: 0,    // Active problem index when in mixed mode
+      isVariation: false,
+      score: 0,
+      streak: 0,
+      bestStreak: 0,
+      highScore: 0,
+      lastScore: null,
+      solvedSet: new Set()      // Tracks solved problem keys in current session
+    };
+
+    // Load Stats from LocalStorage safely
+    function loadStats() {
+      state.score = parseInt(localStorage.getItem('phy_score') || '0');
+      state.streak = parseInt(localStorage.getItem('phy_streak') || '0');
+      state.bestStreak = parseInt(localStorage.getItem('phy_bestStreak') || '0');
+      state.highScore = parseInt(localStorage.getItem('phy_highScore') || '0');
+      const last = localStorage.getItem('phy_lastScore');
+      state.lastScore = last !== null ? parseInt(last) : null;
+      updateStatsUI();
+    }
+
+    // Safe DOM updating for stats
+    function updateStatsUI() {
+      const elScore = document.getElementById('stat-score');
+      const elStreak = document.getElementById('stat-streak');
+      const elBestStreak = document.getElementById('stat-best-streak');
+      const elHighScore = document.getElementById('stat-high-score');
+      const elLastScore = document.getElementById('stat-last-score');
+
+      if (elScore) elScore.textContent = state.score;
+      if (elStreak) elStreak.textContent = `${state.streak} 🔥`;
+      if (elBestStreak) elBestStreak.textContent = state.bestStreak;
+      if (elHighScore) elHighScore.textContent = state.highScore;
+      if (elLastScore) elLastScore.textContent = state.lastScore !== null ? state.lastScore : '--';
+    }
+
+    function saveStats() {
+      localStorage.setItem('phy_score', state.score.toString());
+      localStorage.setItem('phy_streak', state.streak.toString());
+      localStorage.setItem('phy_bestStreak', state.bestStreak.toString());
+      localStorage.setItem('phy_highScore', state.highScore.toString());
+      if (state.lastScore !== null) {
+        localStorage.setItem('phy_lastScore', state.lastScore.toString());
+      }
+      updateStatsUI();
+    }
+
+    const g = 9.80;
+
+    // Problem Database Definitions using String.raw to preserve LaTeX backslashes
+    const problemSets = [
+      // SET 1: 2D Displacement
+      {
+        title: "Set 1: Two-Dimensional Displacement",
+        desc: "Use East as +x and North as +y. Calculate total distance traveled, net displacement components, and magnitude/direction.",
+        problems: [
+          {
+            title: "Campus navigation",
+            generate: (rand = false) => {
+              const subjects = ["A student", "A campus delivery rover", "A cyclist", "A jogger"];
+              const subj = rand ? subjects[Math.floor(Math.random() * subjects.length)] : "A student";
+
+              const e1 = rand ? Math.round(150 + Math.random() * 100) : 180;
+              const n1 = rand ? Math.round(70 + Math.random() * 60) : 95;
+              const w1 = rand ? Math.round(40 + Math.random() * 50) : 60;
+              const s1 = rand ? Math.round(100 + Math.random() * 80) : 140;
+
+              const totalD = e1 + n1 + w1 + s1;
+              const rx = e1 - w1;
+              const ry = n1 - s1;
+              const mag = Math.sqrt(rx * rx + ry * ry);
+              const angle = Math.atan2(Math.abs(ry), Math.abs(rx)) * (180 / Math.PI);
+
+              return {
+                statement: String.raw`${subj} travels $${e1}\text{ m}$ east, $${n1}\text{ m}$ north, $${w1}\text{ m}$ west, and $${s1}\text{ m}$ south. Determine the total distance, magnitude of net displacement, and direction angle (south of east).`,
+                inputs: [
+                  { id: "totalD", label: "Total Distance (m)", ans: totalD },
+                  { id: "mag", label: "Displacement Magnitude (m)", ans: mag },
+                  { id: "angle", label: "Direction Angle (° south of east)", ans: angle }
+                ],
+                solution: String.raw`
+$$\text{Total Distance } d = ${e1} + ${n1} + ${w1} + ${s1} = \mathbf{${totalD.toFixed(1)}\text{ m}}$$
+$$\text{Components: } R_x = ${e1} - ${w1} = ${rx.toFixed(1)}\text{ m}, \quad R_y = ${n1} - ${s1} = ${ry.toFixed(1)}\text{ m}$$
+$$\text{Magnitude } R = \sqrt{(${rx.toFixed(1)})^2 + (${ry.toFixed(1)})^2} = \mathbf{${mag.toFixed(1)}\text{ m}}$$
+$$\theta = \tan^{-1}\left(\frac{${Math.abs(ry).toFixed(1)}}{${Math.abs(rx).toFixed(1)}}\right) = \mathbf{${angle.toFixed(1)}^\circ \text{ south of east}}$$
+                `
+              };
+            }
+          },
+          {
+            title: "Research-field route",
+            generate: (rand = false) => {
+              const n1 = rand ? Math.round(200 + Math.random() * 100) : 250;
+              const e1 = rand ? Math.round(140 + Math.random() * 80) : 180;
+              const s1 = rand ? Math.round(100 + Math.random() * 50) : 125;
+              const w1 = rand ? Math.round(50 + Math.random() * 50) : 70;
+              const s2 = rand ? Math.round(70 + Math.random() * 50) : 90;
+
+              const totalD = n1 + e1 + s1 + w1 + s2;
+              const rx = e1 - w1;
+              const ry = n1 - s1 - s2;
+              const mag = Math.sqrt(rx * rx + ry * ry);
+              const angle = Math.atan2(Math.abs(ry), Math.abs(rx)) * (180 / Math.PI);
+
+              return {
+                statement: String.raw`A researcher walks $${n1}\text{ m}$ north, $${e1}\text{ m}$ east, $${s1}\text{ m}$ south, $${w1}\text{ m}$ west, and $${s2}\text{ m}$ south. Determine total distance, magnitude of displacement, and direction angle (north of east).`,
+                inputs: [
+                  { id: "totalD", label: "Total Distance (m)", ans: totalD },
+                  { id: "mag", label: "Displacement Magnitude (m)", ans: mag },
+                  { id: "angle", label: "Direction Angle (° north of east)", ans: angle }
+                ],
+                solution: String.raw`
+$$\text{Total Distance } d = ${n1} + ${e1} + ${s1} + ${w1} + ${s2} = \mathbf{${totalD.toFixed(1)}\text{ m}}$$
+$$\text{Components: } R_x = ${e1} - ${w1} = ${rx.toFixed(1)}\text{ m}, \quad R_y = ${n1} - ${s1} - ${s2} = ${ry.toFixed(1)}\text{ m}$$
+$$\text{Magnitude } R = \sqrt{(${rx.toFixed(1)})^2 + (${ry.toFixed(1)})^2} = \mathbf{${mag.toFixed(1)}\text{ m}}$$
+$$\theta = \tan^{-1}\left(\frac{${Math.abs(ry).toFixed(1)}}{${Math.abs(rx).toFixed(1)}}\right) = \mathbf{${angle.toFixed(1)}^\circ \text{ north of east}}$$
+                `
+              };
+            }
+          }
+        ]
+      },
+
+      // SET 2: Vector Components & Resultants
+      {
+        title: "Set 2: Vector Components & Vector Resultants",
+        desc: "Resolve vectors into horizontal and vertical components, sum them up, and calculate net resultant vectors.",
+        problems: [
+          {
+            title: "Two-force resultant",
+            generate: (rand = false) => {
+              const f1 = rand ? Math.round(70 + Math.random() * 40) : 85;
+              const a1 = rand ? Math.round(25 + Math.random() * 20) : 32;
+              const f2 = rand ? Math.round(100 + Math.random() * 50) : 120;
+              const a2 = rand ? Math.round(45 + Math.random() * 20) : 55;
+
+              const f1x = f1 * Math.cos(a1 * Math.PI / 180);
+              const f1y = f1 * Math.sin(a1 * Math.PI / 180);
+              const f2x = -f2 * Math.cos(a2 * Math.PI / 180);
+              const f2y = f2 * Math.sin(a2 * Math.PI / 180);
+
+              const rx = f1x + f2x;
+              const ry = f1y + f2y;
+              const mag = Math.sqrt(rx * rx + ry * ry);
+              const angle = Math.atan2(Math.abs(ry), Math.abs(rx)) * (180 / Math.PI);
+
+              return {
+                statement: String.raw`Two forces act on a bracket: $F_1 = ${f1}\text{ N}$ at $${a1}^\circ$ north of east, and $F_2 = ${f2}\text{ N}$ at $${a2}^\circ$ north of west. Find net force magnitude (N) and direction angle (° north of east).`,
+                inputs: [
+                  { id: "mag", label: "Net Force Magnitude (N)", ans: mag },
+                  { id: "angle", label: "Direction Angle (° north of east)", ans: angle }
+                ],
+                solution: String.raw`
+$$F_{1x} = ${f1}\cos(${a1}^\circ) = ${f1x.toFixed(1)}\text{ N}, \quad F_{1y} = ${f1}\sin(${a1}^\circ) = ${f1y.toFixed(1)}\text{ N}$$
+$$F_{2x} = -${f2}\cos(${a2}^\circ) = ${f2x.toFixed(1)}\text{ N}, \quad F_{2y} = ${f2}\sin(${a2}^\circ) = ${f2y.toFixed(1)}\text{ N}$$
+$$R_x = ${f1x.toFixed(1)} + (${f2x.toFixed(1)}) = ${rx.toFixed(1)}\text{ N}$$
+$$R_y = ${f1y.toFixed(1)} + ${f2y.toFixed(1)} = ${ry.toFixed(1)}\text{ N}$$
+$$R = \sqrt{(${rx.toFixed(1)})^2 + (${ry.toFixed(1)})^2} = \mathbf{${mag.toFixed(1)}\text{ N}}$$
+$$\theta = \tan^{-1}\left(\frac{${Math.abs(ry).toFixed(1)}}{${Math.abs(rx).toFixed(1)}}\right) = \mathbf{${angle.toFixed(1)}^\circ \text{ north of east}}$$
+                `
+              };
+            }
+          }
+        ]
+      },
+
+      // SET 3: Projectile Motion (Equal Height)
+      {
+        title: "Set 3: Projectile Motion — Launch and Landing at Equal Height",
+        desc: "Symmetric 2D projectile motion calculations on level ground ($g = 9.80\\text{ m/s}^2$).",
+        problems: [
+          {
+            title: "Soccer kick",
+            generate: (rand = false) => {
+              const v0 = rand ? Math.round(18 + Math.random() * 10) : 22;
+              const angle = rand ? Math.round(30 + Math.random() * 20) : 38;
+
+              const rad = angle * Math.PI / 180;
+              const v0x = v0 * Math.cos(rad);
+              const v0y = v0 * Math.sin(rad);
+
+              const flightTime = (2 * v0y) / g;
+              const hMax = (v0y * v0y) / (2 * g);
+              const range = v0x * flightTime;
+
+              return {
+                statement: String.raw`A soccer ball is kicked at $${v0}\text{ m/s}$ at $${angle}^\circ$ above the horizontal and lands at the launch height. Find flight time (s), maximum height (m), and total horizontal range (m).`,
+                inputs: [
+                  { id: "time", label: "Flight Time (s)", ans: flightTime },
+                  { id: "hMax", label: "Max Height (m)", ans: hMax },
+                  { id: "range", label: "Horizontal Range (m)", ans: range }
+                ],
+                solution: String.raw`
+$$v_{0x} = ${v0}\cos(${angle}^\circ) = ${v0x.toFixed(2)}\text{ m/s}, \quad v_{0y} = ${v0}\sin(${angle}^\circ) = ${v0y.toFixed(2)}\text{ m/s}$$
+$$t = \frac{2 v_{0y}}{g} = \frac{2(${v0y.toFixed(2)})}{9.80} = \mathbf{${flightTime.toFixed(2)}\text{ s}}$$
+$$h_{\max} = \frac{v_{0y}^2}{2g} = \frac{(${v0y.toFixed(2)})^2}{19.6} = \mathbf{${hMax.toFixed(2)}\text{ m}}$$
+$$R = v_{0x} t = (${v0x.toFixed(2)})(${flightTime.toFixed(2)}) = \mathbf{${range.toFixed(1)}\text{ m}}$$
+                `
+              };
+            }
+          }
+        ]
+      },
+
+      // SET 4: Relative Velocity
+      {
+        title: "Set 4: Relative Velocity",
+        desc: "Vector addition across reference frames (boats in river currents, airplanes in crosswinds).",
+        problems: [
+          {
+            title: "Boat crossing with current",
+            generate: (rand = false) => {
+              const vBoat = rand ? +(3.5 + Math.random() * 2).toFixed(2) : 4.50;
+              const vCurrent = rand ? +(2.0 + Math.random() * 1.5).toFixed(2) : 2.80;
+              const width = rand ? Math.round(150 + Math.random() * 60) : 180;
+
+              const vGround = Math.sqrt(vBoat * vBoat + vCurrent * vCurrent);
+              const t = width / vBoat;
+              const drift = vCurrent * t;
+
+              return {
+                statement: String.raw`A boat travels at $${vBoat}\text{ m/s}$ due North relative to water across a $${width}\text{ m}$ wide river. The current is $${vCurrent}\text{ m/s}$ due East. Find ground speed (m/s), crossing time (s), and downstream drift (m).`,
+                inputs: [
+                  { id: "vGround", label: "Ground Speed (m/s)", ans: vGround },
+                  { id: "time", label: "Crossing Time (s)", ans: t },
+                  { id: "drift", label: "Downstream Drift (m)", ans: drift }
+                ],
+                solution: String.raw`
+$$v_{\text{ground}} = \sqrt{${vBoat}^2 + ${vCurrent}^2} = \mathbf{${vGround.toFixed(2)}\text{ m/s}}$$
+$$t = \frac{\text{width}}{v_{\text{north}}} = \frac{${width}}{${vBoat}} = \mathbf{${t.toFixed(1)}\text{ s}}$$
+$$\text{Drift } x = v_{\text{current}} \times t = (${vCurrent})(${t.toFixed(1)}) = \mathbf{${drift.toFixed(1)}\text{ m east}}$$
+                `
+              };
+            }
+          }
+        ]
+      }
+    ];
+
+    let currentProblemData = null;
+
+    // Populate Problem Dropdown Menu
+    function updateProblemSelect() {
+      const select = document.getElementById('problem-select');
+      if (!select) return;
+      select.innerHTML = '';
+
+      if (state.currentSetIndex === 'mixed') {
+        const setTitle = document.getElementById('set-title');
+        const setDesc = document.getElementById('set-desc');
+        if (setTitle) setTitle.textContent = "Mixed Practice (All Topics)";
+        if (setDesc) setDesc.textContent = "Randomized practice problems combined from all Chapter 3 sets.";
+
+        const mixOpt = document.createElement('option');
+        mixOpt.value = 'random';
+        mixOpt.textContent = '🎲 Random Mixed Problem';
+        select.appendChild(mixOpt);
+
+        let globalCount = 1;
+        problemSets.forEach((set, sIdx) => {
+          const group = document.createElement('optgroup');
+          group.label = set.title;
+          set.problems.forEach((p, pIdx) => {
+            const opt = document.createElement('option');
+            opt.value = `${sIdx}-${pIdx}`;
+            opt.textContent = `${globalCount++}. ${p.title}`;
+            select.appendChild(opt);
+          });
+          select.appendChild(group);
+        });
+
+        select.value = state.isVariation ? 'random' : `${state.activeMixedSet}-${state.activeMixedProblem}`;
+      } else {
+        const setIdx = parseInt(state.currentSetIndex);
+        const set = problemSets[setIdx];
+
+        const setTitle = document.getElementById('set-title');
+        const setDesc = document.getElementById('set-desc');
+        if (setTitle) setTitle.textContent = set.title;
+        if (setDesc) setDesc.textContent = set.desc;
+
+        set.problems.forEach((p, idx) => {
+          const opt = document.createElement('option');
+          opt.value = idx;
+          opt.textContent = `${idx + 1}. ${p.title}`;
+          select.appendChild(opt);
+        });
+
+        select.value = state.currentProblemIndex;
+      }
+    }
+
+    function loadProblem(randomize = false) {
+      state.isVariation = randomize;
+      let setIdx, pIdx;
+
+      if (state.currentSetIndex === 'mixed') {
+        if (randomize || state.activeMixedSet === undefined) {
+          setIdx = Math.floor(Math.random() * problemSets.length);
+          pIdx = Math.floor(Math.random() * problemSets[setIdx].problems.length);
+          state.activeMixedSet = setIdx;
+          state.activeMixedProblem = pIdx;
+        } else {
+          setIdx = state.activeMixedSet;
+          pIdx = state.activeMixedProblem;
+        }
+      } else {
+        setIdx = parseInt(state.currentSetIndex);
+        if (randomize) {
+          const probCount = problemSets[setIdx].problems.length;
+          if (probCount > 1) {
+            let nextPIdx;
+            do {
+              nextPIdx = Math.floor(Math.random() * probCount);
+            } while (nextPIdx === state.currentProblemIndex && probCount > 1);
+            state.currentProblemIndex = nextPIdx;
+          }
+        }
+        pIdx = state.currentProblemIndex;
+      }
+
+      const set = problemSets[setIdx];
+      const pDef = set.problems[pIdx];
+
+      currentProblemData = pDef.generate(randomize);
+
+      // Synchronize dropdown selection UI
+      const select = document.getElementById('problem-select');
+      if (select) {
+        if (state.currentSetIndex === 'mixed') {
+          select.value = randomize ? 'random' : `${setIdx}-${pIdx}`;
+        } else {
+          select.value = pIdx;
+        }
+      }
+
+      // UI Text updates
+      const badgeText = state.currentSetIndex === 'mixed'
+        ? `Mixed: Set ${setIdx + 1} • Problem ${pIdx + 1}`
+        : `Problem ${pIdx + 1} of ${set.problems.length}`;
+      
+      const badgeEl = document.getElementById('problem-number-badge');
+      if (badgeEl) badgeEl.textContent = badgeText;
+      
+      const varBadge = document.getElementById('problem-is-variation');
+      if (varBadge) {
+        if (randomize) {
+          varBadge.textContent = '✨ Randomized Variation';
+          varBadge.classList.remove('hidden');
+        } else {
+          varBadge.classList.add('hidden');
+        }
+      }
+
+      const pStmt = document.getElementById('problem-statement');
+      if (pStmt) pStmt.innerHTML = currentProblemData.statement;
+
+      // Inputs generation
+      const container = document.getElementById('input-fields-container');
+      if (container) {
+        container.innerHTML = '';
+        currentProblemData.inputs.forEach(inp => {
+          const fieldWrapper = document.createElement('div');
+          fieldWrapper.className = 'flex flex-col gap-1.5';
+          fieldWrapper.innerHTML = `
+            <label for="input-${inp.id}" class="text-xs font-semibold text-slate-600 dark:text-slate-400">
+              ${inp.label}
+            </label>
+            <input type="number" step="any" id="input-${inp.id}" required
+              placeholder="e.g. ${inp.ans.toFixed(1)}"
+              class="px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-medium focus:ring-2 focus:ring-brand-500 outline-none transition" />
+          `;
+          container.appendChild(fieldWrapper);
+        });
+      }
+
+      // Solution element reset
+      const solContainer = document.getElementById('solution-container');
+      const solTxt = document.getElementById('solution-toggle-text');
+      const solContent = document.getElementById('solution-content');
+
+      if (solContainer) solContainer.classList.add('hidden');
+      if (solTxt) solTxt.textContent = 'Show Step-by-Step Solution';
+      if (solContent) solContent.innerHTML = currentProblemData.solution;
+
+      // Reset feedback banner
+      const banner = document.getElementById('feedback-banner');
+      if (banner) banner.className = 'hidden mt-4 p-4 rounded-xl border flex items-start gap-3 transition';
+
+      // Render math expressions in the card
+      if (pStmt) renderLaTeX(pStmt);
+      if (solContent) renderLaTeX(solContent);
+    }
+
+    function checkAnswers() {
+      if (!currentProblemData) return;
+
+      let allCorrect = true;
+      const details = [];
+
+      currentProblemData.inputs.forEach(inp => {
+        const el = document.getElementById(`input-${inp.id}`);
+        const userVal = el ? parseFloat(el.value) : NaN;
+        const expected = inp.ans;
+
+        const margin = Math.max(Math.abs(expected) * 0.025, 0.2);
+        const isClose = !isNaN(userVal) && Math.abs(userVal - expected) <= margin;
+
+        if (!isClose) {
+          allCorrect = false;
+        }
+
+        details.push({
+          label: inp.label,
+          user: userVal,
+          expected: expected,
+          correct: isClose
+        });
+      });
+
+      const banner = document.getElementById('feedback-banner');
+      const icon = document.getElementById('feedback-icon');
+      const title = document.getElementById('feedback-title');
+      const msg = document.getElementById('feedback-msg');
+
+      if (banner) banner.classList.remove('hidden');
+
+      const problemKey = `${state.currentSetIndex}-${state.currentProblemIndex}-${state.isVariation}`;
+
+      if (allCorrect) {
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+        }
+
+        if (banner) banner.className = 'mt-4 p-4 rounded-xl border border-emerald-300 dark:border-emerald-800/80 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-200 flex items-start gap-3';
+        if (icon) {
+          icon.className = 'p-1 bg-emerald-500 text-white rounded-full shrink-0 mt-0.5';
+          icon.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>';
+        }
+        if (title) title.textContent = 'Excellent! Correct Answer!';
+        if (msg) msg.textContent = 'Great physics problem solving skills!';
+
+        if (!state.solvedSet.has(problemKey)) {
+          state.solvedSet.add(problemKey);
+          state.score += 10;
+          state.streak += 1;
+          if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+          if (state.score > state.highScore) state.highScore = state.score;
+          state.lastScore = state.score;
+          saveStats();
+        }
+      } else {
+        if (banner) banner.className = 'mt-4 p-4 rounded-xl border border-rose-300 dark:border-rose-800/80 bg-rose-50 dark:bg-rose-950/30 text-rose-900 dark:text-rose-200 flex items-start gap-3';
+        if (icon) {
+          icon.className = 'p-1 bg-rose-500 text-white rounded-full shrink-0 mt-0.5';
+          icon.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i>';
+        }
+        if (title) title.textContent = 'Not quite right yet.';
+        
+        const incorrectNames = details.filter(d => !d.correct).map(d => d.label).join(', ');
+        if (msg) msg.textContent = `Check calculated values for: ${incorrectNames}. Check rounding or angle units!`;
+
+        state.streak = 0;
+        saveStats();
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStats();
+      updateProblemSelect();
+      loadProblem(true);
+
+      // Set Tab Buttons
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetVal = btn.dataset.set;
+          if (state.currentSetIndex === targetVal) return;
+
+          tabBtns.forEach(b => {
+            b.className = 'tab-btn px-4 py-2 text-sm font-medium rounded-xl whitespace-nowrap transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60';
+          });
+          btn.className = 'tab-btn px-4 py-2 text-sm font-medium rounded-xl whitespace-nowrap transition flex items-center gap-2 bg-brand-500 text-white shadow-sm';
+
+          state.currentSetIndex = targetVal;
+          if (targetVal === 'mixed') {
+            updateProblemSelect();
+            loadProblem(true);
+          } else {
+            state.currentProblemIndex = 0;
+            updateProblemSelect();
+            loadProblem(false);
+          }
+        });
+      });
+
+      // Problem Select Dropdown
+      const probSelect = document.getElementById('problem-select');
+      if (probSelect) {
+        probSelect.addEventListener('change', (e) => {
+          const val = e.target.value;
+          if (state.currentSetIndex === 'mixed') {
+            if (val === 'random') {
+              loadProblem(true);
+            } else {
+              const [s, p] = val.split('-').map(Number);
+              state.activeMixedSet = s;
+              state.activeMixedProblem = p;
+              loadProblem(false);
+            }
+          } else {
+            state.currentProblemIndex = parseInt(val);
+            loadProblem(false);
+          }
+        });
+      }
+
+      // Randomize Button
+      const btnGen = document.getElementById('btn-generate-variation');
+      if (btnGen) {
+        btnGen.addEventListener('click', () => {
+          loadProblem(true);
+        });
+      }
+
+      // Form Submit Answer
+      const answerForm = document.getElementById('answer-form');
+      if (answerForm) {
+        answerForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          checkAnswers();
+        });
+      }
+
+      // Toggle Solution Drawer
+      const btnToggleSol = document.getElementById('btn-toggle-solution');
+      if (btnToggleSol) {
+        btnToggleSol.addEventListener('click', () => {
+          const sol = document.getElementById('solution-container');
+          const txt = document.getElementById('solution-toggle-text');
+          if (sol && sol.classList.contains('hidden')) {
+            sol.classList.remove('hidden');
+            if (txt) txt.textContent = 'Hide Step-by-Step Solution';
+            renderLaTeX(document.getElementById('solution-content'));
+          } else if (sol) {
+            sol.classList.add('hidden');
+            if (txt) txt.textContent = 'Show Step-by-Step Solution';
+          }
+        });
+      }
+
+      // Formula Modal & Render On Demand
+      const modal = document.getElementById('modal-formulas');
+      const formulaBody = document.getElementById('formula-modal-body');
+      const btnFormulas = document.getElementById('btn-formulas');
+      const btnCloseFormulas = document.getElementById('btn-close-formulas');
+
+      if (btnFormulas && modal) {
+        btnFormulas.addEventListener('click', () => {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          if (formulaBody) renderLaTeX(formulaBody);
+        });
+      }
+
+      if (btnCloseFormulas && modal) {
+        btnCloseFormulas.addEventListener('click', () => {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        });
+      }
+
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+          }
+        });
+      }
+
+      // Dark / Light Theme Toggle
+      const btnTheme = document.getElementById('btn-theme');
+      if (btnTheme) {
+        btnTheme.addEventListener('click', () => {
+          const html = document.documentElement;
+          if (html.classList.contains('dark')) {
+            html.classList.remove('dark');
+            localStorage.setItem('phy_theme', 'light');
+          } else {
+            html.classList.add('dark');
+            localStorage.setItem('phy_theme', 'dark');
+          }
+        });
+      }
+
+      // Restore stored theme setting
+      const savedTheme = localStorage.getItem('phy_theme');
+      if (savedTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+      }
+
+      // Initialize Lucide Icons
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen font-sans flex flex-col transition-colors duration-200">
+
+  <!-- Top Navigation Header -->
+  <header class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-brand-500/10 text-brand-500 rounded-xl">
+          <i data-lucide="atom" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-base md:text-lg leading-tight">Physics Practice App</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Chapter 3: 2D Kinematics & Vectors</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="btn-formulas" class="px-3 py-1.5 text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition flex items-center gap-1.5">
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          <span>Formulas</span>
+        </button>
+        <button id="btn-theme" class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition">
+          <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
+          <i data-lucide="sun" class="w-4 h-4 dark:hidden"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Stats Banner -->
+  <section class="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50">
+    <div class="max-w-6xl mx-auto px-4 py-3 grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
+      <div class="p-2 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
+        <div class="text-xs text-slate-500 dark:text-slate-400">Score</div>
+        <div id="stat-score" class="text-lg font-bold text-brand-500">0</div>
+      </div>
+      <div class="p-2 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
+        <div class="text-xs text-slate-500 dark:text-slate-400">Streak</div>
+        <div id="stat-streak" class="text-lg font-bold text-amber-500">0 🔥</div>
+      </div>
+      <div class="p-2 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
+        <div class="text-xs text-slate-500 dark:text-slate-400">Best Streak</div>
+        <div id="stat-best-streak" class="text-lg font-bold text-emerald-500">0</div>
+      </div>
+      <div class="p-2 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
+        <div class="text-xs text-slate-500 dark:text-slate-400">High Score</div>
+        <div id="stat-high-score" class="text-lg font-bold text-purple-500">0</div>
+      </div>
+      <div class="p-2 bg-slate-50 dark:bg-slate-800/40 rounded-lg col-span-2 sm:col-span-1">
+        <div class="text-xs text-slate-500 dark:text-slate-400">Last Score</div>
+        <div id="stat-last-score" class="text-lg font-bold text-slate-700 dark:text-slate-300">--</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Container -->
+  <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+
+    <!-- Topic Set Tabs -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <button data-set="mixed" class="tab-btn px-4 py-2 text-sm font-medium rounded-xl whitespace-nowrap transition flex items-center gap-2 bg-brand-500 text-white shadow-sm">
+        <span>🎲 Mixed Practice</span>
+      </button>
+      <button data-set="0" class="tab-btn px-4 py-2 text-sm font-medium rounded-xl whitespace-nowrap transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60">
+        <span>Set 1: 2D Displacement</span>
+      </button>
+      <button data-set="1" class="tab-btn px-4 py-2 text-sm font-medium rounded-xl whitespace-nowrap transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60">
+        <span>Set 2: Vectors & Resultants</span>
+      </button>
+      <button data-set="2" class="tab-btn px-4 py-2 text-sm font-medium rounded-xl whitespace-nowrap transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60">
+        <span>Set 3: Projectile (Equal H)</span>
+      </button>
+      <button data-set="3" class="tab-btn px-4 py-2 text-sm font-medium rounded-xl whitespace-nowrap transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60">
+        <span>Set 4: Relative Velocity</span>
+      </button>
+    </div>
+
+    <!-- Set Description & Problem Selector -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div>
+        <h2 id="set-title" class="font-bold text-lg text-slate-900 dark:text-slate-100">Mixed Practice (All Topics)</h2>
+        <p id="set-desc" class="text-xs md:text-sm text-slate-500 dark:text-slate-400">Randomized practice problems combined from all Chapter 3 sets.</p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <select id="problem-select" class="px-3 py-2 text-xs md:text-sm bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-500 font-medium">
+        </select>
+        <button id="btn-generate-variation" class="px-3 py-2 text-xs md:text-sm font-semibold bg-brand-500/10 text-brand-600 dark:text-brand-400 hover:bg-brand-500/20 rounded-xl transition whitespace-nowrap flex items-center gap-1.5">
+          <i data-lucide="shuffle" class="w-4 h-4"></i>
+          <span>Randomize</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Problem Card -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
+      
+      <!-- Badges -->
+      <div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+        <span id="problem-number-badge" class="px-2.5 py-1 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-md">
+          Problem 1
+        </span>
+        <span id="problem-is-variation" class="hidden px-2.5 py-1 text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-md">
+          ✨ Randomized Variation
+        </span>
+      </div>
+
+      <!-- Problem Statement -->
+      <div id="problem-statement" class="text-sm md:text-base leading-relaxed text-slate-800 dark:text-slate-200 min-h-[60px]">
+        Loading problem statement...
+      </div>
+
+      <!-- Form Inputs -->
+      <form id="answer-form" class="space-y-4">
+        <div id="input-fields-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button type="submit" class="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm rounded-xl transition shadow-md shadow-brand-500/20 flex items-center gap-2">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            <span>Submit Answer</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Feedback Banner -->
+      <div id="feedback-banner" class="hidden mt-4 p-4 rounded-xl border flex items-start gap-3 transition">
+        <div id="feedback-icon" class="p-1 rounded-full shrink-0 mt-0.5"></div>
+        <div>
+          <h4 id="feedback-title" class="font-bold text-sm"></h4>
+          <p id="feedback-msg" class="text-xs md:text-sm mt-0.5 opacity-90"></p>
+        </div>
+      </div>
+
+      <!-- Solution Drawer -->
+      <div class="border-t border-slate-100 dark:border-slate-800/80 pt-4">
+        <button id="btn-toggle-solution" type="button" class="text-xs font-semibold text-slate-500 hover:text-brand-500 transition flex items-center gap-1.5 outline-none">
+          <i data-lucide="help-circle" class="w-4 h-4"></i>
+          <span id="solution-toggle-text">Show Step-by-Step Solution</span>
+        </button>
+
+        <div id="solution-container" class="hidden mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 rounded-xl space-y-2 text-xs md:text-sm leading-relaxed overflow-x-auto">
+          <div id="solution-content"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Formula Modal -->
+  <div id="modal-formulas" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <h3 class="font-bold text-base md:text-lg flex items-center gap-2">
+          <i data-lucide="book-open" class="w-5 h-5 text-brand-500"></i>
+          <span>Chapter 3 Formula Sheet</span>
+        </h3>
+        <button id="btn-close-formulas" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="formula-modal-body" class="p-6 overflow-y-auto space-y-6 text-sm">
+        <div>
+          <h4 class="font-semibold text-brand-500 mb-2">1. Vector Components & Magnitude</h4>
+          <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg space-y-1">
+            <p>$$A_x = A \cos\theta, \quad A_y = A \sin\theta$$</p>
+            <p>$$A = \sqrt{A_x^2 + A_y^2}, \quad \theta = \tan^{-1}\left(\frac{|A_y|}{|A_x|}\right)$$</p>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-semibold text-brand-500 mb-2">2. 2D Projectile Kinematics ($g = 9.80\text{ m/s}^2$)</h4>
+          <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg space-y-1">
+            <p>$$x = (v_0 \cos\theta) t$$</p>
+            <p>$$y = (v_0 \sin\theta) t - \frac{1}{2}g t^2$$</p>
+            <p>$$v_x = v_0 \cos\theta, \quad v_y = v_0 \sin\theta - g t$$</p>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-semibold text-brand-500 mb-2">3. Symmetric Ground Launch ($y_0 = y_f = 0$)</h4>
+          <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg space-y-1">
+            <p>$$t_{\text{flight}} = \frac{2 v_0 \sin\theta}{g}, \quad h_{\max} = \frac{(v_0 \sin\theta)^2}{2g}$$</p>
+            <p>$$R = \frac{v_0^2 \sin(2\theta)}{g}$$</p>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-semibold text-brand-500 mb-2">4. Relative Velocity</h4>
+          <div class="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg space-y-1">
+            <p>$$\vec{v}_{A/C} = \vec{v}_{A/B} + \vec{v}_{B/C}$$</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

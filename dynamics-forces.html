@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamics & Forces Practice</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.4);
+            border-radius: 9999px;
+        }
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen transition-colors duration-200 dark:bg-slate-900 dark:text-slate-100 bg-slate-50 text-slate-800 flex flex-col justify-between">
+
+    <header class="sticky top-0 z-30 border-b border-slate-700/50 bg-slate-900/80 dark:bg-slate-900/80 bg-white/80 glass-panel px-4 py-3">
+        <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-500/30">
+                    <i data-lucide="atom" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">PhysixLab</h1>
+                    <p class="text-xs text-slate-400">Ch. 4 Forces & Newton's Laws</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button id="cheat-sheet-btn" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold flex items-center gap-1 border border-slate-700 transition">
+                    <i data-lucide="book-open" class="w-4 h-4 text-blue-400"></i>
+                    <span class="hidden sm:inline">Formulas</span>
+                </button>
+
+                <button id="theme-toggle" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-300 border border-slate-700 transition" aria-label="Toggle Theme">
+                    <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-yellow-400"></i>
+                    <i data-lucide="moon" class="w-4 h-4 block dark:hidden text-indigo-600"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto w-full px-4 py-6 flex-1 flex flex-col gap-6">
+
+        <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-slate-800/60 dark:bg-slate-800/60 bg-white border border-slate-700/60 dark:border-slate-700/60 rounded-xl p-3 flex flex-col justify-center items-center shadow-sm">
+                <div class="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
+                    <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>Score</span>
+                </div>
+                <span id="stat-score" class="text-xl font-extrabold text-amber-400">0</span>
+            </div>
+
+            <div class="bg-slate-800/60 dark:bg-slate-800/60 bg-white border border-slate-700/60 dark:border-slate-700/60 rounded-xl p-3 flex flex-col justify-center items-center shadow-sm">
+                <div class="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
+                    <i data-lucide="flame" class="w-3.5 h-3.5 text-orange-500"></i>
+                    <span>Streak</span>
+                </div>
+                <div class="flex items-baseline gap-1">
+                    <span id="stat-streak" class="text-xl font-extrabold text-orange-500">0</span>
+                    <span class="text-xs font-normal text-slate-400">(Best: <span id="stat-high-streak">0</span>)</span>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/60 dark:bg-slate-800/60 bg-white border border-slate-700/60 dark:border-slate-700/60 rounded-xl p-3 flex flex-col justify-center items-center shadow-sm">
+                <div class="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
+                    <i data-lucide="target" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span>Accuracy</span>
+                </div>
+                <span id="stat-accuracy" class="text-xl font-extrabold text-emerald-400">0%</span>
+            </div>
+
+            <div class="bg-slate-800/60 dark:bg-slate-800/60 bg-white border border-slate-700/60 dark:border-slate-700/60 rounded-xl p-3 flex flex-col justify-center items-center shadow-sm">
+                <div class="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
+                    <i data-lucide="history" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span>Last Result</span>
+                </div>
+                <span id="stat-last" class="text-sm font-semibold text-slate-300">--</span>
+            </div>
+        </section>
+
+        <section class="flex flex-col gap-2">
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="layers" class="w-3.5 h-3.5"></i> Select Practice Module
+            </label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2" id="set-selector">
+                <button data-set="0" class="set-btn active bg-blue-600 text-white font-medium text-xs p-2.5 rounded-lg border border-blue-500 transition shadow-sm flex flex-col items-center justify-center text-center">
+                    <span>Mix All</span>
+                    <span class="text-[10px] opacity-75">Random Questions</span>
+                </button>
+                <button data-set="1" class="set-btn bg-slate-800 hover:bg-slate-700 dark:bg-slate-800 text-slate-300 font-medium text-xs p-2.5 rounded-lg border border-slate-700 transition flex flex-col items-center justify-center text-center">
+                    <span>Set 1</span>
+                    <span class="text-[10px] text-slate-400">Net Force & Acceleration</span>
+                </button>
+                <button data-set="2" class="set-btn bg-slate-800 hover:bg-slate-700 dark:bg-slate-800 text-slate-300 font-medium text-xs p-2.5 rounded-lg border border-slate-700 transition flex flex-col items-center justify-center text-center">
+                    <span>Set 2</span>
+                    <span class="text-[10px] text-slate-400">Weight & Elevators</span>
+                </button>
+                <button data-set="3" class="set-btn bg-slate-800 hover:bg-slate-700 dark:bg-slate-800 text-slate-300 font-medium text-xs p-2.5 rounded-lg border border-slate-700 transition flex flex-col items-center justify-center text-center">
+                    <span>Set 3</span>
+                    <span class="text-[10px] text-slate-400">Inclines & Friction</span>
+                </button>
+                <button data-set="4" class="set-btn bg-slate-800 hover:bg-slate-700 dark:bg-slate-800 text-slate-300 font-medium text-xs p-2.5 rounded-lg border border-slate-700 transition flex flex-col items-center justify-center text-center">
+                    <span>Set 4</span>
+                    <span class="text-[10px] text-slate-400">Tension & Connected</span>
+                </button>
+                <button data-set="5" class="set-btn bg-slate-800 hover:bg-slate-700 dark:bg-slate-800 text-slate-300 font-medium text-xs p-2.5 rounded-lg border border-slate-700 transition flex flex-col items-center justify-center text-center">
+                    <span>Set 5</span>
+                    <span class="text-[10px] text-slate-400">2D Equilibrium & Vectors</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="bg-slate-800/70 dark:bg-slate-800/70 bg-white border border-slate-700/80 dark:border-slate-700/80 rounded-2xl p-5 md:p-6 shadow-xl flex flex-col gap-6 relative">
+            
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-3 gap-2">
+                <div class="flex items-center gap-2">
+                    <span id="problem-category-badge" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        Set 1
+                    </span>
+                    <span id="problem-id-badge" class="text-xs text-slate-400 font-medium">
+                        Problem 1 of 5
+                    </span>
+                </div>
+                <button id="next-problem-btn" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-600 transition active:scale-95">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span>New Variation</span>
+                </button>
+            </div>
+
+            <!-- Problem Title & Description -->
+            <div>
+                <h2 id="problem-title" class="text-lg md:text-xl font-bold text-slate-100 dark:text-slate-100 mb-2">
+                    Problem Title
+                </h2>
+                <div id="problem-statement" class="text-sm md:text-base text-slate-300 leading-relaxed space-y-2">
+                    Loading problem description...
+                </div>
+            </div>
+
+            <!-- Inputs & Answer Fields -->
+            <form id="answers-form" onsubmit="return false;" class="space-y-4">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i>
+                    <span>Your Answers (Scientific notation allowed, e.g. 1.25e3):</span>
+                </div>
+                
+                <div id="inputs-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Dynamic Answer Inputs Injected Here -->
+                </div>
+
+                <!-- Action Controls -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-700/60">
+                    <button id="show-solution-btn" type="button" class="px-4 py-2.5 rounded-xl bg-slate-700/60 hover:bg-slate-700 text-slate-300 text-xs md:text-sm font-semibold flex items-center gap-2 border border-slate-600 transition">
+                        <i data-lucide="eye" class="w-4 h-4 text-amber-400"></i>
+                        <span id="show-solution-text">Show Solution</span>
+                    </button>
+
+                    <button id="check-answers-btn" type="submit" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition active:scale-95">
+                        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                        <span>Check Answers</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Dynamic Feedback Box -->
+            <div id="feedback-card" class="hidden rounded-xl p-4 border text-sm flex items-start gap-3 transition-all">
+                <div id="feedback-icon" class="mt-0.5"></div>
+                <div>
+                    <h4 id="feedback-title" class="font-bold text-base mb-0.5"></h4>
+                    <p id="feedback-message" class="text-xs md:text-sm leading-relaxed"></p>
+                </div>
+            </div>
+
+            <!-- Step-by-Step Solution Breakdown Container -->
+            <div id="solution-container" class="hidden rounded-xl bg-slate-900/90 dark:bg-slate-900/90 border border-slate-700/80 p-5 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-700/80 pb-2">
+                    <h3 class="font-bold text-amber-400 text-sm md:text-base flex items-center gap-2">
+                        <i data-lucide="lightbulb" class="w-4 h-4"></i>
+                        Step-by-Step Solution Derivation
+                    </h3>
+                    <span class="text-xs text-slate-400">g = 9.80 m/s²</span>
+                </div>
+                <div id="solution-content" class="text-xs md:text-sm text-slate-300 space-y-3 font-mono leading-relaxed overflow-x-auto">
+                    <!-- Dynamic Solution Text -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="cheat-sheet-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-slate-700 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="book-open" class="w-5 h-5 text-blue-400"></i>
+                    <h3 class="font-bold text-slate-100 text-lg">Dynamics Formula Cheat Sheet</h3>
+                </div>
+                <button id="close-modal-btn" class="p-1 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-slate-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-5 overflow-y-auto space-y-4 text-xs md:text-sm text-slate-300">
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60">
+                    <h4 class="font-bold text-blue-400 mb-1">Newton's Laws & Net Force</h4>
+                    <p class="font-mono">\( F_{\text{net}} = m \cdot a \quad | \quad F_{\text{net}} = \sum F_{\text{forward}} - \sum F_{\text{resistive}} \)</p>
+                </div>
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60">
+                    <h4 class="font-bold text-blue-400 mb-1">Kinematics Equations (Constant Acceleration)</h4>
+                    <p class="font-mono">\( v_f = v_i + a \cdot t \)</p>
+                    <p class="font-mono">\( \Delta x = v_i \cdot t + \frac{1}{2} a \cdot t^2 \)</p>
+                    <p class="font-mono">\( v_f^2 = v_i^2 + 2 a \cdot \Delta x \)</p>
+                </div>
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60">
+                    <h4 class="font-bold text-blue-400 mb-1">Weight & Normal Force in Elevators</h4>
+                    <p class="font-mono">\( W = m \cdot g \quad (g = 9.80\text{ m/s}^2) \)</p>
+                    <p class="font-mono">\( N = m(g + a) \quad [a > 0 \text{ upward}, a < 0 \text{ downward}] \)</p>
+                    <p class="font-mono">\( m_{\text{apparent}} = \frac{N}{g} \)</p>
+                </div>
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60">
+                    <h4 class="font-bold text-blue-400 mb-1">Inclined Planes & Friction</h4>
+                    <p class="font-mono">\( F_{\text{gravity, } \parallel} = m \cdot g \cdot \sin(\theta) \)</p>
+                    <p class="font-mono">\( N = m \cdot g \cdot \cos(\theta) \)</p>
+                    <p class="font-mono">\( f_k = \mu_k \cdot N \quad | \quad f_{s,\text{max}} = \mu_s \cdot N \)</p>
+                </div>
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60">
+                    <h4 class="font-bold text-blue-400 mb-1">2D Equilibrium & Vectors</h4>
+                    <p class="font-mono">\( \sum F_x = 0 \quad , \quad \sum F_y = 0 \)</p>
+                    <p class="font-mono">\( F_x = F \cdot \cos(\theta) \quad | \quad F_y = F \cdot \sin(\theta) \)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="border-t border-slate-800 bg-slate-900/50 py-4 px-4 text-center text-xs text-slate-500">
+        <p>Interactive Physics Practice • Dynamic Procedural Variations • Standard Gravity g = 9.80 m/s²</p>
+    </footer>
+
+    <script>
+        /* Utility Helpers */
+        function renderMath(element) {
+            if (window.renderMathInElement && element) {
+                try {
+                    renderMathInElement(element, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ],
+                        throwOnError: false
+                    });
+                } catch (e) {
+                    console.error("KaTeX error:", e);
+                }
+            }
+        }
+
+        const getRandomFloat = (min, max, decimals = 1) => {
+            const val = Math.random() * (max - min) + min;
+            return parseFloat(val.toFixed(decimals));
+        };
+
+        const getRandomInt = (min, max) => {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        };
+
+        const parseNum = (str) => {
+            if (typeof str === 'number') return str;
+            if (!str) return NaN;
+            return parseFloat(str.trim().replace(/,/g, ''));
+        };
+
+        const isClose = (val1, val2, relTol = 0.025, absTol = 0.15) => {
+            if (isNaN(val1) || isNaN(val2)) return false;
+            const diff = Math.abs(val1 - val2);
+            if (diff <= absTol) return true;
+            return diff / Math.abs(val2) <= relTol;
+        };
+
+        const state = {
+            currentSet: 0, // 0 = Random All, 1..5 = Sets
+            currentProblem: null,
+            score: 0,
+            streak: 0,
+            highStreak: 0,
+            totalAttempted: 0,
+            totalCorrect: 0,
+            lastResult: '--',
+            isSolutionShown: false
+        };
+
+        /* Load / Save Stats in LocalStorage */
+        function loadStats() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('physix_ch4_stats') || '{}');
+                state.score = saved.score || 0;
+                state.streak = saved.streak || 0;
+                state.highStreak = saved.highStreak || 0;
+                state.totalAttempted = saved.totalAttempted || 0;
+                state.totalCorrect = saved.totalCorrect || 0;
+                state.lastResult = saved.lastResult || '--';
+            } catch (e) {
+                console.error(e);
+            }
+            updateStatsUI();
+        }
+
+        function saveStats() {
+            try {
+                localStorage.setItem('physix_ch4_stats', JSON.stringify({
+                    score: state.score,
+                    streak: state.streak,
+                    highStreak: state.highStreak,
+                    totalAttempted: state.totalAttempted,
+                    totalCorrect: state.totalCorrect,
+                    lastResult: state.lastResult
+                }));
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function updateStatsUI() {
+            const scoreEl = document.getElementById('stat-score');
+            if (scoreEl) scoreEl.innerText = state.score;
+
+            const streakEl = document.getElementById('stat-streak');
+            if (streakEl) streakEl.innerText = state.streak;
+
+            const highStreakEl = document.getElementById('stat-high-streak');
+            if (highStreakEl) highStreakEl.innerText = state.highStreak;
+            
+            const accEl = document.getElementById('stat-accuracy');
+            if (accEl) {
+                const acc = state.totalAttempted > 0 
+                    ? Math.round((state.totalCorrect / state.totalAttempted) * 100) 
+                    : 0;
+                accEl.innerText = `${acc}%`;
+            }
+
+            const lastEl = document.getElementById('stat-last');
+            if (lastEl) {
+                lastEl.innerText = state.lastResult;
+                if (state.lastResult === 'Correct') {
+                    lastEl.className = "text-sm font-semibold text-emerald-400";
+                } else if (state.lastResult === 'Incorrect') {
+                    lastEl.className = "text-sm font-semibold text-rose-400";
+                } else {
+                    lastEl.className = "text-sm font-semibold text-slate-300";
+                }
+            }
+        }
+
+        const generators = [
+            // SET 1
+            // P1.1
+            {
+                setId: 1, pId: 1,
+                title: "Two Horizontal Forces with Resistance",
+                generate() {
+                    const m = getRandomFloat(25, 60, 1);
+                    const F1 = getRandomFloat(140, 220, 1);
+                    const F2 = getRandomFloat(80, 130, 1);
+                    const Fres = getRandomFloat(50, 95, 1);
+                    const t = getRandomFloat(3.0, 6.0, 2);
+
+                    const Fnet = F1 + F2 - Fres;
+                    const a = Fnet / m;
+                    const vf = a * t;
+                    const dist = 0.5 * a * Math.pow(t, 2);
+
+                    return {
+                        statement: `A ${m} kg equipment cart is pushed eastward by two students. One applies ${F1} N east; the other applies ${F2} N east. Rolling resistance and air drag together exert ${Fres} N west.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'fnet', label: 'Net horizontal force (N)', unit: 'N', ans: Fnet },
+                            { id: 'acc', label: 'Cart acceleration (m/s²)', unit: 'm/s²', ans: a },
+                            { id: 'vf', label: `Speed after ${t} s (starting rest) (m/s)`, unit: 'm/s', ans: vf },
+                            { id: 'dist', label: `Distance traveled in ${t} s (m)`, unit: 'm', ans: dist }
+                        ],
+                        solution: [
+                            `1. Net Force: \\( F_{\\text{net}} = F_1 + F_2 - F_{\\text{res}} = ${F1} + ${F2} - ${Fres} = ${Fnet.toFixed(2)}\\text{ N} \\) (East)`,
+                            `2. Acceleration: \\( a = \\frac{F_{\\text{net}}}{m} = \\frac{${Fnet.toFixed(2)}}{${m}} = ${a.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `3. Final Speed: \\( v_f = v_i + a \\cdot t = 0 + (${a.toFixed(3)}) \\cdot (${t}) = ${vf.toFixed(2)}\\text{ m/s} \\)`,
+                            `4. Distance: \\( \\Delta x = \\frac{1}{2} a \\cdot t^2 = 0.5 \\cdot (${a.toFixed(3)}) \\cdot (${t})^2 = ${dist.toFixed(2)}\\text{ m} \\)`
+                        ]
+                    };
+                }
+            },
+            // P1.2
+            {
+                setId: 1, pId: 2,
+                title: "Determine an Applied Driving Force",
+                generate() {
+                    const m = getRandomFloat(1000, 1500, 0);
+                    const vi = getRandomFloat(8.0, 15.0, 1);
+                    const vf = getRandomFloat(20.0, 28.0, 1);
+                    const t = getRandomFloat(4.0, 8.0, 2);
+                    const Fdrag = getRandomFloat(1200, 2200, 0);
+
+                    const a = (vf - vi) / t;
+                    const Fnet = m * a;
+                    const Fdrive = Fnet + Fdrag;
+                    const dist = vi * t + 0.5 * a * Math.pow(t, 2);
+
+                    return {
+                        statement: `A ${m} kg electric vehicle travels east at ${vi} m/s. It is required to reach ${vf} m/s in ${t} s. The combined rolling resistance and aerodynamic drag are ${Fdrag} N west.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'a', label: 'Acceleration (m/s²)', unit: 'm/s²', ans: a },
+                            { id: 'fnet', label: 'Net force required (N)', unit: 'N', ans: Fnet },
+                            { id: 'fdrive', label: 'Driving force supplied by tires (N)', unit: 'N', ans: Fdrive },
+                            { id: 'dist', label: 'Distance traveled during acceleration (m)', unit: 'm', ans: dist }
+                        ],
+                        solution: [
+                            `1. Acceleration: \\( a = \\frac{v_f - v_i}{t} = \\frac{${vf} - ${vi}}{${t}} = ${a.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `2. Net Force: \\( F_{\\text{net}} = m \\cdot a = (${m}) \\cdot (${a.toFixed(3)}) = ${Fnet.toFixed(2)}\\text{ N} \\)`,
+                            `3. Driving Force: \\( F_{\\text{drive}} = F_{\\text{net}} + F_{\\text{drag}} = ${Fnet.toFixed(2)} + ${Fdrag} = ${Fdrive.toFixed(2)}\\text{ N} \\)`,
+                            `4. Distance: \\( \\Delta x = v_i \\cdot t + \\frac{1}{2} a \\cdot t^2 = (${vi})(${t}) + \\frac{1}{2}(${a.toFixed(3)})(${t})^2 = ${dist.toFixed(2)}\\text{ m} \\)`
+                        ]
+                    };
+                }
+            },
+            // P1.3
+            {
+                setId: 1, pId: 3,
+                title: "Force from Velocity-Time Change",
+                generate() {
+                    const m = getRandomFloat(10, 25, 1);
+                    const vi = getRandomFloat(2.0, 4.5, 1);
+                    const vf = getRandomFloat(3.5, 6.5, 1);
+                    const t = getRandomFloat(3.5, 6.0, 2);
+                    const Ffric = getRandomFloat(12, 25, 1);
+
+                    const a = (vf - (-vi)) / t;
+                    const Fnet = m * a;
+                    const Fapp = Fnet + Ffric;
+                    const dist = (-vi) * t + 0.5 * a * Math.pow(t, 2);
+
+                    return {
+                        statement: `A ${m} kg laboratory cart is moving west at ${vi} m/s. A horizontal eastward force is then applied. While acting, a constant ${Ffric} N friction force acts westward. After ${t} s, the cart moves east at ${vf} m/s. (Taking East as positive)<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'a', label: 'Cart acceleration (m/s²)', unit: 'm/s²', ans: a },
+                            { id: 'fnet', label: 'Net force (N)', unit: 'N', ans: Fnet },
+                            { id: 'fapp', label: 'Applied eastward force (N)', unit: 'N', ans: Fapp },
+                            { id: 'disp', label: 'Displacement over interval (m)', unit: 'm', ans: dist }
+                        ],
+                        solution: [
+                            `Taking East as positive: \\( v_i = -${vi}\\text{ m/s}, \\quad v_f = +${vf}\\text{ m/s} \\)`,
+                            `1. Acceleration: \\( a = \\frac{v_f - v_i}{t} = \\frac{${vf} - (-${vi})}{${t}} = ${a.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `2. Net force: \\( F_{\\text{net}} = m \\cdot a = (${m}) \\cdot (${a.toFixed(3)}) = ${Fnet.toFixed(2)}\\text{ N} \\)`,
+                            `3. Applied Force: \\( F_{\\text{app}} = F_{\\text{net}} + F_{\\text{fric}} = ${Fnet.toFixed(2)} + ${Ffric} = ${Fapp.toFixed(2)}\\text{ N} \\)`,
+                            `4. Displacement: \\( \\Delta x = v_i \\cdot t + \\frac{1}{2} a \\cdot t^2 = (-${vi})(${t}) + \\frac{1}{2}(${a.toFixed(3)})(${t})^2 = ${dist.toFixed(2)}\\text{ m} \\)`
+                        ]
+                    };
+                }
+            },
+            // P1.4
+            {
+                setId: 1, pId: 4,
+                title: "Pulling Crate & Stopping Distance",
+                generate() {
+                    const Fpull = getRandomFloat(250, 400, 0);
+                    const Ffric = getRandomFloat(80, 150, 0);
+                    const dist1 = getRandomFloat(12, 22, 1);
+                    const t1 = getRandomFloat(3.0, 5.0, 2);
+
+                    const a1 = (2 * dist1) / Math.pow(t1, 2);
+                    const Fnet = Fpull - Ffric;
+                    const m = Fnet / a1;
+                    const vf1 = a1 * t1;
+                    const a2 = -Ffric / m;
+                    const tstop = Math.abs(vf1 / a2);
+
+                    return {
+                        statement: `A crate is pulled across a floor by a horizontal force of ${Fpull} N against friction of ${Ffric} N. It starts from rest and moves ${dist1} m in ${t1} s.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'a1', label: 'Acceleration while pulled (m/s²)', unit: 'm/s²', ans: a1 },
+                            { id: 'mass', label: 'Mass of the crate (kg)', unit: 'kg', ans: m },
+                            { id: 'vf', label: `Final speed after ${t1} s (m/s)`, unit: 'm/s', ans: vf1 },
+                            { id: 'tstop', label: 'Stopping time after pulling force removed (s)', unit: 's', ans: tstop }
+                        ],
+                        solution: [
+                            `1. Kinematics: \\( \\Delta x = \\frac{1}{2} a t^2 \\implies a_1 = \\frac{2 \\Delta x}{t^2} = \\frac{2 \\cdot ${dist1}}{(${t1})^2} = ${a1.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `2. Net force: \\( F_{\\text{net}} = ${Fpull} - ${Ffric} = ${Fnet}\\text{ N} \\). Mass \\( m = \\frac{F_{\\text{net}}}{a_1} = \\frac{${Fnet}}{${a1.toFixed(3)}} = ${m.toFixed(2)}\\text{ kg} \\)`,
+                            `3. Speed at pull removal: \\( v_f = a_1 \\cdot t = (${a1.toFixed(3)}) \\cdot (${t1}) = ${vf1.toFixed(2)}\\text{ m/s} \\)`,
+                            `4. Deceleration with friction only: \\( a_2 = \\frac{-F_{\\text{fric}}}{m} = \\frac{-${Ffric}}{${m.toFixed(2)}} = ${a2.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `   Stopping time: \\( t = \\frac{-v_f}{a_2} = \\frac{-${vf1.toFixed(2)}}{${a2.toFixed(3)}} = ${tstop.toFixed(2)}\\text{ s} \\)`
+                        ]
+                    };
+                }
+            },
+            // P1.5
+            {
+                setId: 1, pId: 5,
+                title: "Rocket Sled with Multiple Engines",
+                generate() {
+                    const m = getRandomFloat(2000, 3000, 0);
+                    const numRockets = 3;
+                    const vi = getRandomFloat(5.0, 12.0, 1);
+                    const vf = getRandomFloat(30.0, 45.0, 1);
+                    const dist = getRandomFloat(180, 280, 0);
+                    const Fdrag = getRandomFloat(900, 1500, 0);
+
+                    const a = (Math.pow(vf, 2) - Math.pow(vi, 2)) / (2 * dist);
+                    const Fnet = m * a;
+                    const Ttotal = Fnet + Fdrag;
+                    const Trock = Ttotal / numRockets;
+                    const t = (vf - vi) / a;
+
+                    return {
+                        statement: `A ${m} kg rocket sled is powered by 3 identical rockets. Friction & drag total ${Fdrag} N opposite motion. It accelerates from ${vi} m/s to ${vf} m/s over ${dist} m.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'a', label: 'Acceleration (m/s²)', unit: 'm/s²', ans: a },
+                            { id: 'fnet', label: 'Net force on sled (N)', unit: 'N', ans: Fnet },
+                            { id: 'ttotal', label: 'Total thrust from rockets (N)', unit: 'N', ans: Ttotal },
+                            { id: 'trock', label: 'Thrust per rocket (N)', unit: 'N', ans: Trock },
+                            { id: 't', label: 'Travel time over distance (s)', unit: 's', ans: t }
+                        ],
+                        solution: [
+                            `1. Acceleration: \\( v_f^2 = v_i^2 + 2 a \\cdot \\Delta x \\implies a = \\frac{v_f^2 - v_i^2}{2 \\Delta x} = \\frac{${vf}^2 - ${vi}^2}{2 \\cdot ${dist}} = ${a.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `2. Net force: \\( F_{\\text{net}} = m \\cdot a = (${m}) \\cdot (${a.toFixed(3)}) = ${Fnet.toFixed(2)}\\text{ N} \\)`,
+                            `3. Total thrust: \\( T_{\\text{total}} = F_{\\text{net}} + F_{\\text{drag}} = ${Fnet.toFixed(2)} + ${Fdrag} = ${Ttotal.toFixed(2)}\\text{ N} \\)`,
+                            `4. Thrust per rocket: \\( = \\frac{T_{\\text{total}}}{3} = \\frac{${Ttotal.toFixed(2)}}{3} = ${Trock.toFixed(2)}\\text{ N} \\)`,
+                            `5. Time: \\( t = \\frac{v_f - v_i}{a} = \\frac{${vf} - ${vi}}{${a.toFixed(3)}} = ${t.toFixed(2)}\\text{ s} \\)`
+                        ]
+                    };
+                }
+            },
+
+            // SET 2
+            // P2.1
+            {
+                setId: 2, pId: 1,
+                title: "Elevator Accelerating Upward",
+                generate() {
+                    const m = getRandomFloat(55, 85, 1);
+                    const a = getRandomFloat(1.2, 2.5, 2);
+                    const g = 9.80;
+
+                    const W = m * g;
+                    const N = m * (g + a);
+                    const m_app = N / g;
+
+                    return {
+                        statement: `A ${m} kg student stands on a bathroom scale inside an elevator accelerating upward at ${a} m/s².<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'w', label: 'Actual gravitational weight (N)', unit: 'N', ans: W },
+                            { id: 'n', label: 'Normal force on student (Scale reading in N)', unit: 'N', ans: N },
+                            { id: 'mapp', label: 'Apparent mass reading on kg scale (kg)', unit: 'kg', ans: m_app }
+                        ],
+                        solution: [
+                            `1. True weight: \\( W = m \\cdot g = (${m}) \\cdot (9.80) = ${W.toFixed(2)}\\text{ N} \\)`,
+                            `2. Normal force: \\( N - m g = m a \\implies N = m(g + a) = (${m}) \\cdot (9.80 + ${a}) = ${N.toFixed(2)}\\text{ N} \\)`,
+                            `3. Apparent mass display: \\( m_{\\text{apparent}} = \\frac{N}{g} = \\frac{${N.toFixed(2)}}{9.80} = ${m_app.toFixed(2)}\\text{ kg} \\)`
+                        ]
+                    };
+                }
+            },
+            // P2.2
+            {
+                setId: 2, pId: 2,
+                title: "Elevator Decelerating Moving Upward",
+                generate() {
+                    const m = getRandomFloat(60, 90, 1);
+                    const vi = getRandomFloat(4.0, 7.0, 1);
+                    const t = getRandomFloat(1.8, 3.2, 2);
+                    const g = 9.80;
+
+                    const acc = (0 - vi) / t;
+                    const N = m * (g + acc);
+                    const m_app = N / g;
+
+                    return {
+                        statement: `A ${m} kg passenger is riding upward in an elevator. The elevator slows from ${vi} m/s to rest in ${t} s.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'a', label: 'Elevator acceleration (include sign, m/s²)', unit: 'm/s²', ans: acc },
+                            { id: 'n', label: 'Normal force on passenger (N)', unit: 'N', ans: N },
+                            { id: 'mapp', label: 'Apparent mass displayed (kg)', unit: 'kg', ans: m_app }
+                        ],
+                        solution: [
+                            `1. Acceleration: \\( a = \\frac{v_f - v_i}{t} = \\frac{0 - ${vi}}{${t}} = ${acc.toFixed(3)}\\text{ m/s}^2 \\) (Downward)`,
+                            `2. Normal force: \\( N = m(g + a) = (${m}) \\cdot (9.80 + (${acc.toFixed(3)})) = ${N.toFixed(2)}\\text{ N} \\)`,
+                            `3. Since \\( N < m g \\), passenger feels lighter.`,
+                            `4. Apparent mass: \\( = \\frac{N}{g} = \\frac{${N.toFixed(2)}}{9.80} = ${m_app.toFixed(2)}\\text{ kg} \\)`
+                        ]
+                    };
+                }
+            },
+            // P2.3
+            {
+                setId: 2, pId: 3,
+                title: "Downward Cable Acceleration",
+                generate() {
+                    const m_elev = getRandomFloat(800, 1100, 0);
+                    const m_work = getRandomFloat(65, 85, 1);
+                    const m_eq = getRandomFloat(120, 220, 0);
+                    const a_down = getRandomFloat(1.0, 2.0, 2);
+                    const g = 9.80;
+
+                    const m_tot = m_elev + m_work + m_eq;
+                    const T = m_tot * (g - a_down);
+                    const N_work = m_work * (g - a_down);
+                    const diff = (m_work * g) - N_work;
+
+                    return {
+                        statement: `A ${m_elev} kg construction elevator carries a ${m_work} kg worker and ${m_eq} kg equipment. It accelerates downward at ${a_down} m/s².<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'mtot', label: 'Total mass lifted (kg)', unit: 'kg', ans: m_tot },
+                            { id: 'tension', label: 'Cable tension (N)', unit: 'N', ans: T },
+                            { id: 'n', label: 'Normal force on worker (N)', unit: 'N', ans: N_work },
+                            { id: 'diff', label: 'How much lighter worker feels than true weight (N)', unit: 'N', ans: diff }
+                        ],
+                        solution: [
+                            `1. Total mass: \\( m_{\\text{tot}} = ${m_elev} + ${m_work} + ${m_eq} = ${m_tot}\\text{ kg} \\)`,
+                            `2. Cable tension: \\( T = m_{\\text{tot}}(g - a) = (${m_tot}) \\cdot (9.80 - ${a_down}) = ${T.toFixed(2)}\\text{ N} \\)`,
+                            `3. Worker normal force: \\( N = m_{\\text{work}}(g - a) = (${m_work}) \\cdot (9.80 - ${a_down}) = ${N_work.toFixed(2)}\\text{ N} \\)`,
+                            `4. Difference from true weight: \\( = m_{\\text{work}} g - N = (${m_work} \\cdot 9.80) - ${N_work.toFixed(2)} = ${diff.toFixed(2)}\\text{ N} \\)`
+                        ]
+                    };
+                }
+            },
+            // P2.4
+            {
+                setId: 2, pId: 4,
+                title: "Find Acceleration from Scale Reading",
+                generate() {
+                    const m = getRandomFloat(50, 80, 1);
+                    const N = getRandomFloat(400, 520, 0);
+                    const t = getRandomFloat(2.5, 4.5, 1);
+                    const g = 9.80;
+
+                    const a = (N - m * g) / m;
+                    const dv = a * t;
+
+                    return {
+                        statement: `A ${m} kg person stands on a force plate in an elevator. During one part of the ride, the plate reads ${N} N.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'a', label: 'Elevator acceleration (m/s², negative if downward)', unit: 'm/s²', ans: a },
+                            { id: 'dv', label: `Change in velocity over ${t} s (m/s)`, unit: 'm/s', ans: dv }
+                        ],
+                        solution: [
+                            `1. \\( N - m g = m a \\implies a = \\frac{N - m g}{m} = \\frac{${N} - ${m} \\cdot 9.80}{${m}} = ${a.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `2. Negative sign indicates downward acceleration.`,
+                            `3. Change in velocity: \\( \\Delta v = a \\cdot t = (${a.toFixed(3)}) \\cdot (${t}) = ${dv.toFixed(2)}\\text{ m/s} \\)`
+                        ]
+                    };
+                }
+            },
+            // P2.5
+            {
+                setId: 2, pId: 5,
+                title: "Elevator Cable Load Change",
+                generate() {
+                    const m_e = getRandomFloat(700, 900, 0);
+                    const m_c = getRandomFloat(350, 500, 0);
+                    const T = getRandomFloat(14000, 16000, 0);
+                    const g = 9.80;
+
+                    const a1 = (T - (m_e + m_c) * g) / (m_e + m_c);
+                    const a2 = (T - m_e * g) / m_e;
+
+                    return {
+                        statement: `A service elevator of mass ${m_e} kg carries a crate of mass ${m_c} kg. Cable tension is ${T} N. Later the crate is removed while tension remains unchanged.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'a1', label: 'Acceleration WITH crate (m/s²)', unit: 'm/s²', ans: a1 },
+                            { id: 'a2', label: 'Acceleration WITHOUT crate (m/s²)', unit: 'm/s²', ans: a2 }
+                        ],
+                        solution: [
+                            `1. With crate (total mass \\( = ${m_e + m_c}\\text{ kg} \\)):`,
+                            `   \\( a_1 = \\frac{T - m_{\\text{tot}} g}{m_{\\text{tot}}} = \\frac{${T} - ${m_e + m_c} \\cdot 9.80}{${m_e + m_c}} = ${a1.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `2. Without crate (mass \\( = ${m_e}\\text{ kg} \\)):`,
+                            `   \\( a_2 = \\frac{T - m_e g}{m_e} = \\frac{${T} - ${m_e} \\cdot 9.80}{${m_e}} = ${a2.toFixed(3)}\\text{ m/s}^2 \\)`
+                        ]
+                    };
+                }
+            },
+
+            // SET 3
+            // P3.1
+            {
+                setId: 3, pId: 1,
+                title: "Sliding Down a Rough Incline",
+                generate() {
+                    const m = getRandomFloat(15, 30, 1);
+                    const theta = getRandomFloat(25, 40, 1);
+                    const muk = getRandomFloat(0.12, 0.25, 3);
+                    const dist = getRandomFloat(6.0, 12.0, 1);
+                    const rad = theta * Math.PI / 180;
+                    const g = 9.80;
+
+                    const N = m * g * Math.cos(rad);
+                    const fk = muk * N;
+                    const Fparallel = m * g * Math.sin(rad);
+                    const a = (Fparallel - fk) / m;
+                    const vf = Math.sqrt(2 * a * dist);
+                    const t = vf / a;
+
+                    return {
+                        statement: `A ${m} kg bin slides down a ${theta}° ramp (\\(\\mu_k = ${muk}\\)). It starts from rest ${dist} m up the ramp.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'n', label: 'Normal force (N)', unit: 'N', ans: N },
+                            { id: 'fk', label: 'Kinetic friction force (N)', unit: 'N', ans: fk },
+                            { id: 'a', label: 'Acceleration down ramp (m/s²)', unit: 'm/s²', ans: a },
+                            { id: 'vf', label: 'Speed at bottom (m/s)', unit: 'm/s', ans: vf },
+                            { id: 't', label: 'Travel time (s)', unit: 's', ans: t }
+                        ],
+                        solution: [
+                            `1. Normal Force: \\( N = m g \\cos\\theta = (${m})(9.80)\\cos(${theta}^\\circ) = ${N.toFixed(2)}\\text{ N} \\)`,
+                            `2. Friction: \\( f_k = \\mu_k N = (${muk})(${N.toFixed(2)}) = ${fk.toFixed(2)}\\text{ N} \\)`,
+                            `3. Parallel gravity: \\( = m g \\sin\\theta = (${m})(9.80)\\sin(${theta}^\\circ) = ${Fparallel.toFixed(2)}\\text{ N} \\)`,
+                            `   Acceleration: \\( a = \\frac{m g \\sin\\theta - f_k}{m} = \\frac{${Fparallel.toFixed(2)} - ${fk.toFixed(2)}}{${m}} = ${a.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `4. Speed: \\( v_f = \\sqrt{2 a \\Delta x} = \\sqrt{2 \\cdot ${a.toFixed(3)} \\cdot ${dist}} = ${vf.toFixed(2)}\\text{ m/s} \\)`,
+                            `5. Time: \\( t = \\frac{v_f}{a} = \\frac{${vf.toFixed(2)}}{${a.toFixed(3)}} = ${t.toFixed(2)}\\text{ s} \\)`
+                        ]
+                    };
+                }
+            },
+            // P3.2
+            {
+                setId: 3, pId: 2,
+                title: "Pulling a Box Uphill",
+                generate() {
+                    const m = getRandomFloat(35, 60, 1);
+                    const theta = getRandomFloat(18, 30, 1);
+                    const muk = getRandomFloat(0.18, 0.28, 3);
+                    const a = getRandomFloat(1.2, 2.2, 2);
+                    const dist = getRandomFloat(8, 16, 1);
+                    const rad = theta * Math.PI / 180;
+                    const g = 9.80;
+
+                    const N = m * g * Math.cos(rad);
+                    const fk = muk * N;
+                    const T = m * a + m * g * Math.sin(rad) + fk;
+                    const t = Math.sqrt((2 * dist) / a);
+                    const vf = a * t;
+
+                    return {
+                        statement: `A ${m} kg crate is pulled up a ${theta}° ramp by a rope parallel to the ramp (\\(\\mu_k = ${muk}\\)). Crate accelerates uphill at ${a} m/s².<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'n', label: 'Normal force (N)', unit: 'N', ans: N },
+                            { id: 'fk', label: 'Kinetic friction force (N)', unit: 'N', ans: fk },
+                            { id: 't_rope', label: 'Required rope tension (N)', unit: 'N', ans: T },
+                            { id: 't_time', label: `Time to move ${dist} m from rest (s)`, unit: 's', ans: t },
+                            { id: 'vf', label: 'Final speed (m/s)', unit: 'm/s', ans: vf }
+                        ],
+                        solution: [
+                            `1. \\( N = m g \\cos\\theta = (${m})(9.80)\\cos(${theta}^\\circ) = ${N.toFixed(2)}\\text{ N} \\)`,
+                            `2. \\( f_k = \\mu_k N = (${muk})(${N.toFixed(2)}) = ${fk.toFixed(2)}\\text{ N} \\)`,
+                            `3. \\( T - m g \\sin\\theta - f_k = m a \\implies T = m a + m g \\sin\\theta + f_k \\)`,
+                            `   \\( T = (${m})(${a}) + (${m} \\cdot 9.80 \\cdot \\sin(${theta}^\\circ)) + ${fk.toFixed(2)} = ${T.toFixed(2)}\\text{ N} \\)`,
+                            `4. Time: \\( t = \\sqrt{\\frac{2 \\Delta x}{a}} = \\sqrt{\\frac{2 \\cdot ${dist}}{${a}}} = ${t.toFixed(2)}\\text{ s} \\)`,
+                            `5. Final speed: \\( v_f = a t = (${a})(${t.toFixed(2)}) = ${vf.toFixed(2)}\\text{ m/s} \\)`
+                        ]
+                    };
+                }
+            },
+            // P3.3
+            {
+                setId: 3, pId: 3,
+                title: "Friction Coefficient from Measured Motion",
+                generate() {
+                    const m = getRandomFloat(8, 18, 1);
+                    const theta = getRandomFloat(30, 45, 1);
+                    const dist = getRandomFloat(4, 8, 1);
+                    const t = getRandomFloat(1.8, 2.8, 2);
+                    const rad = theta * Math.PI / 180;
+                    const g = 9.80;
+
+                    const a = (2 * dist) / Math.pow(t, 2);
+                    const Fpar = m * g * Math.sin(rad);
+                    const fk = Fpar - m * a;
+                    const N = m * g * Math.cos(rad);
+                    const muk = fk / N;
+                    const vf = a * t;
+
+                    return {
+                        statement: `A ${m} kg block is released from rest on a ${theta}° ramp and slides ${dist} m in ${t} s.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'a', label: 'Acceleration down ramp (m/s²)', unit: 'm/s²', ans: a },
+                            { id: 'fpar', label: 'Component of gravity parallel to ramp (N)', unit: 'N', ans: Fpar },
+                            { id: 'fk', label: 'Friction force (N)', unit: 'N', ans: fk },
+                            { id: 'muk', label: 'Coefficient of kinetic friction (μk)', unit: '', ans: muk },
+                            { id: 'vf', label: 'Speed after sliding distance (m/s)', unit: 'm/s', ans: vf }
+                        ],
+                        solution: [
+                            `1. Acceleration: \\( a = \\frac{2 \\Delta x}{t^2} = \\frac{2 \\cdot ${dist}}{(${t})^2} = ${a.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `2. \\( F_{\\text{gravity, } \\parallel} = m g \\sin\\theta = (${m})(9.80)\\sin(${theta}^\\circ) = ${Fpar.toFixed(2)}\\text{ N} \\)`,
+                            `3. \\( m g \\sin\\theta - f_k = m a \\implies f_k = m g \\sin\\theta - m a = ${Fpar.toFixed(2)} - (${m})(${a.toFixed(3)}) = ${fk.toFixed(2)}\\text{ N} \\)`,
+                            `4. \\( N = m g \\cos\\theta = (${m})(9.80)\\cos(${theta}^\\circ) = ${N.toFixed(2)}\\text{ N} \\)`,
+                            `   \\( \\mu_k = \\frac{f_k}{N} = \\frac{${fk.toFixed(2)}}{${N.toFixed(2)}} = ${muk.toFixed(3)} \\)`,
+                            `5. Final speed: \\( v_f = a t = (${a.toFixed(3)})(${t}) = ${vf.toFixed(2)}\\text{ m/s} \\)`
+                        ]
+                    };
+                }
+            },
+            // P3.4
+            {
+                setId: 3, pId: 4,
+                title: "Minimum Force to Start Upward Motion",
+                generate() {
+                    const m = getRandomFloat(50, 80, 1);
+                    const theta = getRandomFloat(15, 25, 1);
+                    const mus = getRandomFloat(0.35, 0.48, 3);
+                    const muk = getRandomFloat(0.25, 0.34, 3);
+                    const rad = theta * Math.PI / 180;
+                    const g = 9.80;
+
+                    const N = m * g * Math.cos(rad);
+                    const fs_max = mus * N;
+                    const T_min = m * g * Math.sin(rad) + fs_max;
+                    const fk = muk * N;
+                    const T_const = m * g * Math.sin(rad) + fk;
+                    const a = (T_min - m * g * Math.sin(rad) - fk) / m;
+
+                    return {
+                        statement: `A ${m} kg case rests on a ${theta}° incline (\\(\\mu_s = ${mus}, \\mu_k = ${muk}\\)). A rope pulls parallel to incline.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'n', label: 'Normal force (N)', unit: 'N', ans: N },
+                            { id: 'fs', label: 'Maximum static friction (N)', unit: 'N', ans: fs_max },
+                            { id: 'tmin', label: 'Min tension to START upward motion (N)', unit: 'N', ans: T_min },
+                            { id: 'tconst', label: 'Tension for CONSTANT uphill speed (N)', unit: 'N', ans: T_const },
+                            { id: 'a', label: 'Acceleration if T_min remains applied after motion begins (m/s²)', unit: 'm/s²', ans: a }
+                        ],
+                        solution: [
+                            `1. \\( N = m g \\cos\\theta = (${m})(9.80)\\cos(${theta}^\\circ) = ${N.toFixed(2)}\\text{ N} \\)`,
+                            `2. \\( f_{s,\\text{max}} = \\mu_s N = (${mus})(${N.toFixed(2)}) = ${fs_max.toFixed(2)}\\text{ N} \\)`,
+                            `3. \\( T_{\\text{min}} = m g \\sin\\theta + f_{s,\\text{max}} = (${m} \\cdot 9.80 \\cdot \\sin(${theta}^\\circ)) + ${fs_max.toFixed(2)} = ${T_min.toFixed(2)}\\text{ N} \\)`,
+                            `4. \\( f_k = \\mu_k N = (${muk})(${N.toFixed(2)}) = ${fk.toFixed(2)}\\text{ N} \\)`,
+                            `   \\( T_{\\text{constant}} = m g \\sin\\theta + f_k = (${m} \\cdot 9.80 \\cdot \\sin(${theta}^\\circ)) + ${fk.toFixed(2)} = ${T_const.toFixed(2)}\\text{ N} \\)`,
+                            `5. Acceleration with \\( T_{\\text{min}} \\): \\( a = \\frac{T_{\\text{min}} - m g \\sin\\theta - f_k}{m} = \\frac{${T_min.toFixed(2)} - ${(m*9.8*Math.sin(rad)).toFixed(2)} - ${fk.toFixed(2)}}{${m}} = ${a.toFixed(3)}\\text{ m/s}^2 \\)`
+                        ]
+                    };
+                }
+            },
+            // P3.5
+            {
+                setId: 3, pId: 5,
+                title: "Two Blocks Connected Across Incline Pulley",
+                generate() {
+                    const m1 = getRandomFloat(5.0, 8.0, 1);
+                    const m2 = getRandomFloat(3.5, 6.0, 1);
+                    const theta = getRandomFloat(22, 35, 1);
+                    const muk = getRandomFloat(0.12, 0.22, 3);
+                    const t = getRandomFloat(1.5, 3.0, 1);
+                    const rad = theta * Math.PI / 180;
+                    const g = 9.80;
+
+                    const N1 = m1 * g * Math.cos(rad);
+                    const fk = muk * N1;
+                    const a = (m2 * g - m1 * g * Math.sin(rad) - fk) / (m1 + m2);
+                    const T = m2 * g - m2 * a;
+                    const dist = 0.5 * a * Math.pow(t, 2);
+
+                    return {
+                        statement: `A ${m1} kg block (\\(m_1\\)) on a ${theta}° incline (\\(\\mu_k = ${muk}\\)) is connected via pulley to hanging mass ${m2} kg (\\(m_2\\)) moving downward.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'n', label: 'Normal force on inclined block (N)', unit: 'N', ans: N1 },
+                            { id: 'fk', label: 'Kinetic friction force (N)', unit: 'N', ans: fk },
+                            { id: 'a', label: 'System acceleration (m/s²)', unit: 'm/s²', ans: a },
+                            { id: 'tension', label: 'Rope tension (N)', unit: 'N', ans: T },
+                            { id: 'dist', label: `Hanging mass descent distance in ${t} s (m)`, unit: 'm', ans: dist }
+                        ],
+                        solution: [
+                            `1. Normal force: \\( N_1 = m_1 g \\cos\\theta = (${m1})(9.80)\\cos(${theta}^\\circ) = ${N1.toFixed(2)}\\text{ N} \\)`,
+                            `2. Friction: \\( f_k = \\mu_k N_1 = (${muk})(${N1.toFixed(2)}) = ${fk.toFixed(2)}\\text{ N} \\)`,
+                            `3. Combined System Eq: \\( m_2 g - m_1 g \\sin\\theta - f_k = (m_1 + m_2) a \\)`,
+                            `   \\( a = \\frac{${m2} \\cdot 9.80 - ${m1} \\cdot 9.80 \\cdot \\sin(${theta}^\\circ) - ${fk.toFixed(2)}}{${m1} + ${m2}} = ${a.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `4. Tension: \\( T = m_2 g - m_2 a = (${m2})(9.80) - (${m2})(${a.toFixed(3)}) = ${T.toFixed(2)}\\text{ N} \\)`,
+                            `5. Distance: \\( \\Delta y = \\frac{1}{2} a t^2 = 0.5 \\cdot (${a.toFixed(3)}) \\cdot (${t})^2 = ${dist.toFixed(2)}\\text{ m} \\)`
+                        ]
+                    };
+                }
+            },
+
+            // SET 4
+            // P4.1
+            {
+                setId: 4, pId: 1,
+                title: "Two Blocks on Horizontal Surface",
+                generate() {
+                    const mA = getRandomFloat(7, 12, 1);
+                    const mB = getRandomFloat(12, 20, 1);
+                    const Fpull = getRandomFloat(120, 180, 0);
+                    const fA = getRandomFloat(12, 22, 1);
+                    const fB = getRandomFloat(20, 35, 1);
+                    const t = getRandomFloat(2.5, 4.5, 1);
+
+                    const Fnet = Fpull - fA - fB;
+                    const mtot = mA + mB;
+                    const a = Fnet / mtot;
+                    const T = mA * a + fA;
+                    const dist = 0.5 * a * Math.pow(t, 2);
+                    const vf = a * t;
+
+                    return {
+                        statement: `Block A (${mA} kg) and Block B (${mB} kg) are connected by a rope on a floor. Force ${Fpull} N pulls B right. Friction on A is ${fA} N left, friction on B is ${fB} N left.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'a', label: 'System acceleration (m/s²)', unit: 'm/s²', ans: a },
+                            { id: 't_rope', label: 'Rope tension between A and B (N)', unit: 'N', ans: T },
+                            { id: 'dist', label: `Distance traveled from rest in ${t} s (m)`, unit: 'm', ans: dist },
+                            { id: 'vf', label: 'Speed after time (m/s)', unit: 'm/s', ans: vf }
+                        ],
+                        solution: [
+                            `1. System: \\( F_{\\text{net}} = ${Fpull} - ${fA} - ${fB} = ${Fnet.toFixed(2)}\\text{ N} \\)`,
+                            `   \\( a = \\frac{F_{\\text{net}}}{m_A + m_B} = \\frac{${Fnet.toFixed(2)}}{${mA} + ${mB}} = ${a.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `2. For Block A: \\( T - f_A = m_A a \\implies T = (${mA})(${a.toFixed(3)}) + ${fA} = ${T.toFixed(2)}\\text{ N} \\)`,
+                            `3. Distance: \\( \\Delta x = \\frac{1}{2} a t^2 = 0.5 \\cdot (${a.toFixed(3)}) \\cdot (${t})^2 = ${dist.toFixed(2)}\\text{ m} \\)`,
+                            `4. Final Speed: \\( v_f = a t = (${a.toFixed(3)}) \\cdot (${t}) = ${vf.toFixed(2)}\\text{ m/s} \\)`
+                        ]
+                    };
+                }
+            },
+            // P4.2
+            {
+                setId: 4, pId: 2,
+                title: "Vertical Two-Mass System (Atwood)",
+                generate() {
+                    const m1 = getRandomFloat(6.5, 9.5, 1);
+                    const m2 = getRandomFloat(3.5, 5.5, 1);
+                    const t = getRandomFloat(1.2, 2.5, 2);
+                    const g = 9.80;
+
+                    const a = ((m1 - m2) * g) / (m1 + m2);
+                    const T = m1 * (g - a);
+                    const dist = 0.5 * a * Math.pow(t, 2);
+                    const vf = a * t;
+
+                    return {
+                        statement: `Mass \\(m_1 = ${m1}\\text{ kg}\\) and \\(m_2 = ${m2}\\text{ kg}\\) hang over a frictionless pulley.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'a', label: 'Acceleration magnitude (m/s²)', unit: 'm/s²', ans: a },
+                            { id: 'tension', label: 'Rope tension (N)', unit: 'N', ans: T },
+                            { id: 'dist', label: `Distance heavier mass moves in ${t} s (m)`, unit: 'm', ans: dist },
+                            { id: 'vf', label: 'Speed after time (m/s)', unit: 'm/s', ans: vf }
+                        ],
+                        solution: [
+                            `1. Acceleration: \\( a = \\frac{(m_1 - m_2)g}{m_1 + m_2} = \\frac{(${m1} - ${m2})(9.80)}{${m1} + ${m2}} = ${a.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `2. Tension: \\( T = m_1(g - a) = (${m1})(9.80 - ${a.toFixed(3)}) = ${T.toFixed(2)}\\text{ N} \\)`,
+                            `3. Distance: \\( \\Delta y = \\frac{1}{2} a t^2 = 0.5 \\cdot (${a.toFixed(3)}) \\cdot (${t})^2 = ${dist.toFixed(2)}\\text{ m} \\)`,
+                            `4. Speed: \\( v_f = a t = (${a.toFixed(3)}) \\cdot (${t}) = ${vf.toFixed(2)}\\text{ m/s} \\)`
+                        ]
+                    };
+                }
+            },
+            // P4.3
+            {
+                setId: 4, pId: 3,
+                title: "Pulley System with Friction on Table",
+                generate() {
+                    const m1 = getRandomFloat(10, 16, 1);
+                    const m2 = getRandomFloat(4, 7, 1);
+                    const muk = getRandomFloat(0.18, 0.30, 3);
+                    const dist = getRandomFloat(1.2, 2.2, 2);
+                    const g = 9.80;
+
+                    const fk = muk * m1 * g;
+                    const a = (m2 * g - fk) / (m1 + m2);
+                    const T = m1 * a + fk;
+                    const vf = Math.sqrt(2 * a * dist);
+                    const t = vf / a;
+
+                    return {
+                        statement: `A ${m1} kg block (\\(m_1\\)) rests on a table (\\(\\mu_k = ${muk}\\)) connected to hanging mass ${m2} kg (\\(m_2\\)).<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'fk', label: 'Friction force on table block (N)', unit: 'N', ans: fk },
+                            { id: 'a', label: 'System acceleration (m/s²)', unit: 'm/s²', ans: a },
+                            { id: 'tension', label: 'Rope tension (N)', unit: 'N', ans: T },
+                            { id: 'vf', label: `Speed after hanging mass descends ${dist} m (m/s)`, unit: 'm/s', ans: vf },
+                            { id: 't', label: 'Time for this descent (s)', unit: 's', ans: t }
+                        ],
+                        solution: [
+                            `1. Friction: \\( f_k = \\mu_k m_1 g = (${muk})(${m1})(9.80) = ${fk.toFixed(2)}\\text{ N} \\)`,
+                            `2. Acceleration: \\( a = \\frac{m_2 g - f_k}{m_1 + m_2} = \\frac{${m2} \\cdot 9.80 - ${fk.toFixed(2)}}{${m1} + ${m2}} = ${a.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `3. Tension: \\( T = m_1 a + f_k = (${m1})(${a.toFixed(3)}) + ${fk.toFixed(2)} = ${T.toFixed(2)}\\text{ N} \\)`,
+                            `4. Speed: \\( v_f = \\sqrt{2 a \\Delta y} = \\sqrt{2 \\cdot ${a.toFixed(3)} \\cdot ${dist}} = ${vf.toFixed(2)}\\text{ m/s} \\)`,
+                            `5. Time: \\( t = \\frac{v_f}{a} = \\frac{${vf.toFixed(2)}}{${a.toFixed(3)}} = ${t.toFixed(2)}\\text{ s} \\)`
+                        ]
+                    };
+                }
+            },
+            // P4.4
+            {
+                setId: 4, pId: 4,
+                title: "Three Blocks and Two Ropes",
+                generate() {
+                    const mA = getRandomFloat(3, 6, 1);
+                    const mB = getRandomFloat(5, 9, 1);
+                    const mC = getRandomFloat(9, 14, 1);
+                    const Fpull = getRandomFloat(110, 160, 0);
+
+                    const mtot = mA + mB + mC;
+                    const a = Fpull / mtot;
+                    const TAB = mA * a;
+                    const TBC = (mA + mB) * a;
+
+                    return {
+                        statement: `Blocks A (${mA} kg), B (${mB} kg), and C (${mC} kg) lie on a frictionless surface connected in line by ropes \\(T_{AB}\\) (between A&B) and \\(T_{BC}\\) (between B&C). Force ${Fpull} N pulls C right.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'a', label: 'System acceleration (m/s²)', unit: 'm/s²', ans: a },
+                            { id: 'tab', label: 'Tension TAB (between A and B) (N)', unit: 'N', ans: TAB },
+                            { id: 'tbc', label: 'Tension TBC (between B and C) (N)', unit: 'N', ans: TBC }
+                        ],
+                        solution: [
+                            `1. Total mass: \\( m_{\\text{tot}} = ${mA} + ${mB} + ${mC} = ${mtot}\\text{ kg} \\)`,
+                            `   \\( a = \\frac{F}{m_{\\text{tot}}} = \\frac{${Fpull}}{${mtot}} = ${a.toFixed(3)}\\text{ m/s}^2 \\)`,
+                            `2. \\( T_{AB} \\) accelerates block A only: \\( T_{AB} = m_A a = (${mA})(${a.toFixed(3)}) = ${TAB.toFixed(2)}\\text{ N} \\)`,
+                            `3. \\( T_{BC} \\) accelerates blocks A & B: \\( T_{BC} = (m_A + m_B) a = (${mA} + ${mB})(${a.toFixed(3)}) = ${TBC.toFixed(2)}\\text{ N} \\)`
+                        ]
+                    };
+                }
+            },
+            // P4.5
+            {
+                setId: 4, pId: 5,
+                title: "Elevator Lift with Accelerating Load",
+                generate() {
+                    const m_e = getRandomFloat(500, 750, 0);
+                    const m_c = getRandomFloat(70, 110, 1);
+                    const a_up = getRandomFloat(0.6, 1.2, 2);
+                    const g = 9.80;
+
+                    const T_crate = m_c * (g + a_up);
+                    const T_main_up = (m_e + m_c) * (g + a_up);
+                    const W_stat = (m_e + m_c) * g;
+                    const T_main_down = (m_e + m_c) * (g - a_up);
+
+                    return {
+                        statement: `A ${m_e} kg freight elevator accelerates upward at ${a_up} m/s². Inside, a ${m_c} kg crate hangs from a vertical cable attached to the elevator ceiling.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'tcrate', label: 'Tension in crate cable (N)', unit: 'N', ans: T_crate },
+                            { id: 'tmainup', label: 'Main cable tension during UPWARD acceleration (N)', unit: 'N', ans: T_main_up },
+                            { id: 'wstat', label: 'Total stationary weight (N)', unit: 'N', ans: W_stat },
+                            { id: 'tmaindown', label: 'Main cable tension if accelerating DOWNWARD at same rate (N)', unit: 'N', ans: T_main_down }
+                        ],
+                        solution: [
+                            `1. Crate cable tension: \\( T_{\\text{crate}} = m_{\\text{crate}}(g + a) = (${m_c}) \\cdot (9.80 + ${a_up}) = ${T_crate.toFixed(2)}\\text{ N} \\)`,
+                            `2. Main cable tension (upward): \\( = m_{\\text{tot}}(g + a) = (${m_e + m_c}) \\cdot (9.80 + ${a_up}) = ${T_main_up.toFixed(2)}\\text{ N} \\)`,
+                            `3. Stationary weight: \\( W = m_{\\text{tot}} g = (${m_e + m_c}) \\cdot 9.80 = ${W_stat.toFixed(2)}\\text{ N} \\)`,
+                            `4. Main cable tension (downward): \\( = m_{\\text{tot}}(g - a) = (${m_e + m_c}) \\cdot (9.80 - ${a_up}) = ${T_main_down.toFixed(2)}\\text{ N} \\)`
+                        ]
+                    };
+                }
+            },
+
+            // SET 5
+            // P5.1
+            {
+                setId: 5, pId: 1,
+                title: "Symmetric Sign Support",
+                generate() {
+                    const m = getRandomFloat(25, 45, 1);
+                    const theta = getRandomFloat(30, 48, 1);
+                    const rad = theta * Math.PI / 180;
+                    const g = 9.80;
+
+                    const W = m * g;
+                    const T = W / (2 * Math.sin(rad));
+                    const Tx = T * Math.cos(rad);
+
+                    return {
+                        statement: `A ${m} kg sign hangs at rest from two identical cables, each making an angle of ${theta}° above horizontal.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'w', label: 'Weight of the sign (N)', unit: 'N', ans: W },
+                            { id: 't', label: 'Tension in each cable (N)', unit: 'N', ans: T },
+                            { id: 'tx', label: 'Horizontal component of tension in either cable (N)', unit: 'N', ans: Tx }
+                        ],
+                        solution: [
+                            `1. Weight: \\( W = m g = (${m})(9.80) = ${W.toFixed(2)}\\text{ N} \\)`,
+                            `2. Vertical Equilibrium: \\( 2 T \\sin\\theta = W \\implies T = \\frac{W}{2 \\sin(${theta}^\\circ)} = \\frac{${W.toFixed(2)}}{2 \\sin(${theta}^\\circ)} = ${T.toFixed(2)}\\text{ N} \\)`,
+                            `3. Horizontal Component: \\( T_x = T \\cos\\theta = (${T.toFixed(2)})\\cos(${theta}^\\circ) = ${Tx.toFixed(2)}\\text{ N} \\)`
+                        ]
+                    };
+                }
+            },
+            // P5.2
+            {
+                setId: 5, pId: 2,
+                title: "Traffic Light with Unequal Cable Angles",
+                generate() {
+                    const m = getRandomFloat(14, 25, 1);
+                    const thetaL = getRandomFloat(22, 32, 1);
+                    const thetaR = getRandomFloat(45, 58, 1);
+                    const radL = thetaL * Math.PI / 180;
+                    const radR = thetaR * Math.PI / 180;
+                    const g = 9.80;
+
+                    const W = m * g;
+                    const ratio = Math.cos(radR) / Math.cos(radL);
+                    const TR = W / (ratio * Math.sin(radL) + Math.sin(radR));
+                    const TL = TR * ratio;
+
+                    return {
+                        statement: `A ${m} kg traffic light hangs at rest from two cables. Left cable is ${thetaL}° above horizontal; right cable is ${thetaR}° above horizontal.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'w', label: 'Weight of traffic light (N)', unit: 'N', ans: W },
+                            { id: 'tl', label: 'Tension in Left Cable (N)', unit: 'N', ans: TL },
+                            { id: 'tr', label: 'Tension in Right Cable (N)', unit: 'N', ans: TR }
+                        ],
+                        solution: [
+                            `1. Weight: \\( W = m g = (${m})(9.80) = ${W.toFixed(2)}\\text{ N} \\)`,
+                            `2. Horizontal balance: \\( T_L \\cos(${thetaL}^\\circ) = T_R \\cos(${thetaR}^\\circ) \\implies T_L = T_R \\cdot \\frac{\\cos(${thetaR}^\\circ)}{\\cos(${thetaL}^\\circ)} = ${ratio.toFixed(3)} \\cdot T_R \\)`,
+                            `3. Vertical balance: \\( T_L \\sin(${thetaL}^\\circ) + T_R \\sin(${thetaR}^\\circ) = W \\)`,
+                            `   Sub \\( T_L \\): \\( (${ratio.toFixed(3)} \\cdot T_R)\\sin(${thetaL}^\\circ) + T_R \\sin(${thetaR}^\\circ) = ${W.toFixed(2)} \\)`,
+                            `   \\( T_R = ${TR.toFixed(2)}\\text{ N} \\)`,
+                            `   \\( T_L = ${ratio.toFixed(3)} \\cdot ${TR.toFixed(2)} = ${TL.toFixed(2)}\\text{ N} \\)`
+                        ]
+                    };
+                }
+            },
+            // P5.3
+            {
+                setId: 5, pId: 3,
+                title: "Tugboats Pulling a Barge",
+                generate() {
+                    const m = getRandomFloat(3.0e6, 4.5e6, -5);
+                    const FA = getRandomFloat(3.8e5, 4.8e5, -4);
+                    const FB = getRandomFloat(2.8e5, 3.6e5, -4);
+                    const thetaB = getRandomFloat(28, 40, 1);
+                    const Fdrag = getRandomFloat(1.2e5, 1.8e5, -4);
+                    const radB = thetaB * Math.PI / 180;
+
+                    const FBx = FB * Math.cos(radB);
+                    const FBy = FB * Math.sin(radB);
+                    const Fx = FA + FBx;
+                    const Fy = FBy;
+                    const Ftugs = Math.sqrt(Fx * Fx + Fy * Fy);
+                    const angleNofE = Math.atan2(Fy, Fx) * (180 / Math.PI);
+
+                    const Fnet = Ftugs - Fdrag;
+                    const a = Fnet / m;
+
+                    return {
+                        statement: `Two tugboats pull a ${m.toExponential(2)} kg barge. Tugboat A pulls ${FA.toExponential(2)} N East. Tugboat B pulls ${FB.toExponential(2)} N at ${thetaB}° North of East. Water drag is ${Fdrag.toExponential(2)} N opposing motion.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'ftugs', label: 'Resultant tugboat force magnitude (N)', unit: 'N', ans: Ftugs },
+                            { id: 'angle', label: 'Direction angle (degrees North of East)', unit: '°', ans: angleNofE },
+                            { id: 'fnet', label: 'Net force including drag (N)', unit: 'N', ans: Fnet },
+                            { id: 'a', label: 'Barge acceleration magnitude (m/s²)', unit: 'm/s²', ans: a }
+                        ],
+                        solution: [
+                            `1. Tugboat B components: \\( F_{Bx} = ${FB.toExponential(2)} \\cos(${thetaB}^\\circ) = ${FBx.toExponential(3)}\\text{ N} \\), \\( F_{By} = ${FB.toExponential(2)} \\sin(${thetaB}^\\circ) = ${FBy.toExponential(3)}\\text{ N} \\)`,
+                            `2. Total Tug Forces: \\( F_x = ${FA.toExponential(2)} + ${FBx.toExponential(3)} = ${Fx.toExponential(3)}\\text{ N} \\), \\( F_y = ${FBy.toExponential(3)}\\text{ N} \\)`,
+                            `   Resultant \\( F_{\\text{tugs}} = \\sqrt{F_x^2 + F_y^2} = ${Ftugs.toExponential(3)}\\text{ N} \\)`,
+                            `   Direction \\( \\theta = \\tan^{-1}\\left(\\frac{F_y}{F_x}\\right) = ${angleNofE.toFixed(2)}^\\circ \\) North of East`,
+                            `3. Net Force \\( F_{\\text{net}} = F_{\\text{tugs}} - F_{\\text{drag}} = ${Ftugs.toExponential(3)} - ${Fdrag.toExponential(2)} = ${Fnet.toExponential(3)}\\text{ N} \\)`,
+                            `4. Acceleration \\( a = \\frac{F_{\\text{net}}}{m} = \\frac{${Fnet.toExponential(3)}}{${m.toExponential(2)}} = ${a.toFixed(4)}\\text{ m/s}^2 \\)`
+                        ]
+                    };
+                }
+            },
+            // P5.4
+            {
+                setId: 5, pId: 4,
+                title: "Tightrope Walker Tension",
+                generate() {
+                    const m = getRandomFloat(60, 80, 1);
+                    const theta = getRandomFloat(5.0, 9.5, 1);
+                    const rad = theta * Math.PI / 180;
+                    const g = 9.80;
+
+                    const W = m * g;
+                    const T = W / (2 * Math.sin(rad));
+                    const Tx = T * Math.cos(rad);
+                    const ratio = T / W;
+
+                    return {
+                        statement: `A ${m} kg acrobat stands at the midpoint of a rope. Each half of the symmetric rope makes an angle of ${theta}° above horizontal.<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'w', label: 'Acrobat weight (N)', unit: 'N', ans: W },
+                            { id: 't', label: 'Tension in rope (N)', unit: 'N', ans: T },
+                            { id: 'tx', label: 'Horizontal component of tension (N)', unit: 'N', ans: Tx },
+                            { id: 'ratio', label: 'Ratio of Tension to Weight (T / W)', unit: '', ans: ratio }
+                        ],
+                        solution: [
+                            `1. Weight: \\( W = m g = (${m})(9.80) = ${W.toFixed(2)}\\text{ N} \\)`,
+                            `2. Vertical balance: \\( 2 T \\sin(${theta}^\\circ) = W \\implies T = \\frac{W}{2 \\sin(${theta}^\\circ)} = \\frac{${W.toFixed(2)}}{2 \\sin(${theta}^\\circ)} = ${T.toFixed(2)}\\text{ N} \\)`,
+                            `3. Horizontal Component: \\( T_x = T \\cos(${theta}^\\circ) = (${T.toFixed(2)})\\cos(${theta}^\\circ) = ${Tx.toFixed(2)}\\text{ N} \\)`,
+                            `4. Ratio: \\( \\frac{T}{W} = \\frac{${T.toFixed(2)}}{${W.toFixed(2)}} = ${ratio.toFixed(2)} \\)`
+                        ]
+                    };
+                }
+            },
+            // P5.5
+            {
+                setId: 5, pId: 5,
+                title: "Force Needed to Hold a Suspended Load",
+                generate() {
+                    const m = getRandomFloat(30, 55, 1);
+                    const theta1 = getRandomFloat(35, 45, 1);
+                    const theta2 = getRandomFloat(20, 30, 1);
+                    const maxRope2 = getRandomFloat(280, 350, 0);
+                    const rad1 = theta1 * Math.PI / 180;
+                    const rad2 = theta2 * Math.PI / 180;
+                    const g = 9.80;
+
+                    const W = m * g;
+                    const r = Math.cos(rad1) / Math.cos(rad2);
+                    const T1 = W / (Math.sin(rad1) + r * Math.sin(rad2));
+                    const T2 = T1 * r;
+
+                    return {
+                        statement: `A ${m} kg crate is held at rest by two ropes. Rope 1 pulls at ${theta1}° above horizontal (up/left). Rope 2 pulls at ${theta2}° above horizontal (up/right).<br><br>Calculate:`,
+                        inputs: [
+                            { id: 'w', label: 'Weight of crate (N)', unit: 'N', ans: W },
+                            { id: 't1', label: 'Tension in Rope 1 (N)', unit: 'N', ans: T1 },
+                            { id: 't2', label: 'Tension in Rope 2 (N)', unit: 'N', ans: T2 }
+                        ],
+                        solution: [
+                            `1. Weight: \\( W = m g = (${m})(9.80) = ${W.toFixed(2)}\\text{ N} \\)`,
+                            `2. Horizontal Balance: \\( T_2 \\cos(${theta2}^\\circ) = T_1 \\cos(${theta1}^\\circ) \\implies T_2 = ${r.toFixed(3)} \\cdot T_1 \\)`,
+                            `3. Vertical Balance: \\( T_1 \\sin(${theta1}^\\circ) + T_2 \\sin(${theta2}^\\circ) = W \\)`,
+                            `   Sub \\( T_2 \\): \\( T_1 \\sin(${theta1}^\\circ) + (${r.toFixed(3)} \\cdot T_1)\\sin(${theta2}^\\circ) = ${W.toFixed(2)} \\)`,
+                            `   \\( T_1 = ${T1.toFixed(2)}\\text{ N} \\)`,
+                            `   \\( T_2 = ${T2.toFixed(2)}\\text{ N} \\)`
+                        ]
+                    };
+                }
+            }
+        ];
+
+        function loadNewProblem() {
+            let pool = generators;
+            if (state.currentSet > 0) {
+                pool = generators.filter(g => g.setId === state.currentSet);
+            }
+            const randomIndex = Math.floor(Math.random() * pool.length);
+            const gen = pool[randomIndex];
+            
+            const problemData = gen.generate();
+            state.currentProblem = { ...gen, ...problemData };
+            state.isSolutionShown = false;
+
+            // Render Badges
+            document.getElementById('problem-category-badge').innerText = `Set ${state.currentProblem.setId}`;
+            document.getElementById('problem-id-badge').innerText = `Type ${state.currentProblem.pId} of 5`;
+            
+            // Render Title & Text
+            document.getElementById('problem-title').innerText = state.currentProblem.title;
+            const stmtEl = document.getElementById('problem-statement');
+            stmtEl.innerHTML = state.currentProblem.statement;
+
+            // Render Inputs
+            const container = document.getElementById('inputs-container');
+            container.innerHTML = '';
+
+            state.currentProblem.inputs.forEach((inp, idx) => {
+                const inputCard = document.createElement('div');
+                inputCard.className = "bg-slate-900/60 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/80 space-y-1.5 flex flex-col justify-between";
+                inputCard.innerHTML = `
+                    <label for="input-${inp.id}" class="text-xs font-semibold text-slate-300 block">
+                        ${idx + 1}. ${inp.label}
+                    </label>
+                    <div class="relative flex items-center">
+                        <input type="text" id="input-${inp.id}" data-id="${inp.id}" placeholder="e.g. 12.5" 
+                            class="w-full bg-slate-800 border border-slate-600 focus:border-blue-500 rounded-lg py-2 pl-3 pr-12 text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition">
+                        <span class="absolute right-3 text-xs text-slate-400 font-mono pointer-events-none">${inp.unit}</span>
+                    </div>
+                    <div id="feedback-item-${inp.id}" class="text-xs hidden font-medium pt-1"></div>
+                `;
+                container.appendChild(inputCard);
+            });
+
+            // Reset Solution & Feedback UI
+            document.getElementById('solution-container').classList.add('hidden');
+            document.getElementById('show-solution-text').innerText = 'Show Solution';
+            document.getElementById('feedback-card').className = 'hidden';
+            
+            // Render LaTeX Math expressions
+            renderMath(stmtEl);
+
+            // Refresh Lucide icons
+            lucide.createIcons();
+        }
+
+        function checkAnswers() {
+            if (!state.currentProblem) return;
+
+            state.totalAttempted++;
+            let allCorrect = true;
+
+            state.currentProblem.inputs.forEach(inp => {
+                const inputEl = document.getElementById(`input-${inp.id}`);
+                const feedbackEl = document.getElementById(`feedback-item-${inp.id}`);
+                const userVal = parseNum(inputEl.value);
+                const targetAns = inp.ans;
+
+                feedbackEl.classList.remove('hidden', 'text-emerald-400', 'text-rose-400');
+
+                if (!isNaN(userVal) && isClose(userVal, targetAns)) {
+                    inputEl.className = "w-full bg-slate-800 border border-emerald-500/80 rounded-lg py-2 pl-3 pr-12 text-sm text-slate-100 focus:outline-none";
+                    feedbackEl.innerHTML = `<span class="text-emerald-400">✓ Correct (${targetAns.toPrecision(4)} ${inp.unit})</span>`;
+                    feedbackEl.classList.add('text-emerald-400');
+                } else {
+                    allCorrect = false;
+                    inputEl.className = "w-full bg-slate-800 border border-rose-500/80 rounded-lg py-2 pl-3 pr-12 text-sm text-slate-100 focus:outline-none";
+                    feedbackEl.innerHTML = `<span class="text-rose-400">✗ Expected: ~${targetAns.toPrecision(4)} ${inp.unit}</span>`;
+                    feedbackEl.classList.add('text-rose-400');
+                }
+            });
+
+            const feedbackCard = document.getElementById('feedback-card');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackMsg = document.getElementById('feedback-message');
+            const feedbackIcon = document.getElementById('feedback-icon');
+
+            feedbackCard.classList.remove('hidden', 'bg-emerald-950/40', 'border-emerald-500/50', 'text-emerald-300', 'bg-rose-950/40', 'border-rose-500/50', 'text-rose-300');
+
+            if (allCorrect) {
+                state.score += 10;
+                state.streak++;
+                if (state.streak > state.highStreak) state.highStreak = state.streak;
+                state.totalCorrect++;
+                state.lastResult = 'Correct';
+
+                feedbackCard.classList.add('bg-emerald-950/40', 'border-emerald-500/50', 'text-emerald-300');
+                feedbackIcon.innerHTML = `<i data-lucide="check-circle" class="w-6 h-6 text-emerald-400"></i>`;
+                feedbackTitle.innerText = "Excellent Work! 100% Correct";
+                feedbackMsg.innerText = "You solved all parts of this dynamics problem accurately! +10 Points earned.";
+            } else {
+                state.streak = 0;
+                state.lastResult = 'Incorrect';
+
+                feedbackCard.classList.add('bg-rose-950/40', 'border-rose-500/50', 'text-rose-300');
+                feedbackIcon.innerHTML = `<i data-lucide="alert-circle" class="w-6 h-6 text-rose-400"></i>`;
+                feedbackTitle.innerText = "Some Answers Need Revision";
+                feedbackMsg.innerText = "Check highlighted fields for expected values, or toggle 'Show Solution' below for step-by-step guidance.";
+            }
+
+            saveStats();
+            updateStatsUI();
+            lucide.createIcons();
+        }
+
+        function toggleSolution() {
+            const solContainer = document.getElementById('solution-container');
+            const solText = document.getElementById('show-solution-text');
+            const solContent = document.getElementById('solution-content');
+
+            if (state.isSolutionShown) {
+                solContainer.classList.add('hidden');
+                solText.innerText = 'Show Solution';
+                state.isSolutionShown = false;
+            } else {
+                solContent.innerHTML = state.currentProblem.solution.map(line => `<p class="py-1 border-b border-slate-800/80">${line}</p>`).join('');
+                solContainer.classList.remove('hidden');
+                solText.innerText = 'Hide Solution';
+                state.isSolutionShown = true;
+
+                renderMath(solContent);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+
+            // Set selector buttons
+            const setBtns = document.querySelectorAll('.set-btn');
+            setBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setBtns.forEach(b => {
+                        b.className = "set-btn bg-slate-800 hover:bg-slate-700 dark:bg-slate-800 text-slate-300 font-medium text-xs p-2.5 rounded-lg border border-slate-700 transition flex flex-col items-center justify-center text-center";
+                    });
+                    btn.className = "set-btn active bg-blue-600 text-white font-medium text-xs p-2.5 rounded-lg border border-blue-500 transition shadow-sm flex flex-col items-center justify-center text-center";
+                    state.currentSet = parseInt(btn.getAttribute('data-set'));
+                    loadNewProblem();
+                });
+            });
+
+            // Action triggers
+            document.getElementById('next-problem-btn').addEventListener('click', loadNewProblem);
+            document.getElementById('show-solution-btn').addEventListener('click', toggleSolution);
+            document.getElementById('answers-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                checkAnswers();
+            });
+
+            // Theme toggle
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            themeToggleBtn.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+            });
+
+            // Modal Handlers
+            const cheatSheetBtn = document.getElementById('cheat-sheet-btn');
+            const cheatModal = document.getElementById('cheat-sheet-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+
+            cheatSheetBtn.addEventListener('click', () => {
+                cheatModal.classList.remove('hidden');
+                renderMath(cheatModal);
+            });
+            closeModalBtn.addEventListener('click', () => cheatModal.classList.add('hidden'));
+            cheatModal.addEventListener('click', (e) => {
+                if (e.target === cheatModal) cheatModal.classList.add('hidden');
+            });
+
+            // Load Initial Problem
+            loadNewProblem();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
