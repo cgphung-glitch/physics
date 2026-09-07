@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physics Lab - Mechanics, Drag & Elasticity Practice</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- KaTeX CSS & JS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      touch-action: manipulation;
+    }
+    .katex-display {
+      margin: 0.4em 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 2px 0;
+    }
+    /* Custom scrollbar for modal content */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.3);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(156, 163, 175, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen transition-colors duration-300 dark:bg-slate-900 dark:text-slate-100 bg-slate-50 text-slate-800">
+
+  <header class="sticky top-0 z-40 backdrop-blur-md bg-slate-900/85 dark:bg-slate-900/85 bg-white/85 border-b border-slate-800 dark:border-slate-800 border-slate-200 px-4 py-3">
+    <div class="max-w-4xl mx-auto flex justify-between items-center gap-2">
+      
+      <!-- Logo & App Title -->
+      <div class="flex items-center space-x-2">
+        <div class="bg-indigo-600 text-white p-2 rounded-xl shadow-lg">
+          <i class="fa-solid fa-atom text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-base sm:text-lg leading-tight">PhysicLab</h1>
+          <p class="text-xs text-slate-400 hidden sm:block">Friction, Drag & Elasticity</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons (Formula Sheet + Theme Toggle) -->
+      <div class="flex items-center space-x-2">
+        <!-- Formula Sheet Button -->
+        <button onclick="openFormulaModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold shadow-md hover:shadow-indigo-500/20 transition active:scale-95">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Formula Sheet</span>
+        </button>
+
+        <!-- Theme Switcher -->
+        <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 rounded-xl bg-slate-800 dark:bg-slate-800 bg-slate-200 text-slate-300 dark:text-slate-300 text-slate-700 hover:bg-slate-700 transition">
+          <i id="themeIcon" class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto p-4 space-y-6 pb-20">
+
+    <!-- Stats Banner / Scoreboard Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+      <div class="bg-slate-800/80 dark:bg-slate-800/80 bg-white p-3 rounded-2xl border border-slate-700/50 dark:border-slate-700/50 border-slate-200 shadow-sm flex items-center space-x-2.5">
+        <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
+          <i class="fa-solid fa-bullseye text-base"></i>
+        </div>
+        <div>
+          <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Score</p>
+          <p id="scoreVal" class="text-lg font-bold">0</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-800/80 dark:bg-slate-800/80 bg-white p-3 rounded-2xl border border-slate-700/50 dark:border-slate-700/50 border-slate-200 shadow-sm flex items-center space-x-2.5">
+        <div class="p-2 rounded-xl bg-amber-500/10 text-amber-500">
+          <i class="fa-solid fa-fire text-base"></i>
+        </div>
+        <div>
+          <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Streak</p>
+          <p id="streakVal" class="text-lg font-bold">0</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-800/80 dark:bg-slate-800/80 bg-white p-3 rounded-2xl border border-slate-700/50 dark:border-slate-700/50 border-slate-200 shadow-sm flex items-center space-x-2.5">
+        <div class="p-2 rounded-xl bg-orange-500/10 text-orange-500">
+          <i class="fa-solid fa-bolt text-base"></i>
+        </div>
+        <div>
+          <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Best Streak</p>
+          <p id="bestStreakVal" class="text-lg font-bold">0</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-800/80 dark:bg-slate-800/80 bg-white p-3 rounded-2xl border border-slate-700/50 dark:border-slate-700/50 border-slate-200 shadow-sm flex items-center space-x-2.5">
+        <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
+          <i class="fa-solid fa-trophy text-base"></i>
+        </div>
+        <div>
+          <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">High Score</p>
+          <p id="highScoreVal" class="text-lg font-bold">0</p>
+        </div>
+      </div>
+
+      <div class="col-span-2 sm:col-span-1 bg-slate-800/80 dark:bg-slate-800/80 bg-white p-3 rounded-2xl border border-slate-700/50 dark:border-slate-700/50 border-slate-200 shadow-sm flex items-center space-x-2.5">
+        <div class="p-2 rounded-xl bg-sky-500/10 text-sky-500">
+          <i class="fa-solid fa-clock-rotate-left text-base"></i>
+        </div>
+        <div>
+          <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Last Score</p>
+          <p id="lastScoreVal" class="text-lg font-bold">0</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Selector & Problem Selection Controls -->
+    <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+      <!-- Category Tabs -->
+      <div class="flex bg-slate-800/80 dark:bg-slate-800/80 bg-slate-200 p-1 rounded-xl gap-1 overflow-x-auto text-xs sm:text-sm font-medium">
+        <button onclick="setCategory('all')" id="cat-all" class="cat-btn flex-1 min-w-[70px] py-2 px-3 rounded-lg text-center transition bg-indigo-600 text-white shadow">All</button>
+        <button onclick="setCategory('friction')" id="cat-friction" class="cat-btn flex-1 min-w-[70px] py-2 px-3 rounded-lg text-center transition text-slate-400 hover:text-white">Friction</button>
+        <button onclick="setCategory('drag')" id="cat-drag" class="cat-btn flex-1 min-w-[70px] py-2 px-3 rounded-lg text-center transition text-slate-400 hover:text-white">Drag</button>
+        <button onclick="setCategory('elasticity')" id="cat-elasticity" class="cat-btn flex-1 min-w-[70px] py-2 px-3 rounded-lg text-center transition text-slate-400 hover:text-white">Elasticity</button>
+      </div>
+
+      <!-- Problem Pick Controls -->
+      <div class="flex gap-2">
+        <select id="problemSelect" onchange="selectSpecificProblem(this.value)" class="flex-1 bg-slate-800 dark:bg-slate-800 bg-white border border-slate-700 dark:border-slate-700 border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none">
+          <!-- Dynamic Problem Titles options -->
+        </select>
+        <button onclick="nextProblem()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold rounded-xl flex items-center gap-2 shadow-lg transition active:scale-95 whitespace-nowrap">
+          <i class="fa-solid fa-shuffle"></i> Dynamic Variant
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-slate-800/60 dark:bg-slate-800/60 bg-white rounded-2xl border border-slate-700/60 dark:border-slate-700/60 border-slate-200 shadow-xl overflow-hidden">
+      <!-- Card Header -->
+      <div class="px-5 py-4 border-b border-slate-700/50 dark:border-slate-700/50 border-slate-200 flex justify-between items-center bg-slate-800/90 dark:bg-slate-800/90 bg-slate-100">
+        <div class="flex items-center space-x-2">
+          <span id="categoryBadge" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+            Friction
+          </span>
+          <h2 id="problemTitle" class="font-bold text-sm sm:text-base">Box Pushed at an Angle</h2>
+        </div>
+        <span class="text-xs text-slate-400 font-mono">Use $g = 9.80\text{ m/s}^2$</span>
+      </div>
+
+      <!-- Problem Narrative & Inputs -->
+      <div class="p-5 space-y-4">
+        <div id="problemText" class="text-sm sm:text-base leading-relaxed text-slate-200 dark:text-slate-200 text-slate-700">
+          <!-- Dynamic Problem statement injected here -->
+        </div>
+
+        <!-- Input Questions Form -->
+        <div id="questionsContainer" class="space-y-4 pt-2">
+          <!-- Dynamic Input fields injected here -->
+        </div>
+
+        <!-- Action Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-700/50 dark:border-slate-700/50 border-slate-200">
+          <button id="submitBtn" onclick="checkAnswers()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl shadow-lg transition active:scale-95 flex items-center gap-2 text-sm">
+            <i class="fa-solid fa-check"></i> Submit Answers
+          </button>
+
+          <button id="solutionToggleBtn" onclick="toggleSolution()" class="px-4 py-2.5 bg-slate-700 dark:bg-slate-700 bg-slate-200 hover:bg-slate-600 text-slate-200 dark:text-slate-200 text-slate-700 font-medium rounded-xl transition flex items-center gap-2 text-sm">
+            <i class="fa-solid fa-lightbulb text-amber-400"></i> <span id="solutionBtnText">Show Worked Solution</span>
+          </button>
+        </div>
+
+        <!-- Feedback Alert Banner -->
+        <div id="feedbackBanner" class="hidden p-4 rounded-xl text-sm font-medium transition-all"></div>
+      </div>
+
+      <!-- Solution Accordion Drawer -->
+      <div id="solutionDrawer" class="hidden border-t border-slate-700/60 dark:border-slate-700/60 border-slate-200 bg-slate-900/60 dark:bg-slate-900/60 bg-slate-50 p-5 space-y-4">
+        <h3 class="font-bold text-base flex items-center gap-2 text-amber-400">
+          <i class="fa-solid fa-graduation-cap"></i> Step-by-Step Worked Solution
+        </h3>
+        <div id="solutionText" class="text-sm leading-relaxed space-y-3 text-slate-300 dark:text-slate-300 text-slate-700">
+          <!-- Dynamic Solution LaTeX content injected here -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <div id="formulaModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 transition-opacity">
+    <div class="bg-slate-900 dark:bg-slate-900 bg-white w-full max-w-3xl max-h-[90vh] rounded-2xl shadow-2xl border border-slate-700 dark:border-slate-700 border-slate-200 flex flex-col overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-slate-800 dark:border-slate-800 border-slate-200 flex items-center justify-between bg-slate-800/60 dark:bg-slate-800/60 bg-slate-100">
+        <div class="flex items-center space-x-2.5">
+          <div class="p-2 rounded-xl bg-indigo-600 text-white">
+            <i class="fa-solid fa-book-open text-base"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-base sm:text-lg">Chapter 5 Reference Formula Sheet</h2>
+            <p class="text-xs text-slate-400">Governing equations, constants, & material properties</p>
+          </div>
+        </div>
+        <button onclick="closeFormulaModal()" class="p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Modal Filter Bar & Tabs -->
+      <div class="p-4 border-b border-slate-800 dark:border-slate-800 border-slate-200 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+        <!-- Filter Tabs -->
+        <div class="flex bg-slate-800 dark:bg-slate-800 bg-slate-200 p-1 rounded-xl text-xs font-medium overflow-x-auto gap-1">
+          <button onclick="setFormulaTab('all')" id="ftab-all" class="ftab-btn px-3 py-1.5 rounded-lg bg-indigo-600 text-white transition whitespace-nowrap">All Topics</button>
+          <button onclick="setFormulaTab('friction')" id="ftab-friction" class="ftab-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition whitespace-nowrap">Friction</button>
+          <button onclick="setFormulaTab('drag')" id="ftab-drag" class="ftab-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition whitespace-nowrap">Drag & Fluids</button>
+          <button onclick="setFormulaTab('elasticity')" id="ftab-elasticity" class="ftab-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition whitespace-nowrap">Elasticity</button>
+          <button onclick="setFormulaTab('constants')" id="ftab-constants" class="ftab-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition whitespace-nowrap">Constants</button>
+        </div>
+
+        <!-- Search Input -->
+        <div class="relative min-w-[180px]">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
+          <input type="text" id="formulaSearch" oninput="filterFormulas()" placeholder="Search formulas..." class="w-full bg-slate-800 dark:bg-slate-800 bg-slate-100 border border-slate-700 dark:border-slate-700 border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+      </div>
+
+      <!-- Modal Content Body -->
+      <div id="formulaModalBody" class="p-5 overflow-y-auto space-y-6 custom-scrollbar text-sm flex-1">
+        
+        <!-- SECTION 1: FRICTION -->
+        <div class="formula-card space-y-2" data-cat="friction" data-keywords="static friction kinetic friction angle incline ramp normal force">
+          <h3 class="font-bold text-indigo-400 text-sm border-b border-slate-700/60 pb-1 flex items-center gap-2">
+            <i class="fa-solid fa-cubes"></i> 1. Friction Equations
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Static Friction Maximum</p>
+              $$f_{s,\text{max}} = \mu_s N$$
+              <p class="text-xs text-slate-400 mt-1">Slipping threshold: $f_s \le \mu_s N$</p>
+            </div>
+
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Kinetic Friction</p>
+              $$f_k = \mu_k N$$
+              <p class="text-xs text-slate-400 mt-1">Active sliding friction force ($\mu_k < \mu_s$)</p>
+            </div>
+
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Pushing Below Horizontal ($\theta$)</p>
+              $$N = mg + F\sin\theta$$
+              $$F_{\text{min}} = \frac{\mu_s mg}{\cos\theta - \mu_s\sin\theta}$$
+            </div>
+
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Pulling Above Horizontal ($\theta$)</p>
+              $$N = mg - F\sin\theta$$
+              $$F_{\text{min}} = \frac{\mu_s mg}{\cos\theta + \mu_s\sin\theta}$$
+            </div>
+
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200 sm:col-span-2">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Incline Ramp ($\theta$ Angle)</p>
+              $$N = mg\cos\theta, \quad F_{\parallel} = mg\sin\theta, \quad a = g(\sin\theta - \mu_k\cos\theta)$$
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: DRAG & FLUID RESISTANCE -->
+        <div class="formula-card space-y-2" data-cat="drag" data-keywords="drag drag force terminal velocity stokes law viscosity power density area drag coefficient">
+          <h3 class="font-bold text-indigo-400 text-sm border-b border-slate-700/60 pb-1 flex items-center gap-2">
+            <i class="fa-solid fa-wind"></i> 2. Drag & Fluid Resistance
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Turbulent Drag Force</p>
+              $$F_d = \frac{1}{2} C_d \rho A v^2$$
+              <p class="text-xs text-slate-400 mt-1">$C_d$: drag coeff, $\rho$: fluid density, $A$: area</p>
+            </div>
+
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Power to Overcome Drag</p>
+              $$P = F_d \cdot v = \frac{1}{2} C_d \rho A v^3$$
+              <p class="text-xs text-slate-400 mt-1">Power scales cubicly with speed ($P \propto v^3$)</p>
+            </div>
+
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Turbulent Terminal Velocity</p>
+              $$v_t = \sqrt{\frac{2mg}{C_d \rho A}}$$
+              <p class="text-xs text-slate-400 mt-1">Occurs when drag equals weight ($F_d = mg$)</p>
+            </div>
+
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Stokes' Law (Low Speed Spheres)</p>
+              $$F_d = 6\pi r \eta v, \quad v_t = \frac{2(\rho_p - \rho_f) r^2 g}{9\eta}$$
+              <p class="text-xs text-slate-400 mt-1">$\eta$: dynamic viscosity, $r$: radius</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3: ELASTICITY -->
+        <div class="formula-card space-y-2" data-cat="elasticity" data-keywords="stress strain youngs modulus shear modulus bulk modulus Hooke spring constant elongation volume compression">
+          <h3 class="font-bold text-indigo-400 text-sm border-b border-slate-700/60 pb-1 flex items-center gap-2">
+            <i class="fa-solid fa-compress-wide"></i> 3. Elasticity & Mechanical Properties
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Tensile Stress & Strain</p>
+              $$\text{Stress } \sigma = \frac{F}{A}, \quad \text{Strain } \epsilon = \frac{\Delta L}{L_0}$$
+            </div>
+
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Young's Modulus ($Y$)</p>
+              $$Y = \frac{\text{Stress}}{\text{Strain}} = \frac{F/A}{\Delta L / L_0} \implies \Delta L = \frac{F L_0}{A Y}$$
+            </div>
+
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Shear Deformation ($S$)</p>
+              $$\text{Shear Stress } \tau = \frac{F}{A}, \quad \gamma = \frac{\tau}{S}$$
+            </div>
+
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Bulk Compression ($B$)</p>
+              $$\Delta P = -B \left(\frac{\Delta V}{V_0}\right) \implies F = \Delta P \cdot A$$
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4: CONSTANTS & MATERIAL VALUES -->
+        <div class="formula-card space-y-2" data-cat="constants" data-keywords="constants gravity density air water steel nylon youngs modulus shear modulus bulk modulus">
+          <h3 class="font-bold text-indigo-400 text-sm border-b border-slate-700/60 pb-1 flex items-center gap-2">
+            <i class="fa-solid fa-sliders"></i> 4. Standard Physical Constants & Material Moduli
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Environmental Constants</p>
+              <ul class="text-xs space-y-1 text-slate-300 dark:text-slate-300 text-slate-700">
+                <li>• Gravity $g = 9.80\text{ m/s}^2$</li>
+                <li>• Air density $\rho_{\text{air}} = 1.20\text{ kg/m}^3$ (or $1.21$)</li>
+                <li>• Water density $\rho_{\text{water}} = 1000\text{ kg/m}^3$</li>
+                <li>• Water viscosity $\eta = 1.00 \times 10^{-3}\text{ Pa}\cdot\text{s}$</li>
+              </ul>
+            </div>
+
+            <div class="p-3 bg-slate-800/50 dark:bg-slate-800/50 bg-slate-50 rounded-xl border border-slate-700/40 border-slate-200">
+              <p class="text-xs text-slate-400 font-semibold mb-1">Elastic Moduli Values</p>
+              <ul class="text-xs space-y-1 text-slate-300 dark:text-slate-300 text-slate-700">
+                <li>• Steel Young's Modulus: $Y_{\text{steel}} = 2.0 \times 10^{11}\text{ Pa}$</li>
+                <li>• Steel Shear Modulus: $S_{\text{steel}} = 8.0 \times 10^{10}\text{ Pa}$</li>
+                <li>• Nylon Young's Modulus: $Y_{\text{nylon}} = 3.7 \times 10^{9}\text{ Pa}$</li>
+                <li>• Water Bulk Modulus: $B_{\text{water}} = 2.20 \times 10^{9}\text{ Pa}$</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3 border-t border-slate-800 dark:border-slate-800 border-slate-200 flex justify-end bg-slate-800/40 dark:bg-slate-800/40 bg-slate-100">
+        <button onclick="closeFormulaModal()" class="px-5 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs sm:text-sm font-semibold rounded-xl transition">
+          Close Sheet
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Global App State
+    let currentCategory = 'all';
+    let currentProblemIndex = 0;
+    let currentProblemData = null;
+    let score = 0;
+    let streak = 0;
+    let bestStreak = 0;
+    let highScore = 0;
+    let lastScore = 0;
+
+    // Local Storage Keys
+    const STORAGE_KEY = 'physiclab_state_v2';
+
+    // Helper functions
+    const rnd = (min, max, decimals = 1) => {
+      const val = Math.random() * (max - min) + min;
+      return parseFloat(val.toFixed(decimals));
+    };
+
+    const rndInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+    // Latex formatting helper
+    const fmt = (num, decimals = 2) => {
+      if (Math.abs(num) >= 1e5 || (Math.abs(num) < 0.001 && Math.abs(num) > 0)) {
+        return num.toExponential(decimals);
+      }
+      return parseFloat(num.toFixed(decimals)).toString();
+    };
+
+    // Global Physics Problem Generators Database (Chapter 5)
+    const problemGenerators = [
+
+      // --- SET 1: FRICTION ---
+      {
+        id: 'f1',
+        category: 'friction',
+        title: '1. Box Pushed at an Angle',
+        generate: () => {
+          const m = rnd(30, 90, 1);
+          const us = rnd(0.35, 0.55, 3);
+          const uk = rnd(0.20, us - 0.05, 3);
+          const deg = rnd(15, 35, 1);
+          const rad = deg * Math.PI / 180;
+          const g = 9.80;
+
+          const Fmin = (us * m * g) / (Math.cos(rad) - us * Math.sin(rad));
+          const N = m * g + Fmin * Math.sin(rad);
+          const fk = uk * N;
+          const Fx = Fmin * Math.cos(rad);
+          const accel = (Fx - fk) / m;
+
+          return {
+            text: `A $${m}\\text{ kg}$ storage crate rests on a horizontal warehouse floor. The coefficients of friction are $\\mu_s = ${us}$ and $\\mu_k = ${uk}$. A worker pushes with a force directed $${deg}^\\circ$ below the horizontal.`,
+            questions: [
+              { label: '1. Minimum force $F_{\\text{min}}$ to start moving (N):', answer: Fmin, tol: 0.03 },
+              { label: '2. Acceleration $a$ once it starts moving ($m/s^2$):', answer: accel, tol: 0.03 }
+            ],
+            solution: `
+              <p><b>Part 1: Threshold of Slipping</b></p>
+              <p>The downward component of the push increases the normal force: $N = mg + F\\sin(${deg}^\\circ)$</p>
+              <p>At the threshold of slipping:</p>
+              $$F\\cos(${deg}^\\circ) = \\mu_s(mg + F\\sin(${deg}^\\circ))$$
+              $$F[\\cos(${deg}^\\circ) - \\mu_s\\sin(${deg}^\\circ)] = \\mu_s mg$$
+              $$F_{\\text{min}} = \\frac{(${us})(${m})(${g})}{\\cos(${deg}^\\circ) - ${us}\\sin(${deg}^\\circ)} = \\mathbf{${fmt(Fmin, 1)}\\text{ N}}$$
+
+              <p class="mt-3"><b>Part 2: Acceleration</b></p>
+              <p>Normal force with applied force $F = ${fmt(Fmin, 1)}\\text{ N}$:</p>
+              $$N = (${m})(${g}) + (${fmt(Fmin,1)})\\sin(${deg}^\\circ) = ${fmt(N, 1)}\\text{ N}$$
+              <p>Kinetic friction force: $f_k = \\mu_k N = (${uk})(${fmt(N,1)}) = ${fmt(fk, 1)}\\text{ N}$</p>
+              <p>Net horizontal force: $F_{\\text{net}} = F\\cos(${deg}^\\circ) - f_k = ${fmt(Fx,1)} - ${fmt(fk,1)} = ${fmt(Fx - fk, 1)}\\text{ N}$</p>
+              $$a = \\frac{F_{\\text{net}}}{m} = \\frac{${fmt(Fx - fk, 1)}}{${m}} = \\mathbf{${fmt(accel, 2)}\\text{ m/s}^2}$$
+            `
+          };
+        }
+      },
+
+      {
+        id: 'f2',
+        category: 'friction',
+        title: '2. Box Pulled at an Angle',
+        generate: () => {
+          const m = rnd(40, 80, 1);
+          const us = rnd(0.35, 0.50, 3);
+          const deg = rnd(15, 35, 1);
+          const rad = deg * Math.PI / 180;
+          const g = 9.80;
+
+          const Fmin = (us * m * g) / (Math.cos(rad) + us * Math.sin(rad));
+
+          return {
+            text: `A $${m}\\text{ kg}$ crate is pulled across a flat floor with a rope at $${deg}^\\circ$ above the horizontal. The coefficient of static friction is $\\mu_s = ${us}$.`,
+            questions: [
+              { label: '1. Minimum pulling force $F_{\\text{min}}$ needed to start motion (N):', answer: Fmin, tol: 0.03 }
+            ],
+            solution: `
+              <p>The upward component of pulling force reduces the normal force:</p>
+              $$N = mg - F\\sin(${deg}^\\circ)$$
+              <p>At threshold of motion ($F_x = f_{s,\\text{max}}$):</p>
+              $$F\\cos(${deg}^\\circ) = \\mu_s (mg - F\\sin(${deg}^\\circ))$$
+              $$F(\\cos(${deg}^\\circ) + \\mu_s\\sin(${deg}^\\circ)) = \\mu_s mg$$
+              $$F = \\frac{(${us})(${m})(${g})}{\\cos(${deg}^\\circ) + ${us}\\sin(${deg}^\\circ)} = \\mathbf{${fmt(Fmin, 1)}\\text{ N}}$$
+            `
+          };
+        }
+      },
+
+      {
+        id: 'f3',
+        category: 'friction',
+        title: '3. Crate Sliding Down an Incline',
+        generate: () => {
+          const m = rnd(25, 60, 1);
+          const deg = rnd(20, 38, 1);
+          const uk = rnd(0.15, 0.30, 3);
+          const d = rnd(4, 10, 1);
+          const rad = deg * Math.PI / 180;
+          const g = 9.80;
+
+          const N = m * g * Math.cos(rad);
+          const fk = uk * N;
+          const F_parallel = m * g * Math.sin(rad);
+          const accel = (F_parallel - fk) / m;
+          const v = Math.sqrt(2 * accel * d);
+
+          return {
+            text: `A $${m}\\text{ kg}$ crate slides down a $${deg}^\\circ$ ramp. The coefficient of kinetic friction is $\\mu_k = ${uk}$. It starts from rest and travels $${d}\\text{ m}$ down the ramp.`,
+            questions: [
+              { label: '1. Normal force $N$ (N):', answer: N, tol: 0.03 },
+              { label: '2. Kinetic friction force $f_k$ (N):', answer: fk, tol: 0.03 },
+              { label: '3. Acceleration down ramp $a$ ($m/s^2$):', answer: accel, tol: 0.03 },
+              { label: '4. Speed at distance $d$, $v$ ($m/s$):', answer: v, tol: 0.03 }
+            ],
+            solution: `
+              <p><b>Step-by-step:</b></p>
+              $$N = mg\\cos(${deg}^\\circ) = (${m})(${g})\\cos(${deg}^\\circ) = \\mathbf{${fmt(N, 1)}\\text{ N}}$$
+              $$f_k = \\mu_k N = (${uk})(${fmt(N, 1)}) = \\mathbf{${fmt(fk, 1)}\\text{ N}}$$
+              $$F_{\\parallel} = mg\\sin(${deg}^\\circ) = (${m})(${g})\\sin(${deg}^\\circ) = ${fmt(F_parallel, 1)}\\text{ N}$$
+              $$a = \\frac{F_{\\parallel} - f_k}{m} = g(\\sin(${deg}^\\circ) - \\mu_k\\cos(${deg}^\\circ)) = \\mathbf{${fmt(accel, 2)}\\text{ m/s}^2}$$
+              $$v = \\sqrt{2ad} = \\sqrt{2(${fmt(accel, 2)})(${d})} = \\mathbf{${fmt(v, 2)}\\text{ m/s}}$$
+            `
+          };
+        }
+      },
+
+      {
+        id: 'f4',
+        category: 'friction',
+        title: '4. Braking While Traveling Downhill',
+        generate: () => {
+          const m = rnd(1200, 2000, 0);
+          const deg = rnd(5, 12, 1);
+          const us = rnd(0.70, 0.90, 3);
+          const vi = rnd(18, 30, 1);
+          const rad = deg * Math.PI / 180;
+          const g = 9.80;
+
+          const N = m * g * Math.cos(rad);
+          const fs_max = us * N;
+          const F_gravity_down = m * g * Math.sin(rad);
+          const F_net = fs_max - F_gravity_down;
+          const decel = F_net / m;
+          const stoppingDist = (vi * vi) / (2 * decel);
+
+          return {
+            text: `A $${m}\\text{ kg}$ car travels down a $${deg}^\\circ$ hill. Maximum coefficient of static friction is $\\mu_s = ${us}$. The initial speed is $${vi}\\text{ m/s}$.`,
+            questions: [
+              { label: '1. Maximum uphill friction force $f_{s,\\text{max}}$ (N):', answer: fs_max, tol: 0.03 },
+              { label: '2. Maximum deceleration magnitude $a$ ($m/s^2$):', answer: decel, tol: 0.03 },
+              { label: '3. Stopping distance $d$ (m):', answer: stoppingDist, tol: 0.03 }
+            ],
+            solution: `
+              <p><b>Analysis:</b></p>
+              $$N = mg\\cos(${deg}^\\circ) = (${m})(${g})\\cos(${deg}^\\circ) = ${fmt(N, 1)}\\text{ N}$$
+              $$f_{s,\\text{max}} = \\mu_s N = (${us})(${fmt(N, 1)}) = \\mathbf{${fmt(fs_max, 0)}\\text{ N}}$$
+              $$F_{\\text{down}} = mg\\sin(${deg}^\\circ) = ${fmt(F_gravity_down, 1)}\\text{ N}$$
+              $$F_{\\text{net}} = f_{s,\\text{max}} - mg\\sin(${deg}^\\circ) = ${fmt(F_net, 1)}\\text{ N}$$
+              $$a = \\frac{F_{\\text{net}}}{m} = \\mathbf{${fmt(decel, 2)}\\text{ m/s}^2}$$
+              $$d = \\frac{v_i^2}{2a} = \\frac{(${vi})^2}{2(${fmt(decel, 2)})} = \\mathbf{${fmt(stoppingDist, 1)}\\text{ m}}$$
+            `
+          };
+        }
+      },
+
+      {
+        id: 'f5',
+        category: 'friction',
+        title: '5. Two-Block System with Friction',
+        generate: () => {
+          const m1 = rnd(8, 15, 1);
+          const m2 = rnd(4, 9, 1);
+          const uk = rnd(0.15, 0.30, 3);
+          const h = rnd(1.2, 2.5, 2);
+          const g = 9.80;
+
+          const N = m1 * g;
+          const fk = uk * N;
+          const m2g = m2 * g;
+          const accel = (m2g - fk) / (m1 + m2);
+          const tension = m2 * (g - accel);
+          const v = Math.sqrt(2 * accel * h);
+
+          return {
+            text: `A $m_1 = ${m1}\\text{ kg}$ block rests on a horizontal table and is connected by a string over a frictionless pulley to hanging mass $m_2 = ${m2}\\text{ kg}$. Kinetic friction on table is $\\mu_k = ${uk}$. Released from rest.`,
+            questions: [
+              { label: '1. Acceleration of system $a$ ($m/s^2$):', answer: accel, tol: 0.03 },
+              { label: '2. Tension in string $T$ (N):', answer: tension, tol: 0.03 },
+              { label: '3. Speed after $m_2$ descends ' + h + ' m ($m/s$):', answer: v, tol: 0.03 }
+            ],
+            solution: `
+              <p><b>Equations of Motion:</b></p>
+              $$f_k = \\mu_k m_1 g = (${uk})(${m1})(${g}) = ${fmt(fk, 2)}\\text{ N}$$
+              $$m_2 g - f_k = (m_1 + m_2)a$$
+              $$a = \\frac{(${m2})(${g}) - ${fmt(fk,2)}}{${m1} + ${m2}} = \\mathbf{${fmt(accel, 2)}\\text{ m/s}^2}$$
+              $$T = m_2(g - a) = ${m2}(${g} - ${fmt(accel,2)}) = \\mathbf{${fmt(tension, 2)}\\text{ N}}$$
+              $$v = \\sqrt{2ah} = \\sqrt{2(${fmt(accel, 2)})(${h})} = \\mathbf{${fmt(v, 2)}\\text{ m/s}}$$
+            `
+          };
+        }
+      },
+
+      // --- SET 2: DRAG & TERMINAL VELOCITY ---
+      {
+        id: 'd1',
+        category: 'drag',
+        title: '1. Drag Force and Required Power',
+        generate: () => {
+          const Cd = rnd(0.28, 0.38, 2);
+          const A = rnd(1.8, 2.6, 2);
+          const kmh = rndInt(80, 130);
+          const rho = 1.20;
+          const ms = kmh / 3.6;
+
+          const Fd = 0.5 * Cd * rho * A * ms * ms;
+          const powerW = Fd * ms;
+          const powerkW = powerW / 1000;
+
+          return {
+            text: `A car with $C_d = ${Cd}$ and frontal area $A = ${A}\\text{ m}^2$ travels at $${kmh}\\text{ km/h}$ in air ($\\rho = ${rho}\\text{ kg/m}^3$).`,
+            questions: [
+              { label: '1. Speed in $m/s$:', answer: ms, tol: 0.02 },
+              { label: '2. Drag force $F_d$ (N):', answer: Fd, tol: 0.03 },
+              { label: '3. Mechanical power needed to overcome drag (kW):', answer: powerkW, tol: 0.03 }
+            ],
+            solution: `
+              <p><b>Calculations:</b></p>
+              $$v = \\frac{${kmh}}{3.6} = \\mathbf{${fmt(ms, 2)}\\text{ m/s}}$$
+              $$F_d = \\frac{1}{2} C_d \\rho A v^2 = 0.5(${Cd})(${rho})(${A})(${fmt(ms,2)})^2 = \\mathbf{${fmt(Fd, 1)}\\text{ N}}$$
+              $$P = F_d v = (${fmt(Fd,1)})(${fmt(ms,2)}) = ${fmt(powerW, 0)}\\text{ W} = \\mathbf{${fmt(powerkW, 1)}\\text{ kW}}$$
+            `
+          };
+        }
+      },
+
+      {
+        id: 'd2',
+        category: 'drag',
+        title: '2. Speed Effect on Drag and Power',
+        generate: () => {
+          const v1 = rndInt(80, 100);
+          const v2 = rndInt(115, 140);
+          const ratio = v2 / v1;
+          const dragFactor = ratio * ratio;
+          const powerFactor = ratio * ratio * ratio;
+
+          return {
+            text: `A car increases its speed from $v_1 = ${v1}\\text{ km/h}$ to $v_2 = ${v2}\\text{ km/h}$.`,
+            questions: [
+              { label: '1. Factor by which drag force changes ($F_{d2}/F_{d1}$):', answer: dragFactor, tol: 0.02 },
+              { label: '2. Factor by which drag power changes ($P_2/P_1$):', answer: powerFactor, tol: 0.02 }
+            ],
+            solution: `
+              <p>Speed ratio: $r = \\frac{${v2}}{${v1}} = ${fmt(ratio, 3)}$</p>
+              <p>Since $F_d \\propto v^2$, drag force increases by ratio $r^2$:</p>
+              $$\\frac{F_{d2}}{F_{d1}} = (${fmt(ratio, 3)})^2 = \\mathbf{${fmt(dragFactor, 3)}}$$
+              <p>Since $P = F_d v \\propto v^3$, required power increases by ratio $r^3$:</p>
+              $$\\frac{P_2}{P_1} = (${fmt(ratio, 3)})^3 = \\mathbf{${fmt(powerFactor, 3)}}$$
+            `
+          };
+        }
+      },
+
+      {
+        id: 'd3',
+        category: 'drag',
+        title: '3. Skydiver Terminal Velocity',
+        generate: () => {
+          const m = rnd(70, 90, 1);
+          const Cd1 = 0.70;
+          const A1 = rnd(0.16, 0.22, 2);
+          const Cd2 = 1.00;
+          const A2 = rnd(0.65, 0.85, 2);
+          const rho = 1.21;
+          const g = 9.80;
+
+          const vt1 = Math.sqrt((2 * m * g) / (Cd1 * rho * A1));
+          const vt2 = Math.sqrt((2 * m * g) / (Cd2 * rho * A2));
+          const Fd_term = m * g;
+
+          return {
+            text: `A $${m}\\text{ kg}$ skydiver falls in air ($\\rho = ${rho}\\text{ kg/m}^3$). Feet-first: $C_d = ${Cd1}, A = ${A1}\\text{ m}^2$. Spread-eagle: $C_d = ${Cd2}, A = ${A2}\\text{ m}^2$.`,
+            questions: [
+              { label: '1. Terminal velocity feet-first $v_{t1}$ ($m/s$):', answer: vt1, tol: 0.03 },
+              { label: '2. Drag force at terminal velocity (N):', answer: Fd_term, tol: 0.02 },
+              { label: '3. Terminal velocity spread-eagle $v_{t2}$ ($m/s$):', answer: vt2, tol: 0.03 }
+            ],
+            solution: `
+              <p>At terminal velocity, $F_d = mg = (${m})(${g}) = \\mathbf{${fmt(Fd_term, 1)}\\text{ N}}$</p>
+              $$v_t = \\sqrt{\\frac{2mg}{C_d \\rho A}}$$
+              $$\\text{Feet-first: } v_{t1} = \\sqrt{\\frac{2(${m})(${g})}{(${Cd1})(${rho})(${A1})}} = \\mathbf{${fmt(vt1, 1)}\\text{ m/s}}$$
+              $$\\text{Spread-eagle: } v_{t2} = \\sqrt{\\frac{2(${m})(${g})}{(${Cd2})(${rho})(${A2})}} = \\mathbf{${fmt(vt2, 1)}\\text{ m/s}}$$
+            `
+          };
+        }
+      },
+
+      {
+        id: 'd4',
+        category: 'drag',
+        title: '4. Terminal Velocity of a Raindrop',
+        generate: () => {
+          const r_mm = rnd(1.5, 3.0, 2);
+          const r = r_mm / 1000;
+          const rho_w = 1000;
+          const rho_a = 1.20;
+          const Cd = 0.45;
+          const g = 9.80;
+
+          const Vol = (4 / 3) * Math.PI * Math.pow(r, 3);
+          const mass = rho_w * Vol;
+          const Area = Math.PI * r * r;
+          const vt = Math.sqrt((2 * mass * g) / (Cd * rho_a * Area));
+
+          return {
+            text: `A spherical raindrop has radius $r = ${r_mm}\\text{ mm}$, density $\\rho_w = 1000\\text{ kg/m}^3$, drag coeff $C = ${Cd}$, in air ($\\rho = ${rho_a}\\text{ kg/m}^3$).`,
+            questions: [
+              { label: '1. Raindrop mass $m$ (kg):', answer: mass, tol: 0.03 },
+              { label: '2. Frontal area $A$ ($m^2$):', answer: Area, tol: 0.03 },
+              { label: '3. Terminal velocity $v_t$ ($m/s$):', answer: vt, tol: 0.03 }
+            ],
+            solution: `
+              <p>Radius $r = ${r}\\text{ m}$</p>
+              $$V = \\frac{4}{3}\\pi r^3 = \\mathbf{${fmt(Vol, 8)}\\text{ m}^3}$$
+              $$m = \\rho_w V = \\mathbf{${fmt(mass, 7)}\\text{ kg}}$$
+              $$A = \\pi r^2 = \\mathbf{${fmt(Area, 7)}\\text{ m}^2}$$
+              $$v_t = \\sqrt{\\frac{2mg}{C \\rho_{air} A}} = \\mathbf{${fmt(vt, 2)}\\text{ m/s}}$$
+            `
+          };
+        }
+      },
+
+      {
+        id: 'd5',
+        category: 'drag',
+        title: '5. Stokes\' Law and Particle Settling',
+        generate: () => {
+          const r_um = rnd(30, 60, 1);
+          const r = r_um * 1e-6;
+          const rho_p = rnd(2200, 2800, 0);
+          const rho_f = 1000;
+          const eta = 1.00e-3;
+          const depth = rnd(1.0, 2.0, 1);
+          const g = 9.80;
+
+          const vt = (2 * (rho_p - rho_f) * r * r * g) / (9 * eta);
+          const time = depth / vt;
+
+          return {
+            text: `A spherical sediment particle of radius $r = ${r_um}\\ \\mu\\text{m}$ and density $\\rho_p = ${rho_p}\\text{ kg/m}^3$ settles in water ($\\rho_f = 1000\\text{ kg/m}^3$, viscosity $\\eta = 1.00 \\times 10^{-3}\\text{ Pa}\\cdot\\text{s}$).`,
+            questions: [
+              { label: '1. Terminal settling speed $v_t$ ($m/s$):', answer: vt, tol: 0.03 },
+              { label: '2. Time to settle through ' + depth + ' m (s):', answer: time, tol: 0.03 }
+            ],
+            solution: `
+              <p>Stokes' Drag balance $F_d = 6\\pi r \\eta v_t$:</p>
+              $$v_t = \\frac{2(\\rho_p - \\rho_f) r^2 g}{9 \\eta}$$
+              $$v_t = \\frac{2(${rho_p} - 1000)(${r_um} \\times 10^{-6})^2 (9.80)}{9 (1.00 \\times 10^{-3})} = \\mathbf{${fmt(vt, 5)}\\text{ m/s}}$$
+              $$t = \\frac{h}{v_t} = \\frac{${depth}}{${fmt(vt, 5)}} = \\mathbf{${fmt(time, 1)}\\text{ s}}$$
+            `
+          };
+        }
+      },
+
+      // --- SET 3: ELASTICITY ---
+      {
+        id: 'e1',
+        category: 'elasticity',
+        title: '1. Steel Cable Under Load',
+        generate: () => {
+          const L = rnd(20, 35, 1);
+          const d_cm = rnd(1.0, 1.8, 2);
+          const r = (d_cm / 100) / 2;
+          const m = rnd(1200, 2200, 0);
+          const Y = 2.0e11;
+          const g = 9.80;
+
+          const Tension = m * g;
+          const Area = Math.PI * r * r;
+          const stress = Tension / Area;
+          const dL = (stress * L) / Y;
+          const strain = dL / L;
+
+          return {
+            text: `A vertical steel cable ($Y = 2.0 \\times 10^{11}\\text{ Pa}$) of length $L = ${L}\\text{ m}$ and diameter $d = ${d_cm}\\text{ cm}$ supports a stationary $${m}\\text{ kg}$ elevator car.`,
+            questions: [
+              { label: '1. Cable tension $T$ (N):', answer: Tension, tol: 0.02 },
+              { label: '2. Stress in cable $\\sigma$ ($Pa$):', answer: stress, tol: 0.03 },
+              { label: '3. Elongation $\\Delta L$ (m):', answer: dL, tol: 0.03 },
+              { label: '4. Strain $\\epsilon$:', answer: strain, tol: 0.03 }
+            ],
+            solution: `
+              <p>Radius $r = ${fmt(r, 4)}\\text{ m}$, Area $A = \\pi r^2 = ${fmt(Area, 6)}\\text{ m}^2$</p>
+              $$T = mg = (${m})(${g}) = \\mathbf{${fmt(Tension, 1)}\\text{ N}}$$
+              $$\\sigma = \\frac{T}{A} = \\frac{${fmt(Tension,1)}}{${fmt(Area,6)}} = \\mathbf{${fmt(stress, 2)}\\text{ Pa}}$$
+              $$\\Delta L = \\frac{\\sigma L}{Y} = \\frac{(${fmt(stress,2)})(${L})}{2.0 \\times 10^{11}} = \\mathbf{${fmt(dL, 5)}\\text{ m}}$$
+              $$\\epsilon = \\frac{\\Delta L}{L} = \\mathbf{${fmt(strain, 6)}}$$
+            `
+          };
+        }
+      },
+
+      {
+        id: 'e2',
+        category: 'elasticity',
+        title: '2. Comparing Nylon and Steel Ropes',
+        generate: () => {
+          const L = rnd(30, 50, 1);
+          const F = rnd(700, 1200, 0);
+          const d_mm = rnd(6.0, 10.0, 1);
+          const r = (d_mm / 1000) / 2;
+          const Ynylon = 3.7e9;
+          const Ysteel = 2.0e11;
+
+          const Area = Math.PI * r * r;
+          const dL_nylon = (F * L) / (Area * Ynylon);
+          const dL_steel = (F * L) / (Area * Ysteel);
+          const ratio = dL_nylon / dL_steel;
+
+          return {
+            text: `A $${L}\\text{ m}$ rope of diameter $d = ${d_mm}\\text{ mm}$ supports a $${F}\\text{ N}$ load. $Y_{\\text{nylon}} = 3.7 \\times 10^9\\text{ Pa}$, $Y_{\\text{steel}} = 2.0 \\times 10^{11}\\text{ Pa}$.`,
+            questions: [
+              { label: '1. Stretch for nylon rope $\\Delta L_{\\text{nylon}}$ (m):', answer: dL_nylon, tol: 0.03 },
+              { label: '2. Stretch for steel rope $\\Delta L_{\\text{steel}}$ (m):', answer: dL_steel, tol: 0.03 },
+              { label: '3. Stretch ratio (Nylon stretch / Steel stretch):', answer: ratio, tol: 0.02 }
+            ],
+            solution: `
+              <p>Area $A = \\pi r^2 = \\pi (${fmt(r,5)})^2 = ${fmt(Area, 7)}\\text{ m}^2$</p>
+              $$\\Delta L_{\\text{nylon}} = \\frac{FL}{A Y_{\\text{nylon}}} = \\mathbf{${fmt(dL_nylon, 4)}\\text{ m}}$$
+              $$\\Delta L_{\\text{steel}} = \\frac{FL}{A Y_{\\text{steel}}} = \\mathbf{${fmt(dL_steel, 5)}\\text{ m}}$$
+              $$\\text{Ratio} = \\frac{Y_{\\text{steel}}}{Y_{\\text{nylon}}} = \\mathbf{${fmt(ratio, 1)}}$$
+            `
+          };
+        }
+      },
+
+      {
+        id: 'e3',
+        category: 'elasticity',
+        title: '3. Spring-and-Cable System',
+        generate: () => {
+          const m = rnd(12, 22, 1);
+          const k = rnd(1200, 2500, 0);
+          const L = rnd(2.5, 4.0, 1);
+          const d_mm = rnd(1.2, 2.0, 2);
+          const r = (d_mm / 1000) / 2;
+          const Y = 2.0e11;
+          const g = 9.80;
+
+          const Weight = m * g;
+          const x_spring = Weight / k;
+          const Area = Math.PI * r * r;
+          const dL_wire = (Weight * L) / (Area * Y);
+          const totalDisp = x_spring + dL_wire;
+
+          return {
+            text: `A $${m}\\text{ kg}$ mass hangs from a spring ($k = ${k}\\text{ N/m}$). The spring is suspended from a steel support wire ($L = ${L}\\text{ m}$, $d = ${d_mm}\\text{ mm}$, $Y = 2.0 \\times 10^{11}\\text{ Pa}$).`,
+            questions: [
+              { label: '1. Spring extension $\\Delta x$ (m):', answer: x_spring, tol: 0.03 },
+              { label: '2. Wire elongation $\\Delta L$ (m):', answer: dL_wire, tol: 0.03 },
+              { label: '3. Total vertical displacement of mass (m):', answer: totalDisp, tol: 0.03 }
+            ],
+            solution: `
+              <p>Weight $W = mg = (${m})(${g}) = ${fmt(Weight, 1)}\\text{ N}$</p>
+              $$\\Delta x_{\\text{spring}} = \\frac{W}{k} = \\frac{${fmt(Weight,1)}}{${k}} = \\mathbf{${fmt(x_spring, 4)}\\text{ m}}$$
+              $$\\Delta L_{\\text{wire}} = \\frac{W L}{A Y} = \\mathbf{${fmt(dL_wire, 5)}\\text{ m}}$$
+              $$\\text{Total Displacement} = \\Delta x_{\\text{spring}} + \\Delta L_{\\text{wire}} = \\mathbf{${fmt(totalDisp, 4)}\\text{ m}}$$
+            `
+          };
+        }
+      },
+
+      {
+        id: 'e4',
+        category: 'elasticity',
+        title: '4. Shear Deformation of a Support Pin',
+        generate: () => {
+          const d_cm = rnd(0.8, 1.5, 2);
+          const r = (d_cm / 100) / 2;
+          const Force_kN = rnd(10, 25, 1);
+          const F = Force_kN * 1000;
+          const S = 8.0e10;
+
+          const Area = Math.PI * r * r;
+          const shearStress = F / Area;
+          const shearStrain = shearStress / S;
+
+          return {
+            text: `A steel pin ($d = ${d_cm}\\text{ cm}$, shear modulus $S = 8.0 \\times 10^{10}\\text{ Pa}$) experiences a sideways shear force $F = ${Force_kN}\\text{ kN}$.`,
+            questions: [
+              { label: '1. Cross-sectional area $A$ ($m^2$):', answer: Area, tol: 0.03 },
+              { label: '2. Shear stress $\\tau$ ($Pa$):', answer: shearStress, tol: 0.03 },
+              { label: '3. Shear strain $\\gamma$:', answer: shearStrain, tol: 0.03 }
+            ],
+            solution: `
+              <p>Radius $r = ${fmt(r,4)}\\text{ m}$</p>
+              $$A = \\pi r^2 = \\mathbf{${fmt(Area, 7)}\\text{ m}^2}$$
+              $$\\tau = \\frac{F}{A} = \\frac{${F}}{${fmt(Area,7)}} = \\mathbf{${fmt(shearStress, 2)}\\text{ Pa}}$$
+              $$\\gamma = \\frac{\\tau}{S} = \\frac{${fmt(shearStress,2)}}{8.0 \\times 10^{10}} = \\mathbf{${fmt(shearStrain, 6)}}$$
+            `
+          };
+        }
+      },
+
+      {
+        id: 'e5',
+        category: 'elasticity',
+        title: '5. Bulk Compression of Liquid',
+        generate: () => {
+          const pct = rnd(0.20, 0.45, 2);
+          const frac = pct / 100;
+          const B = 2.20e9;
+          const cap_d_cm = rnd(3.0, 6.0, 1);
+          const r = (cap_d_cm / 100) / 2;
+
+          const deltaP = B * frac;
+          const Area = Math.PI * r * r;
+          const force = deltaP * Area;
+
+          return {
+            text: `A rigid sealed container is filled with water. Thermal expansion would increase volume by $${pct}\\%$ if unconstrained ($B_{\\text{water}} = 2.20 \\times 10^9\\text{ Pa}$).`,
+            questions: [
+              { label: '1. Resulting pressure increase $\\Delta P$ ($Pa$):', answer: deltaP, tol: 0.03 },
+              { label: '2. Force exerted on circular cap of diameter ' + cap_d_cm + ' cm (N):', answer: force, tol: 0.03 }
+            ],
+            solution: `
+              <p>Prevented fractional volume change: $\\frac{\\Delta V}{V_0} = ${pct}\\% = ${frac}$</p>
+              $$\\Delta P = B \\frac{\\Delta V}{V_0} = (2.20 \\times 10^9)(${frac}) = \\mathbf{${fmt(deltaP, 1)}\\text{ Pa}}$$
+              $$A_{\\text{cap}} = \\pi r^2 = \\pi (${fmt(r,4)})^2 = ${fmt(Area, 6)}\\text{ m}^2$$
+              $$F = \\Delta P \\cdot A_{\\text{cap}} = (${fmt(deltaP,1)})(${fmt(Area,6)}) = \\mathbf{${fmt(force, 1)}\\text{ N}}$$
+            `
+          };
+        }
+      }
+    ];
+
+    // Initialize LocalStorage State
+    function initStats() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          score = parsed.score || 0;
+          streak = parsed.streak || 0;
+          bestStreak = parsed.bestStreak || 0;
+          highScore = parsed.highScore || 0;
+          lastScore = parsed.lastScore || 0;
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      updateStatsUI();
+    }
+
+    function saveStats() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        score, streak, bestStreak, highScore, lastScore
+      }));
+    }
+
+    function updateStatsUI() {
+      document.getElementById('scoreVal').innerText = score;
+      document.getElementById('streakVal').innerText = streak;
+      document.getElementById('bestStreakVal').innerText = bestStreak;
+      document.getElementById('highScoreVal').innerText = highScore;
+      document.getElementById('lastScoreVal').innerText = lastScore;
+    }
+
+    // Category Selector
+    function setCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+        btn.classList.add('text-slate-400');
+      });
+      const activeBtn = document.getElementById(`cat-${cat}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow');
+        activeBtn.classList.remove('text-slate-400');
+      }
+      populateProblemDropdown();
+      nextProblem();
+    }
+
+    // Dropdown list management
+    function populateProblemDropdown() {
+      const dropdown = document.getElementById('problemSelect');
+      dropdown.innerHTML = '';
+      
+      const filtered = problemGenerators.filter(p => currentCategory === 'all' || p.category === currentCategory);
+      filtered.forEach((p) => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.title;
+        dropdown.appendChild(opt);
+      });
+    }
+
+    function selectSpecificProblem(id) {
+      const idx = problemGenerators.findIndex(p => p.id === id);
+      if (idx !== -1) {
+        loadProblem(idx);
+      }
+    }
+
+    // Pick Next Problem
+    function nextProblem() {
+      const filtered = problemGenerators.filter(p => currentCategory === 'all' || p.category === currentCategory);
+      if (filtered.length === 0) return;
+      const randProblem = filtered[Math.floor(Math.random() * filtered.length)];
+      const idx = problemGenerators.findIndex(p => p.id === randProblem.id);
+      document.getElementById('problemSelect').value = randProblem.id;
+      loadProblem(idx);
+    }
+
+    // Load problem by index and generate dynamic variables
+    function loadProblem(index) {
+      currentProblemIndex = index;
+      const gen = problemGenerators[index];
+      currentProblemData = gen.generate();
+
+      // Set category badge
+      const badge = document.getElementById('categoryBadge');
+      badge.textContent = gen.category.toUpperCase();
+
+      // Title & Text
+      document.getElementById('problemTitle').textContent = gen.title;
+      document.getElementById('problemText').innerHTML = currentProblemData.text;
+
+      // Questions rendering
+      const container = document.getElementById('questionsContainer');
+      container.innerHTML = '';
+
+      currentProblemData.questions.forEach((q, qIdx) => {
+        const qDiv = document.createElement('div');
+        qDiv.className = "p-3 bg-slate-900/40 dark:bg-slate-900/40 bg-slate-100 rounded-xl border border-slate-700/40 dark:border-slate-700/40 border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2";
+        qDiv.innerHTML = `
+          <label class="text-xs sm:text-sm font-medium text-slate-300 dark:text-slate-300 text-slate-700 flex-1">${q.label}</label>
+          <div class="flex items-center gap-2">
+            <input type="number" step="any" id="input_q_${qIdx}" placeholder="Answer" class="w-32 bg-slate-800 dark:bg-slate-800 bg-white border border-slate-600 dark:border-slate-600 border-slate-300 rounded-lg px-3 py-1.5 text-sm font-mono focus:ring-2 focus:ring-indigo-500 outline-none text-slate-100 dark:text-slate-100 text-slate-800">
+            <span id="feedback_q_${qIdx}" class="text-base w-6 text-center"></span>
+          </div>
+        `;
+        container.appendChild(qDiv);
+      });
+
+      // Hide Solution Drawer & reset banner
+      document.getElementById('solutionDrawer').classList.add('hidden');
+      document.getElementById('solutionBtnText').textContent = "Show Worked Solution";
+      document.getElementById('solutionText').innerHTML = currentProblemData.solution;
+
+      const banner = document.getElementById('feedbackBanner');
+      banner.classList.add('hidden');
+      banner.className = "hidden p-4 rounded-xl text-sm font-medium transition-all";
+
+      // Render math expressions
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false}
+        ]
+      });
+    }
+
+    function checkAnswers() {
+      if (!currentProblemData) return;
+
+      let allCorrect = true;
+      let partialPoints = 0;
+
+      currentProblemData.questions.forEach((q, qIdx) => {
+        const inputElem = document.getElementById(`input_q_${qIdx}`);
+        const feedbackElem = document.getElementById(`feedback_q_${qIdx}`);
+        const userVal = parseFloat(inputElem.value);
+
+        if (isNaN(userVal)) {
+          allCorrect = false;
+          feedbackElem.innerHTML = '<i class="fa-solid fa-circle-question text-amber-400"></i>';
+          return;
+        }
+
+        const expected = q.answer;
+        const tol = q.tol || 0.03;
+        const diff = Math.abs(userVal - expected);
+        const relativeErr = expected !== 0 ? diff / Math.abs(expected) : diff;
+
+        if (relativeErr <= tol || diff < 1e-4) {
+          feedbackElem.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+          partialPoints += 10;
+        } else {
+          allCorrect = false;
+          feedbackElem.innerHTML = '<i class="fa-solid fa-circle-xmark text-rose-500"></i>';
+        }
+      });
+
+      const banner = document.getElementById('feedbackBanner');
+      banner.classList.remove('hidden');
+
+      if (allCorrect) {
+        score += 25;
+        streak += 1;
+        if (streak > bestStreak) bestStreak = streak;
+        lastScore = 25;
+        if (score > highScore) highScore = score;
+
+        banner.className = "p-4 rounded-xl text-sm font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-2";
+        banner.innerHTML = `<i class="fa-solid fa-circle-check text-lg"></i> <span><b>Excellent!</b> All answers are correct within tolerance (+25 pts).</span>`;
+      } else {
+        lastScore = partialPoints;
+        streak = 0;
+        banner.className = "p-4 rounded-xl text-sm font-medium bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-2";
+        banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-lg"></i> <span>Some answers are incorrect or missing. Double-check your calculations or reveal the solution!</span>`;
+      }
+
+      saveStats();
+      updateStatsUI();
+    }
+
+    // Solution Drawer Toggle
+    function toggleSolution() {
+      const drawer = document.getElementById('solutionDrawer');
+      const btnText = document.getElementById('solutionBtnText');
+      if (drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+        btnText.textContent = "Hide Worked Solution";
+        renderMathInElement(drawer, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+          ]
+        });
+      } else {
+        drawer.classList.add('hidden');
+        btnText.textContent = "Show Worked Solution";
+      }
+    }
+
+    // Theme Switcher
+    function toggleTheme() {
+      const htmlElem = document.documentElement;
+      const themeIcon = document.getElementById('themeIcon');
+
+      if (htmlElem.classList.contains('dark')) {
+        htmlElem.classList.remove('dark');
+        themeIcon.className = "fa-solid fa-sun";
+      } else {
+        htmlElem.classList.add('dark');
+        themeIcon.className = "fa-solid fa-moon";
+      }
+    }
+
+    // Formula Sheet Modal Functions
+    function openFormulaModal() {
+      const modal = document.getElementById('formulaModal');
+      modal.classList.remove('hidden');
+      renderMathInElement(document.getElementById('formulaModalBody'), {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false}
+        ]
+      });
+    }
+
+    function closeFormulaModal() {
+      document.getElementById('formulaModal').classList.add('hidden');
+    }
+
+    function setFormulaTab(tab) {
+      document.querySelectorAll('.ftab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white');
+        btn.classList.add('text-slate-400');
+      });
+      const activeBtn = document.getElementById(`ftab-${tab}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-indigo-600', 'text-white');
+        activeBtn.classList.remove('text-slate-400');
+      }
+
+      const cards = document.querySelectorAll('.formula-card');
+      cards.forEach(card => {
+        if (tab === 'all' || card.dataset.cat === tab) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    function filterFormulas() {
+      const query = document.getElementById('formulaSearch').value.toLowerCase();
+      const cards = document.querySelectorAll('.formula-card');
+
+      cards.forEach(card => {
+        const text = card.textContent.toLowerCase() + " " + card.dataset.keywords;
+        if (text.includes(query)) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    // Startup Initialization
+    window.onload = function() {
+      initStats();
+      populateProblemDropdown();
+      nextProblem();
+    };
+  </script>
+</body>
+</html>
