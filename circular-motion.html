@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Circular Motion &amp; Gravitation</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1420; --bg2:#141b29; --grid:#1b2333; --card:#161d2c; --card2:#1b2436;
+  --ink:#e8ecf4; --ink-dim:#9aa6bb; --ink-faint:#5f6b81;
+  --amber:#f0a93a; --amber-dim:#c98a2c; --teal:#3fd9c7; --teal-dim:#2aa89a;
+  --good:#5fd97a; --bad:#f0665a; --line:#28324a; --line-soft:#1f293c;
+  --shadow: 0 8px 30px rgba(0,0,0,0.45);
+  --serif:'Fraunces', Georgia, serif; --mono:'JetBrains Mono', ui-monospace, monospace;
+  color-scheme: dark;
+}
+[data-theme="light"]{
+  --bg:#f4f1e8; --bg2:#ece7d8; --grid:#e2dcc9; --card:#fffdf7; --card2:#f7f2e4;
+  --ink:#20241f; --ink-dim:#585448; --ink-faint:#8a8574;
+  --amber:#b2650a; --amber-dim:#8a4f08; --teal:#0f8c7c; --teal-dim:#0b6a5e;
+  --good:#2a8f45; --bad:#c23a2e; --line:#d8d0b8; --line-soft:#e6e0cc;
+  --shadow: 0 8px 24px rgba(60,50,20,0.12);
+  color-scheme: light;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px) 0 0/28px 28px,
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/28px 28px,
+    var(--bg);
+  color:var(--ink);
+  font-family:var(--mono);
+  min-height:100vh;
+  padding-bottom:60px;
+  transition:background-color .2s, color .2s;
+}
+.wrap{max-width:760px;margin:0 auto;padding:14px 14px 40px;}
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:6px 2px 16px;}
+h1{
+  font-family:var(--serif); font-weight:700; font-size:1.5rem; line-height:1.15;
+  margin:0 0 4px; letter-spacing:.2px;
+}
+h1 span{color:var(--amber);}
+.subtitle{color:var(--ink-dim); font-size:.78rem; letter-spacing:.03em;}
+.iconbtns{display:flex; gap:8px; flex-shrink:0;}
+.iconbtn{
+  background:var(--card2); border:1px solid var(--line); color:var(--ink);
+  border-radius:10px; padding:8px 10px; font-family:var(--mono); font-size:.78rem;
+  cursor:pointer; display:flex; align-items:center; gap:6px; transition:.15s;
+  white-space:nowrap;
+}
+.iconbtn:hover{border-color:var(--teal); color:var(--teal);}
+.iconbtn:active{transform:translateY(1px);}
+
+.stats{
+  display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:14px;
+}
+.stat{
+  background:var(--card); border:1px solid var(--line); border-radius:12px;
+  padding:10px 12px; text-align:center;
+}
+.stat .num{font-family:var(--serif); font-weight:700; font-size:1.25rem; color:var(--amber);}
+.stat .lbl{font-size:.62rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.08em; margin-top:2px;}
+.stat.teal .num{color:var(--teal);}
+
+.controls{
+  display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;
+}
+.controls label{
+  display:block; font-size:.62rem; color:var(--ink-faint); text-transform:uppercase;
+  letter-spacing:.08em; margin-bottom:4px;
+}
+select{
+  width:100%; background:var(--card2); color:var(--ink); border:1px solid var(--line);
+  border-radius:10px; padding:9px 10px; font-family:var(--mono); font-size:.82rem;
+  appearance:none; -webkit-appearance:none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-dim) 50%), linear-gradient(135deg, var(--ink-dim) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 55%, calc(100% - 11px) 55%;
+  background-size: 5px 5px, 5px 5px; background-repeat:no-repeat;
+}
+select:disabled{opacity:.5;}
+
+.progress-bar{
+  height:6px; background:var(--line-soft); border-radius:4px; overflow:hidden; margin-bottom:16px;
+}
+.progress-fill{height:100%; background:linear-gradient(90deg, var(--teal-dim), var(--teal)); transition:width .3s;}
+
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:16px;
+  padding:18px 16px; box-shadow:var(--shadow); margin-bottom:16px;
+}
+.set-tag{
+  display:inline-block; font-size:.66rem; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--teal); background:rgba(63,217,199,0.1); border:1px solid var(--teal-dim);
+  padding:3px 9px; border-radius:20px; margin-bottom:10px;
+}
+.problem-title{font-family:var(--serif); font-weight:600; font-size:1.05rem; margin:0 0 10px; color:var(--ink);}
+.statement{font-size:.92rem; line-height:1.65; color:var(--ink); margin-bottom:16px;}
+.statement .katex{font-size:1.02em;}
+
+.parts{display:flex; flex-direction:column; gap:12px;}
+.part{border-top:1px dashed var(--line-soft); padding-top:12px;}
+.part:first-child{border-top:none; padding-top:0;}
+.part-label{font-size:.85rem; color:var(--ink-dim); margin-bottom:8px; line-height:1.4;}
+.part-label b{color:var(--ink); font-weight:600;}
+.numeric-row{display:flex; align-items:center; gap:8px;}
+input[type="text"], input[type="number"]{
+  flex:1; background:var(--card2); border:1px solid var(--line); color:var(--ink);
+  border-radius:9px; padding:10px 11px; font-family:var(--mono); font-size:.92rem;
+  min-width:0;
+}
+input[type="text"]:focus, input[type="number"]:focus{outline:none; border-color:var(--teal);}
+.unit-badge{
+  font-size:.76rem; color:var(--ink-faint); background:var(--card2); border:1px solid var(--line);
+  border-radius:8px; padding:9px 10px; white-space:nowrap; flex-shrink:0;
+}
+.mc-options{display:flex; flex-direction:column; gap:7px;}
+.mc-opt{
+  text-align:left; background:var(--card2); border:1px solid var(--line); color:var(--ink);
+  border-radius:9px; padding:10px 12px; font-family:var(--mono); font-size:.84rem;
+  cursor:pointer; transition:.12s;
+}
+.mc-opt:hover{border-color:var(--teal);}
+.mc-opt.selected{border-color:var(--amber); background:rgba(240,169,58,0.1);}
+.mc-opt.correct{border-color:var(--good); background:rgba(95,217,122,0.14); color:var(--good);}
+.mc-opt.incorrect{border-color:var(--bad); background:rgba(240,102,90,0.14); color:var(--bad);}
+.mc-opt:disabled{cursor:default;}
+
+.feedback-icon{width:20px; height:20px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.85rem; border-radius:50%;}
+.feedback-icon.good{background:rgba(95,217,122,0.18); color:var(--good);}
+.feedback-icon.bad{background:rgba(240,102,90,0.18); color:var(--bad);}
+.correct-answer{font-size:.74rem; color:var(--ink-faint); margin-top:4px;}
+.correct-answer b{color:var(--good);}
+
+.actions{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;}
+.btn{
+  flex:1; min-width:120px; padding:12px 14px; border-radius:11px; border:1px solid var(--line);
+  font-family:var(--mono); font-weight:600; font-size:.85rem; cursor:pointer; transition:.15s;
+  background:var(--card2); color:var(--ink);
+}
+.btn:active{transform:translateY(1px);}
+.btn.primary{background:var(--amber); border-color:var(--amber); color:#1a1300;}
+.btn.primary:hover{background:var(--amber-dim);}
+.btn.secondary{border-color:var(--teal-dim); color:var(--teal);}
+.btn.secondary:hover{border-color:var(--teal); background:rgba(63,217,199,0.08);}
+.btn:disabled{opacity:.4; cursor:default;}
+
+.result-banner{
+  margin-top:14px; padding:10px 14px; border-radius:10px; font-size:.85rem; font-weight:600;
+  display:flex; align-items:center; gap:8px;
+}
+.result-banner.good{background:rgba(95,217,122,0.12); color:var(--good); border:1px solid rgba(95,217,122,0.35);}
+.result-banner.bad{background:rgba(240,102,90,0.12); color:var(--bad); border:1px solid rgba(240,102,90,0.35);}
+.result-banner.info{background:rgba(63,217,199,0.1); color:var(--teal); border:1px solid rgba(63,217,199,0.3);}
+
+.solution{
+  margin-top:16px; padding-top:16px; border-top:1px solid var(--line-soft);
+}
+.solution h3{
+  font-family:var(--serif); font-size:.92rem; margin:0 0 10px; color:var(--amber); font-weight:600;
+}
+.solution ol{margin:0; padding-left:20px;}
+.solution li{font-size:.86rem; line-height:1.7; margin-bottom:6px; color:var(--ink);}
+.solution .finalbox{
+  margin-top:12px; padding:10px 12px; background:var(--card2); border:1px solid var(--line);
+  border-radius:9px; font-size:.84rem; line-height:1.6;
+}
+
+.round-complete{text-align:center; padding:10px 0;}
+.round-complete .big{font-family:var(--serif); font-weight:700; font-size:2.4rem; color:var(--amber); margin:6px 0;}
+.round-complete .msg{color:var(--ink-dim); font-size:.85rem; margin-bottom:18px;}
+.round-complete .newbest{color:var(--good); font-weight:600; font-size:.8rem; margin-top:-8px; margin-bottom:14px;}
+
+/* Modal */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(2px);
+  display:none; align-items:flex-end; justify-content:center; z-index:50;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--bg2); border:1px solid var(--line); border-radius:18px 18px 0 0;
+  max-width:760px; width:100%; max-height:85vh; overflow-y:auto; padding:18px 16px 30px;
+  box-shadow:0 -10px 40px rgba(0,0,0,0.5);
+}
+@media(min-width:820px){
+  .modal-overlay{align-items:center;}
+  .modal{border-radius:18px; max-height:80vh;}
+}
+.modal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+.modal-head h2{font-family:var(--serif); font-size:1.15rem; margin:0; color:var(--amber);}
+.closebtn{background:none; border:1px solid var(--line); color:var(--ink-dim); border-radius:8px; width:32px; height:32px; font-size:1rem; cursor:pointer;}
+.formula-group{margin-bottom:18px;}
+.formula-group h4{font-family:var(--serif); font-size:.88rem; color:var(--teal); margin:0 0 8px; font-weight:600;}
+.formula-group ul{list-style:none; margin:0; padding:0;}
+.formula-group li{
+  background:var(--card); border:1px solid var(--line-soft); border-radius:9px;
+  padding:9px 12px; margin-bottom:6px; font-size:.85rem; line-height:1.6;
+}
+.formula-group li .fname{color:var(--ink-dim); font-size:.72rem; display:block; margin-bottom:3px;}
+
+footer{text-align:center; color:var(--ink-faint); font-size:.68rem; margin-top:24px; line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>Circular Motion <span>Practice</span></h1>
+      <div class="subtitle">Uniform Circular Motion &amp; Gravitation</div>
+    </div>
+    <div class="iconbtns">
+      <button class="iconbtn" id="formulaBtn" title="Reference formulas">∑ Formulas</button>
+      <button class="iconbtn" id="themeBtn" title="Toggle theme">◐</button>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="statStreak">0</div><div class="lbl">Streak</div></div>
+    <div class="stat teal"><div class="num" id="statBest">0</div><div class="lbl">Best Streak</div></div>
+    <div class="stat"><div class="num" id="statScore">0/0</div><div class="lbl">Round Score</div></div>
+  </div>
+  <div class="stats">
+    <div class="stat teal"><div class="num" id="statLast">—</div><div class="lbl">Last Score</div></div>
+    <div class="stat"><div class="num" id="statHigh">—</div><div class="lbl">High Score</div></div>
+    <div class="stat teal"><div class="num" id="statQ">1</div><div class="lbl" id="statQLbl">of 10</div></div>
+  </div>
+
+  <div class="controls">
+    <div>
+      <label for="setSelect">Problem Set</label>
+      <select id="setSelect">
+        <option value="mixed" selected>Mixed — All Sets</option>
+        <option value="1">Set 1 — Angular Motion &amp; Rolling</option>
+        <option value="2">Set 2 — Centripetal Accel. &amp; Rotation</option>
+        <option value="3">Set 3 — Force, Friction &amp; Banking</option>
+        <option value="4">Set 4 — Reference Frames</option>
+        <option value="5">Set 5 — Gravitation &amp; g</option>
+        <option value="6">Set 6 — Satellites &amp; Kepler</option>
+      </select>
+    </div>
+    <div>
+      <label for="lenSelect">Round Length</label>
+      <select id="lenSelect">
+        <option value="10" selected>10 problems</option>
+        <option value="20">20 problems</option>
+        <option value="30">30 problems</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+  <div id="cardArea"></div>
+
+  <footer>Values are randomized on each problem — tolerances allow ±3% for rounding.<br>Set: g = 9.80 m/s² &nbsp;|&nbsp; G = 6.674×10⁻¹¹ N·m²/kg²</footer>
+</div>
+
+<div class="modal-overlay" id="formulaModal">
+  <div class="modal">
+    <div class="modal-head"><h2>Reference Formulas</h2><button class="closebtn" id="closeFormula">✕</button></div>
+    <div id="formulaContent"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script>
+/* ============================= UTIL ============================= */
+const g = 9.80, G = 6.674e-11;
+function rand(min,max){ return min + Math.random()*(max-min); }
+function pick(min,max,dec){ const f=Math.pow(10,dec); return Math.round(rand(min,max)*f)/f; }
+function pickInt(min,max){ return Math.floor(rand(min,max+1)); }
+function choice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+// format a number as LaTeX, using scientific notation for |exp|>=3
+function sig3(x){
+  if (x===0) return "0";
+  const neg = x<0; const ax = Math.abs(x);
+  const exp = Math.floor(Math.log10(ax));
+  let out;
+  if (exp>=3 || exp<=-3){
+    const mant = ax/Math.pow(10,exp);
+    let mstr = mant.toFixed(2);
+    // handle rounding edge e.g. 10.00 -> 1.00 x10^(exp+1)
+    if (parseFloat(mstr)>=10){ mstr=(mant/10).toFixed(2); out = `${mstr} \\times 10^{${exp+1}}`; }
+    else out = `${mstr} \\times 10^{${exp}}`;
+  } else if (exp>=0){
+    const decimals = Math.max(0, 2-exp);
+    out = ax.toFixed(decimals);
+  } else {
+    out = ax.toFixed(3-exp>5?5:3-exp<2?2:3-exp);
+    // simpler: 3 sig figs for exp -1 or -2
+    out = ax.toPrecision(3);
+  }
+  return (neg?"-":"") + out;
+}
+function plainNum(x, decimals){ return x.toFixed(decimals); }
+
+/* ============================ PROBLEM BANK ============================ */
+// Each generator returns {statement, parts:[{id,label,unit,value,tol,type:'num'}|{type:'mc',options,correct}], solution:[latex lines]}
+const BANK = [];
+
+/* ---------- SET 1: Angular Motion & Rolling ---------- */
+BANK.push({set:1,title:"Bicycle Wheel Revolutions", gen(){
+  const D = pick(10,25,1), v = pick(4.0,9.0,1), r = pick(0.25,0.45,3);
+  const Dm = D*1000, theta = Dm/r, N = theta/(2*Math.PI), omega = v/r, t = Dm/v, tmin=t/60;
+  return {
+    statement:`A bicycle travels $${D.toFixed(1)}\\text{ km}$ at a constant speed of $${v.toFixed(1)}\\text{ m/s}$ on wheels of radius $${r.toFixed(3)}\\text{ m}$, rolling without slipping. Find:`,
+    parts:[
+      {id:'a',label:'(a) Number of wheel revolutions',unit:'rev',value:N,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Total angular displacement θ',unit:'rad',value:theta,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Angular velocity ω of the wheel',unit:'rad/s',value:omega,tol:0.03,type:'num'},
+      {id:'d',label:'(d) Time for the trip',unit:'s',value:t,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `Rolling without slipping: $s = r\\theta$ and $v=r\\omega$. Convert distance: $${D.toFixed(1)}\\text{ km} = ${Dm.toFixed(0)}\\text{ m}$.`,
+      `Angular displacement: $\\theta = s/r = ${Dm.toFixed(0)}/${r.toFixed(3)} = ${sig3(theta)}\\text{ rad}$.`,
+      `Revolutions: $N = \\theta/(2\\pi) = ${sig3(N)}\\text{ rev}$.`,
+      `Angular velocity: $\\omega = v/r = ${v.toFixed(1)}/${r.toFixed(3)} = ${sig3(omega)}\\text{ rad/s}$.`,
+      `Time: $t = s/v = ${Dm.toFixed(0)}/${v.toFixed(1)} = ${sig3(t)}\\text{ s}$ (${sig3(tmin)} min).`
+    ]
+  };
+}});
+
+BANK.push({set:1,title:"Lab Rotor Startup", gen(){
+  const rpm = pick(2000,4500,0), t = pick(8,16,1), rcm = pick(5,12,1);
+  const wf = rpm*2*Math.PI/60, alpha = wf/t, theta = (0+wf)*t/2, r=rcm/100, v=r*wf;
+  return {
+    statement:`A laboratory rotor accelerates uniformly from rest to $${rpm}\\text{ rev/min}$ in $${t.toFixed(1)}\\text{ s}$. A sample sits $${rcm.toFixed(1)}\\text{ cm}$ from the axis. Find:`,
+    parts:[
+      {id:'a',label:'(a) Final angular velocity',unit:'rad/s',value:wf,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Angular acceleration α',unit:'rad/s²',value:alpha,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Angular displacement during startup',unit:'rad',value:theta,tol:0.03,type:'num'},
+      {id:'d',label:'(d) Final tangential speed of the sample',unit:'m/s',value:v,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `Convert: $\\omega_f = ${rpm}\\times \\frac{2\\pi}{60} = ${sig3(wf)}\\text{ rad/s}$.`,
+      `$\\alpha = (\\omega_f-\\omega_i)/t = ${sig3(wf)}/${t.toFixed(1)} = ${sig3(alpha)}\\text{ rad/s}^2$.`,
+      `For uniform angular acceleration from rest: $\\theta=(\\omega_i+\\omega_f)t/2 = ${sig3(theta)}\\text{ rad}$.`,
+      `Convert radius: $r=${r.toFixed(4)}\\text{ m}$. $v=r\\omega_f = ${sig3(v)}\\text{ m/s}$.`
+    ]
+  };
+}});
+
+BANK.push({set:1,title:"Car Braking Without Skidding", gen(){
+  const r = pick(0.25,0.35,3), vi = pick(20,30,1), vf = pick(5,12,1), t = pick(4,8,1);
+  const wi=vi/r, wf=vf/r, alpha=(wf-wi)/t, theta=(wi+wf)*t/2, N=theta/(2*Math.PI), s=r*theta;
+  return {
+    statement:`A car with tires of radius $${r.toFixed(3)}\\text{ m}$ travels at $${vi.toFixed(1)}\\text{ m/s}$. The driver brakes and the car slows uniformly to $${vf.toFixed(1)}\\text{ m/s}$ over $${t.toFixed(1)}\\text{ s}$ without skidding. Find:`,
+    parts:[
+      {id:'a',label:'(a) Initial tire angular velocity ω_i',unit:'rad/s',value:wi,tol:0.03,type:'num'},
+      {id:'a2',label:'Final tire angular velocity ω_f',unit:'rad/s',value:wf,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Angular acceleration α (include sign)',unit:'rad/s²',value:alpha,tol:0.05,type:'num'},
+      {id:'c',label:'(c) Number of tire revolutions during braking',unit:'rev',value:N,tol:0.03,type:'num'},
+      {id:'d',label:'(d) Distance traveled',unit:'m',value:s,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `$\\omega_i=v_i/r=${vi.toFixed(1)}/${r.toFixed(3)}=${sig3(wi)}\\text{ rad/s}$; $\\omega_f=v_f/r=${sig3(wf)}\\text{ rad/s}$.`,
+      `$\\alpha=(\\omega_f-\\omega_i)/t=${sig3(alpha)}\\text{ rad/s}^2$.`,
+      `$\\theta=(\\omega_i+\\omega_f)t/2=${sig3(theta)}\\text{ rad}$, so $N=\\theta/(2\\pi)=${sig3(N)}\\text{ rev}$.`,
+      `$s=r\\theta=${sig3(s)}\\text{ m}$.`
+    ]
+  };
+}});
+
+BANK.push({set:1,title:"CD at Two Radii", gen(){
+  const rpm = pick(300,600,0), r1cm=pick(1.5,3.0,2), r2cm=pick(4.0,7.0,2), tt=pick(2,6,1);
+  const omega=rpm*2*Math.PI/60, r1=r1cm/100, r2=r2cm/100, v1=r1*omega, v2=r2*omega;
+  const theta=omega*tt, s1=r1*theta, s2=r2*theta, ratio=v2/v1;
+  return {
+    statement:`A compact disk rotates at $${rpm}\\text{ rev/min}$. Compare points at radii $${r1cm.toFixed(2)}\\text{ cm}$ and $${r2cm.toFixed(2)}\\text{ cm}$. Find:`,
+    parts:[
+      {id:'a',label:'(a) The common angular velocity',unit:'rad/s',value:omega,tol:0.03,type:'num'},
+      {id:'b1',label:'(b) Tangential speed at r₁',unit:'m/s',value:v1,tol:0.03,type:'num'},
+      {id:'b2',label:'Tangential speed at r₂',unit:'m/s',value:v2,tol:0.03,type:'num'},
+      {id:'c',label:`(c) Arc length each point travels in ${tt.toFixed(1)} s — at r₁`,unit:'m',value:s1,tol:0.03,type:'num'},
+      {id:'c2',label:'Arc length at r₂',unit:'m',value:s2,tol:0.03,type:'num'},
+      {id:'d',label:'(d) Ratio of tangential speeds v₂/v₁',unit:'',value:ratio,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `$\\omega = ${rpm}\\times2\\pi/60=${sig3(omega)}\\text{ rad/s}$.`,
+      `$v_1=r_1\\omega=${sig3(v1)}\\text{ m/s}$; $v_2=r_2\\omega=${sig3(v2)}\\text{ m/s}$.`,
+      `In $${tt.toFixed(1)}\\text{ s}$: $\\theta=\\omega t=${sig3(theta)}\\text{ rad}$.`,
+      `$s_1=r_1\\theta=${sig3(s1)}\\text{ m}$; $s_2=r_2\\theta=${sig3(s2)}\\text{ m}$.`,
+      `Ratio: $v_2/v_1=r_2/r_1=${sig3(ratio)}$.`
+    ]
+  };
+}});
+
+BANK.push({set:1,title:"Wind Turbine Blade Tip", gen(){
+  const L=pick(30,55,1), rpm=pick(10,20,1), tmin=pick(5,15,1);
+  const omega=rpm*2*Math.PI/60, v=L*omega, tsec=tmin*60, s=v*tsec, N=rpm*tmin;
+  return {
+    statement:`A wind turbine has blade length $${L.toFixed(1)}\\text{ m}$ and rotates steadily at $${rpm.toFixed(1)}\\text{ rev/min}$. Find:`,
+    parts:[
+      {id:'a',label:'(a) Angular velocity',unit:'rad/s',value:omega,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Tip speed',unit:'m/s',value:v,tol:0.03,type:'num'},
+      {id:'c',label:`(c) Distance a blade tip travels in ${tmin.toFixed(1)} min`,unit:'m',value:s,tol:0.03,type:'num'},
+      {id:'d',label:`(d) Number of turns in ${tmin.toFixed(1)} min`,unit:'rev',value:N,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `$\\omega=${rpm.toFixed(1)}\\times2\\pi/60=${sig3(omega)}\\text{ rad/s}$.`,
+      `Tip speed: $v=r\\omega=${sig3(v)}\\text{ m/s}$.`,
+      `$t=${tmin.toFixed(1)}\\text{ min}=${tsec.toFixed(0)}\\text{ s}$; $s=vt=${sig3(s)}\\text{ m}$.`,
+      `$N=(${rpm.toFixed(1)}\\text{ rev/min})(${tmin.toFixed(1)}\\text{ min})=${sig3(N)}\\text{ rev}$.`
+    ]
+  };
+}});
+
+/* ---------- SET 2: Centripetal Acceleration & Rotation Rates ---------- */
+BANK.push({set:2,title:"Amusement Ride Rider", gen(){
+  const r=pick(4.0,8.0,2), rpm=pick(10,25,1);
+  const omega=rpm*2*Math.PI/60, v=r*omega, ac=r*omega*omega, ratio=ac/g;
+  return {
+    statement:`A rider sits $${r.toFixed(2)}\\text{ m}$ from the center of a ride rotating at $${rpm.toFixed(1)}\\text{ rev/min}$. Determine:`,
+    parts:[
+      {id:'a',label:'(a) Angular velocity',unit:'rad/s',value:omega,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Tangential speed',unit:'m/s',value:v,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Centripetal acceleration',unit:'m/s²',value:ac,tol:0.03,type:'num'},
+      {id:'d',label:'(d) Centripetal acceleration as a multiple of g',unit:'× g',value:ratio,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `$\\omega=${rpm.toFixed(1)}\\times2\\pi/60=${sig3(omega)}\\text{ rad/s}$.`,
+      `$v=r\\omega=${sig3(v)}\\text{ m/s}$.`,
+      `$a_c=r\\omega^2=${sig3(ac)}\\text{ m/s}^2$.`,
+      `$a_c/g=${sig3(ac)}/9.80=${sig3(ratio)}$.`
+    ]
+  };
+}});
+
+BANK.push({set:2,title:"Test Track Maximum Speed", gen(){
+  const r=pick(50,120,0), k=pick(0.45,0.75,2);
+  const ac=k*g, v=Math.sqrt(ac*r), lap=2*Math.PI*r, T=lap/v, omega=v/r;
+  return {
+    statement:`A test car goes around a circular track of radius $${r.toFixed(0)}\\text{ m}$. Its maximum allowed centripetal acceleration is $${k.toFixed(2)}g$. Find:`,
+    parts:[
+      {id:'a',label:'(a) Largest safe speed',unit:'m/s',value:v,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Time for one lap at that speed',unit:'s',value:T,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Corresponding angular velocity',unit:'rad/s',value:omega,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `$a_c=${k.toFixed(2)}(9.80)=${sig3(ac)}\\text{ m/s}^2$.`,
+      `From $a_c=v^2/r$: $v=\\sqrt{a_c r}=${sig3(v)}\\text{ m/s}$.`,
+      `Lap distance $=2\\pi r=${sig3(lap)}\\text{ m}$; $T=\\text{distance}/v=${sig3(T)}\\text{ s}$.`,
+      `$\\omega=v/r=${sig3(omega)}\\text{ rad/s}$.`
+    ]
+  };
+}});
+
+BANK.push({set:2,title:"Laboratory Centrifuge", gen(){
+  const r=pick(0.08,0.16,3), Ng=pick(1500,3500,0);
+  const ac=Ng*g, omega=Math.sqrt(ac/r), rpm=omega*60/(2*Math.PI), v=r*omega, T=2*Math.PI/omega;
+  return {
+    statement:`A laboratory centrifuge has radius $${r.toFixed(3)}\\text{ m}$. What rotation rate is needed to produce a centripetal acceleration of $${Ng.toFixed(0)}g$? Also find:`,
+    parts:[
+      {id:'rpm',label:'Required rotation rate',unit:'rev/min',value:rpm,tol:0.03,type:'num'},
+      {id:'a',label:'(a) Tangential speed',unit:'m/s',value:v,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Period of one revolution',unit:'s',value:T,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `Target: $a_c=${Ng.toFixed(0)}(9.80)=${sig3(ac)}\\text{ m/s}^2$.`,
+      `$a_c=r\\omega^2 \\Rightarrow \\omega=\\sqrt{a_c/r}=${sig3(omega)}\\text{ rad/s}$.`,
+      `$\\text{rpm}=\\omega(60)/(2\\pi)=${sig3(rpm)}\\text{ rev/min}$.`,
+      `$v=r\\omega=${sig3(v)}\\text{ m/s}$; $T=2\\pi/\\omega=${sig3(T)}\\text{ s}$.`
+    ]
+  };
+}});
+
+BANK.push({set:2,title:"Planetary Equatorial Spin", gen(){
+  const Rp = pick(5.0,8.0,2)*1e6, Th = pick(20,30,1);
+  const T = Th*3600, omega=2*Math.PI/T, ac=Rp*omega*omega, pct=ac/g*100;
+  return {
+    statement:`A planet has equatorial radius $${sig3(Rp)}\\text{ m}$ and rotation period $${Th.toFixed(1)}\\text{ h}$. Determine:`,
+    parts:[
+      {id:'a',label:'(a) Angular velocity',unit:'rad/s',value:omega,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Centripetal acceleration at the equator',unit:'m/s²',value:ac,tol:0.03,type:'num'},
+      {id:'c',label:'(c) That acceleration as a percentage of Earth g=9.80 m/s²',unit:'%',value:pct,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `$T=${Th.toFixed(1)}\\times3600=${T.toFixed(0)}\\text{ s}$.`,
+      `$\\omega=2\\pi/T=${sig3(omega)}\\text{ rad/s}$.`,
+      `$a_c=R\\omega^2=${sig3(ac)}\\text{ m/s}^2$.`,
+      `Percentage of $g$: $(${sig3(ac)}/9.80)(100)=${sig3(pct)}\\%$.`
+    ]
+  };
+}});
+
+BANK.push({set:2,title:"Helicopter Rotor Tip", gen(){
+  const r=pick(4.0,7.0,2), rpm=pick(250,350,0);
+  const omega=rpm*2*Math.PI/60, v=r*omega, ac=r*omega*omega, ratio=ac/g;
+  return {
+    statement:`A helicopter rotor has radius $${r.toFixed(2)}\\text{ m}$ and rotates at $${rpm.toFixed(0)}\\text{ rev/min}$. Find:`,
+    parts:[
+      {id:'a',label:'(a) Angular velocity',unit:'rad/s',value:omega,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Speed of the blade tip',unit:'m/s',value:v,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Tip centripetal acceleration',unit:'m/s²',value:ac,tol:0.03,type:'num'},
+      {id:'d',label:'(d) That acceleration in g units',unit:'× g',value:ratio,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `$\\omega=${rpm.toFixed(0)}\\times2\\pi/60=${sig3(omega)}\\text{ rad/s}$.`,
+      `$v=r\\omega=${sig3(v)}\\text{ m/s}$.`,
+      `$a_c=r\\omega^2=${sig3(ac)}\\text{ m/s}^2$.`,
+      `$a_c/g=${sig3(ratio)}$.`
+    ]
+  };
+}});
+
+/* ---------- SET 3: Centripetal Force, Friction & Banking ---------- */
+BANK.push({set:3,title:"Level Curve & Friction Limit", gen(){
+  const m=pick(1000,1800,0), r=pick(60,120,0), mu=pick(0.40,0.70,2), vtest=pick(15,25,1);
+  const vmax=Math.sqrt(mu*g*r), Fc=m*vmax*vmax/r, muReq=vtest*vtest/(r*g), safe = muReq < mu;
+  return {
+    statement:`A $${m.toFixed(0)}\\text{ kg}$ car rounds a level curve of radius $${r.toFixed(0)}\\text{ m}$. The coefficient of static friction is $${mu.toFixed(2)}$. Determine:`,
+    parts:[
+      {id:'a',label:'(a) Maximum speed before slipping',unit:'m/s',value:vmax,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Required centripetal force at that speed',unit:'N',value:Fc,tol:0.03,type:'num'},
+      {id:'c',label:`(c) Is a speed of ${vtest.toFixed(1)} m/s safe?`,type:'mc',options:['Yes — required μ is less than the available μ','No — required μ exceeds the available μ'],correct: safe?0:1},
+    ],
+    solution:[
+      `At the threshold: $\\mu_s mg = mv_{max}^2/r \\Rightarrow v_{max}=\\sqrt{\\mu_s gr}=${sig3(vmax)}\\text{ m/s}$.`,
+      `$F_c=mv_{max}^2/r=${sig3(Fc)}\\text{ N}$.`,
+      `For $v=${vtest.toFixed(1)}\\text{ m/s}$: $\\mu_{req}=v^2/(rg)=${sig3(muReq)}$. ${safe? 'This is less than '+mu.toFixed(2)+', so the speed is safe.':'This exceeds '+mu.toFixed(2)+', so the speed is NOT safe.'}`
+    ]
+  };
+}});
+
+BANK.push({set:3,title:"Ideally Banked Curve", gen(){
+  const r=pick(150,300,0), speedKmh=pick(50,90,0), m=pick(900,1500,0);
+  const v=speedKmh*(1000/3600), tanTheta=v*v/(r*g), thetaRad=Math.atan(tanTheta), thetaDeg=thetaRad*180/Math.PI;
+  const N=m*g/Math.cos(thetaRad);
+  return {
+    statement:`A curve of radius $${r.toFixed(0)}\\text{ m}$ is ideally banked for traffic traveling at $${speedKmh.toFixed(0)}\\text{ km/h}$. Determine:`,
+    parts:[
+      {id:'a',label:'(a) Design speed',unit:'m/s',value:v,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Required banking angle',unit:'degrees',value:thetaDeg,tol:0.03,type:'num'},
+      {id:'c',label:`(c) Normal force on a ${m.toFixed(0)} kg car at this ideal speed`,unit:'N',value:N,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `Convert speed: $${speedKmh.toFixed(0)}\\text{ km/h}=${sig3(v)}\\text{ m/s}$.`,
+      `$\\tan\\theta=v^2/(rg)=${sig3(tanTheta)}$, so $\\theta=\\arctan(${sig3(tanTheta)})=${sig3(thetaDeg)}°$.`,
+      `At ideal speed: $N\\cos\\theta=mg \\Rightarrow N=mg/\\cos\\theta=${sig3(N)}\\text{ N}$.`
+    ]
+  };
+}});
+
+BANK.push({set:3,title:"Vertical Circle on a String", gen(){
+  const m=pick(0.15,0.35,3), r=pick(0.8,1.5,2), vb=pick(6.0,10.0,1);
+  const acBottom=vb*vb/r, T=m*acBottom+m*g, vtop=Math.sqrt(r*g);
+  return {
+    statement:`A $${m.toFixed(3)}\\text{ kg}$ ball on a $${r.toFixed(2)}\\text{ m}$ string moves in a vertical circle. At the bottom it travels at $${vb.toFixed(1)}\\text{ m/s}$. Find:`,
+    parts:[
+      {id:'a',label:'(a) Centripetal acceleration at the bottom',unit:'m/s²',value:acBottom,tol:0.03,type:'num'},
+      {id:'b',label:'(b) String tension at the bottom',unit:'N',value:T,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Minimum speed at the top for the string to stay just taut',unit:'m/s',value:vtop,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `At the bottom: $a_c=v^2/r=${sig3(acBottom)}\\text{ m/s}^2$.`,
+      `Inward is upward: $T-mg=mv^2/r \\Rightarrow T=mv^2/r+mg=${sig3(T)}\\text{ N}$.`,
+      `At the top, minimum taut condition is $T=0$: $mg=mv_{top}^2/r \\Rightarrow v_{top}=\\sqrt{rg}=${sig3(vtop)}\\text{ m/s}$.`
+    ]
+  };
+}});
+
+BANK.push({set:3,title:"Rotating Cylinder Ride", gen(){
+  const m=pick(50,80,1), r=pick(3.5,5.5,2), mu=pick(0.30,0.50,2);
+  const omega=Math.sqrt(g/(mu*r)), rpm=omega*60/(2*Math.PI), N=m*g/mu;
+  return {
+    statement:`A $${m.toFixed(1)}\\text{ kg}$ rider stands inside a rotating vertical cylindrical ride of radius $${r.toFixed(2)}\\text{ m}$. The coefficient of static friction between clothing and wall is $${mu.toFixed(2)}$. Find:`,
+    parts:[
+      {id:'a',label:'(a) Minimum angular velocity so the rider does not slide',unit:'rad/s',value:omega,tol:0.03,type:'num'},
+      {id:'b',label:'(b) That rate in rev/min',unit:'rev/min',value:rpm,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Normal force at this threshold',unit:'N',value:N,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `Friction must hold the rider up: $f_{s,max}=\\mu_s N=mg$.`,
+      `The wall's normal force supplies the centripetal force: $N=mr\\omega^2$.`,
+      `Combine: $\\mu_s m r\\omega^2=mg \\Rightarrow \\omega=\\sqrt{g/(\\mu_s r)}=${sig3(omega)}\\text{ rad/s}$.`,
+      `$\\text{rpm}=\\omega(60)/(2\\pi)=${sig3(rpm)}\\text{ rev/min}$.`,
+      `$N=mg/\\mu_s=${sig3(N)}\\text{ N}$.`
+    ]
+  };
+}});
+
+BANK.push({set:3,title:"Cresting a Circular Hill", gen(){
+  const r=pick(50,90,0), m=pick(55,85,1), vzero=Math.sqrt(r*g);
+  const vtest=vzero*pick(0.5,0.8,2);
+  const N=m*g-m*vtest*vtest/r, trueW=m*g;
+  return {
+    statement:`A car crests the top of a circular hill of radius $${r.toFixed(0)}\\text{ m}$. Find:`,
+    parts:[
+      {id:'a',label:'(a) Speed at which the normal force just becomes zero',unit:'m/s',value:vzero,tol:0.03,type:'num'},
+      {id:'b',label:`(b) Apparent weight (normal force) of a ${m.toFixed(1)} kg passenger at ${vtest.toFixed(1)} m/s`,unit:'N',value:N,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `At the top, inward is downward. When $N=0$: $mg=mv^2/r \\Rightarrow v=\\sqrt{rg}=${sig3(vzero)}\\text{ m/s}$.`,
+      `For a $${m.toFixed(1)}\\text{ kg}$ passenger at $${vtest.toFixed(1)}\\text{ m/s}$: $mg-N=mv^2/r \\Rightarrow N=mg-mv^2/r=${sig3(N)}\\text{ N}$.`,
+      `True weight is $mg=${sig3(trueW)}\\text{ N}$. The seat's normal force is smaller because part of gravity supplies the required downward centripetal force.`
+    ]
+  };
+}});
+
+/* ---------- SET 4: Reference Frames ---------- */
+BANK.push({set:4,title:"Passenger in a Turning Car", gen(){
+  const m=pick(50,90,1), v=pick(12,22,1), R=pick(40,70,0);
+  const Fc=m*v*v/R;
+  return {
+    statement:`A $${m.toFixed(1)}\\text{ kg}$ passenger rides in a car that travels at $${v.toFixed(1)}\\text{ m/s}$ around a curve of radius $${R.toFixed(0)}\\text{ m}$. Determine:`,
+    parts:[
+      {id:'a',label:'(a) The real inward force required on the passenger (Earth/inertial frame)',unit:'N',value:Fc,tol:0.03,type:'num'},
+      {id:'b',label:'(b) The apparent outward centrifugal force in the car (rotating) frame',unit:'N',value:Fc,tol:0.03,type:'num'},
+      {id:'c',label:'(c) What actually supplies the real inward force?',type:'mc',options:['Contact forces from the seat, door, and/or seatbelt','Gravity acting alone','The engine\'s driving force on the wheels'],correct:0},
+    ],
+    solution:[
+      `In the inertial Earth frame: $F_c=mv^2/R=${sig3(Fc)}\\text{ N}$ inward.`,
+      `In the rotating car frame, the apparent centrifugal force has the same magnitude but points outward: $${sig3(Fc)}\\text{ N}$.`,
+      `The real inward force is supplied by contact with the seat, door, and/or seat belt.`
+    ]
+  };
+}});
+
+BANK.push({set:4,title:"Puck on a Rotating Platform", gen(){
+  const m=pick(0.3,0.8,2), r=pick(1.2,2.5,2), omega=pick(1.0,2.2,2);
+  const Fc=m*r*omega*omega, muMin=Fc/(m*g);
+  return {
+    statement:`A $${m.toFixed(2)}\\text{ kg}$ puck rests $${r.toFixed(2)}\\text{ m}$ from the axis of a horizontal rotating platform spinning at $${omega.toFixed(2)}\\text{ rad/s}$. Find:`,
+    parts:[
+      {id:'a',label:'(a) Required real inward force to make the puck co-rotate',unit:'N',value:Fc,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Apparent centrifugal force in the rotating (platform) frame',unit:'N',value:Fc,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Minimum coefficient of static friction needed',unit:'',value:muMin,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `Required inward force: $F_c=mr\\omega^2=${sig3(Fc)}\\text{ N}$.`,
+      `In the platform frame, the apparent centrifugal force is $${sig3(Fc)}\\text{ N}$ outward.`,
+      `On a horizontal surface, $f_{s,max}=\\mu_s mg \\ge F_c$, so $\\mu_{s,min}=F_c/(mg)=${sig3(muMin)}$.`
+    ]
+  };
+}});
+
+BANK.push({set:4,title:"Ball Rolled on a Merry-Go-Round", gen(){
+  const ccw = Math.random()<0.5;
+  const dirLabel = ccw ? 'counterclockwise' : 'clockwise';
+  const correctDefl = ccw ? 0 : 1; // 0=right,1=left for outward motion
+  return {
+    statement:`A ball is rolled radially outward on a $${dirLabel}$-rotating merry-go-round. In the Earth frame, friction is negligible. Determine:`,
+    parts:[
+      {id:'a',label:"(a) The ball's path in the Earth (inertial) frame",type:'mc',options:['Approximately a straight line, tangent to its velocity at release','A curved outward spiral','A curved inward spiral'],correct:0},
+      {id:'b',label:'(b) Its apparent path to an observer standing on the platform',type:'mc',options:['Curved, because the platform turns beneath the ball','An exact straight line, same as the Earth frame','The ball appears to stop moving'],correct:0},
+      {id:'c',label:`(c) Direction of the apparent Coriolis deflection relative to the ball's outward motion, given ${dirLabel} rotation`,type:'mc',options:['To the right of its outward motion','To the left of its outward motion'],correct:correctDefl},
+    ],
+    solution:[
+      `In the Earth frame, after release the ball follows an approximately straight-line path tangent to its initial velocity — it is not forced to curve with the platform.`,
+      `The rotating observer sees the platform turn beneath the ball, so the ball appears to curve.`,
+      `For ${dirLabel} platform rotation and outward motion, the apparent Coriolis deflection is to the ${correctDefl===0?'right':'left'} of the ball's motion.`
+    ]
+  };
+}});
+
+BANK.push({set:4,title:"Rider Against a Spinning Wall", gen(){
+  const m=pick(60,90,1), r=pick(3.0,5.0,2), omega=pick(2.5,3.5,2);
+  const N=m*r*omega*omega, muMin=(m*g)/N;
+  return {
+    statement:`A $${m.toFixed(1)}\\text{ kg}$ rider stands against the wall of a cylindrical ride of radius $${r.toFixed(2)}\\text{ m}$ rotating at $${omega.toFixed(2)}\\text{ rad/s}$. Find:`,
+    parts:[
+      {id:'a',label:'(a) Normal force on the rider (real, inward)',unit:'N',value:N,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Apparent centrifugal force in the rotating frame',unit:'N',value:N,tol:0.03,type:'num'},
+      {id:'c',label:"(c) Minimum coefficient of static friction to keep the rider from sliding down",unit:'',value:muMin,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `The wall's normal force provides the inward centripetal force: $N=mr\\omega^2=${sig3(N)}\\text{ N}$.`,
+      `In the rotating frame, the apparent centrifugal force has equal magnitude, directed outward: $${sig3(N)}\\text{ N}$.`,
+      `Friction must balance weight: $\\mu_s N \\ge mg \\Rightarrow \\mu_{s,min}=mg/N=${sig3(muMin)}$.`
+    ]
+  };
+}});
+
+BANK.push({set:4,title:"Car in a Left Turn — Two Frames", gen(){
+  const m=pick(700,1200,0), r=pick(40,80,0), v=pick(10,18,1);
+  const Fc=m*v*v/r;
+  return {
+    statement:`A $${m.toFixed(0)}\\text{ kg}$ car takes a $${r.toFixed(0)}\\text{ m}$-radius left turn at $${v.toFixed(1)}\\text{ m/s}$. Find:`,
+    parts:[
+      {id:'a',label:'(a) Magnitude of the centripetal force needed',unit:'N',value:Fc,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Which statement correctly compares the two frames?',type:'mc',options:[
+        'Earth frame: real inward friction from the tires; car frame: an equal-magnitude apparent centrifugal force points outward',
+        'Earth frame: an apparent force appears; car frame: no forces act at all',
+        'Both frames describe only real, contact-based forces'
+      ],correct:0},
+    ],
+    solution:[
+      `Magnitude needed: $F_c=mv^2/r=${sig3(Fc)}\\text{ N}$.`,
+      `In the Earth frame, real tire-road static friction supplies $${sig3(Fc)}\\text{ N}$ toward the center of the turn.`,
+      `In the rotating car frame, an apparent $${sig3(Fc)}\\text{ N}$ centrifugal force is introduced outward; real and fictitious forces balance in that non-inertial description.`
+    ]
+  };
+}});
+
+/* ---------- SET 5: Universal Gravitation, g, Tides ---------- */
+BANK.push({set:5,title:"Gravitational Attraction Between People", gen(){
+  const m1=pick(50,90,1), m2=pick(50,100,1), d=pick(0.5,1.2,2);
+  const F=G*m1*m2/(d*d), W=m1*g, ratio=F/W;
+  return {
+    statement:`Calculate the gravitational force between a $${m1.toFixed(1)}\\text{ kg}$ person and a $${m2.toFixed(1)}\\text{ kg}$ person standing $${d.toFixed(2)}\\text{ m}$ apart. Find:`,
+    parts:[
+      {id:'a',label:'(a) Gravitational force between them',unit:'N',value:F,tol:0.03,type:'num'},
+      {id:'b',label:`(b) Ratio of this force to the ${m1.toFixed(1)} kg person's weight`,unit:'',value:ratio,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `$F=Gm_1m_2/r^2=(6.674\\times10^{-11})(${m1.toFixed(1)})(${m2.toFixed(1)})/(${d.toFixed(2)})^2=${sig3(F)}\\text{ N}$.`,
+      `Weight: $W=m_1g=${sig3(W)}\\text{ N}$.`,
+      `Ratio: $F/W=${sig3(ratio)}$.`
+    ]
+  };
+}});
+
+BANK.push({set:5,title:"g vs. Altitude", gen(){
+  const RE=6.371e6, ME=5.972e24, h=pick(500,1200,0)*1000;
+  const g0=G*ME/(RE*RE), r=RE+h, gh=G*ME/(r*r), pct=(g0-gh)/g0*100;
+  return {
+    statement:`Using $M_E=5.972\\times10^{24}\\text{ kg}$ and $R_E=6.371\\times10^{6}\\text{ m}$, find $g$ at (a) Earth's surface and (b) altitude $${sig3(h)}\\text{ m}$, and (c) the percent decrease.`,
+    parts:[
+      {id:'a',label:"(a) g at Earth's surface",unit:'m/s²',value:g0,tol:0.03,type:'num'},
+      {id:'b',label:`(b) g at altitude ${sig3(h)} m`,unit:'m/s²',value:gh,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Percentage decrease from surface to that altitude',unit:'%',value:pct,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `At the surface: $g_0=GM_E/R_E^2=${sig3(g0)}\\text{ m/s}^2$.`,
+      `At $r=R_E+h=${sig3(r)}\\text{ m}$: $g_h=GM_E/r^2=${sig3(gh)}\\text{ m/s}^2$.`,
+      `Percentage decrease $=[(g_0-g_h)/g_0](100)=${sig3(pct)}\\%$.`
+    ]
+  };
+}});
+
+BANK.push({set:5,title:"Spacecraft Weightlessness", gen(){
+  const m=pick(800,1500,0), h=pick(300,600,0)*1000;
+  const RE=6.371e6, ME=5.972e24, r=RE+h, gh=G*ME/(r*r), F=m*gh, a=gh;
+  return {
+    statement:`A $${m.toFixed(0)}\\text{ kg}$ spacecraft orbits $${sig3(h)}\\text{ m}$ above Earth's surface, where $g=${sig3(gh)}\\text{ m/s}^2$. Find:`,
+    parts:[
+      {id:'a',label:"(a) Earth's gravitational force on the spacecraft",unit:'N',value:F,tol:0.03,type:'num'},
+      {id:'b',label:"(b) The spacecraft's acceleration",unit:'m/s²',value:a,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Why do the occupants feel weightless?',type:'mc',options:[
+        'They and the spacecraft share nearly the same free-fall acceleration, so there is almost no normal (support) force',
+        'There is no gravity acting on the spacecraft at that altitude',
+        'Air resistance exactly cancels gravity'
+      ],correct:0},
+    ],
+    solution:[
+      `$F_g=mg=${sig3(F)}\\text{ N}$ toward Earth's center.`,
+      `Acceleration: $a=F/m=${sig3(a)}\\text{ m/s}^2$ inward.`,
+      `The spacecraft and its occupants share nearly the same free-fall acceleration, so a supporting normal force is nearly absent — apparent weight is therefore near zero.`
+    ]
+  };
+}});
+
+BANK.push({set:5,title:"Weight on the Moon", gen(){
+  const m=pick(50,90,1);
+  const MMoon=7.35e22, RMoon=1.737e6, gMoon=G*MMoon/(RMoon*RMoon);
+  const Wmoon=m*gMoon, Wearth=m*g, ratio=Wmoon/Wearth;
+  return {
+    statement:`The Moon has mass $7.35\\times10^{22}\\text{ kg}$ and radius $1.737\\times10^{6}\\text{ m}$. Find (a) gravitational acceleration at the lunar surface, (b) the weight of a $${m.toFixed(1)}\\text{ kg}$ person on the Moon, and (c) the ratio of Moon weight to Earth weight.`,
+    parts:[
+      {id:'a',label:'(a) Gravitational acceleration at the lunar surface',unit:'m/s²',value:gMoon,tol:0.03,type:'num'},
+      {id:'b',label:`(b) Weight of a ${m.toFixed(1)} kg person on the Moon`,unit:'N',value:Wmoon,tol:0.03,type:'num'},
+      {id:'c',label:"(c) Ratio of Moon weight to Earth weight",unit:'',value:ratio,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `$g_{Moon}=GM_{Moon}/R_{Moon}^2=${sig3(gMoon)}\\text{ m/s}^2$.`,
+      `$W_{Moon}=mg_{Moon}=${sig3(Wmoon)}\\text{ N}$.`,
+      `$W_{Earth}=mg=${sig3(Wearth)}\\text{ N}$. Ratio $=${sig3(ratio)}$, about one-sixth of Earth weight.`
+    ]
+  };
+}});
+
+BANK.push({set:5,title:"Moon vs. Star Tidal Comparison", gen(){
+  const Mmoon=pick(5.0,9.0,2)*1e22, r1=pick(3.0,4.5,2)*1e8;
+  const Mstar=pick(1.5,2.5,2)*1e30, r2=pick(1.3,1.6,2)*1e11;
+  const a1=G*Mmoon/(r1*r1), a2=G*Mstar/(r2*r2), ratio=a1/a2;
+  return {
+    statement:`Compare the gravitational acceleration at a planet due to a nearby moon (mass $${sig3(Mmoon)}\\text{ kg}$, distance $${sig3(r1)}\\text{ m}$) and a distant star (mass $${sig3(Mstar)}\\text{ kg}$, distance $${sig3(r2)}\\text{ m}$). Find:`,
+    parts:[
+      {id:'a',label:'(a) Acceleration due to the moon',unit:'m/s²',value:a1,tol:0.03,type:'num'},
+      {id:'a2',label:'Acceleration due to the star',unit:'m/s²',value:a2,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Ratio a_moon / a_star',unit:'',value:ratio,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Why can the moon still have the larger tidal effect despite weaker overall pull?',type:'mc',options:[
+        "Tides scale with the gravitational gradient (~M/r³) across the body; the moon's closeness gives it a larger gradient",
+        'Tides depend only on total gravitational force, so the star always dominates',
+        'The moon is tidally locked, which alone explains stronger tides'
+      ],correct:0},
+    ],
+    solution:[
+      `Moon: $a_1=GM_{moon}/r_1^2=${sig3(a1)}\\text{ m/s}^2$.`,
+      `Star: $a_2=GM_{star}/r_2^2=${sig3(a2)}\\text{ m/s}^2$.`,
+      `Ratio: $a_1/a_2=${sig3(ratio)}$.`,
+      `Tides depend on the variation of gravity across the body (scaling roughly as $M/r^3$), not the overall acceleration — being much closer gives the moon a larger gravitational gradient.`
+    ]
+  };
+}});
+
+/* ---------- SET 6: Satellites & Kepler's Laws ---------- */
+BANK.push({set:6,title:"Low Earth Orbit Satellite", gen(){
+  const RE=6.371e6, GME=3.986e14, h=pick(300,800,0)*1000;
+  const r=RE+h, v=Math.sqrt(GME/r), T=2*Math.PI*Math.sqrt(r*r*r/GME), Tmin=T/60, orbitsPerDay=1440/Tmin;
+  return {
+    statement:`A satellite orbits Earth in a circular path $${sig3(h)}\\text{ m}$ above the surface. Using $R_E=6.371\\times10^{6}\\text{ m}$ and $GM_E=3.986\\times10^{14}\\text{ m}^3/\\text{s}^2$, find:`,
+    parts:[
+      {id:'a',label:'(a) Orbital radius',unit:'m',value:r,tol:0.02,type:'num'},
+      {id:'b',label:'(b) Orbital speed',unit:'m/s',value:v,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Orbital period',unit:'s',value:T,tol:0.03,type:'num'},
+      {id:'d',label:'(d) Number of orbits in 24.0 h',unit:'orbits/day',value:orbitsPerDay,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `$r=R_E+h=${sig3(r)}\\text{ m}$.`,
+      `$v=\\sqrt{GM_E/r}=${sig3(v)}\\text{ m/s}$.`,
+      `$T=2\\pi\\sqrt{r^3/GM_E}=${sig3(T)}\\text{ s}=${sig3(Tmin)}\\text{ min}$.`,
+      `Orbits per day: $1440/${sig3(Tmin)}=${sig3(orbitsPerDay)}$.`
+    ]
+  };
+}});
+
+BANK.push({set:6,title:"Kepler's Third Law Scaling", gen(){
+  const Tref=pick(20,30,1), rref=pick(3.5,4.2,2)*1e8, rnew=pick(6.0,12.0,1)*1e6;
+  const Tnew_days = Tref*Math.pow(rnew/rref,1.5), Tnew_min = Tnew_days*24*60;
+  return {
+    statement:`A reference satellite orbits at radius $${sig3(rref)}\\text{ m}$ with period $${Tref.toFixed(1)}\\text{ days}$. Use Kepler's third law to find the period of a satellite (around the same body) at radius $${sig3(rnew)}\\text{ m}$, reported in minutes.`,
+    parts:[
+      {id:'a',label:'Period of the new satellite',unit:'min',value:Tnew_min,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `For objects orbiting the same body: $T_2/T_1=(r_2/r_1)^{3/2}$.`,
+      `$T_2=T_1(r_2/r_1)^{3/2}=${Tref.toFixed(1)}\\times(${sig3(rnew)}/${sig3(rref)})^{3/2}=${sig3(Tnew_days)}\\text{ days}$.`,
+      `Convert: $${sig3(Tnew_days)}\\times24\\times60=${sig3(Tnew_min)}\\text{ min}$.`
+    ]
+  };
+}});
+
+BANK.push({set:6,title:"Finding a Planet's Mass from a Moon's Orbit", gen(){
+  const r=pick(3.0,5.0,2)*1e8, T=pick(1.2,1.8,2)*1e6, r2=pick(0.8,1.2,2)*1e7;
+  const M = 4*Math.PI*Math.PI*r*r*r/(G*T*T);
+  const g2 = G*M/(r2*r2);
+  return {
+    statement:`A planet has a moon in a circular orbit with radius $${sig3(r)}\\text{ m}$ and period $${sig3(T)}\\text{ s}$. Determine:`,
+    parts:[
+      {id:'a',label:"(a) Mass of the planet",unit:'kg',value:M,tol:0.03,type:'num'},
+      {id:'b',label:`(b) Gravitational acceleration at distance ${sig3(r2)} m from the planet's center`,unit:'m/s²',value:g2,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `Use $M=4\\pi^2 r^3/(GT^2)=${sig3(M)}\\text{ kg}$.`,
+      `At $r_2=${sig3(r2)}\\text{ m}$: $g=GM/r_2^2=${sig3(g2)}\\text{ m/s}^2$.`
+    ]
+  };
+}});
+
+BANK.push({set:6,title:"Synchronous Orbit Around a Planet", gen(){
+  const GM=pick(1.0,6.0,2)*1e14, Th=pick(18,30,1), Rp=pick(3.0,8.0,1)*1e6;
+  const T=Th*3600, r=Math.pow(GM*T*T/(4*Math.PI*Math.PI),1/3), h=r-Rp, v=Math.sqrt(GM/r);
+  return {
+    statement:`A moon-synchronous satellite must match a planet's rotation period of $${Th.toFixed(1)}\\text{ h}$, where the planet has $GM=${sig3(GM)}\\text{ m}^3/\\text{s}^2$ and radius $${sig3(Rp)}\\text{ m}$. Find:`,
+    parts:[
+      {id:'a',label:'(a) Orbital radius',unit:'m',value:r,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Altitude above the surface',unit:'m',value:h,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Orbital speed',unit:'m/s',value:v,tol:0.03,type:'num'},
+    ],
+    solution:[
+      `Convert: $T=${Th.toFixed(1)}\\times3600=${T.toFixed(0)}\\text{ s}$.`,
+      `$r=\\left[\\dfrac{GM\\,T^2}{4\\pi^2}\\right]^{1/3}=${sig3(r)}\\text{ m}$.`,
+      `Altitude: $h=r-R_{planet}=${sig3(h)}\\text{ m}$.`,
+      `Speed: $v=\\sqrt{GM/r}=${sig3(v)}\\text{ m/s}$.`
+    ]
+  };
+}});
+
+BANK.push({set:6,title:"Changing Orbital Radius", gen(){
+  let k = pick(0.3,4.0,2);
+  while (Math.abs(k-1)<0.15) k = pick(0.3,4.0,2); // avoid trivial k≈1
+  const Tratio = Math.pow(k,1.5), vratio = 1/Math.sqrt(k);
+  const fewer = k>1; // outer (k>1) => longer period => fewer orbits/day
+  return {
+    statement:`A satellite changes from a circular orbit of radius $r_1$ to one of radius $r_2=${k.toFixed(2)}\\,r_1$ around the same planet. Without using the planet's mass, determine:`,
+    parts:[
+      {id:'a',label:'(a) Ratio of new period to old period T₂/T₁',unit:'',value:Tratio,tol:0.03,type:'num'},
+      {id:'b',label:'(b) Ratio of new speed to old speed v₂/v₁',unit:'',value:vratio,tol:0.03,type:'num'},
+      {id:'c',label:'(c) Does the new orbit complete more or fewer orbits per day?',type:'mc',options:['More orbits per day than before','Fewer orbits per day than before'],correct: fewer?1:0},
+    ],
+    solution:[
+      `Kepler's third law: $T_2/T_1=(r_2/r_1)^{3/2}=(${k.toFixed(2)})^{3/2}=${sig3(Tratio)}$.`,
+      `Using $v=\\sqrt{GM/r}$: $v_2/v_1=\\sqrt{r_1/r_2}=${sig3(vratio)}$.`,
+      `Since $r_2$ is ${k>1?'larger':'smaller'} than $r_1$, the period is ${k>1?'longer':'shorter'}, so the satellite completes ${fewer?'fewer':'more'} orbits per day.`
+    ]
+  };
+}});
+
+/* ============================ FORMULA REFERENCE ============================ */
+const FORMULAS = {
+  1:{title:"Set 1 — Angular Motion & Rolling", items:[
+    ["Arc length / angle","$s = r\\theta$"],
+    ["Tangential speed","$v = r\\omega$"],
+    ["Revolutions from angle","$N = \\theta / (2\\pi)$"],
+    ["rev/min → rad/s","$\\omega = \\text{rpm}\\times \\dfrac{2\\pi}{60}$"],
+    ["Uniform angular acceleration","$\\alpha = \\dfrac{\\omega_f-\\omega_i}{t}, \\quad \\theta = \\dfrac{(\\omega_i+\\omega_f)t}{2}$"],
+  ]},
+  2:{title:"Set 2 — Centripetal Acceleration & Rotation Rates", items:[
+    ["Centripetal acceleration","$a_c = \\dfrac{v^2}{r} = r\\omega^2$"],
+    ["In g units","$a_c/g$"],
+    ["Period","$T = \\dfrac{2\\pi}{\\omega} = \\dfrac{2\\pi r}{v}$"],
+  ]},
+  3:{title:"Set 3 — Force, Friction & Banked Curves", items:[
+    ["Max speed on level curve","$v_{max} = \\sqrt{\\mu_s g r}$"],
+    ["Ideal banking angle","$\\tan\\theta = \\dfrac{v^2}{rg}$"],
+    ["Normal force on bank (ideal speed)","$N = \\dfrac{mg}{\\cos\\theta}$"],
+    ["Vertical circle, bottom","$T - mg = \\dfrac{mv^2}{r}$"],
+    ["Vertical circle, top (string just taut)","$mg = \\dfrac{mv_{top}^2}{r} \\Rightarrow v_{top}=\\sqrt{rg}$"],
+    ["Spinning cylinder (friction holds rider)","$\\mu_s m r\\omega^2 = mg$"],
+    ["Cresting a hill (N = 0)","$mg = \\dfrac{mv^2}{r} \\Rightarrow v=\\sqrt{rg}$"],
+  ]},
+  4:{title:"Set 4 — Reference Frames & Apparent Forces", items:[
+    ["Centripetal force (either frame, same magnitude)","$F_c = \\dfrac{mv^2}{r} = mr\\omega^2$"],
+    ["Rotating-frame view","Apparent centrifugal force = $F_c$, directed outward; real forces (friction, normal, tension) still provide the true inward force."],
+    ["Coriolis effect","Qualitative: an object moving radially on a rotating platform appears, to a co-rotating observer, to deflect sideways relative to its motion."],
+  ]},
+  5:{title:"Set 5 — Universal Gravitation, g & Tides", items:[
+    ["Newton's law of gravitation","$F = \\dfrac{Gm_1m_2}{r^2}, \\quad G=6.674\\times10^{-11}\\ \\text{N·m}^2/\\text{kg}^2$"],
+    ["Gravitational field strength","$g = \\dfrac{GM}{r^2}$"],
+    ["Weight","$W = mg$"],
+    ["Tidal effect (qualitative)","Scales roughly as $M/r^3$ — the gradient of gravity, not gravity itself"],
+  ]},
+  6:{title:"Set 6 — Satellites & Kepler's Laws", items:[
+    ["Circular orbital speed","$v = \\sqrt{GM/r}$"],
+    ["Orbital period","$T = 2\\pi\\sqrt{r^3/GM}$"],
+    ["Kepler's third law (same central body)","$\\dfrac{T_2^2}{T_1^2} = \\dfrac{r_2^3}{r_1^3}$"],
+    ["Central mass from orbit","$M = \\dfrac{4\\pi^2 r^3}{GT^2}$"],
+    ["Synchronous orbit radius","$r = \\left[\\dfrac{GM\\,T^2}{4\\pi^2}\\right]^{1/3}$"],
+  ]},
+};
+
+/* ============================ APP STATE ============================ */
+const LS_KEY = 'ch6_circular_motion_practice_v1';
+let state = {
+  theme:'dark', currentStreak:0, bestStreak:0,
+  lastScorePct:null, lastScoreDetail:null,
+  highScorePct:null, highScoreDetail:null,
+  roundLength:10, roundAnswered:0, roundCorrect:0,
+};
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){ Object.assign(state, JSON.parse(raw)); }
+  }catch(e){}
+}
+function saveState(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+let currentProblem = null; // {def, gen result, answered:bool}
+
+function pickGenerator(){
+  const setSel = document.getElementById('setSelect').value;
+  let pool = BANK;
+  if (setSel !== 'mixed'){
+    const s = parseInt(setSel,10);
+    pool = BANK.filter(b=>b.set===s);
+  }
+  return choice(pool);
+}
+
+function newProblem(){
+  const def = pickGenerator();
+  const built = def.gen();
+  currentProblem = {def, built, answered:false, userMC:{}};
+  renderProblem();
+}
+
+function renderProblem(){
+  const {def, built} = currentProblem;
+  const area = document.getElementById('cardArea');
+  let partsHtml = '';
+  built.parts.forEach(p=>{
+    if (p.type==='mc'){
+      let optsHtml = p.options.map((opt,i)=>`<button class="mc-opt" data-part="${p.id}" data-idx="${i}">${opt}</button>`).join('');
+      partsHtml += `<div class="part" data-partid="${p.id}" data-type="mc">
+        <div class="part-label">${p.label}</div>
+        <div class="mc-options">${optsHtml}</div>
+        <div class="fb-slot"></div>
+      </div>`;
+    } else {
+      partsHtml += `<div class="part" data-partid="${p.id}" data-type="num">
+        <div class="part-label">${p.label}</div>
+        <div class="numeric-row">
+          <input type="text" inputmode="decimal" autocomplete="off" placeholder="Enter value…" data-part="${p.id}">
+          <span class="unit-badge">${p.unit||'—'}</span>
+        </div>
+        <div class="fb-slot"></div>
+      </div>`;
+    }
+  });
+
+  area.innerHTML = `
+    <div class="card" id="problemCard">
+      <span class="set-tag">Set ${def.set}</span>
+      <h2 class="problem-title">${def.title}</h2>
+      <div class="statement">${built.statement}</div>
+      <div class="parts">${partsHtml}</div>
+      <div id="resultArea"></div>
+      <div class="actions" id="actionRow">
+        <button class="btn primary" id="checkBtn">Check Answer</button>
+        <button class="btn secondary" id="solutionBtn">Show Solution</button>
+      </div>
+    </div>
+  `;
+  renderMath();
+  document.getElementById('checkBtn').addEventListener('click', onCheck);
+  document.getElementById('solutionBtn').addEventListener('click', ()=>onReveal(false));
+  area.querySelectorAll('.mc-opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const partId = btn.dataset.part;
+      const idx = parseInt(btn.dataset.idx,10);
+      currentProblem.userMC[partId]=idx;
+      const group = btn.closest('.mc-options');
+      group.querySelectorAll('.mc-opt').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+}
+
+function parseNum(str){
+  if (str===undefined || str===null) return NaN;
+  const cleaned = str.replace(/,/g,'').trim();
+  return parseFloat(cleaned);
+}
+
+function onCheck(){
+  if (currentProblem.answered) return;
+  const {built} = currentProblem;
+  let allCorrect = true;
+  built.parts.forEach(p=>{
+    const partEl = document.querySelector(`.part[data-partid="${CSS.escape(p.id)}"]`);
+    let isCorrect;
+    if (p.type==='mc'){
+      const userIdx = currentProblem.userMC[p.id];
+      isCorrect = (userIdx === p.correct);
+      partEl.querySelectorAll('.mc-opt').forEach((btn,i)=>{
+        btn.disabled = true;
+        if (i===p.correct) btn.classList.add('correct');
+        else if (i===userIdx) btn.classList.add('incorrect');
+      });
+    } else {
+      const input = partEl.querySelector('input');
+      const userVal = parseNum(input.value);
+      if (isNaN(userVal)){ isCorrect=false; }
+      else {
+        const rel = Math.abs(userVal-p.value)/Math.max(Math.abs(p.value),1e-30);
+        isCorrect = rel <= p.tol;
+      }
+      input.disabled = true;
+      input.style.borderColor = isCorrect ? 'var(--good)' : 'var(--bad)';
+      const fb = partEl.querySelector('.fb-slot');
+      fb.innerHTML = isCorrect ? '' : `<div class="correct-answer">Correct: <b>$${sig3(p.value)}$ ${p.unit||''}</b></div>`;
+    }
+    if (!isCorrect) allCorrect = false;
+  });
+  finishProblem(allCorrect, false);
+}
+
+function onReveal(){
+  if (currentProblem.answered) return;
+  finishProblem(false, true);
+}
+
+function finishProblem(allCorrect, wasSkipped){
+  currentProblem.answered = true;
+  document.getElementById('actionRow').innerHTML = '';
+  const resultArea = document.getElementById('resultArea');
+
+  // update stats
+  state.roundAnswered++;
+  if (allCorrect && !wasSkipped){
+    state.roundCorrect++;
+    state.currentStreak++;
+    if (state.currentStreak > state.bestStreak) state.bestStreak = state.currentStreak;
+    resultArea.innerHTML = `<div class="result-banner good">✓ Correct — nice work.</div>`;
+  } else {
+    state.currentStreak = 0;
+    resultArea.innerHTML = `<div class="result-banner ${wasSkipped?'info':'bad'}">${wasSkipped? '⤴ Solution revealed — this one is marked as not solved.' : '✗ Not quite — check the solution below.'}</div>`;
+  }
+
+  // solution panel
+  const {built} = currentProblem;
+  const solHtml = `
+    <div class="solution">
+      <h3>Worked Solution</h3>
+      <ol>${built.parts ? built.solution.map(s=>`<li>${s}</li>`).join('') : ''}</ol>
+    </div>`;
+  document.getElementById('problemCard').insertAdjacentHTML('beforeend', solHtml);
+  renderMath();
+
+  const card = document.getElementById('problemCard');
+  card.insertAdjacentHTML('beforeend', `<div class="actions"><button class="btn primary" id="nextBtn">Next Problem →</button></div>`);
+  document.getElementById('nextBtn').addEventListener('click', onNext);
+
+  saveState();
+  updateStatsDisplay();
+
+  if (state.roundAnswered >= state.roundLength){
+    setTimeout(()=>{ showRoundComplete(); }, 50);
+  }
+}
+
+function onNext(){
+  if (state.roundAnswered >= state.roundLength){
+    showRoundComplete();
+    return;
+  }
+  newProblem();
+  updateStatsDisplay();
+}
+
+function showRoundComplete(){
+  const pct = Math.round((state.roundCorrect/state.roundLength)*1000)/10;
+  const detail = `${state.roundCorrect}/${state.roundLength}`;
+  state.lastScorePct = pct;
+  state.lastScoreDetail = detail;
+  let newBest = false;
+  if (state.highScorePct===null || pct > state.highScorePct || (pct===state.highScorePct)){
+    if (state.highScorePct===null || pct > state.highScorePct){
+      newBest = true;
+      state.highScorePct = pct;
+      state.highScoreDetail = detail;
+    }
+  }
+  saveState();
+  updateStatsDisplay();
+
+  const area = document.getElementById('cardArea');
+  area.innerHTML = `
+    <div class="card">
+      <div class="round-complete">
+        <div class="set-tag" style="margin:0 auto 10px;">Round Complete</div>
+        <div class="big">${detail}</div>
+        <div class="msg">${pct.toFixed(1)}% correct this round</div>
+        ${newBest? '<div class="newbest">🏆 New High Score!</div>':''}
+        <button class="btn primary" id="restartBtn" style="max-width:280px; margin:0 auto; display:block;">Start New Round</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('restartBtn').addEventListener('click', startRound);
+  document.getElementById('progressFill').style.width='100%';
+}
+
+function startRound(){
+  state.roundLength = parseInt(document.getElementById('lenSelect').value,10);
+  state.roundAnswered = 0;
+  state.roundCorrect = 0;
+  saveState();
+  newProblem();
+  updateStatsDisplay();
+}
+
+function updateStatsDisplay(){
+  document.getElementById('statStreak').textContent = state.currentStreak;
+  document.getElementById('statBest').textContent = state.bestStreak;
+  document.getElementById('statScore').textContent = `${state.roundCorrect}/${state.roundAnswered}`;
+  document.getElementById('statLast').textContent = state.lastScoreDetail ? `${state.lastScoreDetail}` : '—';
+  document.getElementById('statHigh').textContent = state.highScoreDetail ? `${state.highScoreDetail}` : '—';
+  const qnum = Math.min(state.roundAnswered+1, state.roundLength);
+  document.getElementById('statQ').textContent = qnum;
+  document.getElementById('statQLbl').textContent = `of ${state.roundLength}`;
+  const pct = Math.min(100, (state.roundAnswered/state.roundLength)*100);
+  document.getElementById('progressFill').style.width = pct+'%';
+}
+
+function renderMath(){
+  if (window.renderMathInElement){
+    renderMathInElement(document.body, {
+      delimiters:[
+        {left:'$$', right:'$$', display:true},
+        {left:'$', right:'$', display:false}
+      ],
+      throwOnError:false
+    });
+  }
+}
+
+/* ============================ THEME ============================ */
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', state.theme);
+  document.getElementById('themeBtn').textContent = state.theme==='dark' ? '◐' : '◑';
+}
+document.getElementById('themeBtn').addEventListener('click', ()=>{
+  state.theme = state.theme==='dark' ? 'light' : 'dark';
+  applyTheme();
+  saveState();
+});
+
+/* ============================ FORMULA MODAL ============================ */
+function buildFormulaModal(){
+  let html='';
+  for (let s=1; s<=6; s++){
+    const grp = FORMULAS[s];
+    html += `<div class="formula-group"><h4>${grp.title}</h4><ul>`;
+    grp.items.forEach(([name, tex])=>{
+      html += `<li><span class="fname">${name}</span>${tex}</li>`;
+    });
+    html += `</ul></div>`;
+  }
+  document.getElementById('formulaContent').innerHTML = html;
+  renderMath();
+}
+document.getElementById('formulaBtn').addEventListener('click', ()=>{
+  document.getElementById('formulaModal').classList.add('open');
+});
+document.getElementById('closeFormula').addEventListener('click', ()=>{
+  document.getElementById('formulaModal').classList.remove('open');
+});
+document.getElementById('formulaModal').addEventListener('click', (e)=>{
+  if (e.target.id==='formulaModal') document.getElementById('formulaModal').classList.remove('open');
+});
+
+/* ============================ CONTROLS ============================ */
+document.getElementById('setSelect').addEventListener('change', ()=>{
+  // if the current problem hasn't been answered yet, swap it immediately to match the new set filter
+  if (currentProblem && !currentProblem.answered){
+    newProblem();
+  }
+});
+document.getElementById('lenSelect').addEventListener('change', ()=>{
+  // takes effect on next round start; no immediate action needed
+});
+
+/* ============================ INIT ============================ */
+loadState();
+applyTheme();
+document.getElementById('lenSelect').value = String(state.roundLength||10);
+buildFormulaModal();
+updateStatsDisplay();
+if (state.roundAnswered>0 && state.roundAnswered < state.roundLength){
+  newProblem(); // resume mid-round with a fresh random problem
+} else {
+  startRound();
+}
+</script>
+</body>
+</html>

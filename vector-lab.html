@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Vector Lab — Interactive Vector Demonstration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#10161a;
+    --bg-raised:#171f24;
+    --panel:#1b2429;
+    --panel-2:#212b31;
+    --border:#2b363c;
+    --ink:#e9e6de;
+    --ink-dim:#93a1a3;
+    --ink-faint:#5f6d70;
+    --grid-line:rgba(233,230,222,0.055);
+    --grid-line-major:rgba(233,230,222,0.13);
+    --axis:rgba(233,230,222,0.42);
+    --teal:#48d1c4;
+    --amber:#f2a54a;
+    --violet:#b48af0;
+    --resultant:#4ade80;
+    --resultant-bg: rgba(74,222,128,0.10);
+    --danger:#e57272;
+    --focus:#48d1c4;
+    --shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+  html[data-theme="light"]{
+    --bg:#f1ece0;
+    --bg-raised:#f8f4e9;
+    --panel:#fbf8f0;
+    --panel-2:#f2ecdd;
+    --border:#ddd3ba;
+    --ink:#211d15;
+    --ink-dim:#5c5748;
+    --ink-faint:#8a8370;
+    --grid-line:rgba(33,29,21,0.07);
+    --grid-line-major:rgba(33,29,21,0.16);
+    --axis:rgba(33,29,21,0.5);
+    --teal:#0f8b81;
+    --amber:#c3701a;
+    --violet:#7c4fd1;
+    --resultant:#1f8a4c;
+    --resultant-bg: rgba(31,138,76,0.08);
+    --danger:#b8433f;
+    --focus:#0f8b81;
+    --shadow: 0 10px 24px rgba(60,50,30,0.14);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, var(--bg-raised), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'JetBrains Mono', monospace;
+    -webkit-font-smoothing:antialiased;
+    min-height:100%;
+  }
+  ::selection{ background:var(--teal); color:#08110f; }
+
+  a, button, input { font-family:inherit; }
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:18px 16px 48px;
+  }
+
+  header.top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
+    padding-bottom:16px;
+    margin-bottom:18px;
+    border-bottom:1px solid var(--border);
+  }
+  .brand h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(22px,4vw,30px);
+    letter-spacing:0.2px;
+    margin:0 0 4px;
+    line-height:1.15;
+  }
+  .brand p{
+    margin:0;
+    color:var(--ink-dim);
+    font-size:12.5px;
+    max-width:46ch;
+    line-height:1.5;
+  }
+  .top-actions{
+    display:flex;
+    gap:8px;
+    flex-shrink:0;
+  }
+  .icon-btn{
+    width:38px; height:38px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:8px;
+    color:var(--ink);
+    cursor:pointer;
+    transition:border-color .15s ease, transform .1s ease;
+  }
+  .icon-btn:hover{ border-color:var(--teal); }
+  .icon-btn:active{ transform:scale(0.94); }
+  .icon-btn svg{ width:18px; height:18px; }
+
+  .layout{
+    display:grid;
+    grid-template-columns: minmax(0,1fr) 320px;
+    grid-template-areas: "canvas panel" "readout readout";
+    gap:16px;
+  }
+  @media (max-width: 860px){
+    .layout{
+      grid-template-columns: 1fr;
+      grid-template-areas: "canvas" "panel" "readout";
+    }
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    box-shadow:var(--shadow);
+  }
+
+  /* ---- Canvas area ---- */
+  .canvas-area{ grid-area:canvas; display:flex; flex-direction:column; gap:10px; }
+  .canvas-card{ padding:10px; position:relative; }
+  .canvas-toolbar{
+    display:flex; flex-wrap:wrap; gap:8px;
+    align-items:center;
+    justify-content:space-between;
+    padding:4px 4px 10px;
+  }
+  .toggle-row{ display:flex; flex-wrap:wrap; gap:6px; }
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 10px 6px 8px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    background:var(--panel-2);
+    color:var(--ink-dim);
+    font-size:11.5px;
+    cursor:pointer;
+    user-select:none;
+    transition:all .15s ease;
+    white-space:nowrap;
+  }
+  .chip .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--ink-faint);
+    transition:background .15s ease;
+    flex-shrink:0;
+  }
+  .chip.on{ color:var(--ink); border-color:var(--teal); background:rgba(72,209,196,0.08); }
+  .chip.on .dot{ background:var(--teal); }
+
+  .mini-btn{
+    border:1px solid var(--border);
+    background:var(--panel-2);
+    color:var(--ink-dim);
+    padding:6px 11px;
+    border-radius:8px;
+    font-size:11.5px;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .mini-btn:hover{ border-color:var(--teal); color:var(--ink); }
+  .mini-btn.primary{
+    background:var(--teal);
+    color:#08110f;
+    border-color:var(--teal);
+    font-weight:600;
+  }
+  .mini-btn.primary:hover{ filter:brightness(1.08); }
+
+  .canvas-shell{
+    position:relative;
+    width:100%;
+    aspect-ratio: 4 / 3;
+    border-radius:9px;
+    overflow:hidden;
+    border:1px solid var(--border);
+    background:var(--bg-raised);
+    touch-action:none;
+    cursor:grab;
+  }
+  .canvas-shell.dragging{ cursor:grabbing; }
+  canvas{ display:block; width:100%; height:100%; }
+
+  .hint{
+    font-size:11px; color:var(--ink-faint); text-align:center;
+    padding:2px 6px 0;
+  }
+
+  /* ---- Panel ---- */
+  .panel{ grid-area:panel; display:flex; flex-direction:column; gap:12px; }
+  .panel-card{ padding:14px; }
+  .panel-title{
+    font-family:'Fraunces', serif;
+    font-size:14.5px;
+    font-weight:600;
+    margin:0 0 10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .panel-title small{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:500;
+    color:var(--ink-faint);
+    font-size:10.5px;
+  }
+
+  .vector-block{
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:10px 10px 12px;
+    margin-bottom:10px;
+    background:var(--panel-2);
+    transition:opacity .15s ease;
+  }
+  .vector-block:last-child{ margin-bottom:0; }
+  .vector-block.off{ opacity:0.45; }
+
+  .vblock-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:8px;
+  }
+  .vname{
+    display:flex; align-items:center; gap:8px;
+    font-size:12.5px; font-weight:600;
+  }
+  .swatch{ width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+
+  .switch{
+    position:relative;
+    width:34px; height:19px;
+    border-radius:20px;
+    background:var(--border);
+    border:none;
+    cursor:pointer;
+    flex-shrink:0;
+    transition:background .15s ease;
+  }
+  .switch::after{
+    content:"";
+    position:absolute;
+    top:2px; left:2px;
+    width:15px; height:15px;
+    border-radius:50%;
+    background:var(--ink-dim);
+    transition:transform .15s ease, background .15s ease;
+  }
+  .switch.on{ background:rgba(72,209,196,0.28); }
+  .switch.on::after{ transform:translateX(15px); background:var(--teal); }
+
+  .field-row{
+    display:grid;
+    grid-template-columns: 1fr auto;
+    align-items:center;
+    gap:8px;
+    margin-top:6px;
+  }
+  .field-row label{
+    font-size:10.5px;
+    color:var(--ink-faint);
+    grid-column:1 / -1;
+    display:flex;
+    justify-content:space-between;
+  }
+  .field-row label span.val{ color:var(--ink-dim); font-weight:600; }
+  input[type="range"]{
+    grid-column:1 / -1;
+    -webkit-appearance:none;
+    width:100%;
+    height:4px;
+    border-radius:3px;
+    background:var(--border);
+    outline:none;
+    margin:2px 0 0;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:14px; height:14px; border-radius:50%;
+    background:var(--v-color, var(--teal));
+    border:2px solid var(--panel);
+    cursor:pointer;
+    box-shadow:0 0 0 1px var(--border);
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:14px; height:14px; border-radius:50%;
+    background:var(--v-color, var(--teal));
+    border:2px solid var(--panel);
+    cursor:pointer;
+  }
+  input[type="number"]{
+    width:100%;
+    background:var(--bg-raised);
+    border:1px solid var(--border);
+    color:var(--ink);
+    border-radius:6px;
+    padding:5px 6px;
+    font-size:11.5px;
+    font-family:inherit;
+  }
+  input[type="number"]:focus, input[type="range"]:focus{
+    outline:2px solid var(--focus);
+    outline-offset:1px;
+  }
+
+  .coeff-row{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--border);
+  }
+  .coeff-row label{ font-size:10.5px; color:var(--ink-faint); flex-shrink:0; }
+  .coeff-row input[type="number"]{ width:58px; text-align:center; }
+  .coeff-btn{
+    width:22px;height:22px;
+    border-radius:5px;
+    border:1px solid var(--border);
+    background:var(--bg-raised);
+    color:var(--ink-dim);
+    cursor:pointer;
+    font-size:13px;
+    line-height:1;
+    flex-shrink:0;
+  }
+  .coeff-btn:hover{ border-color:var(--teal); color:var(--ink); }
+
+  .display-toggles{ display:flex; flex-direction:column; gap:8px; }
+  .dt-row{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; font-size:12px; color:var(--ink-dim);
+  }
+  .dt-row .lbl{ display:flex; flex-direction:column; }
+  .dt-row .lbl b{ color:var(--ink); font-size:12.5px; font-weight:600; }
+  .dt-row .lbl small{ font-size:10px; color:var(--ink-faint); }
+
+  .scale-row{ display:flex; align-items:center; gap:8px; margin-top:2px; }
+  .scale-row input[type="range"]{ flex:1; }
+  .scale-row .val{ width:52px; text-align:right; font-size:11px; color:var(--ink-dim); }
+
+  /* ---- Readout ---- */
+  .readout{ grid-area:readout; }
+  .readout-card{ padding:14px; }
+  .readout-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(200px,1fr));
+    gap:10px;
+  }
+  .ro-item{
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:9px 11px;
+    background:var(--panel-2);
+  }
+  .ro-item.resultant{ border-color:var(--resultant); background:var(--resultant-bg); }
+  .ro-head{
+    display:flex; align-items:center; gap:7px;
+    font-size:11.5px; font-weight:600; margin-bottom:5px;
+  }
+  .ro-head .swatch{ width:10px;height:10px; }
+  .ro-line{ font-size:11.5px; color:var(--ink-dim); line-height:1.7; }
+  .ro-line b{ color:var(--ink); font-weight:600; }
+
+  footer.foot{
+    text-align:center;
+    color:var(--ink-faint);
+    font-size:10.5px;
+    margin-top:22px;
+    letter-spacing:0.2px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <h1>Vector Lab</h1>
+      <p>Define up to three base vectors, combine them with scalar multiples, and drag them around the canvas to build tip‑to‑tail sums.</p>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" id="themeToggle" title="Toggle light / dark" aria-label="Toggle theme">
+        <svg id="themeIconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7" stroke-linecap="round"/></svg>
+        <svg id="themeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5Z" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="icon-btn" id="exportBtn" title="Export canvas as PNG (light mode)" aria-label="Export PNG">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19.5h16"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- CANVAS -->
+    <div class="canvas-area">
+      <div class="card canvas-card">
+        <div class="canvas-toolbar">
+          <div class="toggle-row" id="displayChips">
+            <span class="chip" data-toggle="resultant"><span class="dot"></span>Resultant</span>
+            <span class="chip" data-toggle="components"><span class="dot"></span>Components</span>
+            <span class="chip" data-toggle="angles"><span class="dot"></span>Angles</span>
+            <span class="chip on" data-toggle="grid"><span class="dot"></span>Grid</span>
+          </div>
+          <button class="mini-btn" id="resetPosBtn">Reset positions</button>
+        </div>
+        <div class="canvas-shell" id="canvasShell">
+          <canvas id="vecCanvas"></canvas>
+        </div>
+        <p class="hint">Drag a vector's body to move it · drag its arrowhead to reshape it · drag the origin to pan · ends snap together</p>
+      </div>
+    </div>
+
+    <!-- CONTROL PANEL -->
+    <div class="panel">
+      <div class="card panel-card">
+        <h2 class="panel-title">Base vectors <small>up to 3</small></h2>
+        <div id="vectorList"></div>
+      </div>
+
+      <div class="card panel-card">
+        <h2 class="panel-title">Canvas scale</h2>
+        <div class="scale-row">
+          <input type="range" id="scaleSlider" min="14" max="90" step="1" value="42">
+          <span class="val" id="scaleVal">42 px/u</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- READOUT -->
+    <div class="readout">
+      <div class="card readout-card">
+        <h2 class="panel-title" style="margin-bottom:12px;">Live readout</h2>
+        <div class="readout-grid" id="readoutGrid"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="foot">drag on canvas · magnitude &amp; angle define each vector · scalar multiples combine into the resultant</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------------------------------------------------------
+     State
+  --------------------------------------------------------------- */
+  const COLORS = { 0:'--teal', 1:'--amber', 2:'--violet' };
+  const NAMES  = ['V1','V2','V3'];
+
+  const state = {
+    vectors: [
+      { enabled:true,  mag:5, angle:30,  coeff:1, tail:{x:0,y:0} },
+      { enabled:true,  mag:4, angle:120, coeff:1, tail:{x:0,y:0} },
+      { enabled:false, mag:3, angle:250, coeff:1, tail:{x:0,y:0} }
+    ],
+    show: { resultant:false, components:false, angles:false, grid:true },
+    pxPerUnit: 42,
+    originOffset: { x:0, y:0 } // screen-px offset of the origin from canvas center
+  };
+
+  let drag = null; // {index, mode:'tip'|'body', grabOffset:{x,y}}
+
+  /* ---------------------------------------------------------------
+     DOM refs
+  --------------------------------------------------------------- */
+  const canvas = document.getElementById('vecCanvas');
+  const ctx = canvas.getContext('2d');
+  const shell = document.getElementById('canvasShell');
+  const vectorListEl = document.getElementById('vectorList');
+  const readoutGrid = document.getElementById('readoutGrid');
+  const scaleSlider = document.getElementById('scaleSlider');
+  const scaleVal = document.getElementById('scaleVal');
+
+  /* ---------------------------------------------------------------
+     Theme
+  --------------------------------------------------------------- */
+  const root = document.documentElement;
+  const themeToggle = document.getElementById('themeToggle');
+  const sunIcon = document.getElementById('themeIconSun');
+  const moonIcon = document.getElementById('themeIconMoon');
+
+  function applyThemeIcon(){
+    const dark = root.getAttribute('data-theme') === 'dark';
+    sunIcon.style.display = dark ? 'none' : 'block';
+    moonIcon.style.display = dark ? 'block' : 'none';
+  }
+  themeToggle.addEventListener('click', () => {
+    const cur = root.getAttribute('data-theme');
+    root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+    applyThemeIcon();
+    draw();
+  });
+  applyThemeIcon();
+
+  function cssVar(name){
+    return getComputedStyle(root).getPropertyValue(name).trim();
+  }
+
+  /* ---------------------------------------------------------------
+     Build vector control blocks
+  --------------------------------------------------------------- */
+  function buildControls(){
+    vectorListEl.innerHTML = '';
+    state.vectors.forEach((v, i) => {
+      const colorVar = COLORS[i];
+      const block = document.createElement('div');
+      block.className = 'vector-block' + (v.enabled ? '' : ' off');
+      block.style.setProperty('--v-color', `var(${colorVar})`);
+      block.innerHTML = `
+        <div class="vblock-head">
+          <div class="vname"><span class="swatch" style="background:var(${colorVar})"></span>${NAMES[i]}</div>
+          <button class="switch ${v.enabled ? 'on':''}" data-act="enable" data-i="${i}" aria-label="Enable ${NAMES[i]}"></button>
+        </div>
+        <div class="field-row">
+          <label>Magnitude <span class="val" data-ro="mag-${i}">${v.mag.toFixed(1)}</span></label>
+          <input type="range" min="0" max="10" step="0.1" value="${v.mag}" data-act="mag" data-i="${i}" style="--v-color:var(${colorVar})">
+        </div>
+        <div class="field-row">
+          <label>Direction <span class="val" data-ro="ang-${i}">${v.angle.toFixed(0)}°</span></label>
+          <input type="range" min="0" max="359" step="1" value="${v.angle}" data-act="angle" data-i="${i}" style="--v-color:var(${colorVar})">
+        </div>
+        <div class="coeff-row">
+          <label>Multiple ×</label>
+          <button class="coeff-btn" data-act="coeffdown" data-i="${i}">−</button>
+          <input type="number" min="-3" max="3" step="0.5" value="${v.coeff}" data-act="coeff" data-i="${i}">
+          <button class="coeff-btn" data-act="coeffup" data-i="${i}">+</button>
+        </div>
+      `;
+      vectorListEl.appendChild(block);
+    });
+  }
+
+  vectorListEl.addEventListener('input', (e) => {
+    const t = e.target;
+    const i = +t.dataset.i;
+    if (t.dataset.act === 'mag'){ state.vectors[i].mag = +t.value; syncReadoutLabel('mag-'+i, (+t.value).toFixed(1)); }
+    if (t.dataset.act === 'angle'){ state.vectors[i].angle = +t.value; syncReadoutLabel('ang-'+i, (+t.value).toFixed(0)+'°'); }
+    if (t.dataset.act === 'coeff'){ state.vectors[i].coeff = clamp(+t.value, -3, 3); }
+    draw(); updateReadout();
+  });
+
+  vectorListEl.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-act]');
+    if (!t) return;
+    const i = +t.dataset.i;
+    const v = state.vectors[i];
+    if (t.dataset.act === 'enable'){
+      v.enabled = !v.enabled;
+      buildControls();
+      draw(); updateReadout();
+    }
+    if (t.dataset.act === 'coeffup'){ v.coeff = clamp(round1(v.coeff + 0.5), -3, 3); buildControls(); draw(); updateReadout(); }
+    if (t.dataset.act === 'coeffdown'){ v.coeff = clamp(round1(v.coeff - 0.5), -3, 3); buildControls(); draw(); updateReadout(); }
+  });
+
+  function syncReadoutLabel(key, text){
+    const el = vectorListEl.querySelector(`[data-ro="${key}"]`);
+    if (el) el.textContent = text;
+  }
+
+  function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
+  function round1(n){ return Math.round(n*10)/10; }
+
+  /* ---------------------------------------------------------------
+     Display toggles (grid / resultant / components / angles)
+  --------------------------------------------------------------- */
+  document.getElementById('displayChips').addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const key = chip.dataset.toggle;
+    state.show[key] = !state.show[key];
+    chip.classList.toggle('on', state.show[key]);
+    draw();
+  });
+
+  document.getElementById('resetPosBtn').addEventListener('click', () => {
+    state.vectors.forEach(v => { v.tail.x = 0; v.tail.y = 0; });
+    state.originOffset.x = 0; state.originOffset.y = 0;
+    draw();
+  });
+
+  scaleSlider.addEventListener('input', () => {
+    state.pxPerUnit = +scaleSlider.value;
+    scaleVal.textContent = state.pxPerUnit + ' px/u';
+    draw();
+  });
+
+  /* ---------------------------------------------------------------
+     Canvas sizing
+  --------------------------------------------------------------- */
+  let cw = 0, ch = 0, dpr = 1;
+
+  function resizeCanvas(){
+    const rect = shell.getBoundingClientRect();
+    dpr = window.devicePixelRatio || 1;
+    cw = Math.max(200, rect.width);
+    ch = Math.max(160, rect.height);
+    canvas.width = Math.round(cw * dpr);
+    canvas.height = Math.round(ch * dpr);
+    canvas.style.width = cw + 'px';
+    canvas.style.height = ch + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    draw();
+  }
+  new ResizeObserver(resizeCanvas).observe(shell);
+
+  /* ---------------------------------------------------------------
+     Math <-> screen transforms
+  --------------------------------------------------------------- */
+  function origin(){ return { x: cw/2 + state.originOffset.x, y: ch/2 + state.originOffset.y }; }
+
+  function toScreen(mx, my){
+    const o = origin();
+    return { x: o.x + mx * state.pxPerUnit, y: o.y - my * state.pxPerUnit };
+  }
+  function toMath(sx, sy){
+    const o = origin();
+    return { x: (sx - o.x) / state.pxPerUnit, y: (o.y - sy) / state.pxPerUnit };
+  }
+
+  function effectiveVec(v){
+    const rad = v.angle * Math.PI/180;
+    const m = v.mag * v.coeff;
+    return { dx: m*Math.cos(rad), dy: m*Math.sin(rad) };
+  }
+  function magAngleOf(dx, dy){
+    const mag = Math.hypot(dx,dy);
+    let ang = Math.atan2(dy,dx) * 180/Math.PI;
+    if (ang < 0) ang += 360;
+    return { mag, ang };
+  }
+
+  /* ---------------------------------------------------------------
+     Drawing
+  --------------------------------------------------------------- */
+  function drawGrid(){
+    if (!state.show.grid) return;
+    const o = origin();
+    const step = state.pxPerUnit;
+    ctx.save();
+    ctx.strokeStyle = cssVar('--grid-line');
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = o.x % step; x < cw; x += step){ ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,ch); }
+    for (let y = o.y % step; y < ch; y += step){ ctx.moveTo(0,y+0.5); ctx.lineTo(cw,y+0.5); }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawAxes(){
+    const o = origin();
+    ctx.save();
+    ctx.strokeStyle = cssVar('--axis');
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(0, o.y+0.5); ctx.lineTo(cw, o.y+0.5);
+    ctx.moveTo(o.x+0.5, 0); ctx.lineTo(o.x+0.5, ch);
+    ctx.stroke();
+    // origin marker (draggable handle)
+    ctx.beginPath();
+    ctx.strokeStyle = cssVar('--ink-faint');
+    ctx.globalAlpha = 0.55;
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([2,2]);
+    ctx.arc(o.x, o.y, 8, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = cssVar('--ink-dim');
+    ctx.beginPath();
+    ctx.arc(o.x, o.y, 3.2, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function arrowHead(px, py, angleRad, size, color){
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(angleRad);
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(-size, size*0.52);
+    ctx.lineTo(-size*0.68, 0);
+    ctx.lineTo(-size, -size*0.52);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawVectorArrow(tailS, tipS, color, width, dashed){
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineCap = 'round';
+    if (dashed) ctx.setLineDash([2, width*2.6]);
+    ctx.beginPath();
+    ctx.moveTo(tailS.x, tailS.y);
+    ctx.lineTo(tipS.x, tipS.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+    const angle = Math.atan2(tipS.y - tailS.y, tipS.x - tailS.x);
+    arrowHead(tipS.x, tipS.y, angle, Math.max(9, width*4.4), color);
+  }
+
+  function roundRect(c, x, y, w, h, r){
+    c.beginPath();
+    c.moveTo(x+r, y);
+    c.arcTo(x+w, y, x+w, y+h, r);
+    c.arcTo(x+w, y+h, x, y+h, r);
+    c.arcTo(x, y+h, x, y, r);
+    c.arcTo(x, y, x+w, y, r);
+    c.closePath();
+  }
+
+  function labelChip(cx, cy, text, color){
+    ctx.save();
+    ctx.font = '600 10.5px "JetBrains Mono", monospace';
+    const padX = 5, padY = 2.5;
+    const w = ctx.measureText(text).width;
+    const h = 12;
+    ctx.globalAlpha = 0.88;
+    ctx.fillStyle = cssVar('--bg-raised');
+    roundRect(ctx, cx - w/2 - padX, cy - h/2 - padY, w + padX*2, h + padY*2, 4);
+    ctx.fill();
+    ctx.globalAlpha = 0.55;
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, cx, cy + 0.5);
+    ctx.restore();
+  }
+
+  function drawComponents(tailS, dx, dy, color, strideIndex){
+    const midS = toScreen(toMath(tailS.x,tailS.y).x + dx, toMath(tailS.x,tailS.y).y);
+    const tipS = { x: midS.x, y: tailS.y - dy*state.pxPerUnit };
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = 0.55;
+    ctx.lineWidth = 1.4;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.moveTo(tailS.x, tailS.y); ctx.lineTo(midS.x, tailS.y);
+    ctx.moveTo(midS.x, tailS.y); ctx.lineTo(tipS.x, tipS.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    const stride = 15 + strideIndex*15;
+    const xLabelY = tailS.y + (dy >= 0 ? stride : -stride);
+    labelChip((tailS.x+midS.x)/2, xLabelY, 'x='+dx.toFixed(2), color);
+    const yLabelX = midS.x + (dx >= 0 ? stride : -stride);
+    labelChip(yLabelX, (tailS.y+tipS.y)/2, 'y='+dy.toFixed(2), color);
+  }
+
+  function drawAngleArc(tailS, thetaDeg, color, radiusPx, label){
+    const steps = 28;
+    const thetaRad = thetaDeg * Math.PI/180;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = 0.85;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    for (let s=0; s<=steps; s++){
+      const t = (thetaRad * s/steps);
+      const mx = (radiusPx/state.pxPerUnit) * Math.cos(t);
+      const my = (radiusPx/state.pxPerUnit) * Math.sin(t);
+      const p = toScreen(toMath(tailS.x,tailS.y).x + mx, toMath(tailS.x,tailS.y).y + my);
+      if (s===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
+    }
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    // reference line
+    ctx.setLineDash([2,3]);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(tailS.x, tailS.y);
+    ctx.lineTo(tailS.x + radiusPx*1.15, tailS.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+    // label
+    const labelAngle = thetaRad/2;
+    const lp = toScreen(toMath(tailS.x,tailS.y).x + ((radiusPx+15)/state.pxPerUnit)*Math.cos(labelAngle),
+                         toMath(tailS.x,tailS.y).y + ((radiusPx+15)/state.pxPerUnit)*Math.sin(labelAngle));
+    labelChip(lp.x, lp.y, label, color);
+  }
+
+  function tipHandle(tipS, color){
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(tipS.x, tipS.y, 5.5, 0, Math.PI*2);
+    ctx.fillStyle = cssVar('--bg-raised');
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function draw(){
+    if (!cw || !ch) return;
+    ctx.clearRect(0,0,cw,ch);
+    drawGrid();
+    drawAxes();
+
+    const resultant = { dx:0, dy:0 };
+
+    state.vectors.forEach((v, i) => {
+      const color = cssVar(COLORS[i]);
+      if (!v.enabled) return;
+      const eff = effectiveVec(v);
+      resultant.dx += eff.dx;
+      resultant.dy += eff.dy;
+
+      const tailS = toScreen(v.tail.x, v.tail.y);
+      const tipMath = { x: v.tail.x + eff.dx, y: v.tail.y + eff.dy };
+      const tipS = toScreen(tipMath.x, tipMath.y);
+
+      if (state.show.components && (eff.dx !== 0 || eff.dy !== 0)) {
+        drawComponents(tailS, eff.dx, eff.dy, color, i);
+      }
+      if (state.show.angles && v.mag > 0){
+        drawAngleArc(tailS, v.angle, color, 24 + i*10, Math.round(v.angle)+'°');
+      }
+
+      drawVectorArrow(tailS, tipS, color, 2.6, false);
+      tipHandle(tipS, color);
+
+      // vector name chip near midpoint
+      const lbl = NAMES[i] + (v.coeff !== 1 ? ' ×'+v.coeff : '');
+      labelChip((tailS.x+tipS.x)/2 + 22, (tailS.y+tipS.y)/2 - 12, lbl, color);
+    });
+
+    if (state.show.resultant){
+      const anyOn = state.vectors.some(v=>v.enabled);
+      if (anyOn){
+        const o = origin();
+        const tailS = { x:o.x, y:o.y };
+        const tipS = toScreen(resultant.dx, resultant.dy);
+        const resultantColor = cssVar('--resultant');
+        if (state.show.components && (resultant.dx!==0 || resultant.dy!==0)){
+          drawComponents(tailS, resultant.dx, resultant.dy, resultantColor, state.vectors.length);
+        }
+        if (state.show.angles && (resultant.dx!==0 || resultant.dy!==0)){
+          const ra = magAngleOf(resultant.dx, resultant.dy).ang;
+          drawAngleArc(tailS, ra, resultantColor, 24 + state.vectors.length*10, Math.round(ra)+'°');
+        }
+        drawVectorArrow(tailS, tipS, resultantColor, 3.2, false);
+        tipHandle(tipS, resultantColor);
+        labelChip(tipS.x + 18, tipS.y - 12, 'R', resultantColor);
+      }
+    }
+
+    // snap indicator while dragging
+    if (drag && drag.snapPoint){
+      const sp = toScreen(drag.snapPoint.x, drag.snapPoint.y);
+      ctx.save();
+      ctx.strokeStyle = cssVar('--teal');
+      ctx.lineWidth = 1.6;
+      ctx.setLineDash([2,2]);
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, 10, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  /* ---------------------------------------------------------------
+     Readout panel
+  --------------------------------------------------------------- */
+  function updateReadout(){
+    let html = '';
+    const resultant = { dx:0, dy:0 };
+    state.vectors.forEach((v,i) => {
+      if (!v.enabled) return;
+      const eff = effectiveVec(v);
+      resultant.dx += eff.dx; resultant.dy += eff.dy;
+      const ea = magAngleOf(eff.dx, eff.dy);
+      html += `<div class="ro-item">
+        <div class="ro-head"><span class="swatch" style="background:var(${COLORS[i]})"></span>${NAMES[i]}${v.coeff!==1 ? ' <span style="color:var(--ink-faint);font-weight:500;">(×'+v.coeff+')</span>' : ''}</div>
+        <div class="ro-line">mag <b>${v.mag.toFixed(2)}</b> ∠ <b>${v.angle.toFixed(0)}°</b><br>
+        effective: <b>${ea.mag.toFixed(2)}</b> ∠ <b>${ea.ang.toFixed(1)}°</b><br>
+        (x, y) = ( <b>${eff.dx.toFixed(2)}</b> , <b>${eff.dy.toFixed(2)}</b> )</div>
+      </div>`;
+    });
+    const anyOn = state.vectors.some(v=>v.enabled);
+    if (anyOn){
+      const ra = magAngleOf(resultant.dx, resultant.dy);
+      html += `<div class="ro-item resultant">
+        <div class="ro-head"><span class="swatch" style="background:var(--resultant)"></span>Resultant R = Σ nᵢVᵢ</div>
+        <div class="ro-line">mag <b>${ra.mag.toFixed(2)}</b> ∠ <b>${ra.ang.toFixed(1)}°</b><br>
+        (x, y) = ( <b>${resultant.dx.toFixed(2)}</b> , <b>${resultant.dy.toFixed(2)}</b> )</div>
+      </div>`;
+    } else {
+      html += `<div class="ro-item"><div class="ro-line">Enable a vector to see live values.</div></div>`;
+    }
+    readoutGrid.innerHTML = html;
+  }
+
+  /* ---------------------------------------------------------------
+     Pointer interaction — drag body (translate) or tip (reshape)
+  --------------------------------------------------------------- */
+  function pointerPos(e){
+    const r = canvas.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  function distPointToSeg(p, a, b){
+    const abx = b.x-a.x, aby = b.y-a.y;
+    const len2 = abx*abx + aby*aby;
+    let t = len2 === 0 ? 0 : ((p.x-a.x)*abx + (p.y-a.y)*aby)/len2;
+    t = clamp(t, 0, 1);
+    const cx = a.x + abx*t, cy = a.y + aby*t;
+    return { d: Math.hypot(p.x-cx, p.y-cy), t };
+  }
+
+  // Snap tolerance in screen px, independent of zoom level
+  const SNAP_PX = 14;
+
+  function snapCandidates(excludeIndex){
+    const pts = [{ x:0, y:0 }];
+    state.vectors.forEach((v,i) => {
+      if (i === excludeIndex || !v.enabled) return;
+      pts.push({ x: v.tail.x, y: v.tail.y });
+      const eff = effectiveVec(v);
+      pts.push({ x: v.tail.x+eff.dx, y: v.tail.y+eff.dy });
+    });
+    return pts;
+  }
+
+  function findSnap(mathPoint, excludeIndex){
+    const thresholdMath = SNAP_PX / state.pxPerUnit;
+    let best = null, bestD = Infinity;
+    snapCandidates(excludeIndex).forEach(c => {
+      const d = Math.hypot(mathPoint.x-c.x, mathPoint.y-c.y);
+      if (d < thresholdMath && d < bestD){ bestD = d; best = c; }
+    });
+    return best;
+  }
+
+  function hitTest(p){
+    // check tips first (v3 -> v1, topmost drawn last = v index order; iterate reverse so later-drawn wins)
+    for (let i = state.vectors.length-1; i>=0; i--){
+      const v = state.vectors[i];
+      if (!v.enabled) continue;
+      const eff = effectiveVec(v);
+      const tailS = toScreen(v.tail.x, v.tail.y);
+      const tipS = toScreen(v.tail.x+eff.dx, v.tail.y+eff.dy);
+      if (Math.hypot(p.x-tipS.x, p.y-tipS.y) <= 12){
+        return { index:i, mode:'tip' };
+      }
+    }
+    for (let i = state.vectors.length-1; i>=0; i--){
+      const v = state.vectors[i];
+      if (!v.enabled) continue;
+      const eff = effectiveVec(v);
+      if (eff.dx===0 && eff.dy===0) continue;
+      const tailS = toScreen(v.tail.x, v.tail.y);
+      const tipS = toScreen(v.tail.x+eff.dx, v.tail.y+eff.dy);
+      // require the grab point to sit a little away from the tail itself,
+      // so the origin handle stays reachable when a tail sits on the origin
+      if (Math.hypot(p.x-tailS.x, p.y-tailS.y) <= 12) continue;
+      const { d } = distPointToSeg(p, tailS, tipS);
+      if (d <= 10){
+        return { index:i, mode:'body' };
+      }
+    }
+    const o = origin();
+    if (Math.hypot(p.x-o.x, p.y-o.y) <= 11){
+      return { mode:'origin' };
+    }
+    return null;
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    const p = pointerPos(e);
+    const hit = hitTest(p);
+    if (!hit) return;
+    canvas.setPointerCapture(e.pointerId);
+    shell.classList.add('dragging');
+    if (hit.mode === 'origin'){
+      const o = origin();
+      drag = { mode:'origin', grab:{ x: p.x - o.x, y: p.y - o.y } };
+      e.preventDefault();
+      return;
+    }
+    const v = state.vectors[hit.index];
+    if (hit.mode === 'body'){
+      const m = toMath(p.x, p.y);
+      drag = { index: hit.index, mode:'body', grab:{ x: m.x - v.tail.x, y: m.y - v.tail.y }, snapPoint:null };
+    } else {
+      drag = { index: hit.index, mode:'tip', snapPoint:null };
+    }
+    e.preventDefault();
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (!drag){
+      const p = pointerPos(e);
+      canvas.style.cursor = hitTest(p) ? 'grab' : 'default';
+      return;
+    }
+    const p = pointerPos(e);
+    if (drag.mode === 'origin'){
+      state.originOffset.x = p.x - drag.grab.x - cw/2;
+      state.originOffset.y = p.y - drag.grab.y - ch/2;
+      draw(); updateReadout();
+      return;
+    }
+    const m = toMath(p.x, p.y);
+    const v = state.vectors[drag.index];
+    if (drag.mode === 'body'){
+      let newTail = { x: m.x - drag.grab.x, y: m.y - drag.grab.y };
+      const snap = findSnap(newTail, drag.index);
+      drag.snapPoint = snap;
+      if (snap) newTail = snap;
+      v.tail.x = newTail.x;
+      v.tail.y = newTail.y;
+    } else {
+      let newTip = { x: m.x, y: m.y };
+      const snap = findSnap(newTip, drag.index);
+      drag.snapPoint = snap;
+      if (snap) newTip = snap;
+      const dx = newTip.x - v.tail.x;
+      const dy = newTip.y - v.tail.y;
+      const ma = magAngleOf(dx,dy);
+      v.mag = round1(clamp(ma.mag, 0, 999));
+      v.angle = Math.round(ma.ang);
+      v.coeff = 1;
+      buildControls();
+    }
+    draw(); updateReadout();
+  });
+
+  function endDrag(e){
+    if (drag && canvas.hasPointerCapture && e && e.pointerId!==undefined){
+      try{ canvas.releasePointerCapture(e.pointerId); }catch(err){}
+    }
+    drag = null;
+    shell.classList.remove('dragging');
+    draw();
+  }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('pointerleave', (e) => { if(!drag) canvas.style.cursor='default'; });
+
+  /* ---------------------------------------------------------------
+     Export (canvas + vector data table, always forced to light theme)
+  --------------------------------------------------------------- */
+  function buildExportCanvas(){
+    const lineH = 19, headerH = 30, padTop = 10, padBottom = 14;
+    const rows = [];
+    const resultant = { dx:0, dy:0 };
+    state.vectors.forEach((v,i) => {
+      if (!v.enabled) return;
+      const eff = effectiveVec(v);
+      resultant.dx += eff.dx; resultant.dy += eff.dy;
+      rows.push({
+        color: cssVar(COLORS[i]),
+        text: `${NAMES[i]}   mag ${v.mag.toFixed(2)}  ∠ ${v.angle.toFixed(0)}°   ×${v.coeff}   →   x=${eff.dx.toFixed(2)}, y=${eff.dy.toFixed(2)}`
+      });
+    });
+    const anyOn = state.vectors.some(v => v.enabled);
+    if (anyOn){
+      const ra = magAngleOf(resultant.dx, resultant.dy);
+      rows.push({
+        color: cssVar('--resultant'), bold:true,
+        text: `R = Σ nᵢVᵢ   mag ${ra.mag.toFixed(2)}  ∠ ${ra.ang.toFixed(1)}°   →   x=${resultant.dx.toFixed(2)}, y=${resultant.dy.toFixed(2)}`
+      });
+    } else {
+      rows.push({ color: cssVar('--ink-faint'), text: 'No vectors enabled.' });
+    }
+
+    const infoHeight = headerH + padTop + rows.length*lineH + padBottom;
+    const tmp = document.createElement('canvas');
+    tmp.width = Math.round(cw*dpr);
+    tmp.height = Math.round((ch+infoHeight)*dpr);
+    const tctx = tmp.getContext('2d');
+    tctx.setTransform(dpr,0,0,dpr,0,0);
+
+    tctx.drawImage(canvas, 0, 0, cw, ch);
+
+    tctx.fillStyle = cssVar('--panel');
+    tctx.fillRect(0, ch, cw, infoHeight);
+    tctx.strokeStyle = cssVar('--border');
+    tctx.lineWidth = 1;
+    tctx.beginPath(); tctx.moveTo(0, ch+0.5); tctx.lineTo(cw, ch+0.5); tctx.stroke();
+
+    tctx.textBaseline = 'alphabetic';
+    tctx.font = '700 13px "Fraunces", serif';
+    tctx.fillStyle = cssVar('--ink');
+    tctx.textAlign = 'left';
+    tctx.fillText('Vector data', 16, ch + 21);
+    tctx.font = '500 9.5px "JetBrains Mono", monospace';
+    tctx.fillStyle = cssVar('--ink-faint');
+    tctx.textAlign = 'right';
+    tctx.fillText(new Date().toLocaleString(), cw-16, ch + 21);
+
+    let y = ch + headerH + padTop + 8;
+    tctx.textAlign = 'left';
+    rows.forEach(row => {
+      tctx.beginPath();
+      tctx.fillStyle = row.color;
+      tctx.arc(21, y-4, 3.6, 0, Math.PI*2);
+      tctx.fill();
+      tctx.font = (row.bold ? '700 ' : '500 ') + '11.5px "JetBrains Mono", monospace';
+      tctx.fillStyle = row.bold ? row.color : cssVar('--ink');
+      tctx.fillText(row.text, 33, y);
+      y += lineH;
+    });
+
+    return tmp;
+  }
+
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const prevTheme = root.getAttribute('data-theme');
+    root.setAttribute('data-theme', 'light');
+    draw();
+    // small delay-free synchronous export since drawing is synchronous
+    const exportCanvas = buildExportCanvas();
+    const url = exportCanvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    const ts = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+    a.href = url;
+    a.download = `vector-lab-${ts}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    root.setAttribute('data-theme', prevTheme);
+    applyThemeIcon();
+    draw();
+  });
+
+  /* ---------------------------------------------------------------
+     Init
+  --------------------------------------------------------------- */
+  buildControls();
+  updateReadout();
+  window.addEventListener('resize', resizeCanvas);
+  // initial size after fonts/layout settle
+  requestAnimationFrame(() => { resizeCanvas(); });
+  setTimeout(resizeCanvas, 60);
+
+})();
+</script>
+</body>
+</html>
