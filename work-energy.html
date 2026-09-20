@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Practice: Work & Energy</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- KaTeX CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .calc-btn {
+            @apply p-2 sm:p-3 text-center bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg text-slate-800 dark:text-slate-100 font-semibold text-sm transition active:scale-95 shadow-sm;
+        }
+        .calc-btn-op {
+            @apply bg-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500/30;
+        }
+        .calc-btn-fn {
+            @apply bg-blue-500/20 text-blue-600 dark:text-blue-400 hover:bg-blue-500/30 text-xs;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.4);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col antialiased">
+
+    <header class="sticky top-0 z-30 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/30">
+                    <i class="fa-solid font-bold fa-atom text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Physics Practice</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Work, Energy & Power</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <!-- Formula Reference Button -->
+                <button id="formulaBtn" class="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-50 dark:bg-slate-700 hover:bg-blue-100 dark:hover:bg-slate-600 text-blue-600 dark:text-blue-300 rounded-lg text-sm font-medium transition">
+                    <i class="fa-solid fa-square-root-variable"></i>
+                    <span class="hidden sm:inline">Formulas</span>
+                </button>
+
+                <!-- Theme Toggle -->
+                <button id="themeToggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition" title="Toggle Theme">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:inline text-amber-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Sidebar Controls & Stats -->
+        <aside class="lg:col-span-1 space-y-4">
+            
+            <!-- Dashboard Stats Card -->
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Performance</h2>
+                <div class="grid grid-cols-2 gap-3 text-center">
+                    <div class="p-2.5 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Current Score</div>
+                        <div id="scoreDisplay" class="text-xl font-bold text-blue-600 dark:text-blue-400">0</div>
+                    </div>
+                    <div class="p-2.5 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Streak</div>
+                        <div class="flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-fire text-amber-500 text-sm"></i>
+                            <span id="streakDisplay" class="text-xl font-bold text-amber-500">0</span>
+                        </div>
+                    </div>
+                    <div class="p-2.5 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">High Score</div>
+                        <div id="highScoreDisplay" class="text-lg font-semibold">0</div>
+                    </div>
+                    <div class="p-2.5 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Last Score</div>
+                        <div id="lastScoreDisplay" class="text-lg font-semibold">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Mode & Topic Filters -->
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Practice Config</h2>
+                
+                <!-- Topic Selection -->
+                <div>
+                    <label for="topicSelect" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Topic Module</label>
+                    <select id="topicSelect" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="all" selected>🎲 Random Mixture (All Sets)</option>
+                        <option value="1">Set 1: Constant Forces & Work</option>
+                        <option value="2">Set 2: Kinetic Energy & Stopping</option>
+                        <option value="3">Set 3: Gravitational Potential Energy</option>
+                        <option value="4">Set 4: Springs & Conservation</option>
+                        <option value="5">Set 5: Energy with Friction/Inclines</option>
+                        <option value="6">Set 6: Power & Electricity Cost</option>
+                    </select>
+                </div>
+
+                <!-- Mode Selection -->
+                <div>
+                    <label for="modeSelect" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Session Mode</label>
+                    <select id="modeSelect" class="w-full p-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="endless">∞ Infinite Practice</option>
+                        <option value="5">⚡ 5-Question Challenge</option>
+                        <option value="10">🔥 10-Question Challenge</option>
+                        <option value="15">🏆 15-Question Challenge</option>
+                    </select>
+                </div>
+
+                <button id="resetSessionBtn" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-xl transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Restart Current Session</span>
+                </button>
+            </div>
+        </aside>
+
+        <section class="lg:col-span-3 flex flex-col space-y-4">
+            
+            <!-- Progress Bar for Game Mode -->
+            <div id="gameProgressContainer" class="hidden bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                <div class="flex justify-between items-center mb-1 text-xs font-semibold">
+                    <span id="questionCounter" class="text-blue-600 dark:text-blue-400">Question 1 of 5</span>
+                    <span id="quizAccuracy" class="text-slate-500">Accuracy: 100%</span>
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                    <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 20%"></div>
+                </div>
+            </div>
+
+            <!-- Problem Card -->
+            <div id="problemCard" class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-grow flex flex-col justify-between">
+                <div>
+                    <!-- Topic Tag & ID -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                        <span id="problemCategoryBadge" class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-semibold tracking-wide">
+                            Set 1 • Work by Constant Forces
+                        </span>
+                        <button id="newVarBtn" class="text-xs text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 flex items-center space-x-1 transition">
+                            <i class="fa-solid fa-shuffle"></i>
+                            <span>Reshuffle Numbers</span>
+                        </button>
+                    </div>
+
+                    <!-- Problem Text with KaTeX -->
+                    <div id="problemText" class="text-base sm:text-lg leading-relaxed text-slate-800 dark:text-slate-100 space-y-3 font-normal">
+                        <!-- Problem statement injected dynamically -->
+                    </div>
+
+                    <!-- Interactive Input Forms -->
+                    <div id="answersContainer" class="mt-6 space-y-4 border-t border-slate-100 dark:border-slate-700/60 pt-4">
+                        <!-- Input fields for multi-part questions injected here -->
+                    </div>
+                </div>
+
+                <!-- Card Actions -->
+                <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700/60 flex flex-wrap items-center justify-between gap-3">
+                    <button id="toggleSolutionBtn" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/70 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-xl transition flex items-center space-x-2">
+                        <i class="fa-regular fa-lightbulb text-amber-500"></i>
+                        <span id="solutionBtnText">Show Solution</span>
+                    </button>
+
+                    <div class="flex items-center space-x-3">
+                        <button id="submitBtn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition">
+                            Submit Answers
+                        </button>
+                        <button id="nextBtn" class="hidden px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold rounded-xl shadow-lg shadow-emerald-500/25 transition flex items-center space-x-2">
+                            <span>Next Question</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solution Drawer / Card -->
+            <div id="solutionBox" class="hidden bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/40 p-6 rounded-2xl space-y-3">
+                <div class="flex items-center space-x-2 text-amber-700 dark:text-amber-400 font-bold text-sm">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>Step-by-Step Worked Solution</span>
+                </div>
+                <div id="solutionText" class="text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 space-y-2">
+                    <!-- Worked Solution content -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Reference Formula Sheet Drawer/Modal -->
+    <div id="formulaModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 transition-opacity">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-2xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-book-bookmark text-blue-600 dark:text-blue-400"></i>
+                    <h3 class="font-bold text-lg">Chapter 7 Formula Reference</h3>
+                </div>
+                <button id="closeFormulaModal" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4 divide-y divide-slate-100 dark:divide-slate-700">
+                <div class="pt-2">
+                    <h4 class="font-semibold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2">Work & Net Work</h4>
+                    <p class="mb-1"><strong>Work by Constant Force:</strong> <span class="katex-render">$W = Fd \cos \theta$</span></p>
+                    <p><strong>Work-Energy Theorem:</strong> <span class="katex-render">$W_{\text{net}} = \Delta K = K_f - K_i$</span></p>
+                </div>
+                <div class="pt-3">
+                    <h4 class="font-semibold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2">Kinetic & Potential Energy</h4>
+                    <p class="mb-1"><strong>Kinetic Energy:</strong> <span class="katex-render">$\displaystyle K = \frac{1}{2} m v^2$</span></p>
+                    <p class="mb-1"><strong>Gravitational Potential Energy:</strong> <span class="katex-render">$\Delta U_g = m g \Delta y$</span></p>
+                    <p><strong>Hooke's Law Spring Potential:</strong> <span class="katex-render">$\displaystyle U_s = \frac{1}{2} k x^2$</span></p>
+                </div>
+                <div class="pt-3">
+                    <h4 class="font-semibold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2">Conservation & Friction</h4>
+                    <p class="mb-1"><strong>Energy with Nonconservative Work:</strong> <span class="katex-render">$K_i + U_i + W_{\text{nc}} = K_f + U_f$</span></p>
+                    <p><strong>Frictional Work:</strong> <span class="katex-render">$W_f = -f_k d = -\mu_k N d$</span></p>
+                </div>
+                <div class="pt-3">
+                    <h4 class="font-semibold text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2">Power, Efficiency & Energy</h4>
+                    <p class="mb-1"><strong>Average Power:</strong> <span class="katex-render">$\displaystyle P = \frac{\Delta E}{\Delta t} = F v$</span></p>
+                    <p class="mb-1"><strong>Efficiency:</strong> <span class="katex-render">$\displaystyle \eta = \frac{\text{Useful Output}}{\text{Total Input}} \times 100\%$</span></p>
+                    <p><strong>Electrical Energy (kWh):</strong> <span class="katex-render">$E(\text{kWh}) = P(\text{kW}) \times t(\text{hours})$</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Calculator Component -->
+    <div id="calculatorContainer" class="fixed bottom-5 right-5 z-40 flex flex-col items-end">
+        <!-- Calculator Drawer -->
+        <div id="calculatorBox" class="hidden w-72 sm:w-80 bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700 overflow-hidden mb-3 transition-all">
+            <!-- Header/Drag Handle -->
+            <div class="bg-slate-800 px-4 py-2.5 flex justify-between items-center border-b border-slate-700 cursor-move">
+                <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-calculator text-blue-400"></i> Scientific Calc
+                </span>
+                <button id="closeCalcBtn" class="text-slate-400 hover:text-white text-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <!-- Display -->
+            <div class="p-3 bg-slate-950 text-right">
+                <div id="calcHistory" class="text-xs text-slate-400 h-4 overflow-hidden"></div>
+                <div id="calcDisplay" class="text-2xl font-mono font-semibold tracking-wide text-amber-400 truncate mt-0.5">0</div>
+            </div>
+            <!-- Keys Grid -->
+            <div class="p-2.5 grid grid-cols-4 gap-1.5 text-center">
+                <button onclick="calcClear()" class="calc-btn text-red-400">C</button>
+                <button onclick="calcBack()" class="calc-btn text-amber-400"><i class="fa-solid fa-backspace text-xs"></i></button>
+                <button onclick="calcInput('(')" class="calc-btn calc-btn-op">(</button>
+                <button onclick="calcInput(')')" class="calc-btn calc-btn-op">)</button>
+
+                <button onclick="calcInput('sin(')" class="calc-btn calc-btn-fn">sin</button>
+                <button onclick="calcInput('cos(')" class="calc-btn calc-btn-fn">cos</button>
+                <button onclick="calcInput('tan(')" class="calc-btn calc-btn-fn">tan</button>
+                <button onclick="calcInput('/')" class="calc-btn calc-btn-op">÷</button>
+
+                <button onclick="calcInput('sqrt(')" class="calc-btn calc-btn-fn">√</button>
+                <button onclick="calcInput('7')" class="calc-btn">7</button>
+                <button onclick="calcInput('8')" class="calc-btn">8</button>
+                <button onclick="calcInput('9')" class="calc-btn">9</button>
+
+                <button onclick="calcInput('^')" class="calc-btn calc-btn-op">x^y</button>
+                <button onclick="calcInput('4')" class="calc-btn">4</button>
+                <button onclick="calcInput('5')" class="calc-btn">5</button>
+                <button onclick="calcInput('6')" class="calc-btn">6</button>
+
+                <button onclick="calcInput('*')" class="calc-btn calc-btn-op">×</button>
+                <button onclick="calcInput('1')" class="calc-btn">1</button>
+                <button onclick="calcInput('2')" class="calc-btn">2</button>
+                <button onclick="calcInput('3')" class="calc-btn">3</button>
+
+                <button onclick="calcInput('-')" class="calc-btn calc-btn-op">−</button>
+                <button onclick="calcInput('0')" class="calc-btn">0</button>
+                <button onclick="calcInput('.')" class="calc-btn">.</button>
+                <button onclick="calcInput('+')" class="calc-btn calc-btn-op">+</button>
+
+                <button onclick="calcInput('3.14159')" class="calc-btn calc-btn-fn col-span-2">π</button>
+                <button onclick="calcSolve()" class="calc-btn bg-blue-600 hover:bg-blue-500 text-white col-span-2 font-bold">=</button>
+            </div>
+        </div>
+
+        <!-- Floating Calc Toggle Button -->
+        <button id="toggleCalcBtn" class="p-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-2xl flex items-center justify-center transition active:scale-95 focus:outline-none">
+            <i class="fa-solid fa-calculator text-xl"></i>
+        </button>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl p-6 text-center shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+            <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto text-2xl">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h3 class="text-2xl font-bold">Challenge Completed!</h3>
+            <div class="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-500">Final Score:</span>
+                    <span id="gameFinalScore" class="font-bold text-blue-600 dark:text-blue-400">0</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-500">Accuracy:</span>
+                    <span id="gameFinalAccuracy" class="font-bold">0%</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-500">Highest Streak:</span>
+                    <span id="gameFinalStreak" class="font-bold text-amber-500">0</span>
+                </div>
+            </div>
+            <button id="restartChallengeBtn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg transition">
+                Play Again
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const g = 9.80;
+
+        // Helper functions for math & rounding
+        const rnd = (min, max, decimals = 1) => parseFloat((Math.random() * (max - min) + min).toFixed(decimals));
+        const rndInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+        const formatSci = (num) => {
+            if (Math.abs(num) >= 10000 || (Math.abs(num) < 0.01 && num !== 0)) {
+                return num.toExponential(2);
+            }
+            return parseFloat(num.toFixed(2));
+        };
+
+        // 30 Dynamic Problem Template Definitions
+        const PROBLEM_TEMPLATES = [
+            // SET 1: Work by Constant Forces & Net Work
+            {
+                set: 1,
+                title: "Set 1 • Work by Constant Forces",
+                generate: () => {
+                    const m = rnd(30, 60);
+                    const d = rnd(10, 25);
+                    const F = rnd(120, 220);
+                    const deg = rnd(15, 35);
+                    const fk = rnd(40, 80);
+                    
+                    const rad = deg * Math.PI / 180;
+                    const W_pull = F * d * Math.cos(rad);
+                    const W_f = -fk * d;
+                    const W_g = 0;
+                    const W_net = W_pull + W_f;
+
+                    return {
+                        text: `A ${m} kg crate is pulled ${d} m across a level floor by a ${F} N force at ${deg}° above horizontal. Kinetic friction is ${fk} N. Find:`,
+                        parts: [
+                            { label: "(a) Work by pull (J)", ans: W_pull, unit: "J" },
+                            { label: "(b) Work by friction (J)", ans: W_f, unit: "J" },
+                            { label: "(c) Work by gravity & normal force (J)", ans: W_g, unit: "J" },
+                            { label: "(d) Net work (J)", ans: W_net, unit: "J" }
+                        ],
+                        solution: `
+                            <p>1. $W_{\\text{pull}} = Fd \\cos \\theta = (${F})(${d}) \\cos(${deg}^\\circ) = ${formatSci(W_pull)}\\text{ J}$</p>
+                            <p>2. Friction opposes motion: $W_f = -f_k d = -(${fk})(${d}) = ${formatSci(W_f)}\\text{ J}$</p>
+                            <p>3. Gravity and normal forces act perpendicular to displacement: $W_g = W_N = 0\\text{ J}$</p>
+                            <p>4. $W_{\\text{net}} = W_{\\text{pull}} + W_f = ${formatSci(W_net)}\\text{ J}$</p>
+                        `
+                    };
+                }
+            },
+            {
+                set: 1,
+                title: "Set 1 • Work by Constant Forces",
+                generate: () => {
+                    const m = rndInt(800, 1200);
+                    const d = rndInt(100, 180);
+                    const deg = rnd(4, 9);
+                    const Fr = rndInt(350, 500);
+
+                    const rad = deg * Math.PI / 180;
+                    const h = d * Math.sin(rad);
+                    const W_g = -m * g * h;
+                    const W_r = -Fr * d;
+                    const W_drive = -(W_g + W_r);
+
+                    return {
+                        text: `A ${m} kg car travels ${d} m up a ${deg}° incline at constant speed. Resistive forces total ${Fr} N. Find:`,
+                        parts: [
+                            { label: "(a) Work against gravity (J)", ans: W_g, unit: "J" },
+                            { label: "(b) Work against resistance (J)", ans: W_r, unit: "J" },
+                            { label: "(c) Work by driving force (J)", ans: W_drive, unit: "J" }
+                        ],
+                        solution: `
+                            <p>1. Height $h = d \\sin \\theta = ${d} \\sin(${deg}^\\circ) = ${formatSci(h)}\\text{ m}$</p>
+                            <p>2. $W_g = -mgh = -(${m})(${g})(${formatSci(h)}) = ${formatSci(W_g)}\\text{ J}$</p>
+                            <p>3. $W_r = -F_r d = -(${Fr})(${d}) = ${formatSci(W_r)}\\text{ J}$</p>
+                            <p>4. At constant speed $\\Delta K = 0 \\implies W_{\\text{drive}} = -(W_g + W_r) = ${formatSci(W_drive)}\\text{ J}$</p>
+                        `
+                    };
+                }
+            },
+            {
+                set: 1,
+                title: "Set 1 • Work by Constant Forces",
+                generate: () => {
+                    const m = rnd(15, 30);
+                    const d = rnd(20, 40);
+                    const F = rnd(70, 110);
+                    const deg = rnd(25, 45);
+                    const mu = rnd(0.12, 0.25, 3);
+
+                    const rad = deg * Math.PI / 180;
+                    const N = m * g - F * Math.sin(rad);
+                    const W_rope = F * d * Math.cos(rad);
+                    const fk = mu * N;
+                    const W_f = -fk * d;
+                    const W_net = W_rope + W_f;
+
+                    return {
+                        text: `A ${m} kg sled is pulled ${d} m on level snow by a ${F} N rope at ${deg}° above horizontal ($\\mu_k = ${mu}$). Find:`,
+                        parts: [
+                            { label: "(a) Normal force (N)", ans: N, unit: "N" },
+                            { label: "(b) Work by rope (J)", ans: W_rope, unit: "J" },
+                            { label: "(c) Work by friction (J)", ans: W_f, unit: "J" },
+                            { label: "(d) Net work (J)", ans: W_net, unit: "J" }
+                        ],
+                        solution: `
+                            <p>1. $N = mg - F \\sin \\theta = (${m})(${g}) - (${F})\\sin(${deg}^\\circ) = ${formatSci(N)}\\text{ N}$</p>
+                            <p>2. $W_{\\text{rope}} = Fd \\cos \\theta = (${F})(${d})\\cos(${deg}^\\circ) = ${formatSci(W_rope)}\\text{ J}$</p>
+                            <p>3. $f_k = \\mu_k N = (${mu})(${formatSci(N)}) = ${formatSci(fk)}\\text{ N} \\implies W_f = -f_k d = ${formatSci(W_f)}\\text{ J}$</p>
+                            <p>4. $W_{\\text{net}} = W_{\\text{rope}} + W_f = ${formatSci(W_net)}\\text{ J}$</p>
+                        `
+                    };
+                }
+            },
+            {
+                set: 1,
+                title: "Set 1 • Work by Constant Forces",
+                generate: () => {
+                    const mHiker = rndInt(60, 80);
+                    const mPack = rnd(10, 18);
+                    const h = rnd(6, 12);
+                    const W_pack = mPack * g * h;
+                    const W_total = (mHiker + mPack) * g * h;
+
+                    return {
+                        text: `A ${mHiker} kg hiker carries a ${mPack} kg pack up stairs gaining ${h} m height. Find work done upward on:`,
+                        parts: [
+                            { label: "(a) Work on pack (J)", ans: W_pack, unit: "J" },
+                            { label: "(b) Work on hiker + pack (J)", ans: W_total, unit: "J" }
+                        ],
+                        solution: `
+                            <p>1. $W_{\\text{pack}} = m_{\\text{pack}} g h = (${mPack})(${g})(${h}) = ${formatSci(W_pack)}\\text{ J}$</p>
+                            <p>2. $W_{\\text{total}} = (m_{\\text{hiker}} + m_{\\text{pack}}) g h = (${mHiker + mPack})(${g})(${h}) = ${formatSci(W_total)}\\text{ J}$</p>
+                        `
+                    };
+                }
+            },
+            {
+                set: 1,
+                title: "Set 1 • Work by Constant Forces",
+                generate: () => {
+                    const m = rnd(0.5, 1.5);
+                    const h = rnd(4, 10);
+                    const W_g = m * g * h;
+                    const W_cable = -W_g;
+
+                    return {
+                        text: `A ${m} kg tool is lowered vertically ${h} m at constant speed by a cable. Find:`,
+                        parts: [
+                            { label: "(a) Work by gravity (J)", ans: W_g, unit: "J" },
+                            { label: "(b) Work by cable (J)", ans: W_cable, unit: "J" },
+                            { label: "(c) Net work (J)", ans: 0, unit: "J" }
+                        ],
+                        solution: `
+                            <p>1. $W_g = +mgh = (${m})(${g})(${h}) = ${formatSci(W_g)}\\text{ J}$</p>
+                            <p>2. At constant speed cable tension equals weight upward: $W_{\\text{cable}} = -mgh = ${formatSci(W_cable)}\\text{ J}$</p>
+                            <p>3. $W_{\\text{net}} = W_g + W_{\\text{cable}} = 0\\text{ J}$</p>
+                        `
+                    };
+                }
+            },
+
+            // SET 2: Kinetic Energy, Work-Energy & Stopping
+            {
+                set: 2,
+                title: "Set 2 • Kinetic Energy & Stopping",
+                generate: () => {
+                    const m = rndInt(1000, 1600);
+                    const v = rnd(18, 30);
+                    const F = rndInt(5000, 9000);
+
+                    const Ki = 0.5 * m * v * v;
+                    const d = Ki / F;
+                    const a = F / m;
+                    const t = v / a;
+
+                    return {
+                        text: `A ${m} kg car traveling ${v} m/s brakes on level pavement with total braking force ${F} N. Find:`,
+                        parts: [
+                            { label: "(a) Stopping distance (m)", ans: d, unit: "m" },
+                            { label: "(b) Stopping time (s)", ans: t, unit: "s" }
+                        ],
+                        solution: `
+                            <p>1. $K_i = \\frac{1}{2}m v^2 = \\frac{1}{2}(${m})(${v})^2 = ${formatSci(Ki)}\\text{ J}$</p>
+                            <p>2. Stopping work: $F \\cdot d = K_i \\implies d = \\frac{K_i}{F} = \\frac{${formatSci(Ki)}}{${F}} = ${formatSci(d)}\\text{ m}$</p>
+                            <p>3. Acceleration magnitude $a = \\frac{F}{m} = ${formatSci(a)}\\text{ m/s}^2 \\implies t = \\frac{v}{a} = ${formatSci(t)}\\text{ s}$</p>
+                        `
+                    };
+                }
+            },
+            {
+                set: 2,
+                title: "Set 2 • Kinetic Energy & Stopping",
+                generate: () => {
+                    const m = rnd(25, 45);
+                    const vi = rnd(1.2, 2.5);
+                    const F = rnd(100, 200);
+                    const d = rnd(3, 7);
+                    const f = rnd(15, 35);
+
+                    const W_net = (F - f) * d;
+                    const Ki = 0.5 * m * vi * vi;
+                    const Kf = Ki + W_net;
+                    const vf = Math.sqrt((2 * Kf) / m);
+
+                    return {
+                        text: `A ${m} kg package moving at ${vi} m/s is pushed by ${F} N over ${d} m with friction of ${f} N. Find:`,
+                        parts: [
+                            { label: "(a) Net work (J)", ans: W_net, unit: "J" },
+                            { label: "(b) Final kinetic energy (J)", ans: Kf, unit: "J" },
+                            { label: "(c) Final speed (m/s)", ans: vf, unit: "m/s" }
+                        ],
+                        solution: `
+                            <p>1. $W_{\\text{net}} = (F - f) d = (${F} - ${f})(${d}) = ${formatSci(W_net)}\\text{ J}$</p>
+                            <p>2. $K_i = \\frac{1}{2}(${m})(${vi})^2 = ${formatSci(Ki)}\\text{ J} \\implies K_f = K_i + W_{\\text{net}} = ${formatSci(Kf)}\\text{ J}$</p>
+                            <p>3. $v_f = \\sqrt{\\frac{2 K_f}{m}} = \\sqrt{\\frac{2(${formatSci(Kf)})}{${m}}} = ${formatSci(vf)}\\text{ m/s}$</p>
+                        `
+                    };
+                }
+            },
+            {
+                set: 2,
+                title: "Set 2 • Kinetic Energy & Stopping",
+                generate: () => {
+                    const m = rnd(0.12, 0.18, 3);
+                    const vi = rnd(20, 28);
+                    const vf = rnd(32, 42);
+
+                    const Ki = 0.5 * m * vi * vi;
+                    const Kf = 0.5 * m * vf * vf;
+                    const dK = Kf - Ki;
+
+                    return {
+                        text: `A ${m} kg baseball pitched at ${vi} m/s leaves a bat at ${vf} m/s in the opposite direction. Find:`,
+                        parts: [
+                            { label: "(a) Change in kinetic energy ΔK (J)", ans: dK, unit: "J" },
+                            { label: "(b) Net work done on ball (J)", ans: dK, unit: "J" }
+                        ],
+                        solution: `
+                            <p>1. $K_i = \\frac{1}{2}(${m})(${vi})^2 = ${formatSci(Ki)}\\text{ J}$</p>
+                            <p>2. $K_f = \\frac{1}{2}(${m})(${vf})^2 = ${formatSci(Kf)}\\text{ J}$</p>
+                            <p>3. $\\Delta K = K_f - K_i = ${formatSci(dK)}\\text{ J} = W_{\\text{net}}$</p>
+                        `
+                    };
+                }
+            },
+            {
+                set: 2,
+                title: "Set 2 • Kinetic Energy & Stopping",
+                generate: () => {
+                    const m = rnd(60, 90);
+                    const v = rnd(10, 18);
+                    const f = rnd(140, 220);
+
+                    const Ki = 0.5 * m * v * v;
+                    const d = Ki / f;
+
+                    return {
+                        text: `A ${m} kg skier glides at ${v} m/s then enters rough snow with ${f} N friction. Find:`,
+                        parts: [
+                            { label: "(a) Stopping distance (m)", ans: d, unit: "m" },
+                            { label: "(b) Thermal energy produced (J)", ans: Ki, unit: "J" }
+                        ],
+                        solution: `
+                            <p>1. $K_i = \\frac{1}{2}(${m})(${v})^2 = ${formatSci(Ki)}\\text{ J}$</p>
+                            <p>2. $f \\cdot d = K_i \\implies d = \\frac{${formatSci(Ki)}}{${f}} = ${formatSci(d)}\\text{ m}$</p>
+                            <p>3. All mechanical kinetic energy lost becomes thermal energy: $E_{\\text{thermal}} = ${formatSci(Ki)}\\text{ J}$</p>
+                        `
+                    };
+                }
+            },
+            {
+                set: 2,
+                title: "Set 2 • Kinetic Energy & Stopping",
+                generate: () => {
+                    const m = rnd(8, 16);
+                    const Fmax = rnd(70, 120);
+                    const d = rnd(4, 8);
+                    const f = rnd(12, 24);
+
+                    const W_app = 0.5 * d * Fmax; // triangular force
+                    const W_f = -f * d;
+                    const W_net = W_app + W_f;
+                    const vf = Math.sqrt((2 * W_net) / m);
+
+                    return {
+                        text: `A ${m} kg cart from rest experiences horizontal force increasing linearly from 0 to ${Fmax} N over ${d} m against constant friction of ${f} N. Find:`,
+                        parts: [
+                            { label: "(a) Work by applied force (J)", ans: W_app, unit: "J" },
+                            { label: "(b) Net work (J)", ans: W_net, unit: "J" },
+                            { label: "(c) Final speed (m/s)", ans: vf, unit: "m/s" }
+                        ],
+                        solution: `
+                            <p>1. Triangular F-x graph area: $W_{\\text{app}} = \\frac{1}{2}(\\text{base})(\\text{height}) = \\frac{1}{2}(${d})(${Fmax}) = ${formatSci(W_app)}\\text{ J}$</p>
+                            <p>2. $W_f = -f d = -(${f})(${d}) = ${formatSci(W_f)}\\text{ J} \\implies W_{\\text{net}} = ${formatSci(W_app)} - ${Math.abs(W_f)} = ${formatSci(W_net)}\\text{ J}$</p>
+                            <p>3. $v_f = \\sqrt{\\frac{2 W_{\\text{net}}}{m}} = ${formatSci(vf)}\\text{ m/s}$</p>
+                        `
+                    };
+                }
+            },
+
+            // SET 3: Gravitational Potential Energy
+            {
+                set: 3,
+                title: "Set 3 • Gravitational Potential Energy",
+                generate: () => {
+                    const m = rnd(0.5, 1.2);
+                    const h = rnd(12, 25);
+                    const stretch = rnd(0.4, 0.8);
+
+                    const v = Math.sqrt(2 * g * h);
+                    const K = m * g * h;
+                    const F_avg = K / stretch;
+
+                    return {
+                        text: `A ${m} kg object is dropped from ${h} m above a safety net. The net stretches ${stretch} m while stopping it. Find:`,
+                        parts: [
+                            { label: "(a) Speed before net contact (m/s)", ans: v, unit: "m/s" },
+                            { label: "(b) Average upward force by net (N)", ans: F_avg, unit: "N" }
+                        ],
+                        solution: `
+                            <p>1. $v = \\sqrt{2gh} = \\sqrt{2(${g})(${h})} = ${formatSci(v)}\\text{ m/s}$</p>
+                            <p>2. Kinetic energy at contact: $K = mgh = (${m})(${g})(${h}) = ${formatSci(K)}\\text{ J}$</p>
+                            <p>3. $F_{\\text{avg}} \\cdot d = K \\implies F_{\\text{avg}} = \\frac{${formatSci(K)}}{${stretch}} = ${formatSci(F_avg)}\\text{ N}$</p>
+                        `
+                    };
+                }
+            },
+            {
+                set: 3,
+                title: "Set 3 • Gravitational Potential Energy",
+                generate: () => {
+                    const m = rndInt(300, 500);
+                    const vi = rnd(4, 8);
+                    const h = rnd(20, 35);
+
+                    const vf = Math.sqrt(vi * vi + 2 * g * h);
+                    const h_max = (vf * vf) / (2 * g);
+
+                    return {
+                        text: `A ${m} kg coaster cart starts at ${vi} m/s from a point ${h} m above the lowest track point. Ignore friction. Find:`,
+                        parts: [
+                            { label: "(a) Speed at lowest point (m/s)", ans: vf, unit: "m/s" },
+                            { label: "(b) Max height on next hill (m)", ans: h_max, unit: "m" }
+                        ],
+                        solution: `
+                            <p>1. $v_f = \\sqrt{v_i^2 + 2gh} = \\sqrt{(${vi})^2 + 2(${g})(${h})} = ${formatSci(vf)}\\text{ m/s}$</p>
+                            <p>2. $m g h_{\\text{max}} = \\frac{1}{2} m v_f^2 \\implies h_{\\text{max}} = \\frac{v_f^2}{2g} = ${formatSci(h_max)}\\text{ m}$</p>
+                        `
+                    };
+                }
+            },
+            {
+                set: 3,
+                title: "Set 3 • Gravitational Potential Energy",
+                generate: () => {
+                    const m = rndInt(55, 75);
+                    const h = rnd(10, 18);
+                    const t = rnd(70, 110);
+                    const eff = rnd(0.15, 0.25, 2);
+
+                    const dU = m * g * h;
+                    const P_useful = dU / t;
+                    const E_input = dU / eff;
+
+                    return {
+                        text: `A ${m} kg climber ascends ${h} m vertically in ${t} s at constant speed (efficiency = ${(eff*100).toFixed(0)}%). Find:`,
+                        parts: [
+                            { label: "(a) Increase in potential energy (J)", ans: dU, unit: "J" },
+                            { label: "(b) Useful mechanical power (W)", ans: P_useful, unit: "W" },
+                            { label: "(c) Food energy required (J)", ans: E_input, unit: "J" }
+                        ],
+                        solution: `
+                            <p>1. $\\Delta U_g = mgh = (${m})(${g})(${h}) = ${formatSci(dU)}\\text{ J}$</p>
+                            <p>2. $P_{\\text{useful}} = \\frac{\\Delta U_g}{t} = \\frac{${formatSci(dU)}}{${t}} = ${formatSci(P_useful)}\\text{ W}$</p>
+                            <p>3. $E_{\\text{input}} = \\frac{E_{\\text{useful}}}{\\eta} = \\frac{${formatSci(dU)}}{${eff}} = ${formatSci(E_input)}\\text{ J}$</p>
+                        `
+                    };
+                }
+            },
+
+            // SET 4: Springs & Conservative Systems
+            {
+                set: 4,
+                title: "Set 4 • Springs & Conservation",
+                generate: () => {
+                    const m = rnd(0.4, 0.8);
+                    const k = rndInt(350, 600);
+                    const x = rnd(0.1, 0.2, 3);
+                    const x_part = rnd(0.05, 0.09, 3);
+
+                    const Us_i = 0.5 * k * x * x;
+                    const v_launch = Math.sqrt((2 * Us_i) / m);
+                    
+                    const x_rem = x - x_part;
+                    const Us_rem = 0.5 * k * x_rem * x_rem;
+                    const K_rem = Us_i - Us_rem;
+                    const v_part = Math.sqrt((2 * K_rem) / m);
+
+                    return {
+                        text: `A ${m} kg cart compresses a spring ($k = ${k}$ N/m) by ${x} m on a frictionless track. Find:`,
+                        parts: [
+                            { label: "(a) Initial spring potential energy (J)", ans: Us_i, unit: "J" },
+                            { label: "(b) Full release launch speed (m/s)", ans: v_launch, unit: "m/s" },
+                            { label: "(c) Speed after traveling " + x_part + " m (m/s)", ans: v_part, unit: "m/s" }
+                        ],
+                        solution: `
+                            <p>1. $U_{s,i} = \\frac{1}{2} k x_i^2 = \\frac{1}{2}(${k})(${x})^2 = ${formatSci(Us_i)}\\text{ J}$</p>
+                            <p>2. $v = \\sqrt{\\frac{2 U_s}{m}} = \\sqrt{\\frac{2(${formatSci(Us_i)})}{${m}}} = ${formatSci(v_launch)}\\text{ m/s}$</p>
+                            <p>3. Remaining compression $x' = ${x} - ${x_part} = ${formatSci(x_rem)}\\text{ m}$</p>
+                            <p>4. $U_s' = \\frac{1}{2}(${k})(${formatSci(x_rem)})^2 = ${formatSci(Us_rem)}\\text{ J} \\implies v' = \\sqrt{\\frac{2(${formatSci(Us_i)} - ${formatSci(Us_rem)})}{${m}}} = ${formatSci(v_part)}\\text{ m/s}$</p>
+                        `
+                    };
+                }
+            },
+            {
+                set: 4,
+                title: "Set 4 • Springs & Conservation",
+                generate: () => {
+                    const m = rnd(1.0, 2.0);
+                    const k = rndInt(150, 300);
+                    const v = rnd(2.0, 4.0);
+
+                    const x_max = v * Math.sqrt(m / k);
+                    const F_max = k * x_max;
+
+                    return {
+                        text: `A ${m} kg block attached to a spring ($k = ${k}$ N/m) passes equilibrium at ${v} m/s on a frictionless surface. Find:`,
+                        parts: [
+                            { label: "(a) Maximum spring compression (m)", ans: x_max, unit: "m" },
+                            { label: "(b) Max spring force magnitude (N)", ans: F_max, unit: "N" }
+                        ],
+                        solution: `
+                            <p>1. $\\frac{1}{2} m v^2 = \\frac{1}{2} k x_{\\text{max}}^2 \\implies x_{\\text{max}} = v \\sqrt{\\frac{m}{k}} = ${v} \\sqrt{\\frac{${m}}{${k}}} = ${formatSci(x_max)}\\text{ m}$</p>
+                            <p>2. $F_{\\text{max}} = k x_{\\text{max}} = (${k})(${formatSci(x_max)}) = ${formatSci(F_max)}\\text{ N}$</p>
+                        `
+                    };
+                }
+            },
+
+            // SET 5: Energy with Friction & Inclines
+            {
+                set: 5,
+                title: "Set 5 • Energy with Friction/Inclines",
+                generate: () => {
+                    const m = rnd(25, 45);
+                    const d = rnd(6, 12);
+                    const deg = rnd(15, 25);
+                    const F = rnd(200, 300);
+                    const mu = rnd(0.1, 0.2, 2);
+
+                    const rad = deg * Math.PI / 180;
+                    const W_push = F * d;
+                    const N = m * g * Math.cos(rad);
+                    const fk = mu * N;
+                    const W_f = -fk * d;
+                    const dUg = m * g * d * Math.sin(rad);
+                    const Kf = W_push + W_f - dUg;
+                    const vf = Math.sqrt((2 * Kf) / m);
+
+                    return {
+                        text: `A ${m} kg crate is pushed ${d} m up a ${deg}° ramp from rest by a ${F} N parallel force ($\\mu_k = ${mu}$). Find:`,
+                        parts: [
+                            { label: "(a) Work by push (J)", ans: W_push, unit: "J" },
+                            { label: "(b) Work by friction (J)", ans: W_f, unit: "J" },
+                            { label: "(c) Change in potential energy (J)", ans: dUg, unit: "J" },
+                            { label: "(d) Final speed (m/s)", ans: vf, unit: "m/s" }
+                        ],
+                        solution: `
+                            <p>1. $W_{\\text{push}} = F d = (${F})(${d}) = ${formatSci(W_push)}\\text{ J}$</p>
+                            <p>2. $N = mg \\cos(${deg}^\\circ) = ${formatSci(N)}\\text{ N} \\implies W_f = -\\mu_k N d = -(${mu})(${formatSci(N)})(${d}) = ${formatSci(W_f)}\\text{ J}$</p>
+                            <p>3. $\\Delta U_g = mgd \\sin(${deg}^\\circ) = (${m})(${g})(${d})\\sin(${deg}^\\circ) = ${formatSci(dUg)}\\text{ J}$</p>
+                            <p>4. $K_f = W_{\\text{push}} + W_f - \\Delta U_g = ${formatSci(Kf)}\\text{ J} \\implies v_f = \\sqrt{\\frac{2 K_f}{m}} = ${formatSci(vf)}\\text{ m/s}$</p>
+                        `
+                    };
+                }
+            },
+            {
+                set: 5,
+                title: "Set 5 • Energy with Friction/Inclines",
+                generate: () => {
+                    const m = rnd(0.4, 0.8);
+                    const vi = rnd(6, 9);
+                    const deg = rnd(20, 35);
+                    const mu = rnd(0.15, 0.30, 2);
+
+                    const rad = deg * Math.PI / 180;
+                    const Ki = 0.5 * m * vi * vi;
+                    const denom = m * g * (Math.sin(rad) + mu * Math.cos(rad));
+                    const d = Ki / denom;
+                    const E_therm = mu * m * g * Math.cos(rad) * d;
+
+                    return {
+                        text: `A ${m} kg block is launched up a ${deg}° incline at ${vi} m/s ($\\mu_k = ${mu}$). Find:`,
+                        parts: [
+                            { label: "(a) Distance traveled before stopping (m)", ans: d, unit: "m" },
+                            { label: "(b) Thermal energy generated (J)", ans: E_therm, unit: "J" }
+                        ],
+                        solution: `
+                            <p>1. $K_i = \\frac{1}{2}(${m})(${vi})^2 = ${formatSci(Ki)}\\text{ J}$</p>
+                            <p>2. $K_i = mgd \\sin\\theta + \\mu_k mgd \\cos\\theta \\implies d = \\frac{K_i}{mg(\\sin\\theta + \\mu_k \\cos\\theta)} = ${formatSci(d)}\\text{ m}$</p>
+                            <p>3. $E_{\\text{thermal}} = f_k d = \\mu_k mgd \\cos(${deg}^\\circ) = ${formatSci(E_therm)}\\text{ J}$</p>
+                        `
+                    };
+                }
+            },
+
+            // SET 6: Power, Efficiency & Electricity Cost
+            {
+                set: 6,
+                title: "Set 6 • Power & Efficiency",
+                generate: () => {
+                    const m = rndInt(200, 350);
+                    const h = rnd(12, 22);
+                    const t = rnd(18, 30);
+                    const eff = rnd(0.75, 0.88, 2);
+
+                    const W_out = m * g * h;
+                    const P_out = W_out / t;
+                    const P_in = P_out / eff;
+                    const kWh = (P_in / 1000) * (t / 3600);
+
+                    return {
+                        text: `An electric motor lifts ${m} kg vertically ${h} m in ${t} s with efficiency ${(eff*100).toFixed(0)}%. Find:`,
+                        parts: [
+                            { label: "(a) Useful mechanical power (kW)", ans: P_out / 1000, unit: "kW" },
+                            { label: "(b) Electrical input power (kW)", ans: P_in / 1000, unit: "kW" },
+                            { label: "(c) Energy consumed (kWh)", ans: kWh, unit: "kWh" }
+                        ],
+                        solution: `
+                            <p>1. $W_{\\text{out}} = mgh = (${m})(${g})(${h}) = ${formatSci(W_out)}\\text{ J} \\implies P_{\\text{out}} = \\frac{${formatSci(W_out)}}{${t}} = ${formatSci(P_out / 1000)}\\text{ kW}$</p>
+                            <p>2. $P_{\\text{in}} = \\frac{P_{\\text{out}}}{\\eta} = \\frac{${formatSci(P_out / 1000)}}{${eff}} = ${formatSci(P_in / 1000)}\\text{ kW}$</p>
+                            <p>3. $E = P_{\\text{in}} \\times t(\\text{hrs}) = ${formatSci(P_in / 1000)} \\times \\left(\\frac{${t}}{3600}\\right) = ${formatSci(kWh)}\\text{ kWh}$</p>
+                        `
+                    };
+                }
+            },
+            {
+                set: 6,
+                title: "Set 6 • Power & Efficiency",
+                generate: () => {
+                    const P1 = rnd(1.0, 1.5, 2);
+                    const hrs = rnd(6.0, 9.0, 1);
+                    const days = rndInt(20, 30);
+                    const rate = rnd(0.14, 0.18, 3);
+                    const P2 = rnd(0.7, 0.95, 2);
+
+                    const kWh1 = P1 * hrs * days;
+                    const cost1 = kWh1 * rate;
+                    const kWh2 = P2 * hrs * days;
+                    const cost2 = kWh2 * rate;
+                    const savings = cost1 - cost2;
+
+                    return {
+                        text: `A ${P1} kW heater runs ${hrs} h/day for ${days} days at $${rate}/kWh. Find:`,
+                        parts: [
+                            { label: "(a) Total energy consumed (kWh)", ans: kWh1, unit: "kWh" },
+                            { label: "(b) Total cost ($)", ans: cost1, unit: "$" },
+                            { label: "(c) Cost savings using a " + P2 + " kW heater ($)", ans: savings, unit: "$" }
+                        ],
+                        solution: `
+                            <p>1. $E_1 = ${P1}\\text{ kW} \\times ${hrs}\\text{ h/day} \\times ${days}\\text{ days} = ${formatSci(kWh1)}\\text{ kWh}$</p>
+                            <p>2. \\text{Cost}_1 = ${formatSci(kWh1)} \\times \\$${rate} = \\$${formatSci(cost1)}</p>
+                            <p>3. $E_2 = ${P2} \\times ${hrs} \\times ${days} = ${formatSci(kWh2)}\\text{ kWh} \\implies \\text{Savings} = \\$${formatSci(cost1)} - \\$${formatSci(cost2)} = \\$${formatSci(savings)}$</p>
+                        `
+                    };
+                }
+            }
+        ];
+
+        let state = {
+            score: 0,
+            lastScore: localStorage.getItem('physx_lastScore') || null,
+            highScore: parseInt(localStorage.getItem('physx_highScore')) || 0,
+            streak: 0,
+            currentProblem: null,
+            topicFilter: 'all',
+            mode: 'endless', // endless | 5 | 10 | 15
+            questionIndex: 0,
+            correctCount: 0,
+            theme: localStorage.getItem('physx_theme') || 'dark'
+        };
+
+        function renderMath() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: "$$", right: "$$", display: true },
+                        { left: "$", right: "$", display: false }
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        function loadNextProblem() {
+            // Filter available templates
+            let pool = PROBLEM_TEMPLATES;
+            if (state.topicFilter !== 'all') {
+                pool = PROBLEM_TEMPLATES.filter(t => t.set === parseInt(state.topicFilter));
+            }
+            if (pool.length === 0) pool = PROBLEM_TEMPLATES;
+
+            const template = pool[Math.floor(Math.random() * pool.length)];
+            state.currentProblem = template.generate();
+            state.currentProblem.category = template.title;
+
+            // Render Problem Details UI
+            document.getElementById('problemCategoryBadge').textContent = state.currentProblem.category;
+            document.getElementById('problemText').innerHTML = state.currentProblem.text;
+            
+            // Render Input Forms
+            const answersContainer = document.getElementById('answersContainer');
+            answersContainer.innerHTML = '';
+
+            state.currentProblem.parts.forEach((part, idx) => {
+                const partDiv = document.createElement('div');
+                partDiv.className = "flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-slate-700/40 rounded-xl border border-slate-200 dark:border-slate-700";
+                partDiv.innerHTML = `
+                    <label class="text-sm font-medium text-slate-700 dark:text-slate-200">${part.label}</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="number" step="any" id="ans_input_${idx}" class="ans-input w-36 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Answer">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 w-10">${part.unit}</span>
+                        <span id="feedback_${idx}" class="text-base w-6 text-center"></span>
+                    </div>
+                `;
+                answersContainer.appendChild(partDiv);
+            });
+
+            // Reset UI States
+            document.getElementById('solutionBox').classList.add('hidden');
+            document.getElementById('solutionBtnText').textContent = "Show Solution";
+            document.getElementById('submitBtn').classList.remove('hidden');
+            document.getElementById('nextBtn').classList.add('hidden');
+
+            renderMath();
+            updateProgressHeader();
+        }
+
+        function checkAnswers() {
+            let allCorrect = true;
+            const tolerance = 0.04; // 4% error margin allowed
+
+            state.currentProblem.parts.forEach((part, idx) => {
+                const inputEl = document.getElementById(`ans_input_${idx}`);
+                const feedbackEl = document.getElementById(`feedback_${idx}`);
+                const val = parseFloat(inputEl.value);
+
+                if (isNaN(val)) {
+                    allCorrect = false;
+                    feedbackEl.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-500" title="Missing Answer"></i>`;
+                    return;
+                }
+
+                const expected = part.ans;
+                const diff = Math.abs(val - expected);
+                const relError = expected !== 0 ? diff / Math.abs(expected) : diff;
+
+                if (relError <= tolerance || diff < 0.05) {
+                    feedbackEl.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500" title="Correct"></i>`;
+                    inputEl.classList.add('border-emerald-500');
+                } else {
+                    allCorrect = false;
+                    feedbackEl.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-500" title="Incorrect. Expected: ${formatSci(expected)}"></i>`;
+                    inputEl.classList.add('border-red-500');
+                }
+            });
+
+            if (allCorrect) {
+                state.score += 10;
+                state.streak += 1;
+                state.correctCount += 1;
+                if (state.score > state.highScore) {
+                    state.highScore = state.score;
+                    localStorage.setItem('physx_highScore', state.highScore);
+                }
+            } else {
+                state.streak = 0;
+            }
+
+            updateDashboard();
+
+            // Reveal action buttons
+            document.getElementById('submitBtn').classList.add('hidden');
+            document.getElementById('nextBtn').classList.remove('hidden');
+            
+            // Reveal solution
+            toggleSolution(true);
+        }
+
+        function updateDashboard() {
+            document.getElementById('scoreDisplay').textContent = state.score;
+            document.getElementById('streakDisplay').textContent = state.streak;
+            document.getElementById('highScoreDisplay').textContent = state.highScore;
+            document.getElementById('lastScoreDisplay').textContent = state.lastScore !== null ? state.lastScore : '--';
+        }
+
+        function updateProgressHeader() {
+            const container = document.getElementById('gameProgressContainer');
+            if (state.mode === 'endless') {
+                container.classList.add('hidden');
+            } else {
+                container.classList.remove('hidden');
+                const total = parseInt(state.mode);
+                const current = state.questionIndex + 1;
+                document.getElementById('questionCounter').textContent = `Question ${current} of ${total}`;
+                
+                const pct = (current / total) * 100;
+                document.getElementById('progressBar').style.width = `${pct}%`;
+                
+                const accuracy = state.questionIndex > 0 ? Math.round((state.correctCount / state.questionIndex) * 100) : 100;
+                document.getElementById('quizAccuracy').textContent = `Accuracy: ${accuracy}%`;
+            }
+        }
+
+        function nextQuestion() {
+            if (state.mode !== 'endless') {
+                state.questionIndex += 1;
+                const total = parseInt(state.mode);
+                if (state.questionIndex >= total) {
+                    finishGame();
+                    return;
+                }
+            }
+            loadNextProblem();
+        }
+
+        function finishGame() {
+            state.lastScore = state.score;
+            localStorage.setItem('physx_lastScore', state.lastScore);
+
+            const total = parseInt(state.mode);
+            const accuracy = Math.round((state.correctCount / total) * 100);
+
+            document.getElementById('gameFinalScore').textContent = state.score;
+            document.getElementById('gameFinalAccuracy').textContent = `${accuracy}%`;
+            document.getElementById('gameFinalStreak').textContent = state.streak;
+
+            document.getElementById('gameOverModal').classList.remove('hidden');
+            document.getElementById('gameOverModal').classList.add('flex');
+            updateDashboard();
+        }
+
+        function toggleSolution(forceShow = false) {
+            const box = document.getElementById('solutionBox');
+            const btnText = document.getElementById('solutionBtnText');
+            const solutionText = document.getElementById('solutionText');
+
+            if (forceShow || box.classList.contains('hidden')) {
+                solutionText.innerHTML = state.currentProblem.solution;
+                box.classList.remove('hidden');
+                btnText.textContent = "Hide Solution";
+                renderMath();
+            } else {
+                box.classList.add('hidden');
+                btnText.textContent = "Show Solution";
+            }
+        }
+
+        let calcExpr = "";
+        function calcInput(char) {
+            calcExpr += char;
+            document.getElementById('calcDisplay').textContent = calcExpr;
+        }
+        function calcClear() {
+            calcExpr = "";
+            document.getElementById('calcDisplay').textContent = "0";
+            document.getElementById('calcHistory').textContent = "";
+        }
+        function calcBack() {
+            calcExpr = calcExpr.slice(0, -1);
+            document.getElementById('calcDisplay').textContent = calcExpr || "0";
+        }
+        function calcSolve() {
+            try {
+                let parsed = calcExpr
+                    .replace(/sin\(/g, 'Math.sin(')
+                    .replace(/cos\(/g, 'Math.cos(')
+                    .replace(/tan\(/g, 'Math.tan(')
+                    .replace(/sqrt\(/g, 'Math.sqrt(')
+                    .replace(/\^/g, '**');
+
+                let res = eval(parsed);
+                document.getElementById('calcHistory').textContent = calcExpr + " =";
+                document.getElementById('calcDisplay').textContent = parseFloat(res.toFixed(4));
+                calcExpr = res.toString();
+            } catch (e) {
+                document.getElementById('calcDisplay').textContent = "Error";
+                calcExpr = "";
+            }
+        }
+
+        function initTheme() {
+            if (state.theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            state.theme = state.theme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('physx_theme', state.theme);
+            initTheme();
+        });
+
+        // Event Listeners
+        document.getElementById('submitBtn').addEventListener('click', checkAnswers);
+        document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+        document.getElementById('newVarBtn').addEventListener('click', loadNextProblem);
+        document.getElementById('toggleSolutionBtn').addEventListener('click', () => toggleSolution());
+
+        // Formula Modal
+        const formulaModal = document.getElementById('formulaModal');
+        document.getElementById('formulaBtn').addEventListener('click', () => {
+            formulaModal.classList.remove('hidden');
+            formulaModal.classList.add('flex');
+            renderMath();
+        });
+        document.getElementById('closeFormulaModal').addEventListener('click', () => {
+            formulaModal.classList.add('hidden');
+            formulaModal.classList.remove('flex');
+        });
+
+        // Calculator Toggle
+        const calcBox = document.getElementById('calculatorBox');
+        document.getElementById('toggleCalcBtn').addEventListener('click', () => {
+            calcBox.classList.toggle('hidden');
+        });
+        document.getElementById('closeCalcBtn').addEventListener('click', () => {
+            calcBox.classList.add('hidden');
+        });
+
+        // Topic and Mode Changes
+        document.getElementById('topicSelect').addEventListener('change', (e) => {
+            state.topicFilter = e.target.value;
+            loadNextProblem();
+        });
+
+        document.getElementById('modeSelect').addEventListener('change', (e) => {
+            state.mode = e.target.value;
+            state.questionIndex = 0;
+            state.correctCount = 0;
+            state.score = 0;
+            loadNextProblem();
+        });
+
+        document.getElementById('resetSessionBtn').addEventListener('click', () => {
+            state.questionIndex = 0;
+            state.correctCount = 0;
+            state.score = 0;
+            state.streak = 0;
+            updateDashboard();
+            loadNextProblem();
+        });
+
+        document.getElementById('restartChallengeBtn').addEventListener('click', () => {
+            document.getElementById('gameOverModal').classList.add('hidden');
+            document.getElementById('gameOverModal').classList.remove('flex');
+            state.questionIndex = 0;
+            state.correctCount = 0;
+            state.score = 0;
+            updateDashboard();
+            loadNextProblem();
+        });
+
+        // Initialize App on Window Load
+        window.onload = function() {
+            initTheme();
+            updateDashboard();
+            loadNextProblem();
+        };
+    </script>
+</body>
+</html>

@@ -415,7 +415,7 @@
 
         return {
           type: '2d',
-          text: `Vector $\\vec{A}$ has magnitude **${m1}** at $\\theta_1 = ${a1}^\\circ$. Vector $\\vec{B}$ has magnitude **${m2}** at $\\theta_2 = ${a2}^\\circ$. Find magnitude and direction angle ($0^\\circ \\le \\theta < 360^\\circ$) of $\\vec{R} = \\vec{A} + \\vec{B}$.`,
+          text: `Vector $\\vec{A}$ has magnitude of <b>${m1}</b> at $\\theta_1 = ${a1}^\\circ$. Vector $\\vec{B}$ has magnitude of <b>${m2}</b> at $\\theta_2 = ${a2}^\\circ$. Find magnitude and direction angle ($0^\\circ \\le \\theta < 360^\\circ$) of $\\vec{R} = \\vec{A} + \\vec{B}$.`,
           inputs: [
             { id: 'uMag', label: 'Magnitude:', unit: 'units' },
             { id: 'uDir', label: 'Angle (°):', unit: 'deg' }
@@ -599,10 +599,10 @@
       if (q.type === '2d') {
         const s = q.solution;
         html = `
-          $\\vec{A}_x = ${s.v1.mag}\\cos(${s.v1.angle}^\\circ) = ${s.v1.x.toFixed(2)}$, $\\vec{A}_y = ${s.v1.y.toFixed(2)}$<br>
-          $\\vec{B}_x = ${s.v2.mag}\\cos(${s.v2.angle}^\\circ) = ${s.v2.x.toFixed(2)}$, $\\vec{B}_y = ${s.v2.y.toFixed(2)}$<br><br>
-          $R_x = ${s.rx.toFixed(2)}$, $R_y = ${s.ry.toFixed(2)}$<br>
-          $|\\vec{R}| = \\mathbf{${s.rMag.toFixed(2)}}$, $\\theta = \\mathbf{${s.rDeg.toFixed(1)}^\\circ}$
+          $\\vec{A}_x = ${s.v1.mag}\\cos(${s.v1.angle}^\\circ) = ${s.v1.x.toFixed(2)}$, $\\vec{A}_y = ${s.v1.mag}\\sin(${s.v1.angle}^\\circ) = ${s.v1.y.toFixed(2)}$<br>
+          $\\vec{B}_x = ${s.v2.mag}\\cos(${s.v2.angle}^\\circ) = ${s.v2.x.toFixed(2)}$, $\\vec{B}_y = ${s.v2.mag}\\sin(${s.v2.angle}^\\circ) = ${s.v2.y.toFixed(2)}$<br><br>
+          $R_x = (${s.v1.x.toFixed(2)}) + (${s.v2.x.toFixed(2)}) = \\mathbf{${s.rx.toFixed(2)}}$, $R_y = (${s.v1.y.toFixed(2)}) + (${s.v2.y.toFixed(2)}) = \\mathbf{${s.ry.toFixed(2)}}$<br>
+          $|\\vec{R}| = \\sqrt{(${s.rx.toFixed(2)})^2 + (${s.ry.toFixed(2)})^2} = \\mathbf{${s.rMag.toFixed(2)}}$, $\\theta = \\tan^{-1}\\left(\\frac{${s.ry.toFixed(2)}}{${s.rx.toFixed(2)}}\\right) = \\mathbf{${s.rDeg.toFixed(1)}^\\circ}$
         `;
       } else if (q.type === '3d') {
         const s = q.solution;
