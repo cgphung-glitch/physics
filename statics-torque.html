@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Statics &amp; Torque Practice</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#14181c; --bg2:#1b2127; --panel:#1e252b; --panel2:#242c33;
+  --grid:rgba(255,255,255,0.035); --border:#323c44; --border2:#3d4852;
+  --text:#e7e9ea; --text-dim:#9aa5ab; --text-faint:#6b7680;
+  --amber:#e8a33d; --amber-dim:#c98a2e; --teal:#4fb8ae; --teal-dim:#3a9088;
+  --good:#5fbf78; --bad:#e2664f; --bad-bg:rgba(226,102,79,0.12); --good-bg:rgba(95,191,120,0.12);
+  --shadow: 0 8px 24px rgba(0,0,0,0.35);
+  --radius:10px;
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --bg:#f4f1ea; --bg2:#ece7db; --panel:#fffdf8; --panel2:#f7f2e7;
+  --grid:rgba(30,25,15,0.05); --border:#d8d0bd; --border2:#c9bfa6;
+  --text:#262220; --text-dim:#5c554c; --text-faint:#8b8375;
+  --amber:#b5751a; --amber-dim:#96611a; --teal:#1f7d72; --teal-dim:#186660;
+  --good:#2f8a4f; --bad:#c14631; --bad-bg:rgba(193,70,49,0.09); --good-bg:rgba(47,138,79,0.09);
+  --shadow: 0 8px 20px rgba(60,50,30,0.12);
+  color-scheme: light;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  min-height:100vh;
+  padding-bottom: 40px;
+  -webkit-tap-highlight-color: transparent;
+}
+h1,h2,h3,.serif{ font-family:'Fraunces', Georgia, serif; }
+.wrap{ max-width: 780px; margin: 0 auto; padding: 14px 14px 0; }
+
+/* ---------- Header ---------- */
+header{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding: 10px 14px; position:sticky; top:0; z-index:30;
+  background: rgba(20,24,28,0.92); backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--border);
+}
+:root[data-theme="light"] header{ background: rgba(244,241,234,0.92); }
+header h1{ font-size:1.05rem; margin:0; font-weight:700; letter-spacing:0.2px; color: var(--amber); }
+header h1 span{ color: var(--teal); }
+.icon-btn{
+  background: var(--panel2); border:1px solid var(--border2); color:var(--text);
+  border-radius:8px; width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:1.05rem; flex-shrink:0; transition: border-color .15s, transform .1s;
+}
+.icon-btn:active{ transform: scale(0.93); }
+.icon-btn:hover{ border-color: var(--amber); }
+.header-btns{ display:flex; gap:7px; }
+
+/* ---------- Stat bar ---------- */
+.statbar{
+  display:grid; grid-template-columns: repeat(4,1fr); gap:8px;
+  margin: 12px 0;
+}
+.stat{
+  background: var(--panel); border:1px solid var(--border); border-radius: var(--radius);
+  padding: 8px 6px; text-align:center;
+}
+.stat .num{ font-size:1.25rem; font-weight:700; color: var(--amber); font-family:'JetBrains Mono';}
+.stat .lbl{ font-size:0.62rem; color: var(--text-faint); text-transform:uppercase; letter-spacing:0.6px; margin-top:2px;}
+.stat.streak .num{ color: var(--teal); }
+
+/* ---------- Controls row ---------- */
+.controls{
+  display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center;
+}
+select, .btn{
+  font-family:'JetBrains Mono'; font-size:0.82rem; padding:8px 10px;
+  background: var(--panel2); color:var(--text); border:1px solid var(--border2);
+  border-radius:8px; cursor:pointer;
+}
+select{ flex:1; min-width:140px; }
+.btn{ font-weight:600; }
+.btn.primary{ background: var(--amber); color:#221a0d; border-color: var(--amber); }
+.btn.primary:hover{ background: var(--amber-dim); }
+.btn.teal{ background: var(--teal); color:#0d211f; border-color: var(--teal); }
+.btn.teal:hover{ background: var(--teal-dim); }
+.btn:disabled{ opacity:0.4; cursor:not-allowed; }
+.btn-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+
+/* ---------- Problem card ---------- */
+.card{
+  background: var(--panel); border:1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; margin-bottom:14px; box-shadow: var(--shadow);
+}
+.set-tag{
+  display:inline-block; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.6px;
+  color: var(--teal); border:1px solid var(--teal-dim); padding:2px 8px; border-radius:20px; margin-bottom:8px;
+}
+.prob-title{ font-size:1.05rem; font-weight:700; margin: 2px 0 10px; color: var(--text); }
+.prob-statement{ line-height:1.65; font-size:0.94rem; color: var(--text); }
+.prob-statement p{ margin: 0 0 8px; }
+.find-list{ margin-top:10px; padding: 10px 12px; background: var(--panel2); border-left:3px solid var(--amber); border-radius:6px; font-size:0.9rem; }
+.find-list b{ color: var(--amber); }
+
+/* ---------- Inputs ---------- */
+.answer-grid{ display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+.answer-field label{ display:block; font-size:0.82rem; color: var(--text-dim); margin-bottom:4px; }
+.answer-field .input-row{ display:flex; align-items:center; gap:8px; }
+.answer-field input[type="text"], .answer-field input[type="number"]{
+  flex:1; font-family:'JetBrains Mono'; font-size:1rem; padding:10px 12px;
+  background: var(--panel2); border:1px solid var(--border2); border-radius:8px; color: var(--text);
+  min-width:0;
+}
+.answer-field input:focus{ outline:none; border-color: var(--amber); }
+.answer-field .unit{ font-size:0.85rem; color: var(--text-faint); width:52px; flex-shrink:0;}
+.answer-field.correct input{ border-color: var(--good); background: var(--good-bg); }
+.answer-field.incorrect input{ border-color: var(--bad); background: var(--bad-bg); }
+.answer-field .verdict{ font-size:0.78rem; margin-top:3px; }
+.answer-field.correct .verdict{ color: var(--good); }
+.answer-field.incorrect .verdict{ color: var(--bad); }
+
+.feedback-banner{
+  margin-top:12px; padding:10px 12px; border-radius:8px; font-size:0.9rem; font-weight:600; display:none;
+}
+.feedback-banner.correct{ display:block; background: var(--good-bg); color: var(--good); border:1px solid var(--good);}
+.feedback-banner.incorrect{ display:block; background: var(--bad-bg); color: var(--bad); border:1px solid var(--bad);}
+
+/* ---------- Solution ---------- */
+.solution{
+  margin-top:14px; padding-top:14px; border-top:1px dashed var(--border2); display:none;
+}
+.solution.show{ display:block; }
+.solution h3{ font-size:0.95rem; color: var(--amber); margin: 0 0 10px;}
+.step{ margin-bottom:10px; font-size:0.9rem; line-height:1.6; }
+.step .note{ color: var(--text-dim); }
+.boxed{ background: var(--panel2); border:1px solid var(--teal-dim); border-radius:6px; padding:8px 10px; display:inline-block; margin-top:2px; }
+
+/* ---------- Game setup / summary ---------- */
+.game-panel{
+  background: var(--panel); border:1px solid var(--border); border-radius: var(--radius);
+  padding:16px; margin-bottom:14px; text-align:center;
+}
+.len-btns{ display:flex; gap:10px; justify-content:center; margin:14px 0; }
+.len-btn{
+  background: var(--panel2); border:2px solid var(--border2); color:var(--text);
+  border-radius:10px; padding:14px 0; width:70px; font-size:1.2rem; font-weight:700; cursor:pointer;
+  font-family:'JetBrains Mono';
+}
+.len-btn.active{ border-color: var(--amber); color: var(--amber); }
+.progress-bar{ height:6px; background: var(--panel2); border-radius:4px; overflow:hidden; margin:10px 0 4px;}
+.progress-fill{ height:100%; background: var(--amber); transition: width .25s; }
+.progress-label{ font-size:0.75rem; color: var(--text-faint); text-align:center; }
+
+/* ---------- Modals ---------- */
+.modal-overlay{
+  position:fixed; inset:0; background: rgba(0,0,0,0.6); z-index:100;
+  display:none; align-items:flex-start; justify-content:center; padding: 16px; overflow-y:auto;
+}
+.modal-overlay.show{ display:flex; }
+.modal{
+  background: var(--panel); border:1px solid var(--border2); border-radius:14px;
+  max-width:600px; width:100%; padding:18px; margin-top: 30px; box-shadow: var(--shadow);
+  max-height: 88vh; overflow-y:auto;
+}
+.modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.modal-head h2{ margin:0; font-size:1.1rem; color:var(--amber); }
+.formula-group{ margin-bottom:16px; }
+.formula-group h3{ font-size:0.85rem; color: var(--teal); text-transform:uppercase; letter-spacing:0.5px; margin: 0 0 8px; }
+.formula-row{ display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border); font-size:0.92rem; gap:10px; flex-wrap:wrap;}
+.formula-row:last-child{ border-bottom:none; }
+.formula-row .desc{ color: var(--text-dim); font-size:0.78rem; flex-basis:100%; }
+
+/* ---------- Calculator ---------- */
+#calc{
+  position:fixed; width:250px; z-index:90; background: var(--panel);
+  border:1px solid var(--border2); border-radius:14px; box-shadow: var(--shadow);
+  display:none; touch-action:none;
+  bottom: 90px; right: 16px;
+}
+#calc.show{ display:block; }
+#calc .calc-head{
+  display:flex; justify-content:space-between; align-items:center; padding:8px 10px;
+  cursor:grab; background: var(--panel2); border-radius:14px 14px 0 0; border-bottom:1px solid var(--border);
+  font-size:0.75rem; color: var(--text-faint); letter-spacing:0.5px; text-transform:uppercase;
+}
+#calc .calc-close{ cursor:pointer; font-size:1rem; color: var(--text-dim); padding:0 4px;}
+#calc-display{
+  margin:8px 10px; padding:10px; background: var(--panel2); border:1px solid var(--border);
+  border-radius:8px; text-align:right; font-size:1.25rem; font-family:'JetBrains Mono'; word-break:break-all; min-height:1.6em;
+}
+#calc-sub{ font-size:0.7rem; color: var(--text-faint); text-align:right; margin: -4px 10px 6px; min-height: 1em;}
+.calc-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap:6px; padding:0 10px 10px; }
+.calc-grid button{
+  padding:11px 0; font-size:0.92rem; border-radius:7px; border:1px solid var(--border2);
+  background: var(--panel2); color:var(--text); cursor:pointer; font-family:'JetBrains Mono';
+}
+.calc-grid button.op{ background: var(--teal); color:#0d211f; border-color: var(--teal);}
+.calc-grid button.eq{ background: var(--amber); color:#221a0d; border-color: var(--amber);}
+.calc-grid button.fn{ font-size:0.72rem; }
+
+.hint{ text-align:center; color: var(--text-faint); font-size:0.8rem; padding: 20px 10px; }
+footer{ text-align:center; color: var(--text-faint); font-size:0.72rem; padding: 22px 10px 4px; }
+
+@media (max-width:420px){
+  header h1{ font-size:0.92rem; }
+  .statbar{ gap:6px; }
+  .stat .num{ font-size:1.05rem; }
+  #calc{ width: 88vw; right: 6vw; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Statics <span>&amp;</span> Torque</h1>
+  <div class="header-btns">
+    <button class="icon-btn" id="btnFormulas" title="Reference formulas">&#128209;</button>
+    <button class="icon-btn" id="btnCalcToggle" title="Calculator">&#128290;</button>
+    <button class="icon-btn" id="btnTheme" title="Toggle theme">&#9788;</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="statbar">
+    <div class="stat"><div class="num" id="statScore">0/0</div><div class="lbl">Score</div></div>
+    <div class="stat streak"><div class="num" id="statStreak">0</div><div class="lbl">Streak</div></div>
+    <div class="stat"><div class="num" id="statBest">0</div><div class="lbl">Best Streak</div></div>
+    <div class="stat"><div class="num" id="statHigh">&mdash;</div><div class="lbl" id="statHighLbl">High Score</div></div>
+  </div>
+
+  <div class="controls">
+    <select id="setFilter">
+      <option value="all">All Sets (mixed)</option>
+    </select>
+    <button class="btn" id="btnPractice">Practice</button>
+    <button class="btn" id="btnGame">Game Mode</button>
+  </div>
+
+  <div id="gameSetup" class="game-panel" style="display:none;">
+    <h3 class="serif" style="margin:0 0 4px;">Game Mode</h3>
+    <div style="color:var(--text-dim); font-size:0.85rem;">Choose how many problems</div>
+    <div class="len-btns">
+      <div class="len-btn" data-len="5">5</div>
+      <div class="len-btn" data-len="10">10</div>
+      <div class="len-btn" data-len="15">15</div>
+    </div>
+    <button class="btn primary" id="btnStartGame">Start</button>
+    <div style="margin-top:10px; font-size:0.75rem; color:var(--text-faint);" id="gameHighPreview"></div>
+  </div>
+
+  <div id="gameProgress" style="display:none;">
+    <div class="progress-label" id="progressLabel"></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%;"></div></div>
+  </div>
+
+  <div id="gameSummary" class="game-panel" style="display:none;">
+    <h3 class="serif" style="margin:0 0 6px;">Round Complete</h3>
+    <div style="font-size:2.2rem; font-weight:700; color:var(--amber);" id="summaryScore">0/0</div>
+    <div style="font-size:0.85rem; color:var(--text-dim); margin-top:4px;" id="summaryNote"></div>
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn primary" id="btnPlayAgain">Play Again</button>
+      <button class="btn" id="btnBackToPractice">Back to Practice</button>
+    </div>
+  </div>
+
+  <div id="problemArea"></div>
+
+</div>
+
+<!-- Formula sheet modal -->
+<div class="modal-overlay" id="formulaOverlay">
+  <div class="modal">
+    <div class="modal-head"><h2>Reference Formulas</h2><span class="icon-btn" id="closeFormulas">&times;</span></div>
+    <div id="formulaContent"></div>
+  </div>
+</div>
+
+<!-- Floating calculator -->
+<div id="calc">
+  <div class="calc-head" id="calcHead"><span>Calculator</span><span class="calc-close" id="calcClose">&times;</span></div>
+  <div id="calc-display">0</div>
+  <div id="calc-sub">&nbsp;</div>
+  <div class="calc-grid">
+    <button class="fn" data-k="sin(">sin</button><button class="fn" data-k="cos(">cos</button><button class="fn" data-k="tan(">tan</button><button class="fn" data-k="C">C</button>
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button class="op" data-k="/">&divide;</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button class="op" data-k="*">&times;</button>
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button class="op" data-k="-">&minus;</button>
+    <button data-k="0">0</button><button data-k=".">.</button><button class="fn" data-k="sqrt(">&radic;</button><button class="op" data-k="+">+</button>
+    <button class="fn" data-k="(">(</button><button class="fn" data-k=")">)</button><button class="fn" data-k="pi">&pi;</button><button class="eq" data-k="=">=</button>
+    <button class="fn" data-k="back" style="grid-column: span 4;">&larr; backspace</button>
+  </div>
+</div>
+
+<footer>Statics &amp; Torque Practice &middot; 5 sets &middot; randomized variants each attempt</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script>
+/* =========================================================
+   UTILITIES
+========================================================= */
+const g = 9.80;
+function rnd(min, max, decimals){
+  const v = Math.random()*(max-min)+min;
+  const f = Math.pow(10, decimals);
+  return Math.round(v*f)/f;
+}
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function fmt(x, sig){
+  sig = sig || 3;
+  if (x === 0) return "0";
+  if (!isFinite(x)) return "—";
+  const d = Math.ceil(Math.log10(Math.abs(x)));
+  const power = sig - d;
+  const factor = Math.pow(10, power);
+  let n = Math.round(x*factor)/factor;
+  if (Math.abs(n) < 1e-9) n = 0;
+  // avoid scientific-looking huge/small numbers where possible
+  if (Math.abs(n) >= 100000 || (Math.abs(n) < 0.001 && n !== 0)) {
+    return n.toExponential(2);
+  }
+  // trim trailing zeros sensibly but keep at least 1 decimal for small numbers
+  let s = n.toString();
+  return s;
+}
+function deg2rad(d){ return d*Math.PI/180; }
+function rad2deg(r){ return r*180/Math.PI; }
+
+/* =========================================================
+   PROBLEM SETS  (Statics & Torque — 5 sets x 5 generators)
+========================================================= */
+const SETS = [
+{
+  name: "Set 1 — Force Equilibrium & Support Reactions",
+  problems: [
+    { // 1. Hanging sign with angled cables
+      title: "Hanging sign with angled cables",
+      unknowns: [ {key:"TA", label:"Tension in cable A", unit:"N"}, {key:"TB", label:"Tension in cable B", unit:"N"} ],
+      gen(){
+        return { W: rnd(150,350,0), A: rnd(25,42,1), B: rnd(45,65,1) };
+      },
+      statement(p){
+        return `<p>A <b>${fmt(p.W)} N</b> sign hangs from a junction supported by two cables. Cable A makes a <b>${fmt(p.A,3)}&deg;</b> angle above the horizontal to the left, and cable B makes a <b>${fmt(p.B,3)}&deg;</b> angle above the horizontal to the right. Find the tension in each cable.</p>`;
+      },
+      solve(p){
+        const A = deg2rad(p.A), B = deg2rad(p.B);
+        const k = Math.cos(A)/Math.cos(B);
+        const TA = p.W / (Math.sin(A) + k*Math.sin(B));
+        const TB = k*TA;
+        return {TA, TB};
+      },
+      steps(p, s){
+        const A = p.A, B = p.B;
+        const k = Math.cos(deg2rad(A))/Math.cos(deg2rad(B));
+        return [
+          `Horizontal equilibrium: $-T_A\\cos ${A.toFixed(1)}^\\circ + T_B\\cos ${B.toFixed(1)}^\\circ = 0 \\Rightarrow T_B = ${fmt(k)}\\,T_A$`,
+          `Vertical equilibrium: $T_A\\sin ${A.toFixed(1)}^\\circ + T_B\\sin ${B.toFixed(1)}^\\circ - ${fmt(p.W)} = 0$`,
+          `Substitute $T_B$: $T_A(${(Math.sin(deg2rad(A))+k*Math.sin(deg2rad(B))).toFixed(3)}) = ${fmt(p.W)}$`,
+          `$\\boxed{T_A = ${fmt(s.TA)}\\ \\text{N}}$`,
+          `$\\boxed{T_B = ${fmt(s.TB)}\\ \\text{N}}$`
+        ];
+      }
+    },
+    { // 2. Crate pulled across a rough floor
+      title: "Crate pulled across a rough horizontal floor",
+      unknowns: [ {key:"N", label:"Normal force", unit:"N"}, {key:"fk", label:"Kinetic friction force", unit:"N"}, {key:"mu", label:"Coefficient of kinetic friction", unit:""} ],
+      gen(){ return { m: rnd(50,100,1), F: rnd(200,400,0), th: rnd(15,35,1) }; },
+      statement(p){
+        return `<p>A <b>${fmt(p.m)} kg</b> crate is pulled at constant velocity across a horizontal floor by a <b>${fmt(p.F)} N</b> force directed <b>${fmt(p.th,3)}&deg;</b> above the horizontal. Find the normal force, the kinetic-friction force, and the coefficient of kinetic friction.</p>`;
+      },
+      solve(p){
+        const th = deg2rad(p.th);
+        const Fx = p.F*Math.cos(th), Fy = p.F*Math.sin(th);
+        const N = p.m*g - Fy;
+        const fk = Fx;
+        const mu = fk/N;
+        return {N, fk, mu};
+      },
+      steps(p,s){
+        const th = deg2rad(p.th);
+        const Fx = p.F*Math.cos(th), Fy = p.F*Math.sin(th);
+        return [
+          `Resolve the pull: $F_x = (${fmt(p.F)})\\cos ${p.th.toFixed(1)}^\\circ = ${fmt(Fx)}\\ \\text{N}$, $F_y = (${fmt(p.F)})\\sin ${p.th.toFixed(1)}^\\circ = ${fmt(Fy)}\\ \\text{N}$`,
+          `Vertical equilibrium: $N = mg - F_y = (${fmt(p.m)})(9.80) - ${fmt(Fy)}$`,
+          `$\\boxed{N = ${fmt(s.N)}\\ \\text{N}}$`,
+          `Horizontal equilibrium: $f_k = F_x$`,
+          `$\\boxed{f_k = ${fmt(s.fk)}\\ \\text{N}}$`,
+          `$\\mu_k = f_k/N = ${fmt(s.fk)}/${fmt(s.N)}$`,
+          `$\\boxed{\\mu_k = ${fmt(s.mu)}}$`
+        ];
+      }
+    },
+    { // 3. Beam supported by two vertical cables
+      title: "Beam supported by two vertical cables",
+      unknowns: [ {key:"TL", label:"Left cable tension", unit:"N"}, {key:"TR", label:"Right cable tension", unit:"N"} ],
+      gen(){
+        const L = rnd(4,8,2);
+        return { L, m: rnd(20,60,1), P: rnd(300,900,0), d: rnd(0.5, L-0.5, 2) };
+      },
+      statement(p){
+        return `<p>A uniform <b>${fmt(p.L,3)} m</b> horizontal beam has mass <b>${fmt(p.m)} kg</b>. It is suspended by vertical cables at both ends. A <b>${fmt(p.P)} N</b> equipment load is placed <b>${fmt(p.d,3)} m</b> from the left end. Find the tension in the left cable and the right cable.</p>`;
+      },
+      solve(p){
+        const Wb = p.m*g;
+        const TR = (p.P*p.d + Wb*(p.L/2))/p.L;
+        const TL = p.P + Wb - TR;
+        return {TL, TR};
+      },
+      steps(p,s){
+        const Wb = p.m*g;
+        return [
+          `Beam weight: $W_b = (${fmt(p.m)})(9.80) = ${fmt(Wb)}\\ \\text{N}$, acting at the center, ${fmt(p.L/2)} m from the left end`,
+          `Torque about left end: $T_R(${fmt(p.L)}) - ${fmt(p.P)}(${fmt(p.d)}) - ${fmt(Wb)}(${fmt(p.L/2)}) = 0$`,
+          `$\\boxed{T_R = ${fmt(s.TR)}\\ \\text{N}}$`,
+          `Vertical equilibrium: $T_L + T_R - ${fmt(p.P)} - ${fmt(Wb)} = 0$`,
+          `$\\boxed{T_L = ${fmt(s.TL)}\\ \\text{N}}$`
+        ];
+      }
+    },
+    { // 4. Person on a plank
+      title: "Person on a plank",
+      unknowns: [ {key:"RL", label:"Left support force (+ up)", unit:"N"}, {key:"RR", label:"Right support force", unit:"N"} ],
+      gen(){
+        const L = rnd(4,6,2);
+        const x1 = rnd(0.65*L, 0.8*L, 2);
+        const x2 = rnd(x1+0.1, Math.min(L, x1+0.9), 2);
+        return { L, m: rnd(20,40,1), x1, mp: rnd(50,90,1), x2 };
+      },
+      statement(p){
+        return `<p>A uniform <b>${fmt(p.L,3)} m</b> plank of mass <b>${fmt(p.m)} kg</b> is supported at its left end and at a point <b>${fmt(p.x1,3)} m</b> from the left end. A <b>${fmt(p.mp)} kg</b> person stands <b>${fmt(p.x2,3)} m</b> from the left end. Find the vertical support force at each support.</p>`;
+      },
+      solve(p){
+        const Wp = p.m*g, Wperson = p.mp*g;
+        const RR = (Wp*(p.L/2) + Wperson*p.x2)/p.x1;
+        const RL = Wp + Wperson - RR;
+        return {RL, RR};
+      },
+      steps(p,s){
+        const Wp = p.m*g, Wperson = p.mp*g;
+        return [
+          `Plank weight: $W_p=(${fmt(p.m)})(9.80)=${fmt(Wp)}\\ \\text{N}$ at $x=${fmt(p.L/2)}$ m. Person weight: $W=(${fmt(p.mp)})(9.80)=${fmt(Wperson)}\\ \\text{N}$ at $x=${fmt(p.x2)}$ m`,
+          `Torque about the left support: $R_R(${fmt(p.x1)}) - ${fmt(Wp)}(${fmt(p.L/2)}) - ${fmt(Wperson)}(${fmt(p.x2)}) = 0$`,
+          `$\\boxed{R_R = ${fmt(s.RR)}\\ \\text{N}}$`,
+          `Vertical balance: $R_L + R_R - ${fmt(Wp)} - ${fmt(Wperson)} = 0$`,
+          `$\\boxed{R_L = ${fmt(s.RL)}\\ \\text{N}}$ ${s.RL<0 ? "(negative means this support must pull downward — check whether that support can supply tension)":""}`
+        ];
+      }
+    },
+    { // 5. Ladder against a frictionless wall
+      title: "Ladder against a frictionless wall",
+      unknowns: [ {key:"Fw", label:"Wall force", unit:"N"}, {key:"N", label:"Floor normal force", unit:"N"}, {key:"fs", label:"Required friction force", unit:"N"} ],
+      gen(){
+        const L = rnd(4,6,2);
+        const d = rnd(2, L-1, 2);
+        return { L, d, m: rnd(8,15,1), mus: rnd(0.35,0.6,2), mp: rnd(50,90,1), s: rnd(2, L-0.5, 2) };
+      },
+      statement(p){
+        return `<p>A <b>${fmt(p.L,3)} m</b> uniform ladder of mass <b>${fmt(p.m)} kg</b> rests against a frictionless vertical wall. Its base is <b>${fmt(p.d,3)} m</b> from the wall. The coefficient of static friction between ladder and floor is <b>${fmt(p.mus,3)}</b>. A <b>${fmt(p.mp)} kg</b> person stands <b>${fmt(p.s,3)} m</b> along the ladder from its base. Find the wall force, the floor normal force, and the friction force required — then determine whether the ladder slips.</p>`;
+      },
+      solve(p){
+        const h = Math.sqrt(p.L*p.L - p.d*p.d);
+        const cos = p.d/p.L;
+        const Wl = p.m*g, Wp = p.mp*g;
+        const Fw = (Wl*(p.d/2) + Wp*(p.s*cos))/h;
+        const N = Wl+Wp;
+        const fs = Fw;
+        const fsmax = p.mus*N;
+        return {Fw, N, fs, fsmax, slips: fs>fsmax};
+      },
+      steps(p,s){
+        const h = Math.sqrt(p.L*p.L - p.d*p.d);
+        return [
+          `Ladder rises a height $h=\\sqrt{L^2-d^2}=\\sqrt{${fmt(p.L)}^2-${fmt(p.d)}^2}=${fmt(h)}\\ \\text{m}$`,
+          `Torque about the base: $F_w(${fmt(h)}) - W_L(${fmt(p.d/2)}) - W_P(${fmt(p.s*(p.d/p.L))}) = 0$`,
+          `$\\boxed{F_w = ${fmt(s.Fw)}\\ \\text{N}}$`,
+          `Vertical equilibrium: $\\boxed{N = W_L+W_P = ${fmt(s.N)}\\ \\text{N}}$`,
+          `Horizontal equilibrium: $\\boxed{f_s = F_w = ${fmt(s.fs)}\\ \\text{N}}$`,
+          `Maximum available friction: $f_{s,max}=\\mu_s N = (${fmt(p.mus)})(${fmt(s.N)}) = ${fmt(s.fsmax)}\\ \\text{N}$`,
+          `Since $f_s ${s.slips?">":"\\le"} f_{s,max}$, <b>${s.slips? "the ladder slips.":"the ladder holds."}</b>`
+        ];
+      }
+    }
+  ]
+},
+{
+  name: "Set 2 — Torque & Rotational Equilibrium",
+  problems: [
+    { // 1. Two-force door balance
+      title: "Two-force door balance",
+      unknowns: [ {key:"FB", label:"Force from Child B", unit:"N"} ],
+      gen(){ return { FA: rnd(20,50,1), rA: rnd(0.5,1.0,3), rB: rnd(0.3,0.7,3) }; },
+      statement(p){
+        return `<p>Two children push on opposite sides of a door so that it remains stationary. Child A pushes perpendicular to the door with <b>${fmt(p.FA)} N</b> at <b>${fmt(p.rA,3)} m</b> from the hinges. Child B pushes perpendicularly in the opposite rotational direction at <b>${fmt(p.rB,3)} m</b> from the hinges. Find the force Child B must exert.</p>`;
+      },
+      solve(p){ return { FB: p.FA*p.rA/p.rB }; },
+      steps(p,s){
+        return [
+          `Equal and opposite torques: $F_A r_A = F_B r_B$`,
+          `$(${fmt(p.FA)})(${fmt(p.rA)}) = F_B(${fmt(p.rB)})$`,
+          `$\\boxed{F_B = ${fmt(s.FB)}\\ \\text{N}}$`
+        ];
+      }
+    },
+    { // 2. Seesaw with non-negligible board
+      title: "Seesaw with a non-negligible board",
+      unknowns: [ {key:"x", label:"Position of 2nd child from pivot", unit:"m"}, {key:"Fpivot", label:"Pivot force", unit:"N"} ],
+      gen(){
+        const L = rnd(3,5,2);
+        return { L, m: rnd(10,25,1), m1: rnd(20,35,1), d1: rnd(1,1.8,2), m2: rnd(25,45,1) };
+      },
+      statement(p){
+        return `<p>A uniform <b>${fmt(p.L,3)} m</b> seesaw has mass <b>${fmt(p.m)} kg</b> and is supported at its center. A <b>${fmt(p.m1)} kg</b> child sits <b>${fmt(p.d1,3)} m</b> to the left of the pivot. A <b>${fmt(p.m2)} kg</b> child sits on the right. Where must the second child sit to balance the seesaw? Also find the upward force exerted by the pivot.</p>`;
+      },
+      solve(p){
+        const x = p.m1*p.d1/p.m2;
+        const Fpivot = (p.m1+p.m2+p.m)*g;
+        return {x, Fpivot};
+      },
+      steps(p,s){
+        return [
+          `The seesaw's weight acts at the pivot and creates no torque about it.`,
+          `Torque balance: $(${fmt(p.m1)}\\,g)(${fmt(p.d1)}) - (${fmt(p.m2)}\\,g)x = 0$`,
+          `$\\boxed{x = ${fmt(s.x)}\\ \\text{m to the right of the pivot}}$`,
+          `Force balance: $F_{pivot} = (${fmt(p.m1)}+${fmt(p.m2)}+${fmt(p.m)})(9.80)$`,
+          `$\\boxed{F_{pivot} = ${fmt(s.Fpivot)}\\ \\text{N upward}}$`
+        ];
+      }
+    },
+    { // 3. Wrench at an angle
+      title: "Wrench at an angle",
+      unknowns: [ {key:"tau", label:"Torque magnitude", unit:"N·m"}, {key:"Fperp", label:"Perpendicular force component", unit:"N"}, {key:"Fprime", label:"Force if applied perpendicular", unit:"N"} ],
+      gen(){ return { F: rnd(100,250,0), r: rnd(0.2,0.4,3), th: rnd(50,75,1) }; },
+      statement(p){
+        return `<p>A mechanic applies a <b>${fmt(p.F)} N</b> force to the end of a <b>${fmt(p.r,3)} m</b> wrench. The force makes an angle of <b>${fmt(p.th,3)}&deg;</b> with the wrench handle. Find the torque magnitude about the bolt, the perpendicular force component, and the force required if the mechanic instead pushes perpendicular to the wrench for the same torque.</p>`;
+      },
+      solve(p){
+        const th = deg2rad(p.th);
+        const tau = p.r*p.F*Math.sin(th);
+        const Fperp = p.F*Math.sin(th);
+        const Fprime = tau/p.r;
+        return {tau, Fperp, Fprime};
+      },
+      steps(p,s){
+        return [
+          `$\\tau = rF\\sin\\theta = (${fmt(p.r)})(${fmt(p.F)})\\sin ${p.th.toFixed(1)}^\\circ$`,
+          `$\\boxed{\\tau = ${fmt(s.tau)}\\ \\text{N·m}}$`,
+          `$F_\\perp = F\\sin\\theta = (${fmt(p.F)})\\sin ${p.th.toFixed(1)}^\\circ$`,
+          `$\\boxed{F_\\perp = ${fmt(s.Fperp)}\\ \\text{N}}$`,
+          `If perpendicular, $\\tau = rF' \\Rightarrow F' = \\tau/r$`,
+          `$\\boxed{F' = ${fmt(s.Fprime)}\\ \\text{N}}$ (equal to $F_\\perp$ — only the perpendicular component contributes to torque)`
+        ];
+      }
+    },
+    { // 4. Sign on horizontal beam and cable
+      title: "Sign supported by a horizontal beam and cable",
+      unknowns: [ {key:"T", label:"Cable tension", unit:"N"}, {key:"Hx", label:"Horizontal hinge force", unit:"N"}, {key:"Hy", label:"Vertical hinge force", unit:"N"} ],
+      gen(){ return { L: rnd(2,4,2), m: rnd(15,30,1), W: rnd(300,700,0), th: rnd(30,50,1) }; },
+      statement(p){
+        return `<p>A uniform <b>${fmt(p.L,3)} m</b> horizontal beam of mass <b>${fmt(p.m)} kg</b> is hinged to a wall at its left end. A <b>${fmt(p.W)} N</b> sign hangs from the beam's right end. A cable attached to the beam's right end makes a <b>${fmt(p.th,3)}&deg;</b> angle above the horizontal and supports the beam. Find the cable tension, the horizontal hinge force, and the vertical hinge force.</p>`;
+      },
+      solve(p){
+        const th = deg2rad(p.th);
+        const Wb = p.m*g;
+        const T = (p.W*p.L + Wb*(p.L/2))/(p.L*Math.sin(th));
+        const Hx = T*Math.cos(th);
+        const Hy = p.W + Wb - T*Math.sin(th);
+        return {T, Hx, Hy};
+      },
+      steps(p,s){
+        const Wb = p.m*g;
+        return [
+          `Beam weight: $W_b=(${fmt(p.m)})(9.80)=${fmt(Wb)}\\ \\text{N}$`,
+          `Torque about hinge (only the cable's vertical component contributes): $(T\\sin ${p.th.toFixed(1)}^\\circ)(${fmt(p.L)}) - ${fmt(p.W)}(${fmt(p.L)}) - ${fmt(Wb)}(${fmt(p.L/2)}) = 0$`,
+          `$\\boxed{T = ${fmt(s.T)}\\ \\text{N}}$`,
+          `Horizontal: $H_x = T\\cos ${p.th.toFixed(1)}^\\circ$`,
+          `$\\boxed{H_x = ${fmt(s.Hx)}\\ \\text{N}}$`,
+          `Vertical: $H_y = ${fmt(p.W)}+${fmt(Wb)} - T\\sin ${p.th.toFixed(1)}^\\circ$`,
+          `$\\boxed{H_y = ${fmt(s.Hy)}\\ \\text{N}}$`
+        ];
+      }
+    },
+    { // 5. Offset CG beam
+      title: "Offset center of gravity on a beam",
+      unknowns: [ {key:"RL", label:"Left support force", unit:"N"}, {key:"RR", label:"Right support force", unit:"N"} ],
+      gen(){
+        const L = rnd(2.5,4,2);
+        return { L, m: rnd(15,35,1), xg: rnd(0.6, L*0.45,2), P: rnd(250,550,0), xp: rnd(L*0.65, L-0.3,2) };
+      },
+      statement(p){
+        return `<p>A <b>${fmt(p.L,3)} m</b> nonuniform beam of mass <b>${fmt(p.m)} kg</b> is supported by vertical supports at both ends. Its center of gravity is <b>${fmt(p.xg,3)} m</b> from the left end. A <b>${fmt(p.P)} N</b> load is placed <b>${fmt(p.xp,3)} m</b> from the left end. Find the force exerted by each support.</p>`;
+      },
+      solve(p){
+        const Wb = p.m*g;
+        const RR = (Wb*p.xg + p.P*p.xp)/p.L;
+        const RL = Wb + p.P - RR;
+        return {RL, RR};
+      },
+      steps(p,s){
+        const Wb = p.m*g;
+        return [
+          `Beam weight: $W_b=(${fmt(p.m)})(9.80)=${fmt(Wb)}\\ \\text{N}$`,
+          `Torque about the left support: $R_R(${fmt(p.L)}) - ${fmt(Wb)}(${fmt(p.xg)}) - ${fmt(p.P)}(${fmt(p.xp)}) = 0$`,
+          `$\\boxed{R_R = ${fmt(s.RR)}\\ \\text{N}}$`,
+          `Vertical balance: $R_L = ${fmt(Wb)}+${fmt(p.P)} - R_R$`,
+          `$\\boxed{R_L = ${fmt(s.RL)}\\ \\text{N}}$`
+        ];
+      }
+    }
+  ]
+},
+{
+  name: "Set 3 — Stability & Tipping",
+  problems: [
+    { // 1. Cabinet tipping angle
+      title: "Cabinet tipping angle",
+      unknowns: [ {key:"theta", label:"Maximum tilt angle", unit:"°"} ],
+      gen(){ return { w: rnd(0.5,1.2,2), h: rnd(0.8,1.8,2) }; },
+      statement(p){
+        return `<p>A uniform cabinet is <b>${fmt(p.w,3)} m</b> wide and has its center of gravity <b>${fmt(p.h,3)} m</b> above the floor. Find the maximum tilt angle from vertical before it tips about one bottom edge.</p>`;
+      },
+      solve(p){
+        const th = rad2deg(Math.atan((p.w/2)/p.h));
+        return {theta: th};
+      },
+      steps(p,s){
+        return [
+          `At the tipping threshold the CG's vertical line passes through the bottom edge: half the base is $${fmt(p.w/2)}\\ \\text{m}$`,
+          `$\\tan\\theta = \\dfrac{w/2}{h} = \\dfrac{${fmt(p.w/2)}}{${fmt(p.h)}} = ${fmt((p.w/2)/p.h)}$`,
+          `$\\boxed{\\theta = ${fmt(s.theta)}^\\circ}$`
+        ];
+      }
+    },
+    { // 2. Truck on a side slope
+      title: "Truck on a side slope",
+      unknowns: [ {key:"theta", label:"Maximum slope angle", unit:"°"} ],
+      gen(){ return { w: rnd(1.8,3.0,2), h: rnd(0.7,1.5,2) }; },
+      statement(p){
+        return `<p>A truck has a track width of <b>${fmt(p.w,3)} m</b>, and its center of gravity is <b>${fmt(p.h,3)} m</b> above the road. Neglecting suspension effects, find the largest side-slope angle before the truck tips.</p>`;
+      },
+      solve(p){
+        const th = rad2deg(Math.atan((p.w/2)/p.h));
+        return {theta: th};
+      },
+      steps(p,s){
+        return [
+          `Half the track width: $${fmt(p.w/2)}\\ \\text{m}$`,
+          `At tipping: $h\\tan\\theta = w/2 \\Rightarrow \\tan\\theta = \\dfrac{${fmt(p.w/2)}}{${fmt(p.h)}} = ${fmt((p.w/2)/p.h)}$`,
+          `$\\boxed{\\theta = ${fmt(s.theta)}^\\circ}$`
+        ];
+      }
+    },
+    { // 3. Person carrying a side load
+      title: "Person carrying a side load",
+      unknowns: [ {key:"x", label:"Body shift needed (left)", unit:"m"} ],
+      gen(){ return { mp: rnd(55,85,1), ms: rnd(8,18,1), d: rnd(0.3,0.6,3) }; },
+      statement(p){
+        return `<p>A <b>${fmt(p.mp)} kg</b> person carries a <b>${fmt(p.ms)} kg</b> suitcase held <b>${fmt(p.d,3)} m</b> to the right of the body's centerline. How far must the person shift their body center of gravity to the left so that the combined center of gravity lies over the midpoint between the feet?</p>`;
+      },
+      solve(p){ return { x: p.ms*p.d/p.mp }; },
+      steps(p,s){
+        return [
+          `Set the combined horizontal moment to zero: $(${fmt(p.mp)})(-x) + (${fmt(p.ms)})(${fmt(p.d)}) = 0$`,
+          `$x = \\dfrac{(${fmt(p.ms)})(${fmt(p.d)})}{${fmt(p.mp)}}$`,
+          `$\\boxed{x = ${fmt(s.x)}\\ \\text{m to the left}}$`
+        ];
+      }
+    },
+    { // 4. Wind force on a signpost
+      title: "Wind force on a signpost",
+      unknowns: [ {key:"Fw", label:"Wind force at tipping", unit:"N"} ],
+      gen(){ return { H: rnd(3,5,2), m: rnd(20,40,1), w: rnd(0.4,0.8,2) }; },
+      statement(p){
+        return `<p>A uniform vertical signpost is <b>${fmt(p.H,3)} m</b> tall and has a mass of <b>${fmt(p.m)} kg</b>. Its base is <b>${fmt(p.w,3)} m</b> wide in the wind direction. A horizontal wind force acts at the midpoint of the signpost. Assuming it pivots about the downwind bottom edge, find the wind force required to begin tipping it.</p>`;
+      },
+      solve(p){
+        const W = p.m*g;
+        const Fw = W*(p.w/2)/(p.H/2);
+        return { Fw };
+      },
+      steps(p,s){
+        const W = p.m*g;
+        return [
+          `Signpost weight: $W=(${fmt(p.m)})(9.80)=${fmt(W)}\\ \\text{N}$, restoring lever arm $= w/2 = ${fmt(p.w/2)}\\ \\text{m}$`,
+          `Wind acts at height $${fmt(p.H/2)}\\ \\text{m}$. At threshold: $F_w(${fmt(p.H/2)}) = ${fmt(W)}(${fmt(p.w/2)})$`,
+          `$\\boxed{F_w = ${fmt(s.Fw)}\\ \\text{N}}$`
+        ];
+      }
+    },
+    { // 5. Crane load and counterweight
+      title: "Crane load and counterweight",
+      unknowns: [ {key:"mc", label:"Minimum counterweight mass", unit:"kg"}, {key:"Fpivot", label:"Pivot support force", unit:"N"} ],
+      gen(){ return { mL: rnd(800,1500,0), dL: rnd(6,10,2), dc: rnd(2.5,4,2) }; },
+      statement(p){
+        return `<p>A simplified crane pivots at its base. A <b>${fmt(p.mL)} kg</b> load hangs <b>${fmt(p.dL,3)} m</b> to the right of the pivot. A counterweight is placed <b>${fmt(p.dc,3)} m</b> to the left of the pivot. Ignoring the crane's own weight, find the minimum counterweight mass required for rotational equilibrium, then the upward support force at the pivot.</p>`;
+      },
+      solve(p){
+        const mc = (p.mL*p.dL)/p.dc;
+        const Fpivot = (p.mL+mc)*g;
+        return { mc, Fpivot };
+      },
+      steps(p,s){
+        return [
+          `Torque balance about the pivot (the factor of $g$ cancels): $m_c(${fmt(p.dc)}) = (${fmt(p.mL)})(${fmt(p.dL)})$`,
+          `$\\boxed{m_c = ${fmt(s.mc)}\\ \\text{kg}}$`,
+          `Pivot supports the total weight: $F_{pivot} = (${fmt(p.mL)}+${fmt(s.mc)})(9.80)$`,
+          `$\\boxed{F_{pivot} = ${fmt(s.Fpivot)}\\ \\text{N upward}}$`
+        ];
+      }
+    }
+  ]
+},
+{
+  name: "Set 4 — Simple Machines & Mechanical Advantage",
+  problems: [
+    { // 1. Nail puller
+      title: "Nail puller",
+      unknowns: [ {key:"MA", label:"Ideal mechanical advantage", unit:""}, {key:"Fin", label:"Input force", unit:"N"}, {key:"din", label:"Input distance", unit:"mm"} ],
+      gen(){ return { rin: rnd(0.35,0.5,3), rout: rnd(0.02,0.04,3), Fout: rnd(1500,2500,0), d: rnd(3,6,1) }; },
+      statement(p){
+        return `<p>A nail puller has an input lever arm of <b>${fmt(p.rin,3)} m</b> and an output lever arm of <b>${fmt(p.rout,3)} m</b>. Ignoring the tool's weight, find the ideal mechanical advantage, the input force needed to exert a <b>${fmt(p.Fout)} N</b> pull on a nail, and the input distance required if the nail rises <b>${fmt(p.d)} mm</b>.</p>`;
+      },
+      solve(p){
+        const MA = p.rin/p.rout;
+        const Fin = p.Fout/MA;
+        const din = MA*p.d;
+        return {MA, Fin, din};
+      },
+      steps(p,s){
+        return [
+          `$MA = r_{in}/r_{out} = ${fmt(p.rin)}/${fmt(p.rout)}$`,
+          `$\\boxed{MA = ${fmt(s.MA)}}$`,
+          `$F_{in} = F_{out}/MA = ${fmt(p.Fout)}/${fmt(s.MA)}$`,
+          `$\\boxed{F_{in} = ${fmt(s.Fin)}\\ \\text{N}}$`,
+          `Input work = output work: $d_{in} = MA \\cdot d_{out} = ${fmt(s.MA)}(${fmt(p.d)}\\ \\text{mm})$`,
+          `$\\boxed{d_{in} = ${fmt(s.din)}\\ \\text{mm}}$`
+        ];
+      }
+    },
+    { // 2. Wheelbarrow
+      title: "Wheelbarrow",
+      unknowns: [ {key:"Fh", label:"Force at handles", unit:"N"}, {key:"MA", label:"Ideal mechanical advantage", unit:""}, {key:"N", label:"Normal force on wheel", unit:"N"} ],
+      gen(){ return { m: rnd(60,100,1), dg: rnd(0.15,0.25,3), dh: rnd(1.0,1.4,2) }; },
+      statement(p){
+        return `<p>A wheelbarrow and its load have a combined mass of <b>${fmt(p.m)} kg</b>. The center of gravity of the combined load is <b>${fmt(p.dg,3)} m</b> behind the wheel axle, while the handles are <b>${fmt(p.dh,3)} m</b> behind the axle. Find the upward force required at the handles, the ideal mechanical advantage, and the normal force exerted by the ground on the wheel.</p>`;
+      },
+      solve(p){
+        const W = p.m*g;
+        const Fh = W*p.dg/p.dh;
+        const MA = W/Fh;
+        const N = W-Fh;
+        return {Fh, MA, N};
+      },
+      steps(p,s){
+        const W = p.m*g;
+        return [
+          `Total weight: $W=(${fmt(p.m)})(9.80)=${fmt(W)}\\ \\text{N}$`,
+          `Torque about the wheel axle: $F_h(${fmt(p.dh)}) - ${fmt(W)}(${fmt(p.dg)}) = 0$`,
+          `$\\boxed{F_h = ${fmt(s.Fh)}\\ \\text{N}}$`,
+          `$MA = F_{out}/F_{in} = ${fmt(W)}/${fmt(s.Fh)}$`,
+          `$\\boxed{MA = ${fmt(s.MA)}}$`,
+          `Vertical equilibrium: $N = W - F_h$`,
+          `$\\boxed{N = ${fmt(s.N)}\\ \\text{N}}$`
+        ];
+      }
+    },
+    { // 3. Inclined plane w/ friction
+      title: "Inclined plane with friction",
+      unknowns: [ {key:"theta", label:"Incline angle", unit:"°"}, {key:"Fapp", label:"Applied force", unit:"N"}, {key:"Wapp", label:"Work by applied force", unit:"J"}, {key:"dU", label:"PE increase", unit:"J"} ],
+      gen(){
+        const L = rnd(4,8,1);
+        const h = rnd(1, Math.min(2.5, L*0.45), 2);
+        return { m: rnd(100,200,1), L, h, muk: rnd(0.08,0.18,3) };
+      },
+      statement(p){
+        return `<p>A <b>${fmt(p.m)} kg</b> crate is pushed up a <b>${fmt(p.L,3)} m</b> ramp that rises <b>${fmt(p.h,3)} m</b>. The coefficient of kinetic friction is <b>${fmt(p.muk,3)}</b>. Find the incline angle, the constant force required parallel to the ramp to move the crate upward at constant speed, the work done by the applied force over the full ramp length, and the increase in gravitational potential energy.</p>`;
+      },
+      solve(p){
+        const sinT = p.h/p.L;
+        const th = rad2deg(Math.asin(sinT));
+        const cosT = Math.sqrt(1-sinT*sinT);
+        const mg = p.m*g;
+        const down = mg*sinT;
+        const N = mg*cosT;
+        const fk = p.muk*N;
+        const Fapp = down+fk;
+        const Wapp = Fapp*p.L;
+        const dU = mg*p.h;
+        return {theta: th, Fapp, Wapp, dU};
+      },
+      steps(p,s){
+        const sinT = p.h/p.L;
+        const cosT = Math.sqrt(1-sinT*sinT);
+        const mg = p.m*g;
+        const down = mg*sinT, N = mg*cosT, fk = p.muk*N;
+        return [
+          `Geometry: $\\sin\\theta = ${fmt(p.h)}/${fmt(p.L)} = ${fmt(sinT)}$`,
+          `$\\boxed{\\theta = ${fmt(s.theta)}^\\circ}$, $\\cos\\theta = ${fmt(cosT)}$`,
+          `Weight: $mg=(${fmt(p.m)})(9.80)=${fmt(mg)}\\ \\text{N}$; downslope component $=mg\\sin\\theta=${fmt(down)}\\ \\text{N}$`,
+          `Normal force: $N=mg\\cos\\theta=${fmt(N)}\\ \\text{N}$; friction: $f_k=\\mu_k N=${fmt(fk)}\\ \\text{N}$`,
+          `$F_{app}=${fmt(down)}+${fmt(fk)}$`,
+          `$\\boxed{F_{app}=${fmt(s.Fapp)}\\ \\text{N}}$`,
+          `$W_{app}=F_{app}\\,d=(${fmt(s.Fapp)})(${fmt(p.L)})$`,
+          `$\\boxed{W_{app}=${fmt(s.Wapp)}\\ \\text{J}}$`,
+          `$\\Delta U = mgh = (${fmt(p.m)})(9.80)(${fmt(p.h)})$`,
+          `$\\boxed{\\Delta U=${fmt(s.dU)}\\ \\text{J}}$`
+        ];
+      }
+    },
+    { // 4. Compound pulley system
+      title: "Compound pulley system",
+      unknowns: [ {key:"Fin", label:"Input force", unit:"N"}, {key:"din", label:"Rope length pulled", unit:"m"}, {key:"Win", label:"Input work", unit:"J"} ],
+      gen(){ return { n: pick([3,4,5,6]), m: rnd(600,1100,0), h: rnd(0.4,0.8,2) }; },
+      statement(p){
+        return `<p>An ideal pulley system has <b>${p.n}</b> rope segments directly supporting a <b>${fmt(p.m)} kg</b> engine. Find the input force required to raise the engine at constant velocity, the length of rope that must be pulled to lift the engine <b>${fmt(p.h,3)} m</b>, and the input work for this lift.</p>`;
+      },
+      solve(p){
+        const W = p.m*g;
+        const Fin = W/p.n;
+        const din = p.n*p.h;
+        const Win = Fin*din;
+        return {Fin, din, Win};
+      },
+      steps(p,s){
+        const W = p.m*g;
+        return [
+          `Engine weight: $W=(${fmt(p.m)})(9.80)=${fmt(W)}\\ \\text{N}$`,
+          `$MA = n = ${p.n}$, so $F_{in} = W/n = ${fmt(W)}/${p.n}$`,
+          `$\\boxed{F_{in} = ${fmt(s.Fin)}\\ \\text{N}}$`,
+          `Rope pulled: $d_{in} = n\\,h = ${p.n}(${fmt(p.h)})$`,
+          `$\\boxed{d_{in} = ${fmt(s.din)}\\ \\text{m}}$`,
+          `$W_{in} = F_{in}d_{in} = (${fmt(s.Fin)})(${fmt(s.din)})$; this equals $W_{out}=mgh$, as expected for an ideal system`,
+          `$\\boxed{W_{in} = ${fmt(s.Win)}\\ \\text{J}}$`
+        ];
+      }
+    },
+    { // 5. Wheel and axle crank
+      title: "Wheel and axle crank",
+      unknowns: [ {key:"MA", label:"Ideal mechanical advantage", unit:""}, {key:"Fin", label:"Tangential crank force", unit:"N"}, {key:"din", label:"Handle distance / revolution", unit:"m"} ],
+      gen(){ return { rcrank: rnd(0.2,0.4,3), raxle: rnd(0.03,0.07,3), Fout: rnd(800,1600,0) }; },
+      statement(p){
+        return `<p>A hand crank of radius <b>${fmt(p.rcrank,3)} m</b> turns an axle of radius <b>${fmt(p.raxle,3)} m</b>. The axle lifts a <b>${fmt(p.Fout)} N</b> load using a rope wrapped around it. Find the ideal mechanical advantage, the tangential force required at the crank handle to lift the load at constant speed, and the distance the handle travels during one full revolution.</p>`;
+      },
+      solve(p){
+        const MA = p.rcrank/p.raxle;
+        const Fin = p.Fout/MA;
+        const din = 2*Math.PI*p.rcrank;
+        return {MA, Fin, din};
+      },
+      steps(p,s){
+        return [
+          `$MA = r_{crank}/r_{axle} = ${fmt(p.rcrank)}/${fmt(p.raxle)}$`,
+          `$\\boxed{MA = ${fmt(s.MA)}}$`,
+          `$F_{in} = F_{out}/MA = ${fmt(p.Fout)}/${fmt(s.MA)}$`,
+          `$\\boxed{F_{in} = ${fmt(s.Fin)}\\ \\text{N}}$`,
+          `One revolution: $d_{in} = 2\\pi\\,r_{crank} = 2\\pi(${fmt(p.rcrank)})$`,
+          `$\\boxed{d_{in} = ${fmt(s.din)}\\ \\text{m}}$`
+        ];
+      }
+    }
+  ]
+},
+{
+  name: "Set 5 — Muscles, Joints & Biomechanics",
+  problems: [
+    { // 1. Biceps holding a weight
+      title: "Biceps holding a weight",
+      unknowns: [ {key:"FB", label:"Biceps force", unit:"N"}, {key:"FJmag", label:"Elbow joint force (magnitude)", unit:"N"} ],
+      gen(){ return { mo: rnd(3,8,2), do_: rnd(0.25,0.45,3), Wf: rnd(12,25,1), df: rnd(0.12,0.18,3), rb: rnd(0.03,0.05,4) }; },
+      statement(p){
+        return `<p>A person holds a <b>${fmt(p.mo,3)} kg</b> object in one hand with the forearm horizontal. The object's center of mass is <b>${fmt(p.do_,3)} m</b> from the elbow. The forearm weighs <b>${fmt(p.Wf)} N</b> and its center of gravity is <b>${fmt(p.df,3)} m</b> from the elbow. The biceps exerts a force perpendicular to the forearm with an effective moment arm of <b>${fmt(p.rb,3)} m</b>. Find the biceps force and the vertical force exerted by the elbow joint on the forearm (magnitude).</p>`;
+      },
+      solve(p){
+        const Wo = p.mo*g;
+        const FB = (Wo*p.do_ + p.Wf*p.df)/p.rb;
+        const FJ = Wo+p.Wf-FB; // negative -> downward
+        return {FB, FJmag: Math.abs(FJ), FJsign: FJ};
+      },
+      steps(p,s){
+        const Wo = p.mo*g;
+        return [
+          `Object weight: $W_o=(${fmt(p.mo)})(9.80)=${fmt(Wo)}\\ \\text{N}$`,
+          `Torques about the elbow: $F_B(${fmt(p.rb)}) - ${fmt(Wo)}(${fmt(p.do_)}) - ${fmt(p.Wf)}(${fmt(p.df)}) = 0$`,
+          `$\\boxed{F_B = ${fmt(s.FB)}\\ \\text{N upward}}$`,
+          `Vertical equilibrium: $F_B + F_J - ${fmt(Wo)} - ${fmt(p.Wf)} = 0 \\Rightarrow F_J = ${fmt(Wo+p.Wf)} - ${fmt(s.FB)} = ${fmt(s.FJsign)}\\ \\text{N}$`,
+          `$\\boxed{F_J = ${fmt(s.FJmag)}\\ \\text{N downward}}$`
+        ];
+      }
+    },
+    { // 2. Effect of moving a hand load
+      title: "Effect of moving a hand load",
+      unknowns: [ {key:"FB2", label:"New biceps force", unit:"N"}, {key:"pctInc", label:"Percent increase vs. original", unit:"%"} ],
+      gen(){
+        const do1 = rnd(0.25,0.4,3);
+        const do2 = rnd(do1+0.1, do1+0.3, 3);
+        return { mo: rnd(3,8,2), do1, do2, Wf: rnd(12,25,1), df: rnd(0.12,0.18,3), rb: rnd(0.03,0.05,4) };
+      },
+      statement(p){
+        return `<p>A person holds a <b>${fmt(p.mo,3)} kg</b> object with the forearm horizontal (forearm weight <b>${fmt(p.Wf)} N</b> acting <b>${fmt(p.df,3)} m</b> from the elbow; biceps moment arm <b>${fmt(p.rb,3)} m</b>). The object starts at <b>${fmt(p.do1,3)} m</b> from the elbow and is moved out to <b>${fmt(p.do2,3)} m</b> from the elbow. Find the new biceps force and the percentage increase compared with the original position.</p>`;
+      },
+      solve(p){
+        const Wo = p.mo*g;
+        const FB1 = (Wo*p.do1 + p.Wf*p.df)/p.rb;
+        const FB2 = (Wo*p.do2 + p.Wf*p.df)/p.rb;
+        const pctInc = (FB2-FB1)/FB1*100;
+        return {FB1, FB2, pctInc};
+      },
+      steps(p,s){
+        const Wo = p.mo*g;
+        return [
+          `Object weight: $W_o=(${fmt(p.mo)})(9.80)=${fmt(Wo)}\\ \\text{N}$`,
+          `Original position: $F_{B,old}=(${fmt(Wo)}(${fmt(p.do1)})+${fmt(p.Wf)}(${fmt(p.df)}))/${fmt(p.rb)} = ${fmt(s.FB1)}\\ \\text{N}$`,
+          `New position: $F_B(${fmt(p.rb)}) - ${fmt(Wo)}(${fmt(p.do2)}) - ${fmt(p.Wf)}(${fmt(p.df)}) = 0$`,
+          `$\\boxed{F_B = ${fmt(s.FB2)}\\ \\text{N}}$`,
+          `$\\%\\text{ increase} = \\dfrac{${fmt(s.FB2)}-${fmt(s.FB1)}}{${fmt(s.FB1)}}(100\\%)$`,
+          `$\\boxed{${fmt(s.pctInc)}\\%}$`
+        ];
+      }
+    },
+    { // 3. Back muscle force
+      title: "Back-muscle force while lifting",
+      unknowns: [ {key:"Fm", label:"Back-muscle force", unit:"N"}, {key:"ratio", label:"Ratio to combined weight", unit:""} ],
+      gen(){ return { Wub: rnd(400,600,0), dub: rnd(0.18,0.28,3), Wbox: rnd(200,450,0), dbox: rnd(0.45,0.65,3), rm: rnd(0.05,0.07,4) }; },
+      statement(p){
+        return `<p>A person bends forward while lifting a box. The upper body weighs <b>${fmt(p.Wub)} N</b> and its center of gravity is <b>${fmt(p.dub,3)} m</b> in front of the hip pivot. The box weighs <b>${fmt(p.Wbox)} N</b> and is held <b>${fmt(p.dbox,3)} m</b> in front of the hip pivot. The effective moment arm of the back muscles is <b>${fmt(p.rm,3)} m</b>. Find the back-muscle force needed for equilibrium, and the ratio of this muscle force to the combined upper-body-plus-box weight.</p>`;
+      },
+      solve(p){
+        const Fm = (p.Wub*p.dub + p.Wbox*p.dbox)/p.rm;
+        const ratio = Fm/(p.Wub+p.Wbox);
+        return {Fm, ratio};
+      },
+      steps(p,s){
+        return [
+          `Torques about the hip pivot: $F_m(${fmt(p.rm)}) - ${fmt(p.Wub)}(${fmt(p.dub)}) - ${fmt(p.Wbox)}(${fmt(p.dbox)}) = 0$`,
+          `$\\boxed{F_m = ${fmt(s.Fm)}\\ \\text{N}}$`,
+          `Total supported weight: $${fmt(p.Wub)}+${fmt(p.Wbox)}=${fmt(p.Wub+p.Wbox)}\\ \\text{N}$`,
+          `$F_m/W_{total} = ${fmt(s.Fm)}/${fmt(p.Wub+p.Wbox)}$`,
+          `$\\boxed{${fmt(s.ratio)}}$`
+        ];
+      }
+    },
+    { // 4. Standing on tiptoes
+      title: "Standing on tiptoes",
+      unknowns: [ {key:"FA", label:"Achilles-tendon force", unit:"N"}, {key:"FJ", label:"Ankle-joint force (magnitude)", unit:"N"} ],
+      gen(){ return { m: rnd(55,85,1), rA: rnd(0.12,0.18,3), rJ: rnd(0.03,0.07,3) }; },
+      statement(p){
+        return `<p>A <b>${fmt(p.m)} kg</b> person stands on one foot with the foot horizontal. Treat the ball of the foot as the pivot. The Achilles tendon pulls upward <b>${fmt(p.rA,3)} m</b> behind the pivot, while the ankle-joint force acts downward <b>${fmt(p.rJ,3)} m</b> behind the pivot. The floor exerts an upward normal force at the pivot equal to the person's weight. Find the Achilles-tendon force and the magnitude of the downward ankle-joint force.</p>`;
+      },
+      solve(p){
+        const N = p.m*g;
+        const k = p.rA/p.rJ;
+        const FA = N/(k-1);
+        const FJ = k*FA;
+        return {FA, FJ};
+      },
+      steps(p,s){
+        const N = p.m*g;
+        return [
+          `Floor force: $N=(${fmt(p.m)})(9.80)=${fmt(N)}\\ \\text{N}$ (acts at the pivot — no torque)`,
+          `Torque balance: $F_A(${fmt(p.rA)}) - F_J(${fmt(p.rJ)}) = 0 \\Rightarrow F_J = ${fmt(p.rA/p.rJ)}\\,F_A$`,
+          `Vertical equilibrium: $${fmt(N)} + F_A - F_J = 0$`,
+          `$\\boxed{F_A = ${fmt(s.FA)}\\ \\text{N upward}}$`,
+          `$\\boxed{F_J = ${fmt(s.FJ)}\\ \\text{N downward}}$`
+        ];
+      }
+    },
+    { // 5. Head and neck muscle force
+      title: "Head and neck muscle force",
+      unknowns: [ {key:"Fm", label:"Neck-muscle force", unit:"N"}, {key:"J", label:"Magnitude of joint force", unit:"N"} ],
+      gen(){ return { Wh: rnd(40,60,1), dg: rnd(0.02,0.035,3), dm: rnd(0.04,0.06,3), th: rnd(25,40,1) }; },
+      statement(p){
+        return `<p>A person's head weighs <b>${fmt(p.Wh)} N</b>. Its center of gravity lies <b>${fmt(p.dg*100,3)} cm</b> in front of the atlanto-occipital joint. A neck muscle pulls downward at a point <b>${fmt(p.dm*100,3)} cm</b> behind the joint, making an angle of <b>${fmt(p.th,3)}&deg;</b> with the horizontal. Find the neck-muscle force needed to hold the head stationary, and the magnitude of the force exerted by the joint on the head.</p>`;
+      },
+      solve(p){
+        const th = deg2rad(p.th);
+        const Fm = p.Wh*p.dg/(p.dm*Math.sin(th));
+        const Fmx = Fm*Math.cos(th), Fmy = Fm*Math.sin(th);
+        const Jx = Fmx, Jy = Fmy+p.Wh;
+        const J = Math.sqrt(Jx*Jx+Jy*Jy);
+        return {Fm, Jx, Jy, J};
+      },
+      steps(p,s){
+        return [
+          `Torque about the joint: $(F_m\\sin ${p.th.toFixed(1)}^\\circ)(${fmt(p.dm)}) - ${fmt(p.Wh)}(${fmt(p.dg)}) = 0$`,
+          `$\\boxed{F_m = ${fmt(s.Fm)}\\ \\text{N}}$`,
+          `Muscle components: $F_{mx}=F_m\\cos\\theta = ${fmt(s.Jx)}\\ \\text{N backward}$, $F_{my}=F_m\\sin\\theta=${fmt(s.Fm*Math.sin(deg2rad(p.th)))}\\ \\text{N downward}$`,
+          `Joint force: $J_x = F_{mx} = ${fmt(s.Jx)}\\ \\text{N forward}$; $J_y = F_{my}+W_h = ${fmt(s.Jy)}\\ \\text{N upward}$`,
+          `$J=\\sqrt{J_x^2+J_y^2}$`,
+          `$\\boxed{J = ${fmt(s.J)}\\ \\text{N}}$`
+        ];
+      }
+    }
+  ]
+}
+];
+
+/* Flatten with set index for filtering */
+const ALL_PROBLEMS = [];
+SETS.forEach((set, si) => { set.problems.forEach((prob, pi) => ALL_PROBLEMS.push({set: si, idx: pi, def: prob})); });
+
+/* =========================================================
+   STATE
+========================================================= */
+let state = {
+  mode: 'practice',      // 'practice' | 'gameSetup' | 'gamePlaying' | 'gameSummary'
+  setFilter: 'all',
+  gameLen: null,
+  gameIdx: 0,
+  gameCorrect: 0,
+  current: null,         // {setIdx, probIdx, params, answers, unknowns}
+  submitted: false,
+  sessionScore: 0,
+  sessionTotal: 0,
+  streak: 0,
+  bestStreak: 0,
+};
+
+function loadStats(){
+  try{
+    const raw = localStorage.getItem('statics_torque_stats');
+    if (raw) return JSON.parse(raw);
+  }catch(e){}
+  return { bestStreak:0, highScores:{5:null,10:null,15:null}, lastScores:{5:null,10:null,15:null} };
+}
+function saveStats(st){
+  try{ localStorage.setItem('statics_torque_stats', JSON.stringify(st)); }catch(e){}
+}
+let persisted = loadStats();
+state.bestStreak = persisted.bestStreak || 0;
+
+/* =========================================================
+   RENDER: set filter dropdown
+========================================================= */
+const setFilterEl = document.getElementById('setFilter');
+SETS.forEach((s,i) => {
+  const opt = document.createElement('option');
+  opt.value = i; opt.textContent = s.name;
+  setFilterEl.appendChild(opt);
+});
+setFilterEl.addEventListener('change', () => {
+  state.setFilter = setFilterEl.value;
+  if (state.mode === 'practice') nextProblem();
+});
+
+/* =========================================================
+   PROBLEM SELECTION / RENDER
+========================================================= */
+function pickProblemDef(){
+  let pool = ALL_PROBLEMS;
+  if (state.setFilter !== 'all'){
+    pool = ALL_PROBLEMS.filter(p => p.set === parseInt(state.setFilter));
+  }
+  return pick(pool);
+}
+
+function nextProblem(){
+  const chosen = pickProblemDef();
+  const params = chosen.def.gen();
+  const answers = chosen.def.solve(params);
+  state.current = { set: chosen.set, idx: chosen.idx, def: chosen.def, params, answers };
+  state.submitted = false;
+  renderProblem();
+}
+
+function renderProblem(){
+  const c = state.current;
+  if (!c){ document.getElementById('problemArea').innerHTML = ''; return; }
+  const setName = SETS[c.set].name;
+  let inputsHTML = c.def.unknowns.map(u => `
+    <div class="answer-field" id="field-${u.key}">
+      <label>${u.label}${u.unit ? " (" + u.unit + ")" : ""}</label>
+      <div class="input-row">
+        <input type="text" inputmode="decimal" id="input-${u.key}" placeholder="value" ${state.submitted ? "disabled":""}>
+      </div>
+      <div class="verdict" id="verdict-${u.key}"></div>
+    </div>`).join('');
+
+  const html = `
+    <div class="card">
+      <span class="set-tag">${setName}</span>
+      <div class="prob-title">${c.def.title}</div>
+      <div class="prob-statement">${c.def.statement(c.params)}</div>
+      <div class="answer-grid">${inputsHTML}</div>
+      <div class="feedback-banner" id="feedbackBanner"></div>
+      <div class="btn-row">
+        <button class="btn primary" id="btnSubmit">Submit Answer</button>
+        <button class="btn" id="btnShowSolution" disabled>Show Solution</button>
+        ${state.mode==='practice' ? '<button class="btn teal" id="btnNext">Skip / Next</button>' : ''}
+      </div>
+      <div class="solution" id="solutionBlock">
+        <h3>Worked Solution</h3>
+        <div id="solutionSteps"></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('problemArea').innerHTML = html;
+  document.getElementById('btnSubmit').addEventListener('click', submitAnswer);
+  document.getElementById('btnShowSolution').addEventListener('click', toggleSolution);
+  const nextBtn = document.getElementById('btnNext');
+  if (nextBtn) nextBtn.addEventListener('click', nextProblem);
+  renderMath();
+}
+
+function toleranceOK(user, correct){
+  if (correct === undefined || correct === null || isNaN(correct)) return false;
+  if (isNaN(user)) return false;
+  const tol = Math.max(Math.abs(correct)*0.04, 0.05);
+  return Math.abs(user-correct) <= tol;
+}
+
+function submitAnswer(){
+  if (state.submitted) return;
+  const c = state.current;
+  let allCorrect = true;
+  c.def.unknowns.forEach(u => {
+    const inputEl = document.getElementById('input-'+u.key);
+    const fieldEl = document.getElementById('field-'+u.key);
+    const verdictEl = document.getElementById('verdict-'+u.key);
+    const val = parseFloat(inputEl.value);
+    const correct = c.answers[u.key];
+    const ok = toleranceOK(val, correct);
+    fieldEl.classList.remove('correct','incorrect');
+    fieldEl.classList.add(ok ? 'correct' : 'incorrect');
+    verdictEl.textContent = ok ? "correct" : ("expected \u2248 " + fmt(correct) + (u.unit? " "+u.unit:""));
+    inputEl.disabled = true;
+    if (!ok) allCorrect = false;
+  });
+
+  state.submitted = true;
+  document.getElementById('btnSubmit').disabled = true;
+  document.getElementById('btnShowSolution').disabled = false;
+  const banner = document.getElementById('feedbackBanner');
+  banner.className = 'feedback-banner ' + (allCorrect ? 'correct' : 'incorrect');
+  banner.textContent = allCorrect ? "Correct! Nicely solved." : "Not quite — check the highlighted field(s) or view the solution.";
+
+  // update stats
+  state.sessionTotal++;
+  if (allCorrect){
+    state.sessionScore++;
+    state.streak++;
+    if (state.streak > state.bestStreak){ state.bestStreak = state.streak; persisted.bestStreak = state.bestStreak; saveStats(persisted); }
+  } else {
+    state.streak = 0;
+  }
+  if (state.mode === 'gamePlaying'){
+    if (allCorrect) state.gameCorrect++;
+  }
+  updateStatBar();
+
+  if (state.mode === 'gamePlaying'){
+    const nextBtn = document.getElementById('btnNext');
+    // replace bottom row with "Continue"
+    const row = document.querySelector('.btn-row');
+    let cont = document.getElementById('btnGameContinue');
+    if (!cont){
+      cont = document.createElement('button');
+      cont.className = 'btn primary';
+      cont.id = 'btnGameContinue';
+      cont.textContent = (state.gameIdx+1 >= state.gameLen) ? "Finish Round" : "Next Question";
+      row.appendChild(cont);
+      cont.addEventListener('click', gameAdvance);
+    }
+  }
+}
+
+function toggleSolution(){
+  const c = state.current;
+  const block = document.getElementById('solutionBlock');
+  const stepsEl = document.getElementById('solutionSteps');
+  if (!block.classList.contains('show')){
+    stepsEl.innerHTML = c.def.steps(c.params, c.answers).map(s => `<div class="step">${s}</div>`).join('');
+    block.classList.add('show');
+    renderMath();
+  } else {
+    block.classList.remove('show');
+  }
+}
+
+function renderMath(){
+  if (window.renderMathInElement){
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false}
+      ],
+      throwOnError: false
+    });
+  }
+}
+
+/* =========================================================
+   STAT BAR
+========================================================= */
+function updateStatBar(){
+  document.getElementById('statScore').textContent = state.sessionScore + "/" + state.sessionTotal;
+  document.getElementById('statStreak').textContent = state.streak;
+  document.getElementById('statBest').textContent = state.bestStreak;
+  if (state.mode === 'gamePlaying' || state.mode === 'gameSetup' || state.mode === 'gameSummary'){
+    document.getElementById('statHighLbl').textContent = "High Score";
+    const len = state.gameLen;
+    const hs = len ? persisted.highScores[len] : null;
+    document.getElementById('statHigh').textContent = hs !== null && hs !== undefined ? (hs + "/" + len) : "\u2014";
+  } else {
+    document.getElementById('statHighLbl').textContent = "High Score";
+    document.getElementById('statHigh').textContent = bestOverallHighScoreLabel();
+  }
+}
+function bestOverallHighScoreLabel(){
+  const entries = [5,10,15].filter(l => persisted.highScores[l] !== null && persisted.highScores[l] !== undefined);
+  if (!entries.length) return "\u2014";
+  const l = entries.sort((a,b)=> (persisted.highScores[b]/b) - (persisted.highScores[a]/a))[0];
+  return persisted.highScores[l] + "/" + l;
+}
+
+/* =========================================================
+   MODE SWITCHING
+========================================================= */
+function showPractice(){
+  state.mode = 'practice';
+  document.getElementById('gameSetup').style.display = 'none';
+  document.getElementById('gameProgress').style.display = 'none';
+  document.getElementById('gameSummary').style.display = 'none';
+  document.getElementById('problemArea').style.display = 'block';
+  updateStatBar();
+  nextProblem();
+}
+
+function showGameSetup(){
+  state.mode = 'gameSetup';
+  document.getElementById('gameSetup').style.display = 'block';
+  document.getElementById('gameProgress').style.display = 'none';
+  document.getElementById('gameSummary').style.display = 'none';
+  document.getElementById('problemArea').style.display = 'none';
+  document.querySelectorAll('.len-btn').forEach(b => b.classList.remove('active'));
+  updateGameHighPreview();
+}
+function updateGameHighPreview(){
+  const el = document.getElementById('gameHighPreview');
+  if (!state.gameLen){ el.textContent = "Pick a round length"; return; }
+  const hs = persisted.highScores[state.gameLen];
+  const ls = persisted.lastScores[state.gameLen];
+  el.textContent = "High score: " + (hs!==null&&hs!==undefined ? hs+"/"+state.gameLen : "\u2014") +
+    "   \u00b7   Last score: " + (ls!==null&&ls!==undefined ? ls+"/"+state.gameLen : "\u2014");
+}
+
+function startGame(){
+  if (!state.gameLen) return;
+  state.mode = 'gamePlaying';
+  state.gameIdx = 0;
+  state.gameCorrect = 0;
+  document.getElementById('gameSetup').style.display = 'none';
+  document.getElementById('gameSummary').style.display = 'none';
+  document.getElementById('gameProgress').style.display = 'block';
+  document.getElementById('problemArea').style.display = 'block';
+  updateProgress();
+  nextProblem();
+  updateStatBar();
+}
+
+function updateProgress(){
+  document.getElementById('progressLabel').textContent = "Question " + (state.gameIdx+1) + " of " + state.gameLen;
+  document.getElementById('progressFill').style.width = ((state.gameIdx)/state.gameLen*100) + "%";
+}
+
+function gameAdvance(){
+  state.gameIdx++;
+  if (state.gameIdx >= state.gameLen){
+    finishGame();
+  } else {
+    updateProgress();
+    nextProblem();
+  }
+}
+
+function finishGame(){
+  state.mode = 'gameSummary';
+  const len = state.gameLen;
+  const score = state.gameCorrect;
+  persisted.lastScores[len] = score;
+  if (persisted.highScores[len] === null || persisted.highScores[len] === undefined || score > persisted.highScores[len]){
+    persisted.highScores[len] = score;
+  }
+  saveStats(persisted);
+  document.getElementById('gameProgress').style.display = 'none';
+  document.getElementById('problemArea').style.display = 'none';
+  document.getElementById('gameSummary').style.display = 'block';
+  document.getElementById('summaryScore').textContent = score + "/" + len;
+  const pct = Math.round(score/len*100);
+  const isHigh = persisted.highScores[len] === score;
+  document.getElementById('summaryNote').textContent = pct + "% correct" + (isHigh ? "  \u2014  new high score!" : "");
+  updateStatBar();
+}
+
+/* button wiring for mode/game */
+document.getElementById('btnPractice').addEventListener('click', showPractice);
+document.getElementById('btnGame').addEventListener('click', showGameSetup);
+document.querySelectorAll('.len-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.len-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.gameLen = parseInt(btn.dataset.len);
+    updateGameHighPreview();
+  });
+});
+document.getElementById('btnStartGame').addEventListener('click', startGame);
+document.getElementById('btnPlayAgain').addEventListener('click', () => { showGameSetup(); });
+document.getElementById('btnBackToPractice').addEventListener('click', showPractice);
+
+/* =========================================================
+   THEME TOGGLE
+========================================================= */
+const root = document.documentElement;
+function applyTheme(t){
+  root.setAttribute('data-theme', t);
+  document.getElementById('btnTheme').innerHTML = t === 'dark' ? "&#9789;" : "&#9788;";
+  try{ localStorage.setItem('statics_torque_theme', t); }catch(e){}
+}
+let savedTheme = 'dark';
+try{ savedTheme = localStorage.getItem('statics_torque_theme') || 'dark'; }catch(e){}
+applyTheme(savedTheme);
+document.getElementById('btnTheme').addEventListener('click', () => {
+  applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+
+/* =========================================================
+   FORMULA SHEET MODAL
+========================================================= */
+const FORMULAS = [
+  { group: "Equilibrium Conditions", rows: [
+    ["$\\sum F_x = 0$", "Net horizontal force is zero"],
+    ["$\\sum F_y = 0$", "Net vertical force is zero"],
+    ["$\\sum \\tau = 0$", "Net torque about any pivot is zero"],
+  ]},
+  { group: "Torque", rows: [
+    ["$\\tau = rF\\sin\\theta$", "Torque = lever arm &times; force &times; sine of angle between them"],
+    ["$\\tau = r_\\perp F$", "Using the perpendicular lever arm directly"],
+    ["CCW +, CW &minus;", "Sign convention used throughout"],
+  ]},
+  { group: "Friction", rows: [
+    ["$f_s \\le \\mu_s N$", "Maximum available static friction"],
+    ["$f_k = \\mu_k N$", "Kinetic friction (moving contact)"],
+  ]},
+  { group: "Stability / Tipping", rows: [
+    ["$\\tan\\theta_{tip} = \\dfrac{w/2}{h}$", "Tilt angle at which an object tips about its base edge"],
+  ]},
+  { group: "Simple Machines", rows: [
+    ["$MA = \\dfrac{F_{out}}{F_{in}} = \\dfrac{r_{in}}{r_{out}}$", "Ideal mechanical advantage"],
+    ["$F_{in}d_{in} = F_{out}d_{out}$", "Ideal machine: input work = output work"],
+    ["$MA_{pulley} = n$ (supporting segments)", "Pulley system mechanical advantage"],
+  ]},
+  { group: "Work & Energy (support)", rows: [
+    ["$W = Fd\\cos\\theta$", "Work done by a constant force"],
+    ["$\\Delta U = mgh$", "Gravitational potential energy change"],
+  ]},
+  { group: "Constants", rows: [
+    ["$g = 9.80\\ \\text{m/s}^2$", "Free-fall acceleration used throughout"],
+  ]},
+];
+function buildFormulaSheet(){
+  const el = document.getElementById('formulaContent');
+  el.innerHTML = FORMULAS.map(g => `
+    <div class="formula-group">
+      <h3>${g.group}</h3>
+      ${g.rows.map(r => `<div class="formula-row"><span>${r[0]}</span><span class="desc">${r[1]}</span></div>`).join('')}
+    </div>
+  `).join('');
+}
+buildFormulaSheet();
+document.getElementById('btnFormulas').addEventListener('click', () => {
+  document.getElementById('formulaOverlay').classList.add('show');
+  renderMath();
+});
+document.getElementById('closeFormulas').addEventListener('click', () => {
+  document.getElementById('formulaOverlay').classList.remove('show');
+});
+document.getElementById('formulaOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'formulaOverlay') document.getElementById('formulaOverlay').classList.remove('show');
+});
+
+/* =========================================================
+   FLOATING CALCULATOR
+========================================================= */
+const calc = document.getElementById('calc');
+let calcExpr = "";
+const calcDisplay = document.getElementById('calc-display');
+const calcSub = document.getElementById('calc-sub');
+function calcRender(){ calcDisplay.textContent = calcExpr.length ? calcExpr : "0"; }
+document.querySelectorAll('.calc-grid button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const k = btn.dataset.k;
+    if (k === 'C'){ calcExpr=""; calcSub.textContent="\u00a0"; calcRender(); return; }
+    if (k === 'back'){ calcExpr = calcExpr.slice(0,-1); calcRender(); return; }
+    if (k === '='){
+      try{
+        const safe = calcExpr
+          .replace(/sin\(/g, "Math.sin(deg2radC(")
+          .replace(/cos\(/g, "Math.cos(deg2radC(")
+          .replace(/tan\(/g, "Math.tan(deg2radC(")
+          .replace(/sqrt\(/g, "Math.sqrt(")
+          .replace(/pi/g, "Math.PI");
+        // balance parens for the trig-deg wrapper: naive approach — evaluate directly with Function
+        function deg2radC(x){ return x*Math.PI/180; }
+        const val = Function('"use strict"; const deg2radC = ' + deg2radC.toString() + '; return (' + safe + ')')();
+        calcSub.textContent = calcExpr + " =";
+        calcExpr = (Math.round(val*1e8)/1e8).toString();
+      }catch(err){
+        calcSub.textContent = "error";
+      }
+      calcRender();
+      return;
+    }
+    calcExpr += k;
+    calcRender();
+  });
+});
+calcRender();
+
+document.getElementById('btnCalcToggle').addEventListener('click', () => {
+  calc.classList.toggle('show');
+});
+document.getElementById('calcClose').addEventListener('click', () => {
+  calc.classList.remove('show');
+});
+
+/* drag calculator (mouse + touch) */
+(function(){
+  const head = document.getElementById('calcHead');
+  let dragging = false, offX=0, offY=0;
+  function start(clientX, clientY){
+    dragging = true;
+    const r = calc.getBoundingClientRect();
+    offX = clientX - r.left; offY = clientY - r.top;
+    calc.style.right = 'auto'; calc.style.bottom = 'auto';
+    calc.style.left = r.left + 'px'; calc.style.top = r.top + 'px';
+  }
+  function move(clientX, clientY){
+    if (!dragging) return;
+    let x = clientX - offX, y = clientY - offY;
+    x = Math.max(4, Math.min(window.innerWidth - calc.offsetWidth - 4, x));
+    y = Math.max(4, Math.min(window.innerHeight - calc.offsetHeight - 4, y));
+    calc.style.left = x + 'px'; calc.style.top = y + 'px';
+  }
+  function end(){ dragging = false; }
+  head.addEventListener('mousedown', e => start(e.clientX, e.clientY));
+  window.addEventListener('mousemove', e => move(e.clientX, e.clientY));
+  window.addEventListener('mouseup', end);
+  head.addEventListener('touchstart', e => { const t=e.touches[0]; start(t.clientX, t.clientY); }, {passive:true});
+  window.addEventListener('touchmove', e => { const t=e.touches[0]; move(t.clientX, t.clientY); }, {passive:true});
+  window.addEventListener('touchend', end);
+})();
+
+/* =========================================================
+   INIT
+========================================================= */
+updateStatBar();
+showPractice();
+</script>
+</body>
+</html>
