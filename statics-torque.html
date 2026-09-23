@@ -1389,14 +1389,15 @@ document.getElementById('formulaOverlay').addEventListener('click', (e) => {
 ========================================================= */
 const calc = document.getElementById('calc');
 let calcExpr = "";
+let calcJustEvaluated = false;
 const calcDisplay = document.getElementById('calc-display');
 const calcSub = document.getElementById('calc-sub');
 function calcRender(){ calcDisplay.textContent = calcExpr.length ? calcExpr : "0"; }
 document.querySelectorAll('.calc-grid button').forEach(btn => {
   btn.addEventListener('click', () => {
     const k = btn.dataset.k;
-    if (k === 'C'){ calcExpr=""; calcSub.textContent="\u00a0"; calcRender(); return; }
-    if (k === 'back'){ calcExpr = calcExpr.slice(0,-1); calcRender(); return; }
+    if (k === 'C'){ calcExpr=""; calcJustEvaluated=false; calcSub.textContent="\u00a0"; calcRender(); return; }
+    if (k === 'back'){ calcExpr = calcExpr.slice(0,-1); calcJustEvaluated=false; calcRender(); return; }
     if (k === '='){
       try{
         const safe = calcExpr
@@ -1410,11 +1411,17 @@ document.querySelectorAll('.calc-grid button').forEach(btn => {
         const val = Function('"use strict"; const deg2radC = ' + deg2radC.toString() + '; return (' + safe + ')')();
         calcSub.textContent = calcExpr + " =";
         calcExpr = (Math.round(val*1e8)/1e8).toString();
+        calcJustEvaluated = true;
       }catch(err){
         calcSub.textContent = "error";
       }
       calcRender();
       return;
+    }
+    const isOperator = (k === '+' || k === '-' || k === '*' || k === '/');
+    if (calcJustEvaluated){
+      if (!isOperator){ calcExpr = ""; calcSub.textContent = "\u00a0"; }
+      calcJustEvaluated = false;
     }
     calcExpr += k;
     calcRender();
