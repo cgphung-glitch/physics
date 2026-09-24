@@ -26,6 +26,18 @@
       --border: #334155;
     }
 
+    :root[data-theme="light"] {
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --correct: #16a34a;
+      --wrong: #dc2626;
+      --border: #cbd5e1;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -40,6 +52,7 @@
       justify-content: center;
       min-height: 100vh;
       padding: 16px;
+      transition: background-color 0.2s, color 0.2s;
     }
 
     .app-container {
@@ -51,14 +64,259 @@
     }
 
     header {
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 12px 0;
       border-bottom: 1px solid var(--border);
+      gap: 8px;
     }
 
     header h1 {
-      font-size: 1.3rem;
+      font-size: 1.15rem;
       color: var(--accent);
+      flex: 1;
+      text-align: center;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--accent);
+    }
+
+    /* Theme toggle switch */
+    .theme-switch {
+      position: relative;
+      width: 52px;
+      height: 30px;
+      flex-shrink: 0;
+    }
+
+    .theme-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .theme-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: var(--border);
+      border-radius: 30px;
+      transition: 0.2s;
+    }
+
+    .theme-slider::before {
+      content: "🌙";
+      position: absolute;
+      height: 24px;
+      width: 24px;
+      left: 3px;
+      top: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--card-bg);
+      border-radius: 50%;
+      transition: 0.2s;
+      font-size: 0.75rem;
+    }
+
+    input:checked + .theme-slider::before {
+      transform: translateX(22px);
+      content: "☀️";
+    }
+
+    /* Modal overlay (shared by reference popup + calculator) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .modal-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 460px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .modal-header h2 {
+      font-size: 1.1rem;
+      color: var(--accent);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .ref-section {
+      margin-bottom: 16px;
+    }
+
+    .ref-section h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .ref-eq {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    /* Floating calculator */
+    .calc-fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .calc-panel {
+      position: fixed;
+      bottom: 82px;
+      right: 20px;
+      width: 260px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      z-index: 90;
+    }
+
+    .calc-display {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: right;
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+      word-break: break-all;
+      min-height: 1.6em;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .calc-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .calc-btn.op {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .calc-btn.active {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+    }
+
+    .calc-btn.wide {
+      grid-column: span 2;
+    }
+
+    /* Show solution button */
+    .btn-secondary {
+      width: 100%;
+      background: transparent;
+      color: var(--accent);
+      border: 2px solid var(--accent);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .solution-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      font-size: 0.9rem;
+    }
+
+    .mode-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: -4px;
     }
 
     .card {
@@ -130,6 +388,60 @@
       border-radius: 16px;
       color: var(--accent);
       font-weight: bold;
+    }
+
+    .streak-badge {
+      background: var(--border);
+      padding: 4px 12px;
+      border-radius: 16px;
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .streak-badge.hot {
+      background: rgba(251, 146, 60, 0.18);
+      color: #fb923c;
+      border: 1px solid #fb923c;
+    }
+
+    .setup-stats, .results-stats {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat-chip {
+      flex: 1;
+      min-width: 88px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 6px;
+      text-align: center;
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 1.05rem;
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    .new-high-badge {
+      text-align: center;
+      color: var(--accent);
+      font-weight: bold;
+      margin-bottom: 16px;
     }
 
     .question-text {
@@ -224,11 +536,35 @@
 
   <div class="app-container">
     <header>
+      <div class="header-controls">
+        <button class="icon-btn" id="ref-btn" onclick="toggleReference(true)" title="Equation reference">📖</button>
+      </div>
       <h1>⚡ Physics Kinematics Trainer</h1>
+      <div class="header-controls">
+        <label class="theme-switch" title="Toggle dark/light mode">
+          <input type="checkbox" id="theme-toggle" onchange="toggleTheme(this.checked)">
+          <span class="theme-slider"></span>
+        </label>
+      </div>
     </header>
 
     <!-- Setup Screen -->
     <div id="setup-screen" class="card">
+      <div class="setup-stats" id="setup-stats">
+        <div class="stat-chip">
+          <span class="stat-label">High Score</span>
+          <span class="stat-value" id="stat-highscore">—</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">Last Score</span>
+          <span class="stat-value" id="stat-lastscore">—</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">Best Streak</span>
+          <span class="stat-value" id="stat-beststreak">—</span>
+        </div>
+      </div>
+
       <div class="menu-group">
         <label>Select Category</label>
         <div class="option-grid-2x2" id="category-grid">
@@ -255,8 +591,10 @@
     <div id="quiz-screen" class="card hidden">
       <div class="stats-bar">
         <span id="question-tracker">Question 1/10</span>
+        <span class="streak-badge" id="streak-tracker">🔥 0</span>
         <span class="score-badge" id="score-tracker">Score: 0</span>
       </div>
+      <div class="mode-badge">🎯 Practice Mode — solutions available on request</div>
 
       <div class="question-text" id="question-text"></div>
 
@@ -268,6 +606,9 @@
       <button class="btn-primary" id="action-btn" onclick="submitAnswer()">Submit Answer</button>
 
       <div id="feedback" class="feedback hidden"></div>
+
+      <button class="btn-secondary hidden" id="show-solution-btn" onclick="showSolution()">Show Solution</button>
+      <div id="solution-box" class="solution-box hidden"></div>
     </div>
 
     <!-- Results Screen -->
@@ -275,7 +616,96 @@
       <h2>Quiz Complete!</h2>
       <div class="final-score" id="final-score">0%</div>
       <p id="summary-text" style="color: var(--text-muted); margin-bottom: 20px;"></p>
+      <div id="new-high-score-badge" class="new-high-badge hidden">🏆 New High Score!</div>
+      <div class="results-stats" id="results-stats">
+        <div class="stat-chip">
+          <span class="stat-label">Best Streak</span>
+          <span class="stat-value" id="result-streak">0</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">High Score</span>
+          <span class="stat-value" id="result-highscore">—</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">Last Score</span>
+          <span class="stat-value" id="result-lastscore">—</span>
+        </div>
+      </div>
       <button class="btn-primary" onclick="resetQuiz()">Try Again</button>
+    </div>
+  </div>
+
+  <!-- Kinematics Equation Reference Popup -->
+  <div id="reference-modal" class="modal-overlay hidden" onclick="if(event.target===this) toggleReference(false)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>📖 Kinematics Equations</h2>
+        <button class="modal-close" onclick="toggleReference(false)">&times;</button>
+      </div>
+
+      <div class="ref-section">
+        <h3>1D Linear Motion (constant $a$)</h3>
+        <div class="ref-eq">$v = u + at$</div>
+        <div class="ref-eq">$s = ut + \frac{1}{2}at^2$</div>
+        <div class="ref-eq">$v^2 = u^2 + 2as$</div>
+        <div class="ref-eq">$s = \frac{(u+v)}{2}t$</div>
+      </div>
+
+      <div class="ref-section">
+        <h3>Freefall / Vertical Motion ($g = 9.8\text{ m/s}^2$)</h3>
+        <div class="ref-eq">$v = \sqrt{2gh}$ (impact speed from height $h$)</div>
+        <div class="ref-eq">$t_{\text{total}} = \frac{2u}{g}$ (time up &amp; down)</div>
+        <div class="ref-eq">$h_{\max} = \frac{u^2}{2g}$ (max height)</div>
+      </div>
+
+      <div class="ref-section">
+        <h3>2D Projectile Motion</h3>
+        <div class="ref-eq">$R = \frac{v_0^2 \sin(2\theta)}{g}$ (range)</div>
+        <div class="ref-eq">$H = \frac{(v_0 \sin\theta)^2}{2g}$ (peak height)</div>
+        <div class="ref-eq">$t = \frac{2v_0\sin\theta}{g}$ (time of flight)</div>
+        <div class="ref-eq">$x = v_0 t$ (horizontal launch off a height)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Calculator -->
+  <button class="calc-fab" id="calc-fab" onclick="toggleCalculator()" title="Calculator">🧮</button>
+  <div id="calc-panel" class="calc-panel hidden">
+    <div class="calc-display" id="calc-display">0</div>
+    <div class="calc-grid">
+      <button class="calc-btn op" id="btn-inv" onclick="toggleInv()" title="Inverse trig functions">INV</button>
+      <button class="calc-btn op" onclick="calcUnary('sqrt')">√</button>
+      <button class="calc-btn op" onclick="calcUnary('square')">x²</button>
+      <button class="calc-btn op" onclick="calcUnary('reciprocal')">1/x</button>
+
+      <button class="calc-btn op" id="btn-sin" onclick="calcUnary('sin')">sin</button>
+      <button class="calc-btn op" id="btn-cos" onclick="calcUnary('cos')">cos</button>
+      <button class="calc-btn op" id="btn-tan" onclick="calcUnary('tan')">tan</button>
+      <button class="calc-btn op" onclick="calcInput('e')" title="Scientific notation (e.g. 1.5e3)">EXP</button>
+
+      <button class="calc-btn" onclick="calcClear()">C</button>
+      <button class="calc-btn" onclick="calcBackspace()">⌫</button>
+      <button class="calc-btn op" onclick="calcInput('%')">%</button>
+      <button class="calc-btn op" onclick="calcInput('/')">÷</button>
+
+      <button class="calc-btn" onclick="calcInput('7')">7</button>
+      <button class="calc-btn" onclick="calcInput('8')">8</button>
+      <button class="calc-btn" onclick="calcInput('9')">9</button>
+      <button class="calc-btn op" onclick="calcInput('*')">×</button>
+
+      <button class="calc-btn" onclick="calcInput('4')">4</button>
+      <button class="calc-btn" onclick="calcInput('5')">5</button>
+      <button class="calc-btn" onclick="calcInput('6')">6</button>
+      <button class="calc-btn op" onclick="calcInput('-')">−</button>
+
+      <button class="calc-btn" onclick="calcInput('1')">1</button>
+      <button class="calc-btn" onclick="calcInput('2')">2</button>
+      <button class="calc-btn" onclick="calcInput('3')">3</button>
+      <button class="calc-btn op" onclick="calcInput('+')">+</button>
+
+      <button class="calc-btn wide" onclick="calcInput('0')">0</button>
+      <button class="calc-btn" onclick="calcInput('.')">.</button>
+      <button class="calc-btn op" onclick="calcEquals()">=</button>
     </div>
   </div>
 
@@ -288,6 +718,192 @@
     let score = 0;
     let currentQuestion = null;
     let isAnswerSubmitted = false;
+    let currentStreak = 0;
+    let bestStreakRun = 0;
+
+    // ---------- Score / streak persistence ----------
+    const STATS_KEY = 'kinematics-stats';
+
+    function loadStats() {
+      const defaults = { highScorePct: null, lastScorePct: null, bestStreak: 0 };
+      try {
+        const raw = localStorage.getItem(STATS_KEY);
+        if (raw) return Object.assign(defaults, JSON.parse(raw));
+      } catch (e) {}
+      return defaults;
+    }
+
+    function saveStats(stats) {
+      try { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); } catch (e) {}
+    }
+
+    function updateSetupStats() {
+      const stats = loadStats();
+      document.getElementById('stat-highscore').textContent = stats.highScorePct === null ? '—' : `${stats.highScorePct}%`;
+      document.getElementById('stat-lastscore').textContent = stats.lastScorePct === null ? '—' : `${stats.lastScorePct}%`;
+      document.getElementById('stat-beststreak').textContent = stats.bestStreak ? `🔥 ${stats.bestStreak}` : '—';
+    }
+
+    function updateStreakBadge() {
+      const el = document.getElementById('streak-tracker');
+      el.textContent = `🔥 ${currentStreak}`;
+      el.classList.toggle('hot', currentStreak >= 3);
+    }
+
+    updateSetupStats();
+
+    // ---------- Theme toggle ----------
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('theme-toggle').checked = (theme === 'light');
+      try { localStorage.setItem('kinematics-theme', theme); } catch (e) {}
+    }
+
+    function toggleTheme(isLight) {
+      applyTheme(isLight ? 'light' : 'dark');
+    }
+
+    (function initTheme() {
+      let saved = null;
+      try { saved = localStorage.getItem('kinematics-theme'); } catch (e) {}
+      if (!saved) {
+        saved = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+      }
+      applyTheme(saved);
+    })();
+
+    // ---------- Equation reference popup ----------
+    function toggleReference(show) {
+      const modal = document.getElementById('reference-modal');
+      modal.classList.toggle('hidden', !show);
+      if (show) renderMath();
+    }
+
+    // ---------- Floating calculator ----------
+    let calcExpr = '';
+    let calcJustEvaluated = false;
+    let calcInvMode = false;
+
+    function toggleInv() {
+      calcInvMode = !calcInvMode;
+      document.getElementById('btn-inv').classList.toggle('active', calcInvMode);
+      document.getElementById('btn-sin').textContent = calcInvMode ? 'sin⁻¹' : 'sin';
+      document.getElementById('btn-cos').textContent = calcInvMode ? 'cos⁻¹' : 'cos';
+      document.getElementById('btn-tan').textContent = calcInvMode ? 'tan⁻¹' : 'tan';
+    }
+
+    function toggleCalculator() {
+      document.getElementById('calc-panel').classList.toggle('hidden');
+    }
+
+    function calcInput(val) {
+      const isDigitOrDot = /^[0-9.e]$/.test(val);
+      if (calcJustEvaluated) {
+        // Starting a new number after "=" clears the old result;
+        // continuing with an operator instead chains onto the result.
+        if (isDigitOrDot) calcExpr = '';
+        calcJustEvaluated = false;
+      }
+      calcExpr += val;
+      document.getElementById('calc-display').textContent = calcExpr;
+    }
+
+    function calcClear() {
+      calcExpr = '';
+      calcJustEvaluated = false;
+      document.getElementById('calc-display').textContent = '0';
+    }
+
+    function calcBackspace() {
+      calcJustEvaluated = false;
+      calcExpr = calcExpr.slice(0, -1);
+      document.getElementById('calc-display').textContent = calcExpr || '0';
+    }
+
+    // Evaluates whatever is currently in calcExpr (digits/operators/scientific-notation only) to a number.
+    function calcEvalRaw(expr) {
+      if (!/^[0-9+\-*/.%()eE\s]+$/.test(expr)) throw new Error('invalid');
+      const result = Function('"use strict"; return (' + expr + ')')();
+      if (!Number.isFinite(result)) throw new Error('invalid');
+      return result;
+    }
+
+    function calcFormat(n) {
+      if (!Number.isFinite(n)) return 'Error';
+      const abs = Math.abs(n);
+      if (abs !== 0 && (abs >= 1e9 || abs < 1e-6)) {
+        // Scientific notation for very large or very small results, trimmed of trailing zeros.
+        return n.toExponential(6).replace(/\.?0+e/, 'e');
+      }
+      return String(Math.round(n * 1e8) / 1e8);
+    }
+
+    function calcEquals() {
+      if (!calcExpr) return;
+      try {
+        calcExpr = calcFormat(calcEvalRaw(calcExpr));
+      } catch (e) {
+        calcExpr = '';
+        document.getElementById('calc-display').textContent = 'Error';
+        calcJustEvaluated = false;
+        return;
+      }
+      document.getElementById('calc-display').textContent = calcExpr;
+      calcJustEvaluated = true;
+    }
+
+    // √, x², 1/x, sin, cos, tan (and their inverses via INV) act on the currently
+    // entered value/expression immediately. sin/cos/tan take/return degrees.
+    function calcUnary(fn) {
+      if (!calcExpr) return;
+      let value;
+      try {
+        value = calcEvalRaw(calcExpr);
+      } catch (e) {
+        document.getElementById('calc-display').textContent = 'Error';
+        calcExpr = '';
+        calcJustEvaluated = false;
+        return;
+      }
+
+      function fail() {
+        document.getElementById('calc-display').textContent = 'Error';
+        calcExpr = '';
+        calcJustEvaluated = false;
+      }
+
+      let result;
+      switch (fn) {
+        case 'sqrt':
+          if (value < 0) return fail();
+          result = Math.sqrt(value);
+          break;
+        case 'square':
+          result = value * value;
+          break;
+        case 'reciprocal':
+          if (value === 0) return fail();
+          result = 1 / value;
+          break;
+        case 'sin':
+          result = calcInvMode ? Math.asin(value) * 180 / Math.PI : Math.sin(value * Math.PI / 180);
+          if (calcInvMode && (value < -1 || value > 1)) return fail();
+          break;
+        case 'cos':
+          result = calcInvMode ? Math.acos(value) * 180 / Math.PI : Math.cos(value * Math.PI / 180);
+          if (calcInvMode && (value < -1 || value > 1)) return fail();
+          break;
+        case 'tan':
+          result = calcInvMode ? Math.atan(value) * 180 / Math.PI : Math.tan(value * Math.PI / 180);
+          break;
+      }
+
+      if (!Number.isFinite(result)) return fail();
+
+      calcExpr = calcFormat(result);
+      document.getElementById('calc-display').textContent = calcExpr;
+      calcJustEvaluated = true;
+    }
 
     const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
     const toRad = (deg) => (deg * Math.PI) / 180;
@@ -455,6 +1071,9 @@
     function startQuiz() {
       score = 0;
       currentQuestionIndex = 0;
+      currentStreak = 0;
+      bestStreakRun = 0;
+      updateStreakBadge();
       document.getElementById('setup-screen').classList.add('hidden');
       document.getElementById('results-screen').classList.add('hidden');
       document.getElementById('quiz-screen').classList.remove('hidden');
@@ -473,7 +1092,14 @@
       document.getElementById('action-btn').textContent = "Submit Answer";
       document.getElementById('user-answer').value = "";
       document.getElementById('feedback').className = "feedback hidden";
-      
+
+      const showSolBtn = document.getElementById('show-solution-btn');
+      showSolBtn.classList.add('hidden');
+      showSolBtn.textContent = "Show Solution";
+      const solBox = document.getElementById('solution-box');
+      solBox.classList.add('hidden');
+      solBox.innerHTML = '';
+
       document.getElementById('question-tracker').textContent = `Question ${currentQuestionIndex + 1}/${totalQuestions}`;
       document.getElementById('score-tracker').textContent = `Score: ${score}`;
 
@@ -512,31 +1138,63 @@
 
       if (isCorrect) {
         score++;
+        currentStreak++;
+        bestStreakRun = Math.max(bestStreakRun, currentStreak);
         feedbackEl.className = "feedback correct";
-        feedbackEl.innerHTML = `<b>Correct!</b><br>Formula: ${currentQuestion.formula}`;
+        feedbackEl.innerHTML = `<b>Correct!</b>`;
       } else {
+        currentStreak = 0;
         feedbackEl.className = "feedback wrong";
-        feedbackEl.innerHTML = `<b>Incorrect.</b> Correct answer: <b>${expected.toFixed(2)} ${currentQuestion.unit}</b><br>Formula: ${currentQuestion.formula}`;
+        feedbackEl.innerHTML = `<b>Incorrect.</b> Correct answer: <b>${expected.toFixed(2)} ${currentQuestion.unit}</b>`;
       }
 
+      updateStreakBadge();
       document.getElementById('score-tracker').textContent = `Score: ${score}`;
       document.getElementById('action-btn').textContent = currentQuestionIndex === totalQuestions - 1 ? "See Results" : "Next Question";
+      document.getElementById('show-solution-btn').classList.remove('hidden');
 
+      renderMath();
+    }
+
+    function showSolution() {
+      const solBox = document.getElementById('solution-box');
+      solBox.classList.remove('hidden');
+      solBox.innerHTML = `Formula: ${currentQuestion.formula}`;
+      const btn = document.getElementById('show-solution-btn');
+      btn.textContent = "Solution Shown";
+      btn.disabled = true;
       renderMath();
     }
 
     function showResults() {
       document.getElementById('quiz-screen').classList.add('hidden');
       document.getElementById('results-screen').classList.remove('hidden');
-      
+
       const percentage = Math.round((score / totalQuestions) * 100);
       document.getElementById('final-score').textContent = `${percentage}%`;
       document.getElementById('summary-text').textContent = `You answered ${score} out of ${totalQuestions} questions correctly.`;
+
+      const prevStats = loadStats();
+      const isNewHigh = prevStats.highScorePct === null || percentage > prevStats.highScorePct;
+      const newHighScorePct = isNewHigh ? percentage : prevStats.highScorePct;
+      const newBestStreak = Math.max(prevStats.bestStreak || 0, bestStreakRun);
+
+      document.getElementById('result-streak').textContent = `${bestStreakRun}`;
+      document.getElementById('result-highscore').textContent = `${newHighScorePct}%`;
+      document.getElementById('result-lastscore').textContent = prevStats.lastScorePct === null ? '—' : `${prevStats.lastScorePct}%`;
+      document.getElementById('new-high-score-badge').classList.toggle('hidden', !isNewHigh);
+
+      saveStats({
+        highScorePct: newHighScorePct,
+        lastScorePct: percentage,
+        bestStreak: newBestStreak
+      });
     }
 
     function resetQuiz() {
       document.getElementById('results-screen').classList.add('hidden');
       document.getElementById('setup-screen').classList.remove('hidden');
+      updateSetupStats();
     }
   </script>
 </body>
