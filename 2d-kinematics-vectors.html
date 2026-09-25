@@ -111,6 +111,127 @@
       updateStatsUI();
     }
 
+    // ---------- Floating calculator ----------
+    let calcExpr = '';
+    let calcJustEvaluated = false;
+    let calcInvMode = false;
+
+    function toggleCalculator() {
+      const panel = document.getElementById('calc-panel');
+      if (panel) panel.classList.toggle('hidden');
+    }
+
+    function toggleInv() {
+      calcInvMode = !calcInvMode;
+      document.getElementById('btn-inv').classList.toggle('active', calcInvMode);
+      document.getElementById('btn-sin').textContent = calcInvMode ? 'sin⁻¹' : 'sin';
+      document.getElementById('btn-cos').textContent = calcInvMode ? 'cos⁻¹' : 'cos';
+      document.getElementById('btn-tan').textContent = calcInvMode ? 'tan⁻¹' : 'tan';
+    }
+
+    function calcInput(val) {
+      const isDigitOrDot = /^[0-9.e]$/.test(val);
+      if (calcJustEvaluated) {
+        if (isDigitOrDot) calcExpr = '';
+        calcJustEvaluated = false;
+      }
+      calcExpr += val;
+      document.getElementById('calc-display').textContent = calcExpr;
+    }
+
+    function calcClear() {
+      calcExpr = '';
+      calcJustEvaluated = false;
+      document.getElementById('calc-display').textContent = '0';
+    }
+
+    function calcBackspace() {
+      calcJustEvaluated = false;
+      calcExpr = calcExpr.slice(0, -1);
+      document.getElementById('calc-display').textContent = calcExpr || '0';
+    }
+
+    function calcEvalRaw(expr) {
+      if (!/^[0-9+\-*/.%()eE\s]+$/.test(expr)) throw new Error('invalid');
+      const result = Function('"use strict"; return (' + expr + ')')();
+      if (!Number.isFinite(result)) throw new Error('invalid');
+      return result;
+    }
+
+    function calcFormat(n) {
+      if (!Number.isFinite(n)) return 'Error';
+      const abs = Math.abs(n);
+      if (abs !== 0 && (abs >= 1e9 || abs < 1e-6)) {
+        return n.toExponential(6).replace(/\.?0+e/, 'e');
+      }
+      return String(Math.round(n * 1e8) / 1e8);
+    }
+
+    function calcEquals() {
+      if (!calcExpr) return;
+      try {
+        calcExpr = calcFormat(calcEvalRaw(calcExpr));
+      } catch (e) {
+        calcExpr = '';
+        document.getElementById('calc-display').textContent = 'Error';
+        calcJustEvaluated = false;
+        return;
+      }
+      document.getElementById('calc-display').textContent = calcExpr;
+      calcJustEvaluated = true;
+    }
+
+    function calcUnary(fn) {
+      if (!calcExpr) return;
+      let value;
+      try {
+        value = calcEvalRaw(calcExpr);
+      } catch (e) {
+        document.getElementById('calc-display').textContent = 'Error';
+        calcExpr = '';
+        calcJustEvaluated = false;
+        return;
+      }
+
+      function fail() {
+        document.getElementById('calc-display').textContent = 'Error';
+        calcExpr = '';
+        calcJustEvaluated = false;
+      }
+
+      let result;
+      switch (fn) {
+        case 'sqrt':
+          if (value < 0) return fail();
+          result = Math.sqrt(value);
+          break;
+        case 'square':
+          result = value * value;
+          break;
+        case 'reciprocal':
+          if (value === 0) return fail();
+          result = 1 / value;
+          break;
+        case 'sin':
+          result = calcInvMode ? Math.asin(value) * 180 / Math.PI : Math.sin(value * Math.PI / 180);
+          if (calcInvMode && (value < -1 || value > 1)) return fail();
+          break;
+        case 'cos':
+          result = calcInvMode ? Math.acos(value) * 180 / Math.PI : Math.cos(value * Math.PI / 180);
+          if (calcInvMode && (value < -1 || value > 1)) return fail();
+          break;
+        case 'tan':
+          result = calcInvMode ? Math.atan(value) * 180 / Math.PI : Math.tan(value * Math.PI / 180);
+          break;
+      }
+
+      if (!Number.isFinite(result)) return fail();
+
+      calcExpr = calcFormat(result);
+      document.getElementById('calc-display').textContent = calcExpr;
+      calcJustEvaluated = true;
+    }
+
     const g = 9.80;
 
     // Problem Database Definitions using String.raw to preserve LaTeX backslashes
@@ -183,6 +304,177 @@ $$\theta = \tan^{-1}\left(\frac{${Math.abs(ry).toFixed(1)}}{${Math.abs(rx).toFix
                 `
               };
             }
+          },
+          {
+            title: "Museum courier route",
+            generate: (rand = false) => {
+              const e1 = rand ? +(3.0 + Math.random() * 2.0).toFixed(1) : 3.8;
+              const n1 = rand ? +(1.8 + Math.random() * 1.6).toFixed(1) : 2.6;
+              const leg3 = rand ? +(1.0 + Math.random() * 1.2).toFixed(1) : 1.5;
+              const ang3 = rand ? Math.round(25 + Math.random() * 25) : 35;
+
+              const x3 = -leg3 * Math.cos(ang3 * Math.PI / 180);
+              const y3 = -leg3 * Math.sin(ang3 * Math.PI / 180);
+              const Rx = e1 + x3;
+              const Ry = n1 + y3;
+              const mag = Math.sqrt(Rx * Rx + Ry * Ry);
+              const angle = Math.atan2(Ry, Rx) * (180 / Math.PI);
+              const totalD = e1 + n1 + leg3;
+
+              return {
+                statement: String.raw`A bicycle courier leaves a museum at the origin. She rides $${e1}\text{ km}$ east, then $${n1}\text{ km}$ north, then $${leg3}\text{ km}$ at $${ang3}^\circ$ south of west. Find the total distance traveled (km), the magnitude of her net displacement (km), and its direction angle (° north of east).`,
+                inputs: [
+                  { id: "totalD", label: "Total Distance (km)", ans: totalD },
+                  { id: "mag", label: "Displacement Magnitude (km)", ans: mag },
+                  { id: "angle", label: "Direction Angle (° north of east)", ans: angle }
+                ],
+                solution: String.raw`
+$$\text{Total Distance } d = ${e1} + ${n1} + ${leg3} = \mathbf{${totalD.toFixed(2)}\text{ km}}$$
+$$\text{Third leg: } x_3 = -${leg3}\cos(${ang3}^\circ) = ${x3.toFixed(2)}\text{ km}, \quad y_3 = -${leg3}\sin(${ang3}^\circ) = ${y3.toFixed(2)}\text{ km}$$
+$$R_x = ${e1} + (${x3.toFixed(2)}) = ${Rx.toFixed(2)}\text{ km}, \quad R_y = ${n1} + (${y3.toFixed(2)}) = ${Ry.toFixed(2)}\text{ km}$$
+$$R = \sqrt{(${Rx.toFixed(2)})^2 + (${Ry.toFixed(2)})^2} = \mathbf{${mag.toFixed(2)}\text{ km}}$$
+$$\theta = \tan^{-1}\left(\frac{${Ry.toFixed(2)}}{${Rx.toFixed(2)}}\right) = \mathbf{${angle.toFixed(1)}^\circ \text{ north of east}}$$
+                `
+              };
+            }
+          },
+          {
+            title: "Drone through a canyon",
+            generate: (rand = false) => {
+              const d1 = rand ? Math.round(350 + Math.random() * 140) : 420;
+              const a1 = rand ? Math.round(18 + Math.random() * 16) : 25;
+              const d2 = rand ? Math.round(250 + Math.random() * 120) : 310;
+              const d3 = rand ? Math.round(130 + Math.random() * 100) : 180;
+              const a3 = rand ? Math.round(30 + Math.random() * 20) : 40;
+
+              const x1 = d1 * Math.cos(a1 * Math.PI / 180), y1 = d1 * Math.sin(a1 * Math.PI / 180);
+              const x2 = -d2, y2 = 0;
+              const x3 = -d3 * Math.cos(a3 * Math.PI / 180), y3 = -d3 * Math.sin(a3 * Math.PI / 180);
+              const Rx = x1 + x2 + x3, Ry = y1 + y2 + y3;
+              const mag = Math.sqrt(Rx * Rx + Ry * Ry);
+              const angle = Math.atan2(Ry, -Rx) * (180 / Math.PI);
+
+              return {
+                statement: String.raw`A mapping drone starts at a field station and flies $${d1}\text{ m}$ at $${a1}^\circ$ north of east, then $${d2}\text{ m}$ due west, then $${d3}\text{ m}$ at $${a3}^\circ$ south of west. Find the magnitude (m) and direction (° north of west) of the drone's displacement from the station — i.e. how far and which way it must fly directly to return.`,
+                inputs: [
+                  { id: "mag", label: "Displacement Magnitude (m)", ans: mag },
+                  { id: "angle", label: "Direction Angle (° north of west)", ans: angle }
+                ],
+                solution: String.raw`
+$$\text{Leg 1: } x_1 = ${d1}\cos(${a1}^\circ) = ${x1.toFixed(1)}\text{ m}, \quad y_1 = ${d1}\sin(${a1}^\circ) = ${y1.toFixed(1)}\text{ m}$$
+$$\text{Leg 2: } x_2 = -${d2}\text{ m}, \quad y_2 = 0$$
+$$\text{Leg 3: } x_3 = -${d3}\cos(${a3}^\circ) = ${x3.toFixed(1)}\text{ m}, \quad y_3 = -${d3}\sin(${a3}^\circ) = ${y3.toFixed(1)}\text{ m}$$
+$$R_x = ${x1.toFixed(1)} + (${x2.toFixed(1)}) + (${x3.toFixed(1)}) = ${Rx.toFixed(1)}\text{ m}, \quad R_y = ${y1.toFixed(1)} + 0 + (${y3.toFixed(1)}) = ${Ry.toFixed(1)}\text{ m}$$
+$$R = \sqrt{(${Rx.toFixed(1)})^2+(${Ry.toFixed(1)})^2} = \mathbf{${mag.toFixed(1)}\text{ m}}$$
+$$\theta = \tan^{-1}\left(\frac{${Ry.toFixed(1)}}{${Math.abs(Rx).toFixed(1)}}\right) = \mathbf{${angle.toFixed(1)}^\circ \text{ north of west}}$$
+To return directly, the drone flies this same distance in the opposite direction: $${angle.toFixed(1)}^\circ$$ south of east.
+                `
+              };
+            }
+          },
+          {
+            title: "Coral-reef survey",
+            generate: (rand = false) => {
+              const scale = rand ? 0.8 + Math.random() * 0.5 : 1;
+              const p1x = +(1.25 * scale).toFixed(2), p1y = +(-0.80 * scale).toFixed(2);
+              const p2x = +(-0.35 * scale).toFixed(2), p2y = +(1.10 * scale).toFixed(2);
+              const p3x = +(0.60 * scale).toFixed(2), p3y = +(0.45 * scale).toFixed(2);
+
+              const leg1 = [p1x - 0, p1y - 0];
+              const leg2 = [p2x - p1x, p2y - p1y];
+              const leg3 = [p3x - p2x, p3y - p2y];
+              const mag1 = Math.hypot(...leg1), mag2 = Math.hypot(...leg2), mag3 = Math.hypot(...leg3);
+              const totalPath = mag1 + mag2 + mag3;
+              const Rx = p3x, Ry = p3y;
+              const mag = Math.hypot(Rx, Ry);
+              const angle = Math.atan2(Ry, Rx) * (180 / Math.PI);
+
+              return {
+                statement: String.raw`An autonomous survey vessel begins at a buoy at $(0,0)$. It travels to $(${p1x.toFixed(2)},${p1y.toFixed(2)})\text{ km}$, then to $(${p2x.toFixed(2)},${p2y.toFixed(2)})\text{ km}$, then to a dock at $(${p3x.toFixed(2)},${p3y.toFixed(2)})\text{ km}$. Find the total path length traveled (km), and the magnitude (km) and direction (° north of east) of the vessel's net displacement from buoy to dock.`,
+                inputs: [
+                  { id: "totalPath", label: "Total Path Length (km)", ans: totalPath },
+                  { id: "mag", label: "Net Displacement Magnitude (km)", ans: mag },
+                  { id: "angle", label: "Direction Angle (° north of east)", ans: angle }
+                ],
+                solution: String.raw`
+$$\text{Leg 1} = (${leg1[0].toFixed(2)},${leg1[1].toFixed(2)}), \ |\text{Leg 1}| = ${mag1.toFixed(3)}\text{ km}$$
+$$\text{Leg 2} = (${leg2[0].toFixed(2)},${leg2[1].toFixed(2)}), \ |\text{Leg 2}| = ${mag2.toFixed(3)}\text{ km}$$
+$$\text{Leg 3} = (${leg3[0].toFixed(2)},${leg3[1].toFixed(2)}), \ |\text{Leg 3}| = ${mag3.toFixed(3)}\text{ km}$$
+$$\text{Total Path} = ${mag1.toFixed(3)}+${mag2.toFixed(3)}+${mag3.toFixed(3)} = \mathbf{${totalPath.toFixed(2)}\text{ km}}$$
+$$\text{Net displacement} = (\text{dock}) - (\text{buoy}) = (${Rx.toFixed(2)},${Ry.toFixed(2)})\text{ km}$$
+$$R = \sqrt{(${Rx.toFixed(2)})^2+(${Ry.toFixed(2)})^2} = \mathbf{${mag.toFixed(2)}\text{ km}}$$
+$$\theta = \tan^{-1}\left(\frac{${Ry.toFixed(2)}}{${Rx.toFixed(2)}}\right) = \mathbf{${angle.toFixed(1)}^\circ \text{ north of east}}$$
+Note the net displacement depends only on the start and end points, not the path taken between them.
+                `
+              };
+            }
+          },
+          {
+            title: "Archaeologist's grid walk",
+            generate: (rand = false) => {
+              const scale = rand ? 0.8 + Math.random() * 0.5 : 1;
+              const Ax = 12, Ay = 5;
+              const ABx = Math.round(-16 * scale), ABy = Math.round(13 * scale);
+              const BCx = Math.round(13 * scale), BCy = Math.round(-21 * scale);
+              const Bx = Ax + ABx, By = Ay + ABy;
+              const Cx = Bx + BCx, Cy = By + BCy;
+
+              const ACx = Cx - Ax, ACy = Cy - Ay;
+              const mag = Math.hypot(ACx, ACy);
+              const angle = Math.atan2(-ACy, -ACx) * (180 / Math.PI);
+
+              return {
+                statement: String.raw`An archaeologist moves from $A=(${Ax},${Ay})\text{ m}$ to $B=(${Bx},${By})\text{ m}$, then to $C=(${Cx},${Cy})\text{ m}$. Find the direct displacement $\Delta \vec r_{AC}$ in component form, and its magnitude (m) and direction (° south of west).`,
+                inputs: [
+                  { id: "ACx", label: "ΔrAC, x-component (m)", ans: ACx },
+                  { id: "ACy", label: "ΔrAC, y-component (m)", ans: ACy },
+                  { id: "mag", label: "Magnitude (m)", ans: mag },
+                  { id: "angle", label: "Direction Angle (° south of west)", ans: angle }
+                ],
+                solution: String.raw`
+$$\Delta \vec r_{AB} = B - A = (${ABx},${ABy})\text{ m}$$
+$$\Delta \vec r_{BC} = C - B = (${BCx},${BCy})\text{ m}$$
+$$\Delta \vec r_{AC} = C - A = (${ACx},${ACy})\text{ m}$$
+$$R = \sqrt{(${ACx})^2+(${ACy})^2} = \mathbf{${mag.toFixed(2)}\text{ m}}$$
+$$\theta = \tan^{-1}\left(\frac{${Math.abs(ACy)}}{${Math.abs(ACx)}}\right) = \mathbf{${angle.toFixed(1)}^\circ \text{ south of west}}$$
+                `
+              };
+            }
+          },
+          {
+            title: "Lunar rover detour",
+            generate: (rand = false) => {
+              const d1 = rand ? Math.round(75 + Math.random() * 40) : 95;
+              const d2 = rand ? Math.round(100 + Math.random() * 60) : 130;
+              const a2 = rand ? Math.round(12 + Math.random() * 16) : 20;
+              const d3 = rand ? Math.round(55 + Math.random() * 40) : 75;
+              const a3 = rand ? Math.round(45 + Math.random() * 20) : 55;
+
+              const x1 = 0, y1 = d1;
+              const x2 = d2 * Math.sin(a2 * Math.PI / 180), y2 = -d2 * Math.cos(a2 * Math.PI / 180);
+              const x3 = -d3 * Math.cos(a3 * Math.PI / 180), y3 = d3 * Math.sin(a3 * Math.PI / 180);
+              const Rx = x1 + x2 + x3, Ry = y1 + y2 + y3;
+              const mag = Math.hypot(Rx, Ry);
+              const angle = Math.atan2(Rx, Ry) * (180 / Math.PI);
+
+              return {
+                statement: String.raw`A lunar rover leaves its lander and moves $${d1}\text{ m}$ north, then $${d2}\text{ m}$ at $${a2}^\circ$ east of south, then $${d3}\text{ m}$ at $${a3}^\circ$ north of west. Find the rover's final coordinates relative to the lander (m), and the minimum cable length (m) and direction (° east of north) needed to connect the lander directly to the rover.`,
+                inputs: [
+                  { id: "Rx", label: "Final x-coordinate (m)", ans: Rx },
+                  { id: "Ry", label: "Final y-coordinate (m)", ans: Ry },
+                  { id: "mag", label: "Cable Length (m)", ans: mag },
+                  { id: "angle", label: "Direction Angle (° east of north)", ans: angle }
+                ],
+                solution: String.raw`
+$$\text{Leg 2: } x_2 = ${d2}\sin(${a2}^\circ) = ${x2.toFixed(2)}\text{ m}, \quad y_2 = -${d2}\cos(${a2}^\circ) = ${y2.toFixed(2)}\text{ m}$$
+$$\text{Leg 3: } x_3 = -${d3}\cos(${a3}^\circ) = ${x3.toFixed(2)}\text{ m}, \quad y_3 = ${d3}\sin(${a3}^\circ) = ${y3.toFixed(2)}\text{ m}$$
+$$R_x = 0 + ${x2.toFixed(2)} + (${x3.toFixed(2)}) = ${Rx.toFixed(2)}\text{ m}$$
+$$R_y = ${d1} + (${y2.toFixed(2)}) + ${y3.toFixed(2)} = ${Ry.toFixed(2)}\text{ m}$$
+$$R = \sqrt{(${Rx.toFixed(2)})^2+(${Ry.toFixed(2)})^2} = \mathbf{${mag.toFixed(2)}\text{ m}}$$
+$$\theta = \tan^{-1}\left(\frac{${Rx.toFixed(2)}}{${Ry.toFixed(2)}}\right) = \mathbf{${angle.toFixed(1)}^\circ \text{ east of north}}$$
+                `
+              };
+            }
           }
         ]
       },
@@ -226,6 +518,174 @@ $$\theta = \tan^{-1}\left(\frac{${Math.abs(ry).toFixed(1)}}{${Math.abs(rx).toFix
                 `
               };
             }
+          },
+          {
+            title: "Tugboats and the floating observatory",
+            generate: (rand = false) => {
+              const A = rand ? +(3.4 + Math.random() * 1.6).toFixed(1) * 1e4 : 4.2e4;
+              const B = rand ? +(3.0 + Math.random() * 1.2).toFixed(1) * 1e4 : 3.6e4;
+              const aB = rand ? Math.round(28 + Math.random() * 16) : 35;
+              const C = rand ? +(2.2 + Math.random() * 1.2).toFixed(1) * 1e4 : 2.8e4;
+              const aC = rand ? Math.round(50 + Math.random() * 20) : 60;
+
+              const Ax = A, Ay = 0;
+              const Bx = B * Math.cos(aB * Math.PI / 180), By = B * Math.sin(aB * Math.PI / 180);
+              const Cx = -C * Math.cos(aC * Math.PI / 180), Cy = -C * Math.sin(aC * Math.PI / 180);
+              const Rx = Ax + Bx + Cx, Ry = Ay + By + Cy;
+              const mag = Math.hypot(Rx, Ry);
+              const angle = Math.atan2(-Ry, Rx) * (180 / Math.PI);
+
+              return {
+                statement: String.raw`Three tugboats pull a floating platform: A exerts $${(A/1000).toFixed(1)}\times10^3\text{ N}$ due east, B exerts $${(B/1000).toFixed(1)}\times10^3\text{ N}$ at $${aB}^\circ$ north of east, and C exerts $${(C/1000).toFixed(1)}\times10^3\text{ N}$ at $${aC}^\circ$ south of west. Find the resultant force's magnitude (N) and direction (° south of east).`,
+                inputs: [
+                  { id: "Rx", label: "Resultant Rx (N)", ans: Rx },
+                  { id: "Ry", label: "Resultant Ry (N)", ans: Ry },
+                  { id: "mag", label: "Resultant Magnitude (N)", ans: mag },
+                  { id: "angle", label: "Direction Angle (° south of east)", ans: angle }
+                ],
+                solution: String.raw`
+$$\vec A = (${Ax.toFixed(0)}, 0)\text{ N}$$
+$$\vec B = (${Bx.toFixed(0)}, ${By.toFixed(0)})\text{ N}$$
+$$\vec C = (${Cx.toFixed(0)}, ${Cy.toFixed(0)})\text{ N}$$
+$$R_x = ${Rx.toFixed(0)}\text{ N}, \quad R_y = ${Ry.toFixed(0)}\text{ N}$$
+$$R = \sqrt{(${Rx.toFixed(0)})^2+(${Ry.toFixed(0)})^2} = \mathbf{${mag.toFixed(0)}\text{ N}}$$
+$$\theta = \tan^{-1}\left(\frac{${Math.abs(Ry).toFixed(0)}}{${Rx.toFixed(0)}}\right) = \mathbf{${angle.toFixed(1)}^\circ \text{ south of east}}$$
+A fourth tugboat must apply $(${(-Rx).toFixed(0)}, ${(-Ry).toFixed(0)})\text{ N}$ — equal in magnitude, opposite in direction to the resultant — to zero the net force.
+                `
+              };
+            }
+          },
+          {
+            title: "Wind loads on a solar sail",
+            generate: (rand = false) => {
+              const F1 = rand ? +(0.7 + Math.random() * 0.3).toFixed(3) : 0.860;
+              const a1 = rand ? Math.round(13 + Math.random() * 10) : 18;
+              const F2 = rand ? +(0.18 + Math.random() * 0.12).toFixed(3) : 0.240;
+              const a2 = rand ? Math.round(100 + Math.random() * 20) : 110;
+              const F3 = rand ? +(0.12 + Math.random() * 0.08).toFixed(3) : 0.155;
+              const a3 = rand ? Math.round(240 + Math.random() * 20) : 250;
+              const m = rand ? +(9 + Math.random() * 7).toFixed(1) : 12.5;
+
+              const x1 = F1 * Math.cos(a1 * Math.PI / 180), y1 = F1 * Math.sin(a1 * Math.PI / 180);
+              const x2 = F2 * Math.cos(a2 * Math.PI / 180), y2 = F2 * Math.sin(a2 * Math.PI / 180);
+              const x3 = F3 * Math.cos(a3 * Math.PI / 180), y3 = F3 * Math.sin(a3 * Math.PI / 180);
+              const Rx = x1 + x2 + x3, Ry = y1 + y2 + y3;
+              const mag = Math.hypot(Rx, Ry);
+              let angle = Math.atan2(Ry, Rx) * (180 / Math.PI); if (angle < 0) angle += 360;
+              const amag = mag / m;
+
+              return {
+                statement: String.raw`A solar-sail spacecraft experiences three forces in its orbital plane: $${F1}\text{ N}$ at $${a1}^\circ$ above $+x$, $${F2}\text{ N}$ at $${a2}^\circ$ CCW from $+x$, and $${F3}\text{ N}$ at $${a3}^\circ$ CCW from $+x$. If the spacecraft's mass is $${m}\text{ kg}$, find the net force's magnitude (N), its direction (° CCW from $+x$), and the resulting acceleration magnitude (m/s²).`,
+                inputs: [
+                  { id: "mag", label: "Net Force Magnitude (N)", ans: mag },
+                  { id: "angle", label: "Direction Angle (° CCW from +x)", ans: angle },
+                  { id: "amag", label: "Acceleration Magnitude (m/s²)", ans: amag }
+                ],
+                solution: String.raw`
+$$\vec F_1 = (${x1.toFixed(3)}, ${y1.toFixed(3)})\text{ N}, \quad \vec F_2 = (${x2.toFixed(3)}, ${y2.toFixed(3)})\text{ N}, \quad \vec F_3 = (${x3.toFixed(3)}, ${y3.toFixed(3)})\text{ N}$$
+$$R_x = ${Rx.toFixed(3)}\text{ N}, \quad R_y = ${Ry.toFixed(3)}\text{ N}$$
+$$R = \sqrt{(${Rx.toFixed(3)})^2+(${Ry.toFixed(3)})^2} = \mathbf{${mag.toFixed(3)}\text{ N}}$$
+$$\theta = \mathbf{${angle.toFixed(1)}^\circ}\text{ (CCW from } +x\text{)}$$
+$$a = \frac{F_{net}}{m} = \frac{${mag.toFixed(3)}}{${m}} = \mathbf{${amag.toFixed(4)}\text{ m/s}^2}$$
+                `
+              };
+            }
+          },
+          {
+            title: "Stagehand's cable rig",
+            generate: (rand = false) => {
+              const T1given = rand ? Math.round(560 + Math.random() * 120) : 620;
+              const a1 = 52, a2 = 37;
+              const W = rand ? Math.round(880 + Math.random() * 200) : 980;
+
+              const reqT1 = W / (Math.sin(a1 * Math.PI / 180) + Math.cos(a1 * Math.PI / 180) * Math.tan(a2 * Math.PI / 180));
+              const reqT2 = reqT1 * Math.cos(a1 * Math.PI / 180) / Math.cos(a2 * Math.PI / 180);
+              const sufficient = Math.abs(T1given - reqT1) < 1;
+
+              return {
+                statement: String.raw`A stage light is held by two cables: Cable 1 pulls with $T_1=${T1given}\text{ N}$ at $${a1}^\circ$ above horizontal toward the left, and Cable 2 pulls with tension $T_2$ at $${a2}^\circ$ above horizontal toward the right. The light weighs $${W}\text{ N}$. Determine the tensions $T_1$ and $T_2$ actually required for equilibrium, and state whether the given $T_1$ value is sufficient.`,
+                inputs: [
+                  { id: "reqT1", label: "Required T₁ for equilibrium (N)", ans: reqT1 },
+                  { id: "reqT2", label: "Required T₂ for equilibrium (N)", ans: reqT2 }
+                ],
+                solution: String.raw`
+$$\sum F_x = 0: \ -T_1\cos(${a1}^\circ) + T_2\cos(${a2}^\circ) = 0 \ \Rightarrow \ T_2 = T_1\frac{\cos(${a1}^\circ)}{\cos(${a2}^\circ)}$$
+$$\sum F_y = 0: \ T_1\sin(${a1}^\circ) + T_2\sin(${a2}^\circ) = ${W}\text{ N}$$
+$$\text{Solving simultaneously: } T_1 = \mathbf{${reqT1.toFixed(1)}\text{ N}}, \quad T_2 = \mathbf{${reqT2.toFixed(1)}\text{ N}}$$
+$$\text{The stated } T_1 = ${T1given}\text{ N is ${sufficient ? 'sufficient' : 'NOT sufficient'} to support equilibrium; true equilibrium requires } T_1 \approx ${reqT1.toFixed(1)}\text{ N.}$$
+                `
+              };
+            }
+          },
+          {
+            title: "Rescue sled on ice",
+            generate: (rand = false) => {
+              const F1 = rand ? Math.round(150 + Math.random() * 70) : 185;
+              const a1 = rand ? Math.round(22 + Math.random() * 12) : 28;
+              const F2 = rand ? Math.round(130 + Math.random() * 60) : 160;
+              const a2 = rand ? Math.round(35 + Math.random() * 14) : 42;
+              const F3 = rand ? Math.round(35 + Math.random() * 40) : 55;
+              const m = rand ? +(38 + Math.random() * 20).toFixed(1) : 48.0;
+
+              const x1 = F1 * Math.cos(a1 * Math.PI / 180), y1 = F1 * Math.sin(a1 * Math.PI / 180);
+              const x2 = -F2 * Math.cos(a2 * Math.PI / 180), y2 = F2 * Math.sin(a2 * Math.PI / 180);
+              const x3 = 0, y3 = -F3;
+              const Rx = x1 + x2 + x3, Ry = y1 + y2 + y3;
+              const mag = Math.hypot(Rx, Ry);
+              const angle = Math.atan2(Ry, Rx) * (180 / Math.PI);
+              const amag = mag / m;
+
+              return {
+                statement: String.raw`A rescue sled is pulled by two rescuers: $${F1}\text{ N}$ at $${a1}^\circ$ north of east, and $${F2}\text{ N}$ at $${a2}^\circ$ north of west, while wind pushes with $${F3}\text{ N}$ due south. If the sled's mass is $${m}\text{ kg}$, find the net force's magnitude (N), direction (° north of east), and the sled's acceleration magnitude (m/s²).`,
+                inputs: [
+                  { id: "mag", label: "Net Force Magnitude (N)", ans: mag },
+                  { id: "angle", label: "Direction Angle (° north of east)", ans: angle },
+                  { id: "amag", label: "Acceleration Magnitude (m/s²)", ans: amag }
+                ],
+                solution: String.raw`
+$$\vec F_1 = (${x1.toFixed(1)}, ${y1.toFixed(1)})\text{ N}, \quad \vec F_2 = (${x2.toFixed(1)}, ${y2.toFixed(1)})\text{ N}, \quad \vec F_3 = (0, ${y3.toFixed(1)})\text{ N}$$
+$$R_x = ${Rx.toFixed(1)}\text{ N}, \quad R_y = ${Ry.toFixed(1)}\text{ N}$$
+$$R = \sqrt{(${Rx.toFixed(1)})^2+(${Ry.toFixed(1)})^2} = \mathbf{${mag.toFixed(1)}\text{ N}}$$
+$$\theta = \tan^{-1}\left(\frac{${Ry.toFixed(1)}}{${Rx.toFixed(1)}}\right) = \mathbf{${angle.toFixed(1)}^\circ \text{ north of east}}$$
+$$a = \frac{F_{net}}{m} = \frac{${mag.toFixed(1)}}{${m}} = \mathbf{${amag.toFixed(3)}\text{ m/s}^2}$$
+                `
+              };
+            }
+          },
+          {
+            title: "Robot warehouse alignment",
+            generate: (rand = false) => {
+              const scale = rand ? 0.8 + Math.random() * 0.5 : 1;
+              const F1 = [+(18 * scale).toFixed(1), +(-6 * scale).toFixed(1)];
+              const F2 = [+(-7 * scale).toFixed(1), +(15 * scale).toFixed(1)];
+              const F3 = [+(-4 * scale).toFixed(1), +(-11 * scale).toFixed(1)];
+              const m = rand ? +(7 + Math.random() * 5).toFixed(1) : 9.0;
+
+              const Rx = +F1[0] + +F2[0] + +F3[0];
+              const Ry = +F1[1] + +F2[1] + +F3[1];
+              const mag = Math.hypot(Rx, Ry);
+              const angle = Math.atan2(Ry, Rx) * (180 / Math.PI);
+              const target = [12, 0];
+              const corrX = target[0] - Rx, corrY = target[1] - Ry;
+              const ax = target[0] / m, ay = target[1] / m;
+
+              return {
+                statement: String.raw`A warehouse robot receives three navigation forces: $\vec F_1=(${F1[0]},${F1[1]})\text{ N}$, $\vec F_2=(${F2[0]},${F2[1]})\text{ N}$, and $\vec F_3=(${F3[0]},${F3[1]})\text{ N}$. Find the resultant force's magnitude (N) and direction angle (° from $+x$, CCW positive). Then find the correction force $(C_x,C_y)$ needed to make the net force equal to $(${target[0]},${target[1]})\text{ N}$.`,
+                inputs: [
+                  { id: "mag", label: "Resultant Magnitude (N)", ans: mag },
+                  { id: "angle", label: "Direction Angle (° from +x)", ans: angle },
+                  { id: "corrX", label: "Correction Force, x (N)", ans: corrX },
+                  { id: "corrY", label: "Correction Force, y (N)", ans: corrY }
+                ],
+                solution: String.raw`
+$$R_x = ${F1[0]} + (${F2[0]}) + (${F3[0]}) = ${Rx.toFixed(1)}\text{ N}, \quad R_y = ${F1[1]} + ${F2[1]} + (${F3[1]}) = ${Ry.toFixed(1)}\text{ N}$$
+$$R = \sqrt{(${Rx.toFixed(1)})^2+(${Ry.toFixed(1)})^2} = \mathbf{${mag.toFixed(2)}\text{ N}}$$
+$$\theta = \tan^{-1}\left(\frac{${Ry.toFixed(1)}}{${Rx.toFixed(1)}}\right) = \mathbf{${angle.toFixed(1)}^\circ}$$
+$$\vec C = (${target[0]},${target[1]}) - (${Rx.toFixed(1)},${Ry.toFixed(1)}) = \mathbf{(${corrX.toFixed(1)}, ${corrY.toFixed(1)})\text{ N}}$$
+$$\text{After correction: } \vec a = \frac{(${target[0]},${target[1]})}{${m}} = (${ax.toFixed(2)}, ${ay.toFixed(2)})\text{ m/s}^2$$
+                `
+              };
+            }
           }
         ]
       },
@@ -264,6 +724,192 @@ $$R = v_{0x} t = (${v0x.toFixed(2)})(${flightTime.toFixed(2)}) = \mathbf{${range
                 `
               };
             }
+          },
+          {
+            title: "Castle courtyard launcher",
+            generate: (rand = false) => {
+              const h = rand ? +(11 + Math.random() * 6).toFixed(1) : 14.0;
+              const v0 = rand ? +(15 + Math.random() * 8).toFixed(1) : 18.0;
+              const ang = rand ? Math.round(30 + Math.random() * 16) : 38;
+
+              const v0x = v0 * Math.cos(ang * Math.PI / 180), v0y = v0 * Math.sin(ang * Math.PI / 180);
+              const a = -0.5 * g, b = v0y, c = h;
+              const disc = b * b - 4 * a * c;
+              const t = Math.max((-b - Math.sqrt(disc)) / (2 * a), (-b + Math.sqrt(disc)) / (2 * a));
+              const range = v0x * t;
+              const vyImpact = v0y - g * t;
+              const speed = Math.hypot(v0x, vyImpact);
+              const angleBelow = Math.atan2(-vyImpact, v0x) * (180 / Math.PI);
+
+              return {
+                statement: String.raw`A foam projectile launches from a balcony $${h}\text{ m}$ above a courtyard at $${v0}\text{ m/s}$, $${ang}^\circ$ above horizontal. Find the flight time (s), horizontal range from the balcony's base (m), and the impact speed (m/s) and angle below horizontal (°).`,
+                inputs: [
+                  { id: "t", label: "Flight Time (s)", ans: t },
+                  { id: "range", label: "Horizontal Range (m)", ans: range },
+                  { id: "speed", label: "Impact Speed (m/s)", ans: speed },
+                  { id: "angleBelow", label: "Angle Below Horizontal (°)", ans: angleBelow }
+                ],
+                solution: String.raw`
+$$v_{0x} = ${v0}\cos(${ang}^\circ) = ${v0x.toFixed(2)}\text{ m/s}, \quad v_{0y} = ${v0}\sin(${ang}^\circ) = ${v0y.toFixed(2)}\text{ m/s}$$
+$$-${h} = -${v0y.toFixed(2)}t + \tfrac{1}{2}(9.80)t^2 \ \Rightarrow \ t = \mathbf{${t.toFixed(2)}\text{ s}}$$
+$$R = v_{0x}t = (${v0x.toFixed(2)})(${t.toFixed(2)}) = \mathbf{${range.toFixed(1)}\text{ m}}$$
+$$v_y = v_{0y} - gt = ${v0y.toFixed(2)} - (9.80)(${t.toFixed(2)}) = ${vyImpact.toFixed(2)}\text{ m/s}$$
+$$\text{speed} = \sqrt{v_{0x}^2+v_y^2} = \mathbf{${speed.toFixed(2)}\text{ m/s}}, \quad \theta = \tan^{-1}\left(\frac{${Math.abs(vyImpact).toFixed(2)}}{${v0x.toFixed(2)}}\right) = \mathbf{${angleBelow.toFixed(1)}^\circ \text{ below horizontal}}$$
+                `
+              };
+            }
+          },
+          {
+            title: "Supply capsule to a Mars habitat",
+            generate: (rand = false) => {
+              const v0 = rand ? +(25 + Math.random() * 12).toFixed(1) : 31.0;
+              const ang = rand ? Math.round(42 + Math.random() * 18) : 52;
+              const gm = 3.71;
+
+              const v0x = v0 * Math.cos(ang * Math.PI / 180), v0y = v0 * Math.sin(ang * Math.PI / 180);
+              const tUp = v0y / gm;
+              const hMax = (v0y * v0y) / (2 * gm);
+              const tFlight = 2 * tUp;
+              const range = v0x * tFlight;
+
+              const tFlightE = 2 * v0y / g, hMaxE = (v0y * v0y) / (2 * g), rangeE = v0x * tFlightE;
+
+              return {
+                statement: String.raw`A supply capsule launches on Mars ($g_{Mars}=3.71\text{ m/s}^2$) at $${v0}\text{ m/s}$, $${ang}^\circ$ above horizontal, landing at launch elevation. Find the time to reach max height (s), the max height (m), the total flight time (s), and the horizontal range (m).`,
+                inputs: [
+                  { id: "tUp", label: "Time to Max Height (s)", ans: tUp },
+                  { id: "hMax", label: "Max Height (m)", ans: hMax },
+                  { id: "tFlight", label: "Total Flight Time (s)", ans: tFlight },
+                  { id: "range", label: "Horizontal Range (m)", ans: range }
+                ],
+                solution: String.raw`
+$$v_{0x} = ${v0}\cos(${ang}^\circ) = ${v0x.toFixed(2)}\text{ m/s}, \quad v_{0y} = ${v0}\sin(${ang}^\circ) = ${v0y.toFixed(2)}\text{ m/s}$$
+$$t_{up} = \frac{v_{0y}}{g_{Mars}} = \frac{${v0y.toFixed(2)}}{3.71} = \mathbf{${tUp.toFixed(2)}\text{ s}}$$
+$$h_{\max} = \frac{v_{0y}^2}{2g_{Mars}} = \mathbf{${hMax.toFixed(2)}\text{ m}}$$
+$$t_{flight} = 2t_{up} = \mathbf{${tFlight.toFixed(2)}\text{ s}}, \quad R = v_{0x}t_{flight} = \mathbf{${range.toFixed(1)}\text{ m}}$$
+$$\text{On Earth (}g=9.80\text{ m/s}^2\text{) with the same launch: } t_{flight}=${tFlightE.toFixed(2)}\text{ s}, \ h_{\max}=${hMaxE.toFixed(2)}\text{ m}, \ R=${rangeE.toFixed(1)}\text{ m} — \text{all substantially smaller than on Mars, since weaker gravity keeps the capsule aloft longer and lets it travel higher and farther.}$$
+                `
+              };
+            }
+          },
+          {
+            title: "The pirate-ship water cannon",
+            generate: (rand = false) => {
+              const h = rand ? +(1.8 + Math.random() * 0.8).toFixed(1) : 2.2;
+              const v0 = rand ? +(21 + Math.random() * 6).toFixed(1) : 24.0;
+              const ang = 30;
+              const targetX = rand ? Math.round(32 + Math.random() * 10) : 38.0;
+              const opening = rand ? +(1.3 + Math.random() * 0.4).toFixed(1) : 1.5;
+
+              const v0x = v0 * Math.cos(ang * Math.PI / 180), v0y = v0 * Math.sin(ang * Math.PI / 180);
+              const t = targetX / v0x;
+              const y = h + v0y * t - 0.5 * g * t * t;
+
+              function yAt(thetaDeg) {
+                const th = thetaDeg * Math.PI / 180;
+                const vx = v0 * Math.cos(th), vy = v0 * Math.sin(th);
+                const tt = targetX / vx;
+                return h + vy * tt - 0.5 * g * tt * tt;
+              }
+              let lowAngle = null;
+              let prev = yAt(0.5) - opening;
+              for (let d = 1; d <= 89.5; d += 0.5) {
+                const cur = yAt(d) - opening;
+                if ((prev < 0 && cur > 0) || (prev > 0 && cur < 0)) {
+                  let lo = d - 0.5, hi = d;
+                  for (let i = 0; i < 60; i++) {
+                    const mid = (lo + hi) / 2;
+                    if ((yAt(lo) - opening < 0) === (yAt(mid) - opening < 0)) lo = mid; else hi = mid;
+                  }
+                  lowAngle = (lo + hi) / 2;
+                  break;
+                }
+                prev = cur;
+              }
+              if (lowAngle === null) lowAngle = ang; // safety fallback; ranges are chosen so this shouldn't trigger
+
+              return {
+                statement: String.raw`A water cannon $${h}\text{ m}$ above sea level fires at $${v0}\text{ m/s}$, $${ang}^\circ$ above horizontal, toward a target $${targetX}\text{ m}$ away. Find the time (s) to reach the target's horizontal position, the stream's height above sea level at that time (m), and the (lower) firing angle at the same speed that would place the stream exactly at the target's opening, $${opening}\text{ m}$ above sea level.`,
+                inputs: [
+                  { id: "t", label: "Time to Reach Target (s)", ans: t },
+                  { id: "y", label: "Height at Target (m)", ans: y },
+                  { id: "lowAngle", label: "Firing Angle for Opening (°, lower solution)", ans: lowAngle }
+                ],
+                solution: String.raw`
+$$v_{0x} = ${v0}\cos(${ang}^\circ) = ${v0x.toFixed(2)}\text{ m/s}, \quad v_{0y} = ${v0}\sin(${ang}^\circ) = ${v0y.toFixed(2)}\text{ m/s}$$
+$$t = \frac{${targetX}}{${v0x.toFixed(2)}} = \mathbf{${t.toFixed(2)}\text{ s}}$$
+$$y = ${h} + (${v0y.toFixed(2)})(${t.toFixed(2)}) - \tfrac{1}{2}(9.80)(${t.toFixed(2)})^2 = \mathbf{${y.toFixed(2)}\text{ m}}$$
+$$\text{Since } y ${y > opening ? '>' : '<'} ${opening}\text{ m, the stream passes ${y > opening ? 'above' : 'below'} the opening at this angle.}$$
+$$\text{Solving } h + v_0\sin\theta \cdot t(\theta) - \tfrac12 g \, t(\theta)^2 = ${opening}\text{ for } \theta \text{ (with } t(\theta)=${targetX}/(v_0\cos\theta)\text{) gives two angles; the lower (flatter) solution is } \theta \approx \mathbf{${lowAngle.toFixed(1)}^\circ}\text{ (a steeper second solution also exists).}$$
+                `
+              };
+            }
+          },
+          {
+            title: "Rooftop seed launcher",
+            generate: (rand = false) => {
+              const h = rand ? Math.round(16 + Math.random() * 8) : 20.0;
+              const v0 = rand ? +(13 + Math.random() * 7).toFixed(1) : 16.5;
+              const ang = 45;
+              const neighborDist = rand ? +(9 + Math.random() * 6).toFixed(1) : 12.0;
+              const neighborHeight = rand ? +(2 + Math.random() * 4).toFixed(1) : 4.0;
+
+              const v0x = v0 * Math.cos(ang * Math.PI / 180), v0y = v0 * Math.sin(ang * Math.PI / 180);
+              const tAtNeighbor = neighborDist / v0x;
+              const yAtNeighbor = v0y * tAtNeighbor - 0.5 * g * tAtNeighbor * tAtNeighbor;
+              const clears = yAtNeighbor > neighborHeight;
+
+              const a = -0.5 * g, b = v0y, c = h;
+              const disc = b * b - 4 * a * c;
+              const tLand = Math.max((-b - Math.sqrt(disc)) / (2 * a), (-b + Math.sqrt(disc)) / (2 * a));
+              const landDist = v0x * tLand;
+
+              return {
+                statement: String.raw`A botanist launches seed capsules from a rooftop $${h}\text{ m}$ above a greenhouse yard, at $${v0}\text{ m/s}$, $${ang}^\circ$ above horizontal. A neighboring roof edge is $${neighborDist}\text{ m}$ away and $${neighborHeight}\text{ m}$ above the launch point. Find the time (s) and height (m) of the capsule at the neighboring roof's distance (does it clear the $${neighborHeight}\text{ m}$ edge?), and the capsule's total landing distance from the launch building (m).`,
+                inputs: [
+                  { id: "tAtNeighbor", label: "Time at Neighbor Distance (s)", ans: tAtNeighbor },
+                  { id: "yAtNeighbor", label: "Height at Neighbor Distance (m)", ans: yAtNeighbor },
+                  { id: "landDist", label: "Landing Distance from Building (m)", ans: landDist }
+                ],
+                solution: String.raw`
+$$x(t) = ${v0x.toFixed(2)}\,t, \quad y(t) = ${v0y.toFixed(2)}\,t - 4.90\,t^2$$
+$$t_{\text{neighbor}} = \frac{${neighborDist}}{${v0x.toFixed(2)}} = \mathbf{${tAtNeighbor.toFixed(2)}\text{ s}}$$
+$$y(t_{\text{neighbor}}) = \mathbf{${yAtNeighbor.toFixed(2)}\text{ m}}\text{, which is ${clears ? 'above' : 'below'} the } ${neighborHeight}\text{ m roof — the capsule ${clears ? 'clears it' : 'does not clear it'}.}$$
+$$\text{Landing: } -${h} = ${v0y.toFixed(2)}t - 4.90t^2 \ \Rightarrow \ t_{land} = ${tLand.toFixed(2)}\text{ s}$$
+$$R = v_{0x}\,t_{land} = \mathbf{${landDist.toFixed(1)}\text{ m}}$$
+                `
+              };
+            }
+          },
+          {
+            title: "Zero-gravity training range",
+            generate: (rand = false) => {
+              const v0 = rand ? +(6 + Math.random() * 4).toFixed(1) : 8.0;
+              const h = rand ? +(1.3 + Math.random() * 0.8).toFixed(2) : 1.70;
+              const aMod = 1.62;
+              const targetDist = rand ? Math.round(12 + Math.random() * 8) : 15.0;
+
+              const t = Math.sqrt(2 * h / aMod);
+              const dist = v0 * t;
+              const vy = aMod * t;
+              const speedNeeded = targetDist / t;
+
+              return {
+                statement: String.raw`An astronaut fires a marker pellet horizontally at $${v0}\text{ m/s}$ from a height of $${h}\text{ m}$, inside a module with artificial downward acceleration $${aMod}\text{ m/s}^2$. Find the time to reach the floor (s), the horizontal distance traveled (m), the vertical velocity component at impact (m/s), and the launch speed needed (still horizontal) to land on a target $${targetDist}\text{ m}$ away.`,
+                inputs: [
+                  { id: "t", label: "Time to Floor (s)", ans: t },
+                  { id: "dist", label: "Horizontal Distance (m)", ans: dist },
+                  { id: "vy", label: "Vertical Velocity at Impact (m/s)", ans: vy },
+                  { id: "speedNeeded", label: "Speed Needed for Target (m/s)", ans: speedNeeded }
+                ],
+                solution: String.raw`
+$$${h} = \tfrac{1}{2}(${aMod})t^2 \ \Rightarrow \ t = \mathbf{${t.toFixed(3)}\text{ s}}$$
+$$x = v_0 t = (${v0})(${t.toFixed(3)}) = \mathbf{${dist.toFixed(2)}\text{ m}}$$
+$$v_y = a\,t = (${aMod})(${t.toFixed(3)}) = \mathbf{${vy.toFixed(2)}\text{ m/s}}, \quad v_x = ${v0}\text{ m/s (unchanged)}$$
+$$v_{\text{needed}} = \frac{${targetDist}}{${t.toFixed(3)}} = \mathbf{${speedNeeded.toFixed(2)}\text{ m/s}}$$
+                `
+              };
+            }
           }
         ]
       },
@@ -295,6 +941,193 @@ $$R = v_{0x} t = (${v0x.toFixed(2)})(${flightTime.toFixed(2)}) = \mathbf{${range
 $$v_{\text{ground}} = \sqrt{${vBoat}^2 + ${vCurrent}^2} = \mathbf{${vGround.toFixed(2)}\text{ m/s}}$$
 $$t = \frac{\text{width}}{v_{\text{north}}} = \frac{${width}}{${vBoat}} = \mathbf{${t.toFixed(1)}\text{ s}}$$
 $$\text{Drift } x = v_{\text{current}} \times t = (${vCurrent})(${t.toFixed(1)}) = \mathbf{${drift.toFixed(1)}\text{ m east}}$$
+                `
+              };
+            }
+          },
+          {
+            title: "Kayak through the bioluminescent bay",
+            generate: (rand = false) => {
+              const vBoatK = rand ? +(2.4 + Math.random() * 0.8).toFixed(2) : 2.8;
+              const vCurrentK = rand ? +(1.2 + Math.random() * 0.7).toFixed(2) : 1.6;
+              const widthK = rand ? Math.round(280 + Math.random() * 120) : 340;
+
+              const theta = Math.asin(vCurrentK / vBoatK) * (180 / Math.PI);
+              const vNorth = vBoatK * Math.cos(theta * Math.PI / 180);
+              const t = widthK / vNorth;
+
+              return {
+                statement: String.raw`A kayaker paddles at $${vBoatK}\text{ m/s}$ relative to the water across a bay $${widthK}\text{ m}$ wide, against a tidal current of $${vCurrentK}\text{ m/s}$ due east, aiming to travel due north. Find the heading angle (° west of north), the kayaker's speed relative to shore (m/s), and the crossing time (s).`,
+                inputs: [
+                  { id: "theta", label: "Heading Angle (° west of north)", ans: theta },
+                  { id: "vNorth", label: "Speed Relative to Shore (m/s)", ans: vNorth },
+                  { id: "t", label: "Crossing Time (s)", ans: t }
+                ],
+                solution: String.raw`
+$$\text{To cancel the eastward current: } v_{\text{boat}}\sin\theta = v_{\text{current}} \ \Rightarrow \ \theta = \sin^{-1}\left(\frac{${vCurrentK}}{${vBoatK}}\right) = \mathbf{${theta.toFixed(1)}^\circ \text{ west of north}}$$
+$$v_{\text{shore}} = v_{\text{boat}}\cos\theta = ${vBoatK}\cos(${theta.toFixed(1)}^\circ) = \mathbf{${vNorth.toFixed(2)}\text{ m/s}}$$
+$$t = \frac{${widthK}}{${vNorth.toFixed(2)}} = \mathbf{${t.toFixed(1)}\text{ s}}$$
+$$\text{If the current increases, } \sin\theta = v_{\text{current}}/v_{\text{boat}}\text{ grows, so a wider heading angle (more west) is needed, the shore-relative speed drops, and the crossing takes longer — and if the current ever reaches or exceeds the boat speed, no heading can cancel it and a purely-north crossing becomes impossible.}$$
+                `
+              };
+            }
+          },
+          {
+            title: "Drone delivery in a mountain wind",
+            generate: (rand = false) => {
+              const vAir = rand ? +(11 + Math.random() * 5).toFixed(1) : 14.0;
+              const vWind = rand ? +(4 + Math.random() * 3).toFixed(1) : 6.0;
+              const windAngle = 45;
+              const distKm = rand ? +(1.8 + Math.random() * 1.2).toFixed(2) : 2.40;
+
+              const windX = vWind * Math.cos(windAngle * Math.PI / 180), windY = -vWind * Math.sin(windAngle * Math.PI / 180);
+              const sinHeading = -windY / vAir;
+              const feasible = Math.abs(sinHeading) <= 1;
+              const heading = feasible ? Math.asin(sinHeading) * (180 / Math.PI) : NaN;
+              const groundSpeed = feasible ? vAir * Math.cos(heading * Math.PI / 180) + windX : NaN;
+              const timeS = feasible ? (distKm * 1000) / groundSpeed : NaN;
+
+              return {
+                statement: String.raw`A delivery drone has airspeed $${vAir}\text{ m/s}$. Wind blows at $${vWind}\text{ m/s}$ toward $${windAngle}^\circ$ south of east. The drone must travel due east to a cabin $${distKm}\text{ km}$ away. Find the required heading (° north of east), the ground speed (m/s), and the delivery time (s).`,
+                inputs: feasible ? [
+                  { id: "heading", label: "Required Heading (° north of east)", ans: heading },
+                  { id: "groundSpeed", label: "Ground Speed (m/s)", ans: groundSpeed },
+                  { id: "timeS", label: "Delivery Time (s)", ans: timeS }
+                ] : [
+                  { id: "sinHeading", label: "sin(required heading) — should be ≤ 1 for a valid route", ans: sinHeading }
+                ],
+                solution: feasible ? String.raw`
+$$\vec v_{\text{wind}} = (${windX.toFixed(2)}, ${windY.toFixed(2)})\text{ m/s}$$
+$$\text{For due-east travel, the north component must cancel the wind: } v_{\text{air}}\sin\phi = -w_y \ \Rightarrow \ \phi = \sin^{-1}\left(\frac{${(-windY).toFixed(2)}}{${vAir}}\right) = \mathbf{${heading.toFixed(1)}^\circ \text{ north of east}}$$
+$$v_{\text{ground}} = v_{\text{air}}\cos\phi + w_x = ${vAir}\cos(${heading.toFixed(1)}^\circ) + ${windX.toFixed(2)} = \mathbf{${groundSpeed.toFixed(2)}\text{ m/s}}$$
+$$t = \frac{${(distKm*1000).toFixed(0)}\text{ m}}{${groundSpeed.toFixed(2)}\text{ m/s}} = \mathbf{${timeS.toFixed(0)}\text{ s}}$$
+                ` : String.raw`
+$$\vec v_{\text{wind}} = (${windX.toFixed(2)}, ${windY.toFixed(2)})\text{ m/s}$$
+$$\text{Required } \sin\phi = \frac{${(-windY).toFixed(2)}}{${vAir}} = ${sinHeading.toFixed(3)}\text{, which exceeds 1 — the drone's airspeed is too low to cancel the wind's north-south component, so a due-east route is impossible at this airspeed.}$$
+                `
+              };
+            }
+          },
+          {
+            title: "The moving walkway mystery",
+            generate: (rand = false) => {
+              const vWalk = rand ? +(0.9 + Math.random() * 0.6).toFixed(2) : 1.20;
+              const vWalkerRel = rand ? +(1.2 + Math.random() * 0.6).toFixed(2) : 1.50;
+              const ang = rand ? Math.round(20 + Math.random() * 20) : 30;
+
+              const vx = vWalkerRel * Math.sin(ang * Math.PI / 180);
+              const vy = vWalkerRel * Math.cos(ang * Math.PI / 180) + vWalk;
+              const speed = Math.hypot(vx, vy);
+              const angleEofN = Math.atan2(vx, vy) * (180 / Math.PI);
+
+              const carouselN = rand ? Math.round(70 + Math.random() * 40) : 90;
+              const carouselE = rand ? Math.round(20 + Math.random() * 20) : 30;
+              const angleNeeded = Math.atan2(carouselE, carouselN) * (180 / Math.PI);
+              const reaches = Math.abs(angleNeeded - angleEofN) < 0.5;
+
+              function f(phiDeg) {
+                const phi = phiDeg * Math.PI / 180;
+                const vx_ = vWalkerRel * Math.sin(phi), vy_ = vWalkerRel * Math.cos(phi) + vWalk;
+                return (carouselE / carouselN) * vy_ - vx_;
+              }
+              let reqPhi = null;
+              let prev = f(-89);
+              for (let d = -88; d <= 89; d += 0.5) {
+                const cur = f(d);
+                if ((prev < 0 && cur > 0) || (prev > 0 && cur < 0)) {
+                  let lo = d - 0.5, hi = d;
+                  for (let i = 0; i < 60; i++) {
+                    const mid = (lo + hi) / 2;
+                    if ((f(lo) < 0) === (f(mid) < 0)) lo = mid; else hi = mid;
+                  }
+                  reqPhi = (lo + hi) / 2;
+                  break;
+                }
+                prev = cur;
+              }
+
+              return {
+                statement: String.raw`A moving walkway carries passengers at $${vWalk}\text{ m/s}$ due north. A traveler walks at $${vWalkerRel}\text{ m/s}$ relative to the walkway, at $${ang}^\circ$ east of north. Find the traveler's speed (m/s) and direction (° east of north) relative to the building. A luggage carousel sits $${carouselN}\text{ m}$ north and $${carouselE}\text{ m}$ east of the start — find the walking direction (° east of north, relative to the walkway) needed to head directly toward it.`,
+                inputs: [
+                  { id: "speed", label: "Speed Relative to Building (m/s)", ans: speed },
+                  { id: "angleEofN", label: "Direction (° east of north)", ans: angleEofN },
+                  { id: "reqPhi", label: "Walking Direction Needed for Carousel (° east of north)", ans: reqPhi }
+                ],
+                solution: String.raw`
+$$v_x = ${vWalkerRel}\sin(${ang}^\circ) = ${vx.toFixed(2)}\text{ m/s}, \quad v_y = ${vWalkerRel}\cos(${ang}^\circ) + ${vWalk} = ${vy.toFixed(2)}\text{ m/s}$$
+$$\text{speed} = \sqrt{v_x^2+v_y^2} = \mathbf{${speed.toFixed(2)}\text{ m/s}}, \quad \theta = \tan^{-1}\left(\frac{${vx.toFixed(2)}}{${vy.toFixed(2)}}\right) = \mathbf{${angleEofN.toFixed(1)}^\circ \text{ east of north}}$$
+$$\text{Direction to carousel: } \tan^{-1}\left(\frac{${carouselE}}{${carouselN}}\right) = ${angleNeeded.toFixed(1)}^\circ \text{ east of north} — \text{${reaches ? 'this matches the current heading, so the traveler DOES reach it' : 'this does NOT match the current heading, so the traveler misses it'}.}$$
+$$\text{Required walking angle (relative to walkway) so the ground path points at the carousel: } \phi \approx \mathbf{${reqPhi.toFixed(1)}^\circ \text{ east of north}}$$
+                `
+              };
+            }
+          },
+          {
+            title: "Search plane and a moving liferaft",
+            generate: (rand = false) => {
+              const vPlane = rand ? Math.round(60 + Math.random() * 24) : 72.0;
+              const vWind = rand ? Math.round(12 + Math.random() * 12) : 18.0;
+              const vRaft = rand ? +(1.8 + Math.random() * 1.4).toFixed(1) : 2.5;
+              const raftAngle = rand ? Math.round(15 + Math.random() * 20) : 25;
+              const distKm = rand ? Math.round(14 + Math.random() * 10) : 18.0;
+
+              const planeGroundX = vPlane, planeGroundY = vWind;
+              const raftX = vRaft * Math.cos(raftAngle * Math.PI / 180), raftY = -vRaft * Math.sin(raftAngle * Math.PI / 180);
+              const relX = planeGroundX - raftX, relY = planeGroundY - raftY;
+              const relSpeed = Math.hypot(relX, relY);
+              const relAngle = Math.atan2(relY, relX) * (180 / Math.PI);
+              const timeToClose = (distKm * 1000) / relX;
+
+              return {
+                statement: String.raw`A search plane flies at $${vPlane}\text{ m/s}$ relative to the air, heading due east, with wind $${vWind}\text{ m/s}$ due north. A liferaft drifts at $${vRaft}\text{ m/s}$ at $${raftAngle}^\circ$ south of east relative to the (stationary) water. Find the plane's velocity relative to the liferaft: its speed (m/s) and direction (° north of east). If the plane starts $${distKm}\text{ km}$ west of the liferaft, estimate the time (s) to close that east-west gap.`,
+                inputs: [
+                  { id: "relSpeed", label: "Relative Speed (m/s)", ans: relSpeed },
+                  { id: "relAngle", label: "Relative Direction (° north of east)", ans: relAngle },
+                  { id: "timeToClose", label: "Time to Close Gap (s)", ans: timeToClose }
+                ],
+                solution: String.raw`
+$$\vec v_{\text{plane/ground}} = (${planeGroundX}, ${planeGroundY})\text{ m/s}, \quad \vec v_{\text{raft/ground}} = (${raftX.toFixed(2)}, ${raftY.toFixed(2)})\text{ m/s}$$
+$$\vec v_{\text{plane/raft}} = \vec v_{\text{plane/ground}} - \vec v_{\text{raft/ground}} = (${relX.toFixed(2)}, ${relY.toFixed(2)})\text{ m/s}$$
+$$\text{speed} = \sqrt{(${relX.toFixed(2)})^2+(${relY.toFixed(2)})^2} = \mathbf{${relSpeed.toFixed(2)}\text{ m/s}}, \quad \theta = \tan^{-1}\left(\frac{${relY.toFixed(2)}}{${relX.toFixed(2)}}\right) = \mathbf{${relAngle.toFixed(1)}^\circ \text{ north of east}}$$
+$$t \approx \frac{${(distKm*1000).toFixed(0)}\text{ m}}{${relX.toFixed(2)}\text{ m/s (east-west component)}} = \mathbf{${timeToClose.toFixed(0)}\text{ s}}$$
+                `
+              };
+            }
+          },
+          {
+            title: "Lunar cargo transfer",
+            generate: (rand = false) => {
+              const vRover = rand ? +(4 + Math.random() * 2).toFixed(1) : 5.0;
+              const vRobotRel = rand ? +(2.8 + Math.random() * 1.4).toFixed(1) : 3.5;
+              const ang = rand ? Math.round(32 + Math.random() * 16) : 40;
+
+              const vx = -vRobotRel * Math.cos(ang * Math.PI / 180) + vRover;
+              const vy = vRobotRel * Math.sin(ang * Math.PI / 180);
+              const speed = Math.hypot(vx, vy);
+              const angle = Math.atan2(vy, vx) * (180 / Math.PI);
+
+              const hatchE = rand ? Math.round(100 + Math.random() * 40) : 120;
+              const hatchN = rand ? Math.round(60 + Math.random() * 40) : 80;
+              const timeS = 30.0;
+              const reqVx = hatchE / timeS, reqVy = hatchN / timeS;
+              const relVx = reqVx - vRover, relVy = reqVy;
+              const relSpeed = Math.hypot(relVx, relVy);
+              const relAngleNofW = Math.atan2(relVy, -relVx) * (180 / Math.PI);
+
+              return {
+                statement: String.raw`A cargo rover moves at $${vRover}\text{ m/s}$ due east relative to a lunar base. A service robot moves at $${vRobotRel}\text{ m/s}$ relative to the rover, at $${ang}^\circ$ north of west. Find the robot's velocity relative to the base: its speed (m/s) and direction angle (° from $+x$). A cargo hatch lies $${hatchE}\text{ m}$ east and $${hatchN}\text{ m}$ north of the robot's start. Find the velocity relative to the rover (speed in m/s, and direction ° north of west) needed for the robot to reach the hatch in exactly $${timeS.toFixed(1)}\text{ s}$.`,
+                inputs: [
+                  { id: "speed", label: "Robot Speed Relative to Base (m/s)", ans: speed },
+                  { id: "angle", label: "Direction Relative to Base (° from +x)", ans: angle },
+                  { id: "relSpeed", label: "Required Speed Relative to Rover (m/s)", ans: relSpeed },
+                  { id: "relAngleNofW", label: "Required Direction Relative to Rover (° north of west)", ans: relAngleNofW }
+                ],
+                solution: String.raw`
+$$v_x = -${vRobotRel}\cos(${ang}^\circ) + ${vRover} = ${vx.toFixed(2)}\text{ m/s}, \quad v_y = ${vRobotRel}\sin(${ang}^\circ) = ${vy.toFixed(2)}\text{ m/s}$$
+$$\text{speed} = \sqrt{v_x^2+v_y^2} = \mathbf{${speed.toFixed(2)}\text{ m/s}}, \quad \theta = \tan^{-1}\left(\frac{${vy.toFixed(2)}}{${vx.toFixed(2)}}\right) = \mathbf{${angle.toFixed(1)}^\circ}$$
+$$\text{Required ground velocity to reach hatch in } ${timeS.toFixed(1)}\text{ s: } \left(\frac{${hatchE}}{${timeS.toFixed(1)}}, \frac{${hatchN}}{${timeS.toFixed(1)}}\right) = (${reqVx.toFixed(2)}, ${reqVy.toFixed(2)})\text{ m/s}$$
+$$\vec v_{\text{robot/rover}} = \vec v_{\text{robot/base}} - \vec v_{\text{rover/base}} = (${relVx.toFixed(2)}, ${relVy.toFixed(2)})\text{ m/s}$$
+$$\text{speed} = \mathbf{${relSpeed.toFixed(2)}\text{ m/s}}, \quad \theta = \tan^{-1}\left(\frac{${relVy.toFixed(2)}}{${Math.abs(relVx).toFixed(2)}}\right) = \mathbf{${relAngleNofW.toFixed(1)}^\circ \text{ north of west}}$$
                 `
               };
             }
@@ -672,6 +1505,36 @@ $$\text{Drift } x = v_{\text{current}} \times t = (${vCurrent})(${t.toFixed(1)})
       if (window.lucide) lucide.createIcons();
     });
   </script>
+
+  <style>
+    .calc-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      padding: 10px 0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .calc-btn:hover { background: #e2e8f0; }
+    .dark .calc-btn {
+      background: #1e293b;
+      border-color: #334155;
+      color: #e2e8f0;
+    }
+    .dark .calc-btn:hover { background: #334155; }
+    .calc-btn.calc-op { color: #2563eb; font-weight: 600; }
+    .dark .calc-btn.calc-op { color: #60a5fa; }
+    .calc-btn.calc-op.active {
+      border-color: #2563eb;
+      background: rgba(37, 99, 235, 0.12);
+    }
+    .dark .calc-btn.calc-op.active {
+      border-color: #60a5fa;
+      background: rgba(96, 165, 250, 0.15);
+    }
+  </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen font-sans flex flex-col transition-colors duration-200">
 
@@ -867,6 +1730,55 @@ $$\text{Drift } x = v_{\text{current}} \times t = (${vCurrent})(${t.toFixed(1)})
           </div>
         </div>
       </div>
+    </div>
+  </div>
+  <!-- Floating Calculator -->
+  <button id="btn-calc-toggle" onclick="toggleCalculator()" title="Calculator"
+    class="fixed bottom-5 right-5 z-40 w-14 h-14 rounded-full bg-brand-500 hover:bg-brand-600 text-white text-2xl shadow-lg shadow-brand-500/30 flex items-center justify-center transition">
+    🧮
+  </button>
+
+  <div id="calc-panel"
+    class="hidden fixed bottom-24 right-5 z-40 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3">
+    <div id="calc-display"
+      class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-right text-xl font-mono mb-2 min-h-[1.8em] break-all text-slate-900 dark:text-slate-100">0</div>
+    <div class="grid grid-cols-4 gap-1.5">
+      <button class="calc-btn calc-op" id="btn-inv" onclick="toggleInv()" title="Inverse trig functions">INV</button>
+      <button class="calc-btn calc-op" onclick="calcUnary('sqrt')">√</button>
+      <button class="calc-btn calc-op" onclick="calcUnary('square')">x²</button>
+      <button class="calc-btn calc-op" onclick="calcUnary('reciprocal')">1/x</button>
+
+      <button class="calc-btn calc-op" id="btn-sin" onclick="calcUnary('sin')">sin</button>
+      <button class="calc-btn calc-op" id="btn-cos" onclick="calcUnary('cos')">cos</button>
+      <button class="calc-btn calc-op" id="btn-tan" onclick="calcUnary('tan')">tan</button>
+      <button class="calc-btn calc-op" onclick="calcInput('e')" title="Scientific notation (e.g. 1.5e3)">EXP</button>
+
+      <button class="calc-btn" onclick="calcClear()">C</button>
+      <button class="calc-btn" onclick="calcBackspace()">⌫</button>
+      <button class="calc-btn calc-op" onclick="calcInput('%')">%</button>
+      <button class="calc-btn calc-op" onclick="calcInput('/')">÷</button>
+
+      <button class="calc-btn col-span-2" onclick="calcInput('(')">(</button>
+      <button class="calc-btn col-span-2" onclick="calcInput(')')">)</button>
+
+      <button class="calc-btn" onclick="calcInput('7')">7</button>
+      <button class="calc-btn" onclick="calcInput('8')">8</button>
+      <button class="calc-btn" onclick="calcInput('9')">9</button>
+      <button class="calc-btn calc-op" onclick="calcInput('*')">×</button>
+
+      <button class="calc-btn" onclick="calcInput('4')">4</button>
+      <button class="calc-btn" onclick="calcInput('5')">5</button>
+      <button class="calc-btn" onclick="calcInput('6')">6</button>
+      <button class="calc-btn calc-op" onclick="calcInput('-')">−</button>
+
+      <button class="calc-btn" onclick="calcInput('1')">1</button>
+      <button class="calc-btn" onclick="calcInput('2')">2</button>
+      <button class="calc-btn" onclick="calcInput('3')">3</button>
+      <button class="calc-btn calc-op" onclick="calcInput('+')">+</button>
+
+      <button class="calc-btn col-span-2" onclick="calcInput('0')">0</button>
+      <button class="calc-btn" onclick="calcInput('.')">.</button>
+      <button class="calc-btn calc-op" onclick="calcEquals()">=</button>
     </div>
   </div>
 
