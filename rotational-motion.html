@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Physics Practice · Rotational Motion &amp; Angular Momentum</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+<style>
+:root, [data-theme="dark"] {
+  --bg: #12161c;
+  --bg-grid: #171c23;
+  --card-bg: #1a2029;
+  --card-bg-2: #202836;
+  --border: #2c3644;
+  --text: #e7edf3;
+  --text-dim: #8fa1b3;
+  --accent: #4fd1c5;
+  --accent-2: #f0a355;
+  --good: #5fd08a;
+  --bad: #ef6a6a;
+  --shadow: rgba(0,0,0,0.45);
+  --font-body: 'JetBrains Mono', 'Consolas', monospace;
+  --font-head: 'Fraunces', Georgia, serif;
+}
+[data-theme="light"] {
+  --bg: #f4f1ea;
+  --bg-grid: #eee9de;
+  --card-bg: #ffffff;
+  --card-bg-2: #f4f6f8;
+  --border: #d8d2c4;
+  --text: #22282f;
+  --text-dim: #5b6672;
+  --accent: #0e8f83;
+  --accent-2: #c1732a;
+  --good: #1f8a4c;
+  --bad: #c23a3a;
+  --shadow: rgba(80,70,50,0.15);
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: local('JetBrains Mono');
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+body {
+  font-family: var(--font-body);
+  background-image:
+    linear-gradient(var(--bg-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  padding: env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);
+  min-height: 100vh;
+  transition: background-color .2s, color .2s;
+}
+a { color: var(--accent); }
+
+.wrap { max-width: 760px; margin: 0 auto; padding: 14px 14px 100px; }
+
+header.app-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+}
+header.app-head h1 {
+  font-family: var(--font-head);
+  font-size: 1.28rem;
+  margin: 0;
+  line-height: 1.25;
+}
+header.app-head .subtitle {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+.head-btns { display: flex; gap: 8px; flex-shrink: 0; }
+.icon-btn {
+  background: var(--card-bg); border: 1px solid var(--border); color: var(--text);
+  width: 40px; height: 40px; border-radius: 10px; font-size: 1.05rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px var(--shadow);
+}
+.icon-btn:active { transform: scale(0.94); }
+
+.stat-bar {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  margin-bottom: 12px;
+}
+.stat {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+  padding: 8px 6px; text-align: center;
+}
+.stat .val { font-size: 1.15rem; font-weight: 700; color: var(--accent); font-family: var(--font-head); }
+.stat .lbl { font-size: 0.62rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+.panel {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px;
+  padding: 14px; margin-bottom: 12px; box-shadow: 0 2px 10px var(--shadow);
+}
+.mode-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.mode-row .grp { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  background: var(--card-bg-2); border: 1px solid var(--border); color: var(--text);
+  padding: 7px 12px; border-radius: 999px; font-size: 0.76rem; cursor: pointer;
+  font-family: var(--font-body); white-space: nowrap;
+}
+.chip.active { background: var(--accent); color: #06201d; border-color: var(--accent); font-weight: 700; }
+.chip.game.active { background: var(--accent-2); color: #2a1503; border-color: var(--accent-2); }
+.mode-label { font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 2px; }
+
+#game-progress { font-size: 0.75rem; color: var(--text-dim); margin-top: 8px; display:none; }
+#game-progress.show { display: block; }
+
+.set-tag {
+  display: inline-block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--accent-2); border: 1px solid var(--accent-2); border-radius: 6px; padding: 2px 8px;
+  margin-bottom: 8px;
+}
+.prob-title { font-family: var(--font-head); font-size: 1.15rem; margin: 0 0 8px; }
+.prob-statement { font-size: 0.92rem; line-height: 1.55; margin-bottom: 14px; }
+.prob-statement .katex { font-size: 1.02em; }
+
+.part {
+  border-top: 1px dashed var(--border); padding: 12px 0;
+}
+.part:first-child { border-top: none; padding-top: 0; }
+.part-q { font-size: 0.88rem; margin-bottom: 8px; display:flex; gap:8px; }
+.part-q .pnum {
+  flex-shrink:0; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--card-bg-2); border: 1px solid var(--border);
+  display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:700;
+}
+.answer-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-left: 30px;}
+.answer-row input[type=number] {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; padding: 8px 10px; font-size: 0.95rem; width: 130px;
+  font-family: var(--font-body);
+}
+.answer-row input[type=number]:focus { outline: none; border-color: var(--accent); }
+.unit { font-size: 0.8rem; color: var(--text-dim); }
+.choice-row { display:flex; gap:6px; flex-wrap: wrap; margin-left: 30px; }
+.choice-btn {
+  background: var(--card-bg-2); border: 1px solid var(--border); color: var(--text);
+  padding: 7px 11px; border-radius: 8px; font-size: 0.78rem; cursor: pointer; font-family: var(--font-body);
+}
+.choice-btn.picked { border-color: var(--accent); background: rgba(79,209,197,0.15); color: var(--accent); font-weight:700; }
+
+.result-mark { font-size: 1rem; margin-left: 4px; }
+.result-mark.correct { color: var(--good); }
+.result-mark.incorrect { color: var(--bad); }
+.correct-answer { font-size: 0.78rem; color: var(--text-dim); margin-left: 30px; margin-top: 4px; }
+.correct-answer.show-it { color: var(--good); }
+
+.btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.btn {
+  flex: 1; min-width: 120px; padding: 12px; border-radius: 10px; border: none;
+  font-family: var(--font-body); font-size: 0.85rem; font-weight: 700; cursor: pointer;
+}
+.btn-primary { background: var(--accent); color: #06201d; }
+.btn-secondary { background: var(--card-bg-2); color: var(--text); border: 1px solid var(--border); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:active:not(:disabled) { transform: scale(0.98); }
+
+.solution {
+  margin-top: 14px; padding-top: 14px; border-top: 2px solid var(--border);
+  font-size: 0.88rem; line-height: 1.6; display: none;
+}
+.solution.show { display: block; }
+.solution h4 { font-family: var(--font-head); font-size: 0.95rem; margin: 10px 0 4px; color: var(--accent); }
+.solution .katex-display { margin: 6px 0; overflow-x: auto; overflow-y: hidden; }
+.solution p { margin: 4px 0; }
+
+.feedback-banner {
+  border-radius: 10px; padding: 10px 12px; font-size: 0.85rem; font-weight: 700;
+  margin-bottom: 12px; display: none; text-align: center;
+}
+.feedback-banner.show { display: block; }
+.feedback-banner.all-correct { background: rgba(95,208,138,0.15); color: var(--good); border: 1px solid var(--good); }
+.feedback-banner.some-wrong { background: rgba(239,106,106,0.15); color: var(--bad); border: 1px solid var(--bad); }
+
+/* modal (formula sheet + game over) */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  display: none; align-items: center; justify-content: center; z-index: 200; padding: 16px;
+}
+.overlay.show { display: flex; }
+.modal {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px;
+  max-width: 480px; width: 100%; max-height: 82vh; overflow-y: auto;
+  padding: 18px; box-shadow: 0 10px 30px var(--shadow); position: relative;
+}
+.modal h2 { font-family: var(--font-head); margin-top: 0; font-size: 1.15rem; }
+.modal .close-x {
+  position: absolute; top: 10px; right: 10px; background: none; border: none;
+  color: var(--text-dim); font-size: 1.3rem; cursor: pointer; line-height: 1;
+}
+.formula-block { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px dashed var(--border); font-size: 0.9rem; }
+.formula-block:last-child { border-bottom: none; }
+.formula-note { font-size: 0.76rem; color: var(--text-dim); margin-bottom: 14px; line-height: 1.5; }
+
+/* floating calculator (shared component) */
+.calc-fab {
+  position: fixed; bottom: 20px; right: 20px;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent); color: #06201d; border: none;
+  font-size: 1.4rem; cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  z-index: 90; display: flex; align-items: center; justify-content: center;
+}
+.calc-panel {
+  position: fixed; bottom: 82px; right: 20px; width: 260px;
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); z-index: 90;
+}
+.calc-display {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px; text-align: right; font-size: 1.3rem; margin-bottom: 8px;
+  word-break: break-all; min-height: 1.6em; font-family: var(--font-body);
+}
+.calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.calc-btn {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  padding: 10px 0; border-radius: 6px; font-size: 0.95rem; cursor: pointer; font-family: var(--font-body);
+}
+.calc-btn.op { color: var(--accent); font-weight: bold; }
+.calc-btn.active { border-color: var(--accent); background: rgba(79,209,197,0.15); color: var(--accent); }
+.calc-btn.wide { grid-column: span 2; }
+.hidden { display: none !important; }
+
+footer.app-foot { text-align: center; font-size: 0.68rem; color: var(--text-dim); padding: 10px 0 20px; }
+
+@media (max-width: 420px) {
+  .stat-bar { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .stat .val { font-size: 1.0rem; }
+  .answer-row, .choice-row { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="app-head">
+    <div>
+      <h1>Rotational Motion &amp; Angular Momentum</h1>
+      <div class="subtitle">Physics Practice · six problem sets, randomized values</div>
+    </div>
+    <div class="head-btns">
+      <button class="icon-btn" id="formula-btn" title="Reference formulas">📖</button>
+      <button class="icon-btn" id="theme-btn" title="Toggle dark/light">🌙</button>
+    </div>
+  </header>
+
+  <div class="stat-bar">
+    <div class="stat"><div class="val" id="stat-score">0</div><div class="lbl">Score</div></div>
+    <div class="stat"><div class="val" id="stat-streak">0</div><div class="lbl">Streak</div></div>
+    <div class="stat"><div class="val" id="stat-high">0</div><div class="lbl">High Score</div></div>
+    <div class="stat"><div class="val" id="stat-last">–</div><div class="lbl">Last Score</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="mode-row">
+      <span class="mode-label">Set</span>
+      <div class="grp" id="set-chips"></div>
+    </div>
+    <div class="mode-row" style="margin-top:10px;">
+      <span class="mode-label">Game</span>
+      <div class="grp" id="game-chips">
+        <button class="chip game" data-n="5">5Q</button>
+        <button class="chip game" data-n="10">10Q</button>
+        <button class="chip game" data-n="15">15Q</button>
+      </div>
+    </div>
+    <div id="game-progress"></div>
+  </div>
+
+  <div class="feedback-banner" id="feedback-banner"></div>
+
+  <div class="panel" id="problem-card">
+    <div class="set-tag" id="prob-set-tag">SET 1</div>
+    <h2 class="prob-title" id="prob-title">Loading…</h2>
+    <div class="prob-statement" id="prob-statement"></div>
+    <div id="parts-container"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="submit-btn">Submit Answers</button>
+      <button class="btn btn-secondary" id="solution-btn" disabled>Show Solution</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="next-btn">Next Problem →</button>
+    </div>
+
+    <div class="solution" id="solution-block"></div>
+  </div>
+
+  <footer class="app-foot">Use g = 9.80 m/s². Answers graded within ±3% tolerance.</footer>
+</div>
+
+<!-- formula sheet modal -->
+<div class="overlay" id="formula-overlay">
+  <div class="modal">
+    <button class="close-x" id="formula-close">×</button>
+    <h2>Reference Formulas</h2>
+    <div id="formula-body"></div>
+  </div>
+</div>
+
+<!-- game over modal -->
+<div class="overlay" id="gameover-overlay">
+  <div class="modal">
+    <button class="close-x" id="gameover-close">×</button>
+    <h2 id="gameover-title">Game Complete!</h2>
+    <p id="gameover-summary" style="font-size:0.95rem;"></p>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="gameover-again">Play Again</button>
+      <button class="btn btn-secondary" id="gameover-practice">Back to Practice</button>
+    </div>
+  </div>
+</div>
+
+<!-- floating calculator -->
+<button class="calc-fab" id="calc-fab" onclick="toggleCalculator()" title="Calculator">🧮</button>
+<div id="calc-panel" class="calc-panel hidden">
+  <div class="calc-display" id="calc-display">0</div>
+  <div class="calc-grid">
+    <button class="calc-btn op" id="btn-inv" onclick="toggleInv()" title="Inverse trig functions">INV</button>
+    <button class="calc-btn op" onclick="calcUnary('sqrt')">√</button>
+    <button class="calc-btn op" onclick="calcUnary('square')">x²</button>
+    <button class="calc-btn op" onclick="calcUnary('reciprocal')">1/x</button>
+
+    <button class="calc-btn op" id="btn-sin" onclick="calcUnary('sin')">sin</button>
+    <button class="calc-btn op" id="btn-cos" onclick="calcUnary('cos')">cos</button>
+    <button class="calc-btn op" id="btn-tan" onclick="calcUnary('tan')">tan</button>
+    <button class="calc-btn op" onclick="calcInput('e')" title="Scientific notation (e.g. 1.5e3)">EXP</button>
+
+    <button class="calc-btn" onclick="calcClear()">C</button>
+    <button class="calc-btn" onclick="calcBackspace()">⌫</button>
+    <button class="calc-btn op" onclick="calcInput('%')">%</button>
+    <button class="calc-btn op" onclick="calcInput('/')">÷</button>
+
+    <button class="calc-btn wide" onclick="calcInput('(')">(</button>
+    <button class="calc-btn wide" onclick="calcInput(')')">)</button>
+
+    <button class="calc-btn" onclick="calcInput('7')">7</button>
+    <button class="calc-btn" onclick="calcInput('8')">8</button>
+    <button class="calc-btn" onclick="calcInput('9')">9</button>
+    <button class="calc-btn op" onclick="calcInput('*')">×</button>
+
+    <button class="calc-btn" onclick="calcInput('4')">4</button>
+    <button class="calc-btn" onclick="calcInput('5')">5</button>
+    <button class="calc-btn" onclick="calcInput('6')">6</button>
+    <button class="calc-btn op" onclick="calcInput('-')">−</button>
+
+    <button class="calc-btn" onclick="calcInput('1')">1</button>
+    <button class="calc-btn" onclick="calcInput('2')">2</button>
+    <button class="calc-btn" onclick="calcInput('3')">3</button>
+    <button class="calc-btn op" onclick="calcInput('+')">+</button>
+
+    <button class="calc-btn wide" onclick="calcInput('0')">0</button>
+    <button class="calc-btn" onclick="calcInput('.')">.</button>
+    <button class="calc-btn op" onclick="calcEquals()">=</button>
+  </div>
+</div>
+
+<script>
+/* ================= THEME ================= */
+function applyThemeIcon(){
+  const t = document.documentElement.getAttribute('data-theme');
+  document.getElementById('theme-btn').textContent = t==='dark' ? '🌙' : '☀️';
+}
+function initTheme(){
+  const saved = localStorage.getItem('ch10_theme');
+  document.documentElement.setAttribute('data-theme', saved || 'dark');
+  applyThemeIcon();
+}
+document.getElementById('theme-btn').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('ch10_theme', next);
+  applyThemeIcon();
+});
+initTheme();
+
+/* ================= FLOATING CALCULATOR ================= */
+let calcExpr = '';
+let calcJustEvaluated = false;
+let calcInvMode = false;
+
+function toggleInv() {
+  calcInvMode = !calcInvMode;
+  document.getElementById('btn-inv').classList.toggle('active', calcInvMode);
+  document.getElementById('btn-sin').textContent = calcInvMode ? 'sin⁻¹' : 'sin';
+  document.getElementById('btn-cos').textContent = calcInvMode ? 'cos⁻¹' : 'cos';
+  document.getElementById('btn-tan').textContent = calcInvMode ? 'tan⁻¹' : 'tan';
+}
+
+function toggleCalculator() {
+  document.getElementById('calc-panel').classList.toggle('hidden');
+}
+
+function calcInput(val) {
+  const isDigitOrDot = /^[0-9.e]$/.test(val);
+  if (calcJustEvaluated) {
+    if (isDigitOrDot) calcExpr = '';
+    calcJustEvaluated = false;
+  }
+  calcExpr += val;
+  document.getElementById('calc-display').textContent = calcExpr;
+}
+
+function calcClear() {
+  calcExpr = '';
+  calcJustEvaluated = false;
+  document.getElementById('calc-display').textContent = '0';
+}
+
+function calcBackspace() {
+  calcJustEvaluated = false;
+  calcExpr = calcExpr.slice(0, -1);
+  document.getElementById('calc-display').textContent = calcExpr || '0';
+}
+
+function calcEvalRaw(expr) {
+  if (!/^[0-9+\-*/.%()eE\s]+$/.test(expr)) throw new Error('invalid');
+  const result = Function('"use strict"; return (' + expr + ')')();
+  if (!Number.isFinite(result)) throw new Error('invalid');
+  return result;
+}
+
+function calcFormat(n) {
+  if (!Number.isFinite(n)) return 'Error';
+  const abs = Math.abs(n);
+  if (abs !== 0 && (abs >= 1e9 || abs < 1e-6)) {
+    return n.toExponential(6).replace(/\.?0+e/, 'e');
+  }
+  return String(Math.round(n * 1e8) / 1e8);
+}
+
+function calcEquals() {
+  if (!calcExpr) return;
+  try {
+    calcExpr = calcFormat(calcEvalRaw(calcExpr));
+  } catch (e) {
+    calcExpr = '';
+    document.getElementById('calc-display').textContent = 'Error';
+    calcJustEvaluated = false;
+    return;
+  }
+  document.getElementById('calc-display').textContent = calcExpr;
+  calcJustEvaluated = true;
+}
+
+function calcUnary(fn) {
+  if (!calcExpr) return;
+  let value;
+  try {
+    value = calcEvalRaw(calcExpr);
+  } catch (e) {
+    document.getElementById('calc-display').textContent = 'Error';
+    calcExpr = '';
+    calcJustEvaluated = false;
+    return;
+  }
+
+  function fail() {
+    document.getElementById('calc-display').textContent = 'Error';
+    calcExpr = '';
+    calcJustEvaluated = false;
+  }
+
+  let result;
+  switch (fn) {
+    case 'sqrt':
+      if (value < 0) return fail();
+      result = Math.sqrt(value);
+      break;
+    case 'square':
+      result = value * value;
+      break;
+    case 'reciprocal':
+      if (value === 0) return fail();
+      result = 1 / value;
+      break;
+    case 'sin':
+      result = calcInvMode ? Math.asin(value) * 180 / Math.PI : Math.sin(value * Math.PI / 180);
+      if (calcInvMode && (value < -1 || value > 1)) return fail();
+      break;
+    case 'cos':
+      result = calcInvMode ? Math.acos(value) * 180 / Math.PI : Math.cos(value * Math.PI / 180);
+      if (calcInvMode && (value < -1 || value > 1)) return fail();
+      break;
+    case 'tan':
+      result = calcInvMode ? Math.atan(value) * 180 / Math.PI : Math.tan(value * Math.PI / 180);
+      break;
+  }
+
+  if (!Number.isFinite(result)) return fail();
+
+  calcExpr = calcFormat(result);
+  document.getElementById('calc-display').textContent = calcExpr;
+  calcJustEvaluated = true;
+}
+</script>
+<script>
+/* ================= NUMERIC HELPERS ================= */
+const G = 9.80;
+const TWO_PI = 2*Math.PI;
+const rpm2w = rpm => rpm*TWO_PI/60;
+
+function R(min, max, dec=2){
+  const v = min + Math.random()*(max-min);
+  return +v.toFixed(dec);
+}
+function Rstep(min, max, step, dec=0){
+  const n = Math.round((max-min)/step);
+  const v = min + Math.floor(Math.random()*(n+1))*step;
+  return +v.toFixed(dec);
+}
+
+/* format a number for display: 3 sig figs, scientific notation outside typical range */
+function fmt(x){
+  if (!isFinite(x)) return '\\text{—}';
+  if (x === 0) return '0';
+  const sign = x < 0 ? '-' : '';
+  const abs = Math.abs(x);
+  if (abs >= 100000 || abs < 0.001){
+    const exp = Math.floor(Math.log10(abs));
+    let mant = abs / Math.pow(10, exp);
+    // guard rounding pushing mantissa to 10
+    if (+mant.toFixed(2) >= 10){ mant/=10; }
+    return sign + mant.toFixed(2) + '\\times10^{' + Math.floor(Math.log10(abs)) + '}';
+  }
+  let p = +abs.toPrecision(3);
+  return sign + p.toString();
+}
+/* plain (non-latex) formatted string, for on-screen correct-answer display */
+function fmtPlain(x){
+  if (!isFinite(x)) return '—';
+  if (x === 0) return '0';
+  const sign = x < 0 ? '-' : '';
+  const abs = Math.abs(x);
+  if (abs >= 100000 || abs < 0.001){
+    const exp = Math.floor(Math.log10(abs));
+    let mant = abs / Math.pow(10, exp);
+    if (+mant.toFixed(2) >= 10){ mant/=10; }
+    return sign + mant.toFixed(2) + 'e' + exp;
+  }
+  let p = +abs.toPrecision(3);
+  return sign + p.toString();
+}
+
+function approxEqual(actual, expected, tol=0.03){
+  if (Math.abs(expected) < 1e-9) return Math.abs(actual) < 1e-6;
+  return Math.abs((actual-expected)/expected) <= tol;
+}
+
+/* ================= PROBLEM BANK ================= */
+/* Each problem: { set, id, title, gen(), statement(v), parts:[{prompt(v),unit,answer(v),tol}], solution(v) } */
+const PROBLEMS = [];
+
+/* ---------------- SET 1: Angular Acceleration & Circular Motion ---------------- */
+PROBLEMS.push({
+  set:1, id:'s1-1', title:'Accelerating centrifuge',
+  gen(){
+    const rpm_f = Rstep(9000,15000,500);
+    const t = Rstep(50,100,5);
+    const r = R(0.10,0.20,3);
+    const wf = rpm2w(rpm_f);
+    const alpha = wf/t;
+    const at = r*alpha;
+    const ac = r*wf*wf;
+    const ac_g = ac/G;
+    return {rpm_f,t,r,wf,alpha,at,ac,ac_g};
+  },
+  statement:v => `A laboratory centrifuge accelerates uniformly from rest to ${v.rpm_f.toLocaleString()} rpm in ${fmt(v.t)} s. A sample tube is located ${fmt(v.r)} m from the rotation axis.`,
+  parts:[
+    {prompt:'Angular acceleration \\(\\alpha\\).', unit:'rad/s²', answer:v=>v.alpha},
+    {prompt:'Tangential acceleration \\(a_t\\) of the tube during spin-up.', unit:'m/s²', answer:v=>v.at},
+    {prompt:'Centripetal acceleration \\(a_c\\) at full speed.', unit:'m/s²', answer:v=>v.ac, tol:0.05},
+    {prompt:'The final centripetal acceleration as a multiple of \\(g\\).', unit:'×g', answer:v=>v.ac_g, tol:0.05},
+  ],
+  solution:v => `
+    <p>Convert the final angular speed:</p>
+    \\[\\omega_f=${v.rpm_f}\\left(\\frac{2\\pi}{60}\\right)=${fmt(v.wf)}\\text{ rad/s}\\]
+    <p><b>1.</b> \\(\\alpha=\\dfrac{\\omega_f-\\omega_0}{t}=\\dfrac{${fmt(v.wf)}}{${fmt(v.t)}}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>
+    <p><b>2.</b> \\(a_t=r\\alpha=(${fmt(v.r)})(${fmt(v.alpha)})=${fmt(v.at)}\\text{ m/s}^2\\)</p>
+    <p><b>3.</b> \\(a_c=r\\omega_f^2=(${fmt(v.r)})(${fmt(v.wf)})^2=${fmt(v.ac)}\\text{ m/s}^2\\)</p>
+    <p><b>4.</b> \\(\\dfrac{a_c}{g}=\\dfrac{${fmt(v.ac)}}{9.80}=${fmt(v.ac_g)}\\)</p>
+    <p>The centripetal acceleration is enormous because it depends on \\(\\omega^2\\).</p>`
+});
+
+PROBLEMS.push({
+  set:1, id:'s1-2', title:'Wheel braking and rim acceleration',
+  gen(){
+    const w0 = R(70,110,1);
+    const t = R(3.5,6.0,2);
+    const r = R(0.25,0.35,3);
+    const alpha = (0-w0)/t;
+    const v0 = r*w0;
+    const at = r*alpha;
+    const ac = r*w0*w0;
+    return {w0,t,r,alpha,v0,at,ac};
+  },
+  statement:v => `A car wheel of radius ${fmt(v.r)} m rotates initially at ${fmt(v.w0)} rad/s. It brakes uniformly to rest in ${fmt(v.t)} s without skidding.`,
+  parts:[
+    {prompt:'Angular acceleration \\(\\alpha\\).', unit:'rad/s²', answer:v=>v.alpha},
+    {prompt:'Initial road speed of the car.', unit:'m/s', answer:v=>v.v0},
+    {prompt:'Tangential acceleration at the rim during braking.', unit:'m/s²', answer:v=>v.at},
+    {prompt:'Centripetal acceleration of a rim point immediately before braking.', unit:'m/s²', answer:v=>v.ac},
+  ],
+  solution:v => `
+    <p><b>1.</b> \\(\\alpha=\\dfrac{0-\\omega_0}{t}=\\dfrac{0-${fmt(v.w0)}}{${fmt(v.t)}}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>
+    <p><b>2.</b> \\(v=r\\omega_0=(${fmt(v.r)})(${fmt(v.w0)})=${fmt(v.v0)}\\text{ m/s}\\)</p>
+    <p><b>3.</b> \\(a_t=r\\alpha=(${fmt(v.r)})(${fmt(v.alpha)})=${fmt(v.at)}\\text{ m/s}^2\\)</p>
+    <p>The negative sign indicates the rim's tangential acceleration opposes its motion.</p>
+    <p><b>4.</b> \\(a_c=r\\omega_0^2=(${fmt(v.r)})(${fmt(v.w0)})^2=${fmt(v.ac)}\\text{ m/s}^2\\)</p>`
+});
+
+PROBLEMS.push({
+  set:1, id:'s1-3', title:'Fan blade motion',
+  gen(){
+    const rpm_i = Rstep(60,100,5);
+    const rpm_f = Rstep(220,300,5);
+    const t = R(4,8,2);
+    const r = R(0.5,0.8,3);
+    const wi = rpm2w(rpm_i), wf = rpm2w(rpm_f);
+    const alpha = (wf-wi)/t;
+    const at = r*alpha;
+    const vf = r*wf;
+    const ac = r*wf*wf;
+    return {rpm_i,rpm_f,t,r,wi,wf,alpha,at,vf,ac};
+  },
+  statement:v => `A ceiling fan accelerates from ${v.rpm_i} rpm to ${v.rpm_f} rpm in ${fmt(v.t)} s at constant angular acceleration. The tip of a blade is ${fmt(v.r)} m from the axis.`,
+  parts:[
+    {prompt:'Angular acceleration \\(\\alpha\\).', unit:'rad/s²', answer:v=>v.alpha},
+    {prompt:'Tangential acceleration of the blade tip.', unit:'m/s²', answer:v=>v.at},
+    {prompt:'Tip speed at the end of the acceleration.', unit:'m/s', answer:v=>v.vf},
+    {prompt:'Centripetal acceleration at the end.', unit:'m/s²', answer:v=>v.ac},
+  ],
+  solution:v => `
+    <p>Convert the angular speeds:</p>
+    \\[\\omega_i=${v.rpm_i}\\left(\\frac{2\\pi}{60}\\right)=${fmt(v.wi)}\\text{ rad/s},\\qquad \\omega_f=${v.rpm_f}\\left(\\frac{2\\pi}{60}\\right)=${fmt(v.wf)}\\text{ rad/s}\\]
+    <p><b>1.</b> \\(\\alpha=\\dfrac{\\omega_f-\\omega_i}{t}=\\dfrac{${fmt(v.wf)}-${fmt(v.wi)}}{${fmt(v.t)}}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>
+    <p><b>2.</b> \\(a_t=r\\alpha=(${fmt(v.r)})(${fmt(v.alpha)})=${fmt(v.at)}\\text{ m/s}^2\\)</p>
+    <p><b>3.</b> \\(v_f=r\\omega_f=(${fmt(v.r)})(${fmt(v.wf)})=${fmt(v.vf)}\\text{ m/s}\\)</p>
+    <p><b>4.</b> \\(a_c=r\\omega_f^2=(${fmt(v.r)})(${fmt(v.wf)})^2=${fmt(v.ac)}\\text{ m/s}^2\\)</p>`
+});
+
+PROBLEMS.push({
+  set:1, id:'s1-4', title:'Motorcycle wheel from linear data',
+  gen(){
+    const vi = R(5,12,2);
+    const vf = R(20,30,1);
+    const t = R(4,7,2);
+    const r = R(0.28,0.38,3);
+    const a = (vf-vi)/t;
+    const alpha = a/r;
+    const wi = vi/r, wfi = vf/r;
+    const theta = 0.5*(wi+wfi)*t;
+    const N = theta/TWO_PI;
+    return {vi,vf,t,r,a,alpha,wi,wf:wfi,theta,N};
+  },
+  statement:v => `A motorcycle with wheels of radius ${fmt(v.r)} m increases its speed uniformly from ${fmt(v.vi)} m/s to ${fmt(v.vf)} m/s in ${fmt(v.t)} s without slipping.`,
+  parts:[
+    {prompt:"Motorcycle's linear acceleration.", unit:'m/s²', answer:v=>v.a},
+    {prompt:"Wheels' angular acceleration.", unit:'rad/s²', answer:v=>v.alpha},
+    {prompt:'Initial angular velocity \\(\\omega_i\\).', unit:'rad/s', answer:v=>v.wi},
+    {prompt:'Total number of wheel revolutions during the acceleration.', unit:'rev', answer:v=>v.N},
+  ],
+  solution:v => `
+    <p><b>1.</b> \\(a=\\dfrac{v_f-v_i}{t}=\\dfrac{${fmt(v.vf)}-${fmt(v.vi)}}{${fmt(v.t)}}=${fmt(v.a)}\\text{ m/s}^2\\)</p>
+    <p><b>2.</b> \\(\\alpha=\\dfrac{a}{r}=\\dfrac{${fmt(v.a)}}{${fmt(v.r)}}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>
+    <p><b>3.</b> \\(\\omega_i=\\dfrac{v_i}{r}=${fmt(v.wi)}\\text{ rad/s},\\quad \\omega_f=\\dfrac{v_f}{r}=${fmt(v.wf)}\\text{ rad/s}\\)</p>
+    <p><b>4.</b> \\(\\theta=\\tfrac12(\\omega_i+\\omega_f)t=${fmt(v.theta)}\\text{ rad}\\)</p>
+    \\[N=\\frac{\\theta}{2\\pi}=${fmt(v.N)}\\text{ revolutions}\\]`
+});
+
+PROBLEMS.push({
+  set:1, id:'s1-5', title:'Turntable with simultaneous accelerations',
+  gen(){
+    const rpm_i = Rstep(28,40,1);
+    const t = R(3.0,5.0,2);
+    const rpm_f = Rstep(60,90,1);
+    const r = R(0.15,0.22,3);
+    const wi = rpm2w(rpm_i), wf = rpm2w(rpm_f);
+    const alpha = (wf-wi)/t;
+    const at = r*alpha;
+    const ac = r*wf*wf;
+    const atotal = Math.sqrt(at*at+ac*ac);
+    return {rpm_i,t,rpm_f,r,wi,wf,alpha,at,ac,atotal};
+  },
+  statement:v => `A turntable of radius ${fmt(v.r)} m rotates at a constant ${v.rpm_i} rpm. It then accelerates uniformly for ${fmt(v.t)} s until its angular speed reaches ${v.rpm_f} rpm.`,
+  parts:[
+    {prompt:'Angular acceleration \\(\\alpha\\).', unit:'rad/s²', answer:v=>v.alpha},
+    {prompt:'Tangential acceleration at the edge during speed-up.', unit:'m/s²', answer:v=>v.at},
+    {prompt:'Centripetal acceleration at the edge at final speed.', unit:'m/s²', answer:v=>v.ac},
+    {prompt:'Magnitude of the total acceleration at the edge at the final instant.', unit:'m/s²', answer:v=>v.atotal},
+  ],
+  solution:v => `
+    <p>Convert speeds: \\(\\omega_i=${v.rpm_i}\\left(\\frac{2\\pi}{60}\\right)=${fmt(v.wi)}\\text{ rad/s}\\), \\(\\omega_f=${v.rpm_f}\\left(\\frac{2\\pi}{60}\\right)=${fmt(v.wf)}\\text{ rad/s}\\)</p>
+    <p><b>1.</b> \\(\\alpha=\\dfrac{\\omega_f-\\omega_i}{t}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>
+    <p><b>2.</b> \\(a_t=r\\alpha=${fmt(v.at)}\\text{ m/s}^2\\)</p>
+    <p><b>3.</b> \\(a_c=r\\omega_f^2=${fmt(v.ac)}\\text{ m/s}^2\\)</p>
+    <p><b>4.</b> Since \\(a_t\\) and \\(a_c\\) are perpendicular: \\(a=\\sqrt{a_t^2+a_c^2}=${fmt(v.atotal)}\\text{ m/s}^2\\)</p>
+    <p>Centripetal acceleration dominates at the final high angular speed.</p>`
+});
+
+/* ---------------- SET 2: Rotational Kinematics ---------------- */
+PROBLEMS.push({
+  set:2, id:'s2-1', title:'Industrial drum acceleration',
+  gen(){
+    const alpha = R(3.5,5.5,2);
+    const t = Rstep(14,22,1);
+    const r = R(0.35,0.50,3);
+    const w = alpha*t;
+    const theta = 0.5*alpha*t*t;
+    const N = theta/TWO_PI;
+    const s = r*theta;
+    return {alpha,t,r,w,theta,N,s};
+  },
+  statement:v => `An industrial drum starts from rest and accelerates at ${fmt(v.alpha)} rad/s² for ${fmt(v.t)} s. Its radius is ${fmt(v.r)} m.`,
+  parts:[
+    {prompt:'Final angular speed.', unit:'rad/s', answer:v=>v.w},
+    {prompt:'Angular displacement.', unit:'rad', answer:v=>v.theta},
+    {prompt:'Number of revolutions completed.', unit:'rev', answer:v=>v.N},
+    {prompt:'Distance traveled by a point on the rim.', unit:'m', answer:v=>v.s},
+  ],
+  solution:v => `
+    <p><b>1.</b> \\(\\omega=\\omega_0+\\alpha t=(${fmt(v.alpha)})(${fmt(v.t)})=${fmt(v.w)}\\text{ rad/s}\\)</p>
+    <p><b>2.</b> \\(\\theta=\\tfrac12\\alpha t^2=${fmt(v.theta)}\\text{ rad}\\)</p>
+    <p><b>3.</b> \\(N=\\dfrac{\\theta}{2\\pi}=${fmt(v.N)}\\text{ rev}\\)</p>
+    <p><b>4.</b> \\(s=r\\theta=(${fmt(v.r)})(${fmt(v.theta)})=${fmt(v.s)}\\text{ m}\\)</p>`
+});
+
+PROBLEMS.push({
+  set:2, id:'s2-2', title:'Decelerating grinding wheel',
+  gen(){
+    const rpm_i = Rstep(1500,2100,50);
+    const t = Rstep(22,34,1);
+    const r = R(0.12,0.18,3);
+    const wi = rpm2w(rpm_i);
+    const alpha = (0-wi)/t;
+    const theta = 0.5*wi*t;
+    const N = theta/TWO_PI;
+    const s = r*theta;
+    return {rpm_i,t,r,wi,alpha,theta,N,s};
+  },
+  statement:v => `A grinding wheel rotates initially at ${v.rpm_i} rpm and slows uniformly to rest over ${fmt(v.t)} s. Its radius is ${fmt(v.r)} m.`,
+  parts:[
+    {prompt:'Angular acceleration.', unit:'rad/s²', answer:v=>v.alpha},
+    {prompt:'Number of rotations before it stops.', unit:'rev', answer:v=>v.N},
+    {prompt:'Total distance a point on the rim travels before stopping.', unit:'m', answer:v=>v.s},
+  ],
+  solution:v => `
+    <p>Convert initial speed: \\(\\omega_i=${v.rpm_i}\\left(\\frac{2\\pi}{60}\\right)=${fmt(v.wi)}\\text{ rad/s}\\)</p>
+    <p><b>1.</b> \\(\\alpha=\\dfrac{0-\\omega_i}{t}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>
+    <p><b>2.</b> \\(\\theta=\\tfrac12(\\omega_i+0)t=${fmt(v.theta)}\\text{ rad}\\Rightarrow N=\\dfrac{\\theta}{2\\pi}=${fmt(v.N)}\\text{ rev}\\)</p>
+    <p><b>3.</b> \\(s=r\\theta=${fmt(v.s)}\\text{ m}\\)</p>`
+});
+
+PROBLEMS.push({
+  set:2, id:'s2-3', title:'Reel with a braking phase',
+  gen(){
+    const alpha1 = R(5,7,2);
+    const t1 = Rstep(8,12,1);
+    const alpha2mag = R(3,5,2);
+    const r = R(0.06,0.10,4);
+    const wmax = alpha1*t1;
+    const tb = wmax/alpha2mag;
+    const theta1 = 0.5*alpha1*t1*t1;
+    const theta2 = 0.5*wmax*tb;
+    const thetaTotal = theta1+theta2;
+    const s = r*thetaTotal;
+    return {alpha1,t1,alpha2mag,r,wmax,tb,theta1,theta2,thetaTotal,s};
+  },
+  statement:v => `A cable reel starts from rest, accelerates at ${fmt(v.alpha1)} rad/s² for ${fmt(v.t1)} s, then immediately slows at ${fmt(v.alpha2mag)} rad/s² until it stops. The cable wraps at radius ${fmt(v.r)} m.`,
+  parts:[
+    {prompt:'Maximum angular speed.', unit:'rad/s', answer:v=>v.wmax},
+    {prompt:'Time required for the braking phase.', unit:'s', answer:v=>v.tb},
+    {prompt:'Total angular displacement over both phases.', unit:'rad', answer:v=>v.thetaTotal},
+    {prompt:'Total length of cable unspooled.', unit:'m', answer:v=>v.s},
+  ],
+  solution:v => `
+    <p><b>Acceleration phase:</b> \\(\\omega_{\\max}=(${fmt(v.alpha1)})(${fmt(v.t1)})=${fmt(v.wmax)}\\text{ rad/s}\\)</p>
+    <p><b>Braking phase:</b> \\(0=\\omega_{\\max}-${fmt(v.alpha2mag)}\\,t_b\\Rightarrow t_b=${fmt(v.tb)}\\text{ s}\\)</p>
+    <p>\\(\\theta_1=\\tfrac12(${fmt(v.alpha1)})(${fmt(v.t1)})^2=${fmt(v.theta1)}\\text{ rad}\\)</p>
+    <p>\\(\\theta_2=\\tfrac12(\\omega_{\\max}+0)t_b=${fmt(v.theta2)}\\text{ rad}\\)</p>
+    \\[\\theta_\\mathrm{total}=${fmt(v.theta1)}+${fmt(v.theta2)}=${fmt(v.thetaTotal)}\\text{ rad}\\]
+    <p>\\(s=r\\theta=${fmt(v.s)}\\text{ m}\\)</p>`
+});
+
+PROBLEMS.push({
+  set:2, id:'s2-4', title:'Train wheel from revolution count',
+  gen(){
+    const r = R(0.40,0.50,3);
+    const alpha = R(0.45,0.75,3);
+    const N = Rstep(200,300,10);
+    const theta = N*TWO_PI;
+    const w = Math.sqrt(2*alpha*theta);
+    const v0 = r*w;
+    const t = w/alpha;
+    return {r,alpha,N,theta,w,v:v0,t};
+  },
+  statement:v => `A train wheel of radius ${fmt(v.r)} m starts from rest with constant angular acceleration ${fmt(v.alpha)} rad/s². Find the following after ${v.N} revolutions.`,
+  parts:[
+    {prompt:'Angular displacement in radians.', unit:'rad', answer:v=>v.theta},
+    {prompt:'Final angular speed.', unit:'rad/s', answer:v=>v.w},
+    {prompt:'Train speed, assuming rolling without slipping.', unit:'m/s', answer:v=>v.v},
+    {prompt:'Time elapsed.', unit:'s', answer:v=>v.t},
+  ],
+  solution:v => `
+    <p><b>1.</b> \\(\\theta=N(2\\pi)=${v.N}(2\\pi)=${fmt(v.theta)}\\text{ rad}\\)</p>
+    <p><b>2.</b> \\(\\omega^2=\\omega_0^2+2\\alpha\\theta\\Rightarrow \\omega=\\sqrt{2(${fmt(v.alpha)})(${fmt(v.theta)})}=${fmt(v.w)}\\text{ rad/s}\\)</p>
+    <p><b>3.</b> \\(v=r\\omega=${fmt(v.v)}\\text{ m/s}\\)</p>
+    <p><b>4.</b> \\(t=\\dfrac{\\omega-\\omega_0}{\\alpha}=${fmt(v.t)}\\text{ s}\\)</p>`
+});
+
+PROBLEMS.push({
+  set:2, id:'s2-5', title:'Rotating platform with known displacement',
+  gen(){
+    const wi = R(1.5,2.5,2);
+    const wf = R(12,18,1);
+    const N = Rstep(60,100,5);
+    const r = R(1.8,2.6,2);
+    const dtheta = N*TWO_PI;
+    const alpha = (wf*wf-wi*wi)/(2*dtheta);
+    const t = (wf-wi)/alpha;
+    const v0 = r*wf;
+    const at = r*alpha;
+    return {wi,wf,N,r,dtheta,alpha,t,v:v0,at};
+  },
+  statement:v => `A platform's angular velocity increases uniformly from ${fmt(v.wi)} rad/s to ${fmt(v.wf)} rad/s while rotating through ${v.N} revolutions. A passenger sits ${fmt(v.r)} m from the axis.`,
+  parts:[
+    {prompt:'Angular acceleration.', unit:'rad/s²', answer:v=>v.alpha},
+    {prompt:'Duration of the acceleration.', unit:'s', answer:v=>v.t},
+    {prompt:"Passenger's final linear speed.", unit:'m/s', answer:v=>v.v},
+    {prompt:"Passenger's tangential acceleration.", unit:'m/s²', answer:v=>v.at},
+  ],
+  solution:v => `
+    <p>Convert displacement: \\(\\Delta\\theta=${v.N}(2\\pi)=${fmt(v.dtheta)}\\text{ rad}\\)</p>
+    <p><b>1.</b> \\(\\omega_f^2=\\omega_i^2+2\\alpha\\Delta\\theta\\Rightarrow \\alpha=\\dfrac{${fmt(v.wf)}^2-${fmt(v.wi)}^2}{2(${fmt(v.dtheta)})}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>
+    <p><b>2.</b> \\(t=\\dfrac{\\omega_f-\\omega_i}{\\alpha}=${fmt(v.t)}\\text{ s}\\)</p>
+    <p><b>3.</b> \\(v=r\\omega_f=(${fmt(v.r)})(${fmt(v.wf)})=${fmt(v.v)}\\text{ m/s}\\)</p>
+    <p><b>4.</b> \\(a_t=r\\alpha=${fmt(v.at)}\\text{ m/s}^2\\)</p>`
+});
+/* ---------------- SET 3: Torque, Rotational Inertia, Rotational Dynamics ---------------- */
+PROBLEMS.push({
+  set:3, id:'s3-1', title:'Disk with applied and frictional torques',
+  gen(){
+    const M = R(30,55,1);
+    const Rr = R(0.45,0.75,3);
+    const F = Rstep(140,220,5);
+    const rf = R(0.15,0.25,3);
+    const f = R(25,45,1);
+    const t = R(3,5,2);
+    const I = 0.5*M*Rr*Rr;
+    const tauApp = Rr*F;
+    const tauBrake = rf*f;
+    const tauNet = tauApp-tauBrake;
+    const alpha = tauNet/I;
+    const w = alpha*t;
+    return {M,R:Rr,F,rf,f,t,I,tauApp,tauBrake,tauNet,alpha,w};
+  },
+  statement:v => `A ${fmt(v.M)} kg uniform solid disk of radius ${fmt(v.R)} m is mounted on a low-friction axle and starts from rest. A tangential force of ${fmt(v.F)} N is applied at the rim. A brake simultaneously applies a tangential friction force of ${fmt(v.f)} N at radius ${fmt(v.rf)} m.`,
+  parts:[
+    {prompt:'Applied torque \\(\\tau_\\mathrm{app}\\).', unit:'N·m', answer:v=>v.tauApp},
+    {prompt:'Braking torque \\(\\tau_\\mathrm{brake}\\).', unit:'N·m', answer:v=>v.tauBrake},
+    {prompt:'Net torque.', unit:'N·m', answer:v=>v.tauNet},
+    {prompt:v=>`Angular speed after ${fmt(v.t)} s, starting from rest.`, unit:'rad/s', answer:v=>v.w},
+  ],
+  solution:v => `
+    <p>For a solid disk: \\(I=\\tfrac12MR^2=\\tfrac12(${fmt(v.M)})(${fmt(v.R)})^2=${fmt(v.I)}\\text{ kg·m}^2\\)</p>
+    <p><b>1.</b> \\(\\tau_\\mathrm{app}=rF=(${fmt(v.R)})(${fmt(v.F)})=${fmt(v.tauApp)}\\text{ N·m}\\)</p>
+    <p><b>2.</b> \\(\\tau_\\mathrm{brake}=(${fmt(v.rf)})(${fmt(v.f)})=${fmt(v.tauBrake)}\\text{ N·m}\\)</p>
+    <p><b>3.</b> \\(\\tau_\\mathrm{net}=${fmt(v.tauApp)}-${fmt(v.tauBrake)}=${fmt(v.tauNet)}\\text{ N·m}\\)</p>
+    <p>\\(\\alpha=\\dfrac{\\tau_\\mathrm{net}}{I}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>
+    <p><b>4.</b> \\(\\omega=\\alpha t=(${fmt(v.alpha)})(${fmt(v.t)})=${fmt(v.w)}\\text{ rad/s}\\)</p>`
+});
+
+PROBLEMS.push({
+  set:3, id:'s3-2', title:'Door opened at an angle',
+  gen(){
+    const M = R(22,34,1);
+    const L = R(0.75,1.05,3);
+    const F = R(50,80,1);
+    const phi = Rstep(25,45,1);
+    const Fperp = F*Math.sin(phi*Math.PI/180);
+    const tau = L*Fperp;
+    const I = (1/3)*M*L*L;
+    const alpha = tau/I;
+    return {M,L,F,phi,Fperp,tau,I,alpha};
+  },
+  statement:v => `A ${fmt(v.M)} kg uniform door is ${fmt(v.L)} m wide and rotates about frictionless hinges along one vertical edge. A person pushes with a ${fmt(v.F)} N horizontal force at the outer edge, at an angle of ${v.phi}° to the plane of the door.`,
+  parts:[
+    {prompt:'Component of the force that produces torque, \\(F_\\perp\\).', unit:'N', answer:v=>v.Fperp},
+    {prompt:'Applied torque.', unit:'N·m', answer:v=>v.tau},
+    {prompt:'Moment of inertia of the door about the hinges.', unit:'kg·m²', answer:v=>v.I},
+    {prompt:'Angular acceleration.', unit:'rad/s²', answer:v=>v.alpha},
+  ],
+  solution:v => `
+    <p><b>1.</b> \\(F_\\perp=F\\sin${v.phi}^\\circ=(${fmt(v.F)})(${fmt(Math.sin(v.phi*Math.PI/180))})=${fmt(v.Fperp)}\\text{ N}\\)</p>
+    <p><b>2.</b> \\(\\tau=rF_\\perp=(${fmt(v.L)})(${fmt(v.Fperp)})=${fmt(v.tau)}\\text{ N·m}\\)</p>
+    <p><b>3.</b> Treat the door as a thin rod about one end: \\(I=\\tfrac13ML^2=\\tfrac13(${fmt(v.M)})(${fmt(v.L)})^2=${fmt(v.I)}\\text{ kg·m}^2\\)</p>
+    <p><b>4.</b> \\(\\alpha=\\dfrac{\\tau}{I}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>`
+});
+
+PROBLEMS.push({
+  set:3, id:'s3-3', title:'Two-mass rotating system',
+  gen(){
+    const m1 = R(2,4,2);
+    const r1 = R(0.20,0.30,3);
+    const m2 = R(4,6,2);
+    const r2 = R(0.50,0.70,3);
+    const tau = R(6,11,2);
+    const t = R(4,6,2);
+    const I = m1*r1*r1+m2*r2*r2;
+    const alpha = tau/I;
+    const w = alpha*t;
+    const at2 = r2*alpha;
+    const v2 = r2*w;
+    return {m1,r1,m2,r2,tau,t,I,alpha,w,at2,v2};
+  },
+  statement:v => `Two small masses are attached to light spokes and rotate about a central axle. A ${fmt(v.m1)} kg mass is ${fmt(v.r1)} m from the axis, and a ${fmt(v.m2)} kg mass is ${fmt(v.r2)} m from the axis. A motor applies a constant net torque of ${fmt(v.tau)} N·m for ${fmt(v.t)} s, starting from rest.`,
+  parts:[
+    {prompt:"System's moment of inertia.", unit:'kg·m²', answer:v=>v.I},
+    {prompt:'Angular acceleration.', unit:'rad/s²', answer:v=>v.alpha},
+    {prompt:'Angular speed after the torque acts (time given above), starting from rest.', unit:'rad/s', answer:v=>v.w},
+    {prompt:'Tangential acceleration of the heavier mass at that time.', unit:'m/s²', answer:v=>v.at2},
+  ],
+  solution:v => `
+    <p><b>1.</b> \\(I=m_1r_1^2+m_2r_2^2=(${fmt(v.m1)})(${fmt(v.r1)})^2+(${fmt(v.m2)})(${fmt(v.r2)})^2=${fmt(v.I)}\\text{ kg·m}^2\\)</p>
+    <p><b>2.</b> \\(\\alpha=\\dfrac{\\tau}{I}=\\dfrac{${fmt(v.tau)}}{${fmt(v.I)}}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>
+    <p><b>3.</b> \\(\\omega=\\alpha t=(${fmt(v.alpha)})(${fmt(v.t)})=${fmt(v.w)}\\text{ rad/s}\\)</p>
+    <p><b>4.</b> For the ${fmt(v.m2)} kg mass at \\(r=${fmt(v.r2)}\\text{ m}\\): \\(a_t=r\\alpha=${fmt(v.at2)}\\text{ m/s}^2\\), \\(v=r\\omega=${fmt(v.v2)}\\text{ m/s}\\)</p>`
+});
+
+PROBLEMS.push({
+  set:3, id:'s3-4', title:'Pulley and hanging mass',
+  gen(){
+    const M = R(8,16,1);
+    const Rr = R(0.14,0.22,3);
+    const m = R(3,5,2);
+    const I = 0.5*M*Rr*Rr;
+    const IoverR2 = I/(Rr*Rr);
+    const a = (m*G)/(m+IoverR2);
+    const alpha = a/Rr;
+    const T = m*(G-a);
+    return {M,R:Rr,m,I,IoverR2,a,alpha,T};
+  },
+  statement:v => `A ${fmt(v.M)} kg solid cylindrical pulley of radius ${fmt(v.R)} m is free to rotate about a fixed horizontal axle. A ${fmt(v.m)} kg mass hangs from a light cord wrapped around the pulley. The cord does not slip.`,
+  parts:[
+    {prompt:"Pulley's effective inertial mass, \\(I/R^2\\).", unit:'kg', answer:v=>v.IoverR2},
+    {prompt:'Downward acceleration of the mass.', unit:'m/s²', answer:v=>v.a},
+    {prompt:"Pulley's angular acceleration.", unit:'rad/s²', answer:v=>v.alpha},
+    {prompt:'Cord tension.', unit:'N', answer:v=>v.T},
+  ],
+  solution:v => `
+    <p>Pulley inertia: \\(I=\\tfrac12MR^2=${fmt(v.I)}\\text{ kg·m}^2\\)</p>
+    <p>Mass: \\(mg-T=ma\\); Pulley: \\(TR=I\\alpha\\); no slip: \\(a=R\\alpha\\)</p>
+    <p>Combining: \\(a=\\dfrac{mg}{m+I/R^2}\\)</p>
+    <p><b>1.</b> \\(I/R^2=\\dfrac{${fmt(v.I)}}{(${fmt(v.R)})^2}=${fmt(v.IoverR2)}\\text{ kg}\\)</p>
+    <p><b>2.</b> \\(a=\\dfrac{(${fmt(v.m)})(9.80)}{${fmt(v.m)}+${fmt(v.IoverR2)}}=${fmt(v.a)}\\text{ m/s}^2\\)</p>
+    <p><b>3.</b> \\(\\alpha=\\dfrac{a}{R}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>
+    <p><b>4.</b> \\(T=m(g-a)=${fmt(v.T)}\\text{ N}\\)</p>`
+});
+
+PROBLEMS.push({
+  set:3, id:'s3-5', title:'Merry-go-round with rider movement',
+  gen(){
+    const M = R(100,140,1);
+    const Rr = R(1.7,2.3,2);
+    const mChild = R(28,42,1);
+    const F = R(70,110,1);
+    const t = R(2.5,3.5,2);
+    const rFinal = R(0.4,0.8,2);
+    const Idisk = 0.5*M*Rr*Rr;
+    const IcI = mChild*Rr*Rr;
+    const Ii = Idisk+IcI;
+    const tau = Rr*F;
+    const alpha = tau/Ii;
+    const wi = alpha*t;
+    const IcF = mChild*rFinal*rFinal;
+    const If = Idisk+IcF;
+    const wf = Ii*wi/If;
+    return {M,R:Rr,mChild,F,t,rFinal,Idisk,IcI,Ii,tau,alpha,wi,If,wf};
+  },
+  statement:v => `A ${fmt(v.M)} kg uniform disk of radius ${fmt(v.R)} m rotates about a frictionless vertical axle. A ${fmt(v.mChild)} kg child is initially standing at the rim. A tangential force of ${fmt(v.F)} N is applied at the rim for ${fmt(v.t)} s while the child remains at the rim. The child then walks inward to ${fmt(v.rFinal)} m from the axis, with negligible external torque.`,
+  parts:[
+    {prompt:'Total moment of inertia initially (disk + child at the rim).', unit:'kg·m²', answer:v=>v.Ii},
+    {prompt:'Angular acceleration while the force acts.', unit:'rad/s²', answer:v=>v.alpha},
+    {prompt:'Angular speed after the push, starting from rest.', unit:'rad/s', answer:v=>v.wi},
+    {prompt:'New angular speed after the child walks inward.', unit:'rad/s', answer:v=>v.wf},
+  ],
+  solution:v => `
+    <p>Disk inertia: \\(I_\\mathrm{disk}=\\tfrac12MR^2=${fmt(v.Idisk)}\\text{ kg·m}^2\\); child at rim: \\(I_\\mathrm{child,i}=mR^2=${fmt(v.IcI)}\\text{ kg·m}^2\\)</p>
+    <p><b>1.</b> \\(I_i=${fmt(v.Idisk)}+${fmt(v.IcI)}=${fmt(v.Ii)}\\text{ kg·m}^2\\)</p>
+    <p>Torque: \\(\\tau=RF=(${fmt(v.R)})(${fmt(v.F)})=${fmt(v.tau)}\\text{ N·m}\\)</p>
+    <p><b>2.</b> \\(\\alpha=\\dfrac{\\tau}{I_i}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>
+    <p><b>3.</b> \\(\\omega_i=\\alpha t=(${fmt(v.alpha)})(${fmt(v.t)})=${fmt(v.wi)}\\text{ rad/s}\\)</p>
+    <p><b>4.</b> Angular momentum is conserved as the child walks in: \\(I_i\\omega_i=I_f\\omega_f\\)</p>
+    <p>\\(I_f=${fmt(v.Idisk)}+(${fmt(v.mChild)})(${fmt(v.rFinal)})^2=${fmt(v.If)}\\text{ kg·m}^2\\)</p>
+    \\[\\omega_f=\\frac{(${fmt(v.Ii)})(${fmt(v.wi)})}{${fmt(v.If)}}=${fmt(v.wf)}\\text{ rad/s}\\]`
+});
+/* ---------------- SET 4: Rotational Work, Energy, and Rolling ---------------- */
+PROBLEMS.push({
+  set:4, id:'s4-1', title:'Work done on a flywheel',
+  gen(){
+    const M = R(45,80,1);
+    const Rr = R(0.30,0.50,3);
+    const F = Rstep(180,300,10);
+    const Nrev = Rstep(12,24,1);
+    const I = 0.5*M*Rr*Rr;
+    const tau = Rr*F;
+    const theta = Nrev*TWO_PI;
+    const W = tau*theta;
+    const w = Math.sqrt(2*W/I);
+    const v = Rr*w;
+    return {M,R:Rr,F,Nrev,I,tau,theta,W,w,v};
+  },
+  statement:v => `A ${fmt(v.M)} kg solid disk flywheel of radius ${fmt(v.R)} m starts from rest. A motor applies a constant tangential force of ${fmt(v.F)} N at its rim through ${v.Nrev} revolutions.`,
+  parts:[
+    {prompt:'Torque.', unit:'N·m', answer:v=>v.tau},
+    {prompt:'Work done by the motor.', unit:'J', answer:v=>v.W, tol:0.04},
+    {prompt:"Flywheel's final angular speed.", unit:'rad/s', answer:v=>v.w},
+    {prompt:'Rim speed at that instant.', unit:'m/s', answer:v=>v.v},
+  ],
+  solution:v => `
+    <p>Disk inertia: \\(I=\\tfrac12MR^2=${fmt(v.I)}\\text{ kg·m}^2\\)</p>
+    <p><b>1.</b> \\(\\tau=rF=(${fmt(v.R)})(${fmt(v.F)})=${fmt(v.tau)}\\text{ N·m}\\)</p>
+    <p><b>2.</b> \\(\\theta=${v.Nrev}(2\\pi)=${fmt(v.theta)}\\text{ rad}\\)</p>
+    \\[W=\\tau\\theta=(${fmt(v.tau)})(${fmt(v.theta)})=${fmt(v.W)}\\text{ J}\\]
+    <p><b>3.</b> All work becomes rotational KE: \\(W=\\tfrac12I\\omega^2\\Rightarrow\\omega=\\sqrt{\\dfrac{2W}{I}}=${fmt(v.w)}\\text{ rad/s}\\)</p>
+    <p><b>4.</b> \\(v=r\\omega=${fmt(v.v)}\\text{ m/s}\\)</p>`
+});
+
+PROBLEMS.push({
+  set:4, id:'s4-2', title:'Solid cylinder rolling downhill',
+  gen(){
+    const h = R(3.0,6.0,2);
+    const Rr = R(0.08,0.16,3);
+    const v = Math.sqrt(4*G*h/3);
+    const w = v/Rr;
+    const frac = 1/3;
+    const vSlide = Math.sqrt(2*G*h);
+    return {h,R:Rr,v,w,frac,vSlide};
+  },
+  statement:v => `A solid cylinder rolls without slipping from rest down a ramp with vertical drop ${fmt(v.h)} m. Its radius is ${fmt(v.R)} m.`,
+  parts:[
+    {prompt:'Speed at the bottom.', unit:'m/s', answer:v=>v.v},
+    {prompt:'Angular speed at the bottom.', unit:'rad/s', answer:v=>v.w},
+    {prompt:'Fraction of the final kinetic energy that is rotational.', unit:'(fraction)', answer:v=>v.frac, tol:0.02},
+    {prompt:'Speed it would have at the bottom if it slid frictionlessly without rotating.', unit:'m/s', answer:v=>v.vSlide},
+  ],
+  solution:v => `
+    <p>For a solid cylinder, \\(I=\\tfrac12MR^2\\). Energy conservation: \\(Mgh=\\tfrac12Mv^2+\\tfrac12\\left(\\tfrac12MR^2\\right)\\left(\\tfrac{v}{R}\\right)^2=\\tfrac34Mv^2\\)</p>
+    <p><b>1.</b> \\(v=\\sqrt{\\dfrac{4gh}{3}}=\\sqrt{\\dfrac{4(9.80)(${fmt(v.h)})}{3}}=${fmt(v.v)}\\text{ m/s}\\)</p>
+    <p><b>2.</b> \\(\\omega=\\dfrac{v}{R}=${fmt(v.w)}\\text{ rad/s}\\)</p>
+    <p><b>3.</b> \\(K_\\mathrm{rot}=\\tfrac14Mv^2\\), total \\(=\\tfrac34Mv^2\\), so \\(K_\\mathrm{rot}/K_\\mathrm{total}=1/3\\approx${fmt(v.frac)}\\)</p>
+    <p><b>4.</b> Sliding without rotation: \\(v_\\mathrm{slide}=\\sqrt{2gh}=${fmt(v.vSlide)}\\text{ m/s}\\)</p>
+    <p>The rolling cylinder is slower because some gravitational energy becomes rotational kinetic energy.</p>`
+});
+
+PROBLEMS.push({
+  set:4, id:'s4-3', title:'Rolling hoop and solid sphere comparison',
+  gen(){
+    const h = R(2.0,4.0,2);
+    const vHoop = Math.sqrt(G*h);
+    const vSphere = Math.sqrt(10*G*h/7);
+    const ratio = vSphere/vHoop;
+    const diff = vSphere-vHoop;
+    return {h,vHoop,vSphere,ratio,diff};
+  },
+  statement:v => `A hoop and a solid sphere start from rest at the same height ${fmt(v.h)} m and roll without slipping down identical ramps.`,
+  parts:[
+    {prompt:"Hoop's speed at the bottom.", unit:'m/s', answer:v=>v.vHoop},
+    {prompt:"Solid sphere's speed at the bottom.", unit:'m/s', answer:v=>v.vSphere},
+    {prompt:'Ratio \\(v_\\mathrm{sphere}/v_\\mathrm{hoop}\\).', unit:'(ratio)', answer:v=>v.ratio, tol:0.02},
+    {prompt:'Difference in their speeds, \\(v_\\mathrm{sphere}-v_\\mathrm{hoop}\\).', unit:'m/s', answer:v=>v.diff, tol:0.05},
+  ],
+  solution:v => `
+    <p>For a rolling object with \\(I=\\beta MR^2\\): \\(v=\\sqrt{\\dfrac{2gh}{1+\\beta}}\\)</p>
+    <p><b>1.</b> Hoop, \\(\\beta=1\\): \\(v_\\mathrm{hoop}=\\sqrt{gh}=${fmt(v.vHoop)}\\text{ m/s}\\)</p>
+    <p><b>2.</b> Solid sphere, \\(\\beta=2/5\\): \\(v_\\mathrm{sphere}=\\sqrt{\\dfrac{10gh}{7}}=${fmt(v.vSphere)}\\text{ m/s}\\)</p>
+    <p>The sphere arrives first because it has the greater speed.</p>
+    <p><b>3.</b> \\(v_\\mathrm{sphere}/v_\\mathrm{hoop}=${fmt(v.ratio)}\\) (a fixed ratio, independent of \\(h\\))</p>
+    <p><b>4.</b> Difference: \\(${fmt(v.vSphere)}-${fmt(v.vHoop)}=${fmt(v.diff)}\\text{ m/s}\\)</p>
+    <p>A hoop has all its mass at the largest radius, giving a larger moment of inertia relative to \\(MR^2\\): more energy goes into rotation, leaving less for translation.</p>`
+});
+
+PROBLEMS.push({
+  set:4, id:'s4-4', title:'Winch lifting a load',
+  gen(){
+    const I = R(5,10,2);
+    const r = R(0.20,0.30,3);
+    const m = R(130,230,1);
+    const y = R(4,8,2);
+    const t = R(3,5,2);
+    const a = 2*y/(t*t);
+    const alpha = a/r;
+    const w = alpha*t;
+    const v = a*t;
+    const W = m*G*y + 0.5*m*v*v + 0.5*I*w*w;
+    return {I,r,m,y,t,a,alpha,w,v,W};
+  },
+  statement:v => `A winch drum has moment of inertia ${fmt(v.I)} kg·m² and radius ${fmt(v.r)} m. It lifts a ${fmt(v.m)} kg load from rest through ${fmt(v.y)} m in ${fmt(v.t)} s with constant angular acceleration and no slipping.`,
+  parts:[
+    {prompt:"Load's linear acceleration.", unit:'m/s²', answer:v=>v.a},
+    {prompt:"Drum's angular acceleration.", unit:'rad/s²', answer:v=>v.alpha},
+    {prompt:'Final angular speed.', unit:'rad/s', answer:v=>v.w},
+    {prompt:"Total work supplied by the motor (PE gain + load's KE + drum's rotational KE).", unit:'J', answer:v=>v.W, tol:0.04},
+  ],
+  solution:v => `
+    <p><b>1.</b> \\(y=\\tfrac12at^2\\Rightarrow a=\\dfrac{2y}{t^2}=\\dfrac{2(${fmt(v.y)})}{(${fmt(v.t)})^2}=${fmt(v.a)}\\text{ m/s}^2\\)</p>
+    <p><b>2.</b> \\(\\alpha=\\dfrac{a}{r}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>
+    <p><b>3.</b> \\(\\omega=\\alpha t=${fmt(v.w)}\\text{ rad/s}\\)</p>
+    <p><b>4.</b> Final load speed: \\(v=at=${fmt(v.v)}\\text{ m/s}\\)</p>
+    \\[W_\\mathrm{motor}=mgy+\\tfrac12mv^2+\\tfrac12I\\omega^2=${fmt(v.W)}\\text{ J}\\]`
+});
+
+PROBLEMS.push({
+  set:4, id:'s4-5', title:'Rolling object launched up a ramp',
+  gen(){
+    const v = R(5,9,2);
+    const hRoll = 7*v*v/(10*G);
+    const hSlide = v*v/(2*G);
+    const diff = hRoll-hSlide;
+    return {v,hRoll,hSlide,diff};
+  },
+  statement:v => `A solid sphere rolls without slipping up an incline with initial center-of-mass speed ${fmt(v.v)} m/s.`,
+  parts:[
+    {prompt:'Maximum vertical height reached while rolling without slipping.', unit:'m', answer:v=>v.hRoll},
+    {prompt:'Maximum height if the same sphere instead slides up frictionlessly at the same speed without rotating.', unit:'m', answer:v=>v.hSlide},
+    {prompt:'How much higher the rolling sphere gets (the difference).', unit:'m', answer:v=>v.diff, tol:0.05},
+  ],
+  solution:v => `
+    <p>A solid sphere has \\(I=\\tfrac25MR^2\\). Rolling kinetic energy: \\(K_i=\\left(\\tfrac12+\\tfrac15\\right)Mv^2=\\tfrac{7}{10}Mv^2\\)</p>
+    <p><b>1.</b> \\(Mgh=\\tfrac{7}{10}Mv^2\\Rightarrow h=\\dfrac{7v^2}{10g}=${fmt(v.hRoll)}\\text{ m}\\)</p>
+    <p><b>2.</b> Sliding: \\(Mgh=\\tfrac12Mv^2\\Rightarrow h=\\dfrac{v^2}{2g}=${fmt(v.hSlide)}\\text{ m}\\)</p>
+    <p><b>3.</b> Difference: \\(${fmt(v.hRoll)}-${fmt(v.hSlide)}=${fmt(v.diff)}\\text{ m}\\)</p>
+    <p>The rolling sphere reaches greater height because it starts with additional rotational kinetic energy, which also converts into gravitational potential energy.</p>`
+});
+/* ---------------- SET 5: Angular Momentum and Conservation ---------------- */
+PROBLEMS.push({
+  set:5, id:'s5-1', title:'Rotating student on a stool',
+  gen(){
+    const Ii = R(3.0,4.2,2);
+    const rpm_i = R(0.9,1.5,2);
+    const If = R(1.2,1.8,2);
+    const wi = rpm2w(rpm_i);
+    const wf = Ii*wi/If;
+    const Ki = 0.5*Ii*wi*wi;
+    const Kf = 0.5*If*wf*wf;
+    const Winternal = Kf-Ki;
+    return {Ii,rpm_i,If,wi,wf,Ki,Kf,Winternal};
+  },
+  statement:v => `A student on a nearly frictionless rotating stool has a moment of inertia of ${fmt(v.Ii)} kg·m² with two masses held at arm's length. The student spins at ${fmt(v.rpm_i)} rev/s. Pulling the masses inward reduces the total moment of inertia to ${fmt(v.If)} kg·m².`,
+  parts:[
+    {prompt:'Final angular speed.', unit:'rad/s', answer:v=>v.wf},
+    {prompt:'Initial rotational kinetic energy.', unit:'J', answer:v=>v.Ki},
+    {prompt:'Final rotational kinetic energy.', unit:'J', answer:v=>v.Kf},
+    {prompt:'Work done internally by the student.', unit:'J', answer:v=>v.Winternal, tol:0.05},
+  ],
+  solution:v => `
+    <p>Initial angular speed: \\(\\omega_i=${fmt(v.rpm_i)}(2\\pi)=${fmt(v.wi)}\\text{ rad/s}\\)</p>
+    <p><b>1.</b> Angular momentum conserved: \\(I_i\\omega_i=I_f\\omega_f\\Rightarrow \\omega_f=\\dfrac{${fmt(v.Ii)}}{${fmt(v.If)}}(${fmt(v.wi)})=${fmt(v.wf)}\\text{ rad/s}\\)</p>
+    <p><b>2.</b> \\(K_i=\\tfrac12I_i\\omega_i^2=${fmt(v.Ki)}\\text{ J}\\)</p>
+    <p><b>3.</b> \\(K_f=\\tfrac12I_f\\omega_f^2=${fmt(v.Kf)}\\text{ J}\\)</p>
+    <p><b>4.</b> \\(W_\\mathrm{internal}=\\Delta K=${fmt(v.Kf)}-${fmt(v.Ki)}=${fmt(v.Winternal)}\\text{ J}\\)</p>`
+});
+
+PROBLEMS.push({
+  set:5, id:'s5-2', title:'Angular impulse on a disk',
+  gen(){
+    const M = R(6,12,1);
+    const Rr = R(0.24,0.36,3);
+    const F = R(25,45,1);
+    const t = R(3,5,2);
+    const I = 0.5*M*Rr*Rr;
+    const tau = Rr*F;
+    const angImpulse = tau*t;
+    const L = angImpulse;
+    const w = L/I;
+    const K = 0.5*I*w*w;
+    return {M,R:Rr,F,t,I,tau,angImpulse,L,w,K};
+  },
+  statement:v => `A ${fmt(v.M)} kg solid disk of radius ${fmt(v.R)} m is initially at rest. A tangential force of ${fmt(v.F)} N is applied at the rim for ${fmt(v.t)} s.`,
+  parts:[
+    {prompt:'Angular impulse.', unit:'kg·m²/s', answer:v=>v.angImpulse},
+    {prompt:'Final angular momentum.', unit:'kg·m²/s', answer:v=>v.L},
+    {prompt:'Final angular speed.', unit:'rad/s', answer:v=>v.w},
+    {prompt:'Final rotational kinetic energy.', unit:'J', answer:v=>v.K, tol:0.05},
+  ],
+  solution:v => `
+    <p>Disk inertia: \\(I=\\tfrac12MR^2=${fmt(v.I)}\\text{ kg·m}^2\\); torque: \\(\\tau=rF=${fmt(v.tau)}\\text{ N·m}\\)</p>
+    <p><b>1.</b> \\(\\tau\\Delta t=(${fmt(v.tau)})(${fmt(v.t)})=${fmt(v.angImpulse)}\\text{ kg·m}^2/\\text{s}\\)</p>
+    <p><b>2.</b> From rest, \\(L_f=\\Delta L=${fmt(v.L)}\\text{ kg·m}^2/\\text{s}\\)</p>
+    <p><b>3.</b> \\(\\omega_f=\\dfrac{L_f}{I}=${fmt(v.w)}\\text{ rad/s}\\)</p>
+    <p><b>4.</b> \\(K=\\tfrac12I\\omega^2=${fmt(v.K)}\\text{ J}\\)</p>`
+});
+
+PROBLEMS.push({
+  set:5, id:'s5-3', title:'Child walking on a rotating platform',
+  gen(){
+    const M = R(120,180,1);
+    const Rr = R(2.2,2.8,2);
+    const wi = R(0.4,0.8,2);
+    const mChild = R(24,36,1);
+    const ri = R(1.8,2.4,2);
+    const rf = R(0.3,0.7,2);
+    const Idisk = 0.5*M*Rr*Rr;
+    const Ici = mChild*ri*ri;
+    const Ii = Idisk+Ici;
+    const Icf = mChild*rf*rf;
+    const If = Idisk+Icf;
+    const wf = Ii*wi/If;
+    const Ki = 0.5*Ii*wi*wi;
+    const Kf = 0.5*If*wf*wf;
+    const dK = Kf-Ki;
+    return {M,R:Rr,wi,mChild,ri,rf,Idisk,Ii,If,wf,Ki,Kf,dK};
+  },
+  statement:v => `A ${fmt(v.M)} kg uniform disk of radius ${fmt(v.R)} m rotates at ${fmt(v.wi)} rad/s. A ${fmt(v.mChild)} kg child initially stands ${fmt(v.ri)} m from the axis and then walks to ${fmt(v.rf)} m from the axis. Assume no external torque.`,
+  parts:[
+    {prompt:'Initial total moment of inertia.', unit:'kg·m²', answer:v=>v.Ii},
+    {prompt:'Final total moment of inertia.', unit:'kg·m²', answer:v=>v.If},
+    {prompt:'Final angular speed.', unit:'rad/s', answer:v=>v.wf},
+    {prompt:'Change in rotational kinetic energy \\(\\Delta K\\).', unit:'J', answer:v=>v.dK, tol:0.05},
+  ],
+  solution:v => `
+    <p>Disk inertia: \\(I_\\mathrm{disk}=\\tfrac12MR^2=${fmt(v.Idisk)}\\text{ kg·m}^2\\)</p>
+    <p><b>1.</b> \\(I_i=${fmt(v.Idisk)}+(${fmt(v.mChild)})(${fmt(v.ri)})^2=${fmt(v.Ii)}\\text{ kg·m}^2\\)</p>
+    <p><b>2.</b> \\(I_f=${fmt(v.Idisk)}+(${fmt(v.mChild)})(${fmt(v.rf)})^2=${fmt(v.If)}\\text{ kg·m}^2\\)</p>
+    <p><b>3.</b> \\(I_i\\omega_i=I_f\\omega_f\\Rightarrow\\omega_f=${fmt(v.wf)}\\text{ rad/s}\\)</p>
+    <p><b>4.</b> \\(K_i=${fmt(v.Ki)}\\text{ J}\\), \\(K_f=${fmt(v.Kf)}\\text{ J}\\), \\(\\Delta K=${fmt(v.dK)}\\text{ J}\\)</p>
+    <p>The increase comes from chemical energy used by the child while walking inward.</p>`
+});
+
+PROBLEMS.push({
+  set:5, id:'s5-4', title:'Astronaut and reaction wheel',
+  gen(){
+    const Ic = R(14,22,1);
+    const Iw = R(0.5,1.1,2);
+    const rpmRel = Rstep(1800,3000,100);
+    const wRel = rpm2w(rpmRel);
+    const wc = -(Iw*wRel)/(Ic+Iw);
+    const ww = wc+wRel;
+    const K = 0.5*Ic*wc*wc + 0.5*Iw*ww*ww;
+    return {Ic,Iw,rpmRel,wRel,wc,ww,K};
+  },
+  statement:v => `An astronaut-plus-chair system has moment of inertia ${fmt(v.Ic)} kg·m² and is initially at rest in space. A reaction wheel inside the chair, with moment of inertia ${fmt(v.Iw)} kg·m², is accelerated to ${v.rpmRel} rpm relative to the chair.`,
+  parts:[
+    {prompt:"Wheel's angular speed relative to the chair.", unit:'rad/s', answer:v=>v.wRel},
+    {prompt:'Chair\'s angular speed in the inertial (lab) frame.', unit:'rad/s', answer:v=>v.wc, tol:0.04},
+    {prompt:"Wheel's angular speed in the inertial frame.", unit:'rad/s', answer:v=>v.ww},
+    {prompt:'Total rotational kinetic energy after the wheel reaches full speed.', unit:'J', answer:v=>v.K, tol:0.05},
+  ],
+  solution:v => `
+    <p><b>1.</b> \\(\\omega_\\mathrm{rel}=${v.rpmRel}\\left(\\dfrac{2\\pi}{60}\\right)=${fmt(v.wRel)}\\text{ rad/s}\\)</p>
+    <p>Total angular momentum is conserved (starts at zero): \\(I_c\\omega_c+I_w(\\omega_c+\\omega_\\mathrm{rel})=0\\)</p>
+    <p><b>2.</b> \\(\\omega_c=-\\dfrac{I_w\\,\\omega_\\mathrm{rel}}{I_c+I_w}=${fmt(v.wc)}\\text{ rad/s}\\)</p>
+    <p>The chair rotates opposite the wheel's spin direction.</p>
+    <p><b>3.</b> \\(\\omega_w=\\omega_c+\\omega_\\mathrm{rel}=${fmt(v.ww)}\\text{ rad/s}\\)</p>
+    <p><b>4.</b> \\(K=\\tfrac12I_c\\omega_c^2+\\tfrac12I_w\\omega_w^2=${fmt(v.K)}\\text{ J}\\)</p>`
+});
+
+PROBLEMS.push({
+  set:5, id:'s5-5', title:'Torque slowing a rotating wheel',
+  gen(){
+    const I = R(4.5,7.0,2);
+    const wi = R(14,22,1);
+    const tau = R(9,16,1);
+    const alpha = -tau/I;
+    const t = wi/(tau/I);
+    const theta = 0.5*wi*t;
+    const dL = I*(0-wi);
+    return {I,wi,tau,alpha,t,theta,dL};
+  },
+  statement:v => `A wheel with moment of inertia ${fmt(v.I)} kg·m² rotates at ${fmt(v.wi)} rad/s. A constant opposing torque of ${fmt(v.tau)} N·m is applied.`,
+  parts:[
+    {prompt:'Angular deceleration \\(\\alpha\\) (include the sign).', unit:'rad/s²', answer:v=>v.alpha},
+    {prompt:'Time to stop.', unit:'s', answer:v=>v.t},
+    {prompt:'Angular displacement before stopping.', unit:'rad', answer:v=>v.theta},
+    {prompt:'Change in angular momentum \\(\\Delta L\\) (include the sign).', unit:'kg·m²/s', answer:v=>v.dL},
+  ],
+  solution:v => `
+    <p><b>1.</b> \\(\\alpha=\\dfrac{-\\tau}{I}=\\dfrac{-${fmt(v.tau)}}{${fmt(v.I)}}=${fmt(v.alpha)}\\text{ rad/s}^2\\)</p>
+    <p><b>2.</b> \\(0=\\omega_i+\\alpha t\\Rightarrow t=${fmt(v.t)}\\text{ s}\\)</p>
+    <p><b>3.</b> \\(\\theta=\\tfrac12(\\omega_i+0)t=${fmt(v.theta)}\\text{ rad}\\)</p>
+    <p><b>4.</b> \\(\\Delta L=I(\\omega_f-\\omega_i)=${fmt(v.dL)}\\text{ kg·m}^2/\\text{s}\\)</p>
+    <p>Check: angular impulse \\(\\tau\\Delta t=(-${fmt(v.tau)})(${fmt(v.t)})=${fmt(-v.tau*v.t)}\\text{ N·m·s}\\), matching \\(\\Delta L\\) above.</p>`
+});
+/* ---------------- SET 6: Rotational Collisions and Vector/Gyroscopic Concepts ---------------- */
+PROBLEMS.push({
+  set:6, id:'s6-1', title:'Particle sticks to a pivoted rod',
+  gen(){
+    const m = R(0.05,0.10,4);
+    const v0 = R(18,30,1);
+    const L = R(0.9,1.3,2);
+    const Mrod = R(1.4,2.2,2);
+    const Li = m*v0*L;
+    const Irod = (1/3)*Mrod*L*L;
+    const Ipuck = m*L*L;
+    const If = Irod+Ipuck;
+    const wf = Li/If;
+    const Ki = 0.5*m*v0*v0;
+    const Kf = 0.5*If*wf*wf;
+    return {m,v0,L,Mrod,Li,Irod,Ipuck,If,wf,Ki,Kf};
+  },
+  statement:v => `A ${fmt(v.m)} kg puck moves at ${fmt(v.v0)} m/s perpendicular to a ${fmt(v.L)} m uniform rod that is pivoted at one end. The rod has mass ${fmt(v.Mrod)} kg and is initially at rest. The puck sticks to the far end.`,
+  parts:[
+    {prompt:"System's initial angular momentum about the pivot.", unit:'kg·m²/s', answer:v=>v.Li},
+    {prompt:'Total moment of inertia after the collision.', unit:'kg·m²', answer:v=>v.If},
+    {prompt:'Angular speed just after impact.', unit:'rad/s', answer:v=>v.wf},
+    {prompt:'Kinetic energy just after the collision (compare with the initial KE in the solution).', unit:'J', answer:v=>v.Kf, tol:0.05},
+  ],
+  solution:v => `
+    <p><b>1.</b> \\(L_i=mvL=(${fmt(v.m)})(${fmt(v.v0)})(${fmt(v.L)})=${fmt(v.Li)}\\text{ kg·m}^2/\\text{s}\\)</p>
+    <p><b>2.</b> Rod about one end: \\(I_\\mathrm{rod}=\\tfrac13M_\\mathrm{rod}L^2=${fmt(v.Irod)}\\text{ kg·m}^2\\); puck: \\(I_\\mathrm{puck}=mL^2=${fmt(v.Ipuck)}\\text{ kg·m}^2\\)</p>
+    <p>\\(I_f=${fmt(v.Irod)}+${fmt(v.Ipuck)}=${fmt(v.If)}\\text{ kg·m}^2\\)</p>
+    <p><b>3.</b> \\(L_i=I_f\\omega_f\\Rightarrow\\omega_f=\\dfrac{${fmt(v.Li)}}{${fmt(v.If)}}=${fmt(v.wf)}\\text{ rad/s}\\)</p>
+    <p><b>4.</b> \\(K_i=\\tfrac12mv^2=${fmt(v.Ki)}\\text{ J}\\); \\(K_f=\\tfrac12I_f\\omega_f^2=${fmt(v.Kf)}\\text{ J}\\)</p>
+    <p>The collision is inelastic, so kinetic energy is not conserved.</p>`
+});
+
+PROBLEMS.push({
+  set:6, id:'s6-2', title:'Bullet embedded in a disk',
+  gen(){
+    const m = R(0.010,0.020,4);
+    const v0 = Rstep(280,360,5);
+    const M = R(3.0,5.0,2);
+    const Rr = R(0.20,0.30,3);
+    const Li = m*v0*Rr;
+    const Idisk = 0.5*M*Rr*Rr;
+    const Ibullet = m*Rr*Rr;
+    const If = Idisk+Ibullet;
+    const wf = Li/If;
+    const Ki = 0.5*m*v0*v0;
+    const Kf = 0.5*If*wf*wf;
+    const frac = Kf/Ki;
+    return {m,v0,M,R:Rr,Li,Idisk,Ibullet,If,wf,Ki,Kf,frac};
+  },
+  statement:v => `A ${fmt(v.m)} kg bullet moving at ${fmt(v.v0)} m/s strikes tangentially and embeds at the rim of a uniform disk of mass ${fmt(v.M)} kg and radius ${fmt(v.R)} m. The disk is initially at rest on a frictionless axle.`,
+  parts:[
+    {prompt:'Initial angular momentum about the axle.', unit:'kg·m²/s', answer:v=>v.Li},
+    {prompt:'Disk-plus-bullet moment of inertia after impact.', unit:'kg·m²', answer:v=>v.If},
+    {prompt:'Final angular speed.', unit:'rad/s', answer:v=>v.wf},
+    {prompt:'Fraction of initial kinetic energy remaining as rotational KE (as a decimal, e.g. 0.05 for 5%).', unit:'(fraction)', answer:v=>v.frac, tol:0.06},
+  ],
+  solution:v => `
+    <p><b>1.</b> \\(L_i=mvR=(${fmt(v.m)})(${fmt(v.v0)})(${fmt(v.R)})=${fmt(v.Li)}\\text{ kg·m}^2/\\text{s}\\)</p>
+    <p><b>2.</b> \\(I_\\mathrm{disk}=\\tfrac12MR^2=${fmt(v.Idisk)}\\text{ kg·m}^2\\); bullet: \\(I_\\mathrm{bullet}=mR^2=${fmt(v.Ibullet)}\\text{ kg·m}^2\\)</p>
+    <p>\\(I_f=${fmt(v.Idisk)}+${fmt(v.Ibullet)}=${fmt(v.If)}\\text{ kg·m}^2\\)</p>
+    <p><b>3.</b> \\(\\omega_f=\\dfrac{L_i}{I_f}=${fmt(v.wf)}\\text{ rad/s}\\)</p>
+    <p><b>4.</b> \\(K_i=\\tfrac12mv^2=${fmt(v.Ki)}\\text{ J}\\); \\(K_f=\\tfrac12I_f\\omega_f^2=${fmt(v.Kf)}\\text{ J}\\)</p>
+    \\[\\frac{K_f}{K_i}=${fmt(v.frac)}\\]`
+});
+
+PROBLEMS.push({
+  set:6, id:'s6-3', title:'Sweet-spot conceptual calculation',
+  gen(){
+    const M = R(0.25,0.40,3);
+    const L = R(0.60,0.80,3);
+    const I = (1/3)*M*L*L;
+    const d = L/2;
+    const xp = I/(M*d);
+    return {M,L,I,d,xp};
+  },
+  statement:v => `A uniform tennis racquet is modeled as a ${fmt(v.M)} kg rod of length ${fmt(v.L)} m pivoted at the handle end. Neglect the handle's mass. The point of percussion for a rigid body pivoted at one end is \\(x_p=\\dfrac{I}{Md}\\), where \\(d\\) is the center-of-mass distance from the pivot.`,
+  parts:[
+    {prompt:'Moment of inertia \\(I\\) of the racquet model about the pivot.', unit:'kg·m²', answer:v=>v.I},
+    {prompt:'Center-of-mass distance \\(d\\) from the pivot.', unit:'m', answer:v=>v.d},
+    {prompt:'Point of percussion \\(x_p\\), measured from the handle.', unit:'m', answer:v=>v.xp},
+  ],
+  solution:v => `
+    <p><b>1.</b> \\(I=\\tfrac13ML^2=\\tfrac13(${fmt(v.M)})(${fmt(v.L)})^2=${fmt(v.I)}\\text{ kg·m}^2\\)</p>
+    <p><b>2.</b> \\(d=\\dfrac{L}{2}=${fmt(v.d)}\\text{ m}\\)</p>
+    <p><b>3.</b> \\(x_p=\\dfrac{I}{Md}=\\dfrac{${fmt(v.I)}}{(${fmt(v.M)})(${fmt(v.d)})}=${fmt(v.xp)}\\text{ m from the handle}\\)</p>
+    <p>The tip is at ${fmt(v.L)} m and the midpoint at ${fmt(v.d)} m. The sweet spot sits closer to the middle than to the tip, though shifted slightly toward the tip from the center of mass.</p>`
+});
+
+PROBLEMS.push({
+  set:6, id:'s6-4', title:'Direction of angular momentum and torque', type:'choice',
+  gen(){ return {}; },
+  statement:v => `A horizontal disk rotates counterclockwise when viewed from above. A tangential force is then applied at the point on the disk closest to you, directed toward your right.`,
+  parts:[
+    {prompt:"Direction of the disk's initial angular momentum \\(\\vec L\\).", type:'choice',
+      options:['Upward','Downward','Toward you','Away from you'], answer:v=>0},
+    {prompt:'Sign of the torque produced about the vertical axis.', type:'choice',
+      options:['Positive','Negative','Zero'], answer:v=>0},
+    {prompt:'Does the magnitude of \\(\\vec L\\) initially increase or decrease?', type:'choice',
+      options:['Increases','Decreases','Stays constant'], answer:v=>0},
+    {prompt:'If the applied force instead acted radially inward, what torque would it produce?', type:'choice',
+      options:['Zero', 'Maximum positive', 'Maximum negative'], answer:v=>0},
+  ],
+  solution:v => `
+    <p><b>1.</b> Curl the right hand's fingers counterclockwise as viewed from above — the thumb points upward. \\(\\vec L\\) points upward.</p>
+    <p><b>2.</b> At the point closest to you, the radius vector points toward you; a force to your right creates a counterclockwise tendency viewed from above, so the torque points upward: \\(\\tau_z>0\\).</p>
+    <p><b>3.</b> Torque and angular momentum point the same way, so \\(|\\vec L|\\) increases.</p>
+    <p><b>4.</b> A radially inward force acts along the line through the axis (\\(\\phi=180^\\circ\\)), so \\(\\tau=rF\\sin180^\\circ=0\\).</p>`
+});
+
+PROBLEMS.push({
+  set:6, id:'s6-5', title:'Earth-like precession estimate',
+  gen(){
+    const L = R(6,10,2);
+    const tau = R(0.4,0.8,2);
+    const dLdt = tau;
+    const Omega = tau/L;
+    const T = TWO_PI/Omega;
+    return {L,tau,dLdt,Omega,T};
+  },
+  statement:v => `A spinning gyroscope has angular momentum magnitude \\(L=${fmt(v.L)}\\text{ kg·m}^2/\\text{s}\\). A constant torque of magnitude ${fmt(v.tau)} N·m acts perpendicular to \\(\\vec L\\).`,
+  parts:[
+    {prompt:'Magnitude of \\(d\\vec L/dt\\).', unit:'kg·m²/s²', answer:v=>v.dLdt},
+    {prompt:'Instantaneous precession rate \\(\\Omega=\\tau/L\\).', unit:'rad/s', answer:v=>v.Omega},
+    {prompt:'Corresponding precession period.', unit:'s', answer:v=>v.T},
+  ],
+  solution:v => `
+    <p><b>1.</b> By the rotational form of Newton's second law: \\(\\left|\\dfrac{d\\vec L}{dt}\\right|=\\tau=${fmt(v.tau)}\\text{ kg·m}^2/\\text{s}^2\\)</p>
+    <p><b>2.</b> \\(\\Omega=\\dfrac{\\tau}{L}=\\dfrac{${fmt(v.tau)}}{${fmt(v.L)}}=${fmt(v.Omega)}\\text{ rad/s}\\)</p>
+    <p><b>3.</b> \\(T=\\dfrac{2\\pi}{\\Omega}=${fmt(v.T)}\\text{ s}\\)</p>
+    <p>The torque is perpendicular to \\(\\vec L\\), so it rotates the vector without changing its length at that instant — angular momentum changes direction rather than magnitude. This directional change is the basis of gyroscopic precession.</p>`
+});
+
+</script>
+<script>
+/* ================= APP STATE ================= */
+const SETS = [1,2,3,4,5,6];
+const SET_NAMES = {
+  1:'Angular Accel. & Circular Motion', 2:'Rotational Kinematics',
+  3:'Torque, Inertia & Dynamics', 4:'Work, Energy & Rolling',
+  5:'Angular Momentum & Conservation', 6:'Collisions & Gyroscopic Concepts'
+};
+
+let state = {
+  poolFilter: 'all',      // 'all' or set number
+  mode: 'practice',        // 'practice' | 'game'
+  bag: [],                 // shuffled remaining problems for current pool (practice)
+  gameQueue: [], gameIndex: 0, gameN: 0, gameCorrect: 0,
+  current: null, currentVars: null, submitted: false,
+  score: 0, attempted: 0, streak: 0, highScore: 0, lastScore: null
+};
+
+function loadStats(){
+  try{
+    const s = JSON.parse(localStorage.getItem('ch10_stats')||'{}');
+    state.score = s.score||0;
+    state.attempted = s.attempted||0;
+    state.streak = s.streak||0;
+    state.highScore = s.highScore||0;
+    state.lastScore = (s.lastScore!==undefined)?s.lastScore:null;
+  }catch(e){}
+}
+function saveStats(){
+  localStorage.setItem('ch10_stats', JSON.stringify({
+    score: state.score, attempted: state.attempted, streak: state.streak,
+    highScore: state.highScore, lastScore: state.lastScore
+  }));
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function currentPool(){
+  if (state.poolFilter==='all') return PROBLEMS;
+  return PROBLEMS.filter(p=>p.set===state.poolFilter);
+}
+
+function drawFromBag(){
+  if (state.bag.length===0) state.bag = shuffle(currentPool());
+  return state.bag.pop();
+}
+
+/* ================= RENDERING ================= */
+function renderMath(container){
+  if (window.renderMathInElement){
+    renderMathInElement(container, {
+      delimiters: [
+        {left:'\\[', right:'\\]', display:true},
+        {left:'\\(', right:'\\)', display:false},
+      ],
+      throwOnError:false
+    });
+  }
+}
+
+function loadProblem(p){
+  state.current = p;
+  state.currentVars = p.gen();
+  state.submitted = false;
+  renderProblem();
+}
+
+function renderProblem(){
+  const p = state.current, v = state.currentVars;
+  document.getElementById('prob-set-tag').textContent = 'SET ' + p.set + ' · ' + SET_NAMES[p.set];
+  document.getElementById('prob-title').textContent = p.title;
+  document.getElementById('prob-statement').innerHTML = p.statement(v);
+
+  const pc = document.getElementById('parts-container');
+  pc.innerHTML = '';
+  p.parts.forEach((part, i) => {
+    const div = document.createElement('div');
+    div.className = 'part';
+    const promptText = typeof part.prompt==='function' ? part.prompt(v) : part.prompt;
+    let inner = `<div class="part-q"><span class="pnum">${i+1}</span><span>${promptText}</span></div>`;
+    if (part.type==='choice'){
+      inner += `<div class="choice-row" data-idx="${i}">` +
+        part.options.map((opt,oi)=>`<button type="button" class="choice-btn" data-oi="${oi}">${opt}</button>`).join('') +
+        `</div>`;
+    } else {
+      inner += `<div class="answer-row">
+        <input type="number" step="any" inputmode="decimal" data-idx="${i}" placeholder="answer">
+        <span class="unit">${part.unit||''}</span>
+        <span class="result-mark" id="mark-${i}"></span>
+      </div>
+      <div class="correct-answer" id="correct-${i}"></div>`;
+    }
+    div.innerHTML = inner;
+    pc.appendChild(div);
+  });
+
+  // wire choice buttons
+  pc.querySelectorAll('.choice-row').forEach(row=>{
+    row.addEventListener('click', e=>{
+      if (state.submitted) return;
+      const btn = e.target.closest('.choice-btn');
+      if (!btn) return;
+      row.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('picked'));
+      btn.classList.add('picked');
+    });
+  });
+
+  document.getElementById('submit-btn').disabled = false;
+  document.getElementById('solution-btn').disabled = true;
+  const solBlock = document.getElementById('solution-block');
+  solBlock.classList.remove('show');
+  solBlock.innerHTML = '';
+  const fb = document.getElementById('feedback-banner');
+  fb.classList.remove('show','all-correct','some-wrong');
+
+  renderMath(document.getElementById('problem-card'));
+  updateStatBar();
+  updateGameProgress();
+}
+
+/* ================= GRADING ================= */
+function gradeProblem(){
+  const p = state.current, v = state.currentVars;
+  let allCorrect = true;
+  p.parts.forEach((part, i) => {
+    let correct;
+    if (part.type==='choice'){
+      const row = document.querySelector(`.choice-row[data-idx="${i}"]`);
+      const picked = row.querySelector('.choice-btn.picked');
+      const oi = picked ? +picked.dataset.oi : -1;
+      correct = (oi === part.answer(v));
+      row.querySelectorAll('.choice-btn').forEach(b=>b.style.pointerEvents='none');
+      if (picked) picked.style.borderColor = correct ? 'var(--good)' : 'var(--bad)';
+      if (!correct){
+        const rightBtn = row.querySelector(`.choice-btn[data-oi="${part.answer(v)}"]`);
+        if (rightBtn) rightBtn.style.borderColor = 'var(--good)';
+      }
+    } else {
+      const input = document.querySelector(`input[data-idx="${i}"]`);
+      const userVal = parseFloat(input.value);
+      const trueVal = part.answer(v);
+      correct = isFinite(userVal) && approxEqual(userVal, trueVal, part.tol||0.03);
+      const mark = document.getElementById('mark-'+i);
+      mark.textContent = correct ? '✓' : '✗';
+      mark.className = 'result-mark ' + (correct?'correct':'incorrect');
+      const ca = document.getElementById('correct-'+i);
+      ca.textContent = 'Correct answer: ' + fmtPlain(trueVal) + (part.unit ? ' '+part.unit : '');
+      ca.classList.add('show-it');
+      input.style.borderColor = correct ? 'var(--good)' : 'var(--bad)';
+    }
+    if (!correct) allCorrect = false;
+  });
+  return allCorrect;
+}
+
+function updateStatBar(){
+  document.getElementById('stat-score').textContent =
+    state.mode==='game' ? `${state.gameCorrect}/${state.gameIndex}` : `${state.score}/${state.attempted}`;
+  document.getElementById('stat-streak').textContent = state.streak;
+  document.getElementById('stat-high').textContent = state.highScore ? state.highScore+'%' : '0%';
+  document.getElementById('stat-last').textContent = (state.lastScore===null) ? '–' : state.lastScore+'%';
+}
+function updateGameProgress(){
+  const el = document.getElementById('game-progress');
+  if (state.mode==='game'){
+    el.classList.add('show');
+    el.textContent = `Game mode: question ${state.gameIndex+1} of ${state.gameN} · correct so far: ${state.gameCorrect}`;
+  } else {
+    el.classList.remove('show');
+  }
+}
+
+/* ================= EVENTS ================= */
+document.getElementById('submit-btn').addEventListener('click', () => {
+  if (state.submitted) return;
+  state.submitted = true;
+  const allCorrect = gradeProblem();
+
+  state.attempted++;
+  if (allCorrect){ state.score++; state.streak++; } else { state.streak = 0; }
+  if (state.streak > 0 && state.streak % 1 === 0){ /* streak already updated */ }
+
+  const fb = document.getElementById('feedback-banner');
+  fb.classList.add('show');
+  fb.className = 'feedback-banner show ' + (allCorrect?'all-correct':'some-wrong');
+  fb.textContent = allCorrect ? '✓ All parts correct!' : 'Some parts need review — check the marks below.';
+
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('solution-btn').disabled = false;
+
+  if (state.mode==='game'){
+    if (allCorrect) state.gameCorrect++;
+    state.gameIndex++;
+  }
+
+  saveStats();
+  updateStatBar();
+  updateGameProgress();
+});
+
+document.getElementById('solution-btn').addEventListener('click', () => {
+  const p = state.current, v = state.currentVars;
+  const solBlock = document.getElementById('solution-block');
+  solBlock.innerHTML = '<h4>Worked Solution</h4>' + p.solution(v);
+  solBlock.classList.add('show');
+  renderMath(solBlock);
+});
+
+document.getElementById('next-btn').addEventListener('click', () => {
+  advance();
+});
+
+function advance(){
+  if (state.mode==='game'){
+    if (state.gameIndex >= state.gameN){
+      endGame();
+      return;
+    }
+    loadProblem(state.gameQueue[state.gameIndex]);
+  } else {
+    loadProblem(drawFromBag());
+  }
+}
+
+function endGame(){
+  const pct = Math.round(100*state.gameCorrect/state.gameN);
+  state.lastScore = pct;
+  if (pct > state.highScore) state.highScore = pct;
+  saveStats();
+  document.getElementById('gameover-title').textContent = 'Game Complete!';
+  document.getElementById('gameover-summary').textContent =
+    `You scored ${state.gameCorrect} out of ${state.gameN} (${pct}%).` +
+    (pct>=state.highScore && pct>0 ? ' New high score!' : '');
+  document.getElementById('gameover-overlay').classList.add('show');
+  state.mode = 'practice';
+  state.bag = shuffle(currentPool());
+  updateModeChips();
+  updateStatBar();
+  updateGameProgress();
+}
+
+/* ================= MODE CHIPS ================= */
+function buildSetChips(){
+  const wrap = document.getElementById('set-chips');
+  wrap.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.className = 'chip active';
+  allBtn.textContent = 'All (mixed)';
+  allBtn.dataset.set = 'all';
+  wrap.appendChild(allBtn);
+  SETS.forEach(n=>{
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = 'Set '+n;
+    b.dataset.set = n;
+    wrap.appendChild(b);
+  });
+  wrap.addEventListener('click', e=>{
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    state.poolFilter = btn.dataset.set==='all' ? 'all' : +btn.dataset.set;
+    state.mode = 'practice';
+    state.bag = shuffle(currentPool());
+    updateModeChips();
+    advance();
+  });
+}
+
+function updateModeChips(){
+  document.querySelectorAll('#set-chips .chip').forEach(b=>{
+    const isAll = b.dataset.set==='all';
+    b.classList.toggle('active', state.mode==='practice' && ((isAll && state.poolFilter==='all') || (!isAll && +b.dataset.set===state.poolFilter)));
+  });
+  document.querySelectorAll('#game-chips .chip').forEach(b=>{
+    b.classList.toggle('active', state.mode==='game' && +b.dataset.n===state.gameN);
+  });
+}
+
+document.getElementById('game-chips').addEventListener('click', e=>{
+  const btn = e.target.closest('.chip');
+  if (!btn) return;
+  const n = +btn.dataset.n;
+  startGame(n);
+});
+
+function startGame(n){
+  state.mode = 'game';
+  state.gameN = n;
+  state.gameIndex = 0;
+  state.gameCorrect = 0;
+  const bag = shuffle(PROBLEMS);
+  state.gameQueue = bag.slice(0, n);
+  updateModeChips();
+  loadProblem(state.gameQueue[0]);
+}
+
+document.getElementById('gameover-again').addEventListener('click', () => {
+  document.getElementById('gameover-overlay').classList.remove('show');
+  startGame(state.gameN);
+});
+document.getElementById('gameover-practice').addEventListener('click', () => {
+  document.getElementById('gameover-overlay').classList.remove('show');
+  advance();
+});
+document.getElementById('gameover-close').addEventListener('click', () => {
+  document.getElementById('gameover-overlay').classList.remove('show');
+  advance();
+});
+
+/* ================= FORMULA SHEET ================= */
+const FORMULAS = [
+  '\\omega=\\omega_0+\\alpha t',
+  '\\theta=\\theta_0+\\omega_0t+\\tfrac12\\alpha t^2',
+  '\\omega^2=\\omega_0^2+2\\alpha\\Delta\\theta',
+  'v=r\\omega,\\qquad a_t=r\\alpha,\\qquad a_c=r\\omega^2',
+  '\\tau=rF\\sin\\phi,\\qquad \\tau_\\mathrm{net}=I\\alpha',
+  'K_\\mathrm{rot}=\\tfrac12I\\omega^2,\\qquad W=\\tau\\Delta\\theta',
+  'L=I\\omega,\\qquad \\Delta L=\\tau\\Delta t'
+];
+function buildFormulaSheet(){
+  const body = document.getElementById('formula-body');
+  body.innerHTML = '<div class="formula-note">Use g = 9.80 m/s². Convert revolutions, rpm, and degrees to radians before substituting into rotational equations. Take counterclockwise as positive unless stated otherwise. For rolling without slipping, v = Rω.</div>' +
+    FORMULAS.map(f=>`<div class="formula-block">\\[${f}\\]</div>`).join('');
+  renderMath(body);
+}
+document.getElementById('formula-btn').addEventListener('click', () => {
+  document.getElementById('formula-overlay').classList.add('show');
+});
+document.getElementById('formula-close').addEventListener('click', () => {
+  document.getElementById('formula-overlay').classList.remove('show');
+});
+document.getElementById('formula-overlay').addEventListener('click', (e) => {
+  if (e.target.id==='formula-overlay') e.target.classList.remove('show');
+});
+
+/* ================= INIT ================= */
+loadStats();
+buildSetChips();
+buildFormulaSheet();
+state.bag = shuffle(currentPool());
+updateModeChips();
+advance();
+
+</script>
+</body>
+</html>
