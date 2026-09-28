@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<title>Physics Practice · Rotational Motion &amp; Angular Momentum</title>
+<title>Chapter 10 Practice · Rotational Motion &amp; Angular Momentum</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -206,34 +206,40 @@ header.app-head .subtitle {
 .formula-block:last-child { border-bottom: none; }
 .formula-note { font-size: 0.76rem; color: var(--text-dim); margin-bottom: 14px; line-height: 1.5; }
 
-/* floating calculator (shared component) */
-.calc-fab {
-  position: fixed; bottom: 20px; right: 20px;
-  width: 52px; height: 52px; border-radius: 50%;
-  background: var(--accent); color: #06201d; border: none;
-  font-size: 1.4rem; cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-  z-index: 90; display: flex; align-items: center; justify-content: center;
+/* floating calculator (shared component — draggable, expression-parser based) */
+.fab {
+  position: fixed; right: 14px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: 58px; height: 58px; border-radius: 50%; border: 0;
+  background: var(--accent-2); color: #2a1503; box-shadow: 0 4px 10px var(--shadow); z-index: 90; display: grid; place-items: center; touch-action: manipulation; cursor: pointer;
 }
-.calc-panel {
-  position: fixed; bottom: 82px; right: 20px; width: 260px;
-  background: var(--card-bg); border: 1px solid var(--border);
-  border-radius: 12px; padding: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); z-index: 90;
+.fab svg { width: 28px; height: 28px; }
+.calc {
+  position: fixed; z-index: 95; right: 12px; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); width: min(310px, calc(100vw - 24px));
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 8px 20px var(--shadow); user-select: none; -webkit-user-select: none; overflow: hidden;
+  font-family: var(--font-body); color: var(--text);
 }
-.calc-display {
-  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
-  padding: 10px; text-align: right; font-size: 1.3rem; margin-bottom: 8px;
-  word-break: break-all; min-height: 1.6em; font-family: var(--font-body);
+.calc-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 6px 12px; background: var(--card-bg-2); cursor: grab; touch-action: none; font-size: 12.5px; color: var(--text-dim); }
+.calc-head:active { cursor: grabbing; }
+.calc-head .grip { display: flex; gap: 8px; align-items: center; }
+.calc-head .dots { letter-spacing: 2px; }
+.calc-head button { width: 38px; height: 38px; border: 0; background: transparent; border-radius: 8px; font-size: 20px; line-height: 1; color: var(--text); cursor: pointer; }
+.disp { padding: 10px 14px 6px; text-align: right; min-height: 92px; display: flex; flex-direction: column; justify-content: flex-end; }
+.disp .expr { font-size: 15px; color: var(--text-dim); min-height: 22px; overflow-x: auto; white-space: nowrap; direction: rtl; text-align: left; }
+.disp .expr span { direction: ltr; unicode-bidi: plaintext; }
+.disp .res { font-size: 30px; font-weight: 600; overflow-x: auto; white-space: nowrap; line-height: 1.25; }
+.disp .res.err { color: var(--bad); font-size: 18px; }
+.disp .meta { font-size: 11.5px; color: var(--text-dim); display: flex; justify-content: space-between; }
+.keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 8px 10px 10px; }
+.keys button {
+  min-height: 46px; border-radius: 10px; border: 1px solid var(--border); background: var(--card-bg-2); font-size: 16px; padding: 0; touch-action: manipulation; color: var(--text); cursor: pointer; font-family: var(--font-body);
 }
-.calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.calc-btn {
-  background: var(--bg); border: 1px solid var(--border); color: var(--text);
-  padding: 10px 0; border-radius: 6px; font-size: 0.95rem; cursor: pointer; font-family: var(--font-body);
-}
-.calc-btn.op { color: var(--accent); font-weight: bold; }
-.calc-btn.active { border-color: var(--accent); background: rgba(79,209,197,0.15); color: var(--accent); }
-.calc-btn.wide { grid-column: span 2; }
+.keys button:active { transform: translateY(1px); filter: brightness(1.15); }
+.keys .fn { font-size: 13.5px; color: var(--accent); }
+.keys .op { color: var(--accent-2); font-weight: 600; }
+.keys .eq { background: var(--accent-2); color: #2a1503; border-color: var(--accent-2); font-weight: 700; }
+.keys .clr { color: var(--bad); }
+.keys .on { background: var(--accent); color: #06201d; border-color: var(--accent); }
+.calc-foot { padding: 0 10px 10px; }
+.calc-foot .btn.teal { width: 100%; min-height: 42px; font-size: 13.5px; padding: 10px; border-radius: 10px; border: none; cursor: pointer; background: var(--accent); border-color: var(--accent); color: #06201d; font-weight: 700; font-family: var(--font-body); }
 .hidden { display: none !important; }
 
 footer.app-foot { text-align: center; font-size: 0.68rem; color: var(--text-dim); padding: 10px 0 20px; }
@@ -251,7 +257,7 @@ footer.app-foot { text-align: center; font-size: 0.68rem; color: var(--text-dim)
   <header class="app-head">
     <div>
       <h1>Rotational Motion &amp; Angular Momentum</h1>
-      <div class="subtitle">Physics Practice · six problem sets, randomized values</div>
+      <div class="subtitle">Chapter 10 Practice · six problem sets, randomized values</div>
     </div>
     <div class="head-btns">
       <button class="icon-btn" id="formula-btn" title="Reference formulas">📖</button>
@@ -326,49 +332,9 @@ footer.app-foot { text-align: center; font-size: 0.68rem; color: var(--text-dim)
   </div>
 </div>
 
-<!-- floating calculator -->
-<button class="calc-fab" id="calc-fab" onclick="toggleCalculator()" title="Calculator">🧮</button>
-<div id="calc-panel" class="calc-panel hidden">
-  <div class="calc-display" id="calc-display">0</div>
-  <div class="calc-grid">
-    <button class="calc-btn op" id="btn-inv" onclick="toggleInv()" title="Inverse trig functions">INV</button>
-    <button class="calc-btn op" onclick="calcUnary('sqrt')">√</button>
-    <button class="calc-btn op" onclick="calcUnary('square')">x²</button>
-    <button class="calc-btn op" onclick="calcUnary('reciprocal')">1/x</button>
-
-    <button class="calc-btn op" id="btn-sin" onclick="calcUnary('sin')">sin</button>
-    <button class="calc-btn op" id="btn-cos" onclick="calcUnary('cos')">cos</button>
-    <button class="calc-btn op" id="btn-tan" onclick="calcUnary('tan')">tan</button>
-    <button class="calc-btn op" onclick="calcInput('e')" title="Scientific notation (e.g. 1.5e3)">EXP</button>
-
-    <button class="calc-btn" onclick="calcClear()">C</button>
-    <button class="calc-btn" onclick="calcBackspace()">⌫</button>
-    <button class="calc-btn op" onclick="calcInput('%')">%</button>
-    <button class="calc-btn op" onclick="calcInput('/')">÷</button>
-
-    <button class="calc-btn wide" onclick="calcInput('(')">(</button>
-    <button class="calc-btn wide" onclick="calcInput(')')">)</button>
-
-    <button class="calc-btn" onclick="calcInput('7')">7</button>
-    <button class="calc-btn" onclick="calcInput('8')">8</button>
-    <button class="calc-btn" onclick="calcInput('9')">9</button>
-    <button class="calc-btn op" onclick="calcInput('*')">×</button>
-
-    <button class="calc-btn" onclick="calcInput('4')">4</button>
-    <button class="calc-btn" onclick="calcInput('5')">5</button>
-    <button class="calc-btn" onclick="calcInput('6')">6</button>
-    <button class="calc-btn op" onclick="calcInput('-')">−</button>
-
-    <button class="calc-btn" onclick="calcInput('1')">1</button>
-    <button class="calc-btn" onclick="calcInput('2')">2</button>
-    <button class="calc-btn" onclick="calcInput('3')">3</button>
-    <button class="calc-btn op" onclick="calcInput('+')">+</button>
-
-    <button class="calc-btn wide" onclick="calcInput('0')">0</button>
-    <button class="calc-btn" onclick="calcInput('.')">.</button>
-    <button class="calc-btn op" onclick="calcEquals()">=</button>
-  </div>
-</div>
+<!-- floating calculator (draggable, expression-parser based) -->
+<button class="fab" id="fab" type="button" aria-label="Open calculator"></button>
+<div class="calc" id="calc" role="dialog" aria-label="Calculator" hidden></div>
 
 <script>
 /* ================= THEME ================= */
@@ -390,125 +356,221 @@ document.getElementById('theme-btn').addEventListener('click', () => {
 });
 initTheme();
 
-/* ================= FLOATING CALCULATOR ================= */
-let calcExpr = '';
-let calcJustEvaluated = false;
-let calcInvMode = false;
-
-function toggleInv() {
-  calcInvMode = !calcInvMode;
-  document.getElementById('btn-inv').classList.toggle('active', calcInvMode);
-  document.getElementById('btn-sin').textContent = calcInvMode ? 'sin⁻¹' : 'sin';
-  document.getElementById('btn-cos').textContent = calcInvMode ? 'cos⁻¹' : 'cos';
-  document.getElementById('btn-tan').textContent = calcInvMode ? 'tan⁻¹' : 'tan';
-}
-
-function toggleCalculator() {
-  document.getElementById('calc-panel').classList.toggle('hidden');
-}
-
-function calcInput(val) {
-  const isDigitOrDot = /^[0-9.e]$/.test(val);
-  if (calcJustEvaluated) {
-    if (isDigitOrDot) calcExpr = '';
-    calcJustEvaluated = false;
+/* ================= FLOATING CALCULATOR (draggable, expression parser) ================= */
+/* engine + UI: see /topics/reusable-calculator-widget.md */
+function tokenize(s) {
+  const out = []; let i = 0;
+  while (i < s.length) {
+    const rest = s.slice(i); let m;
+    if (/^\s/.test(rest)) { i++; continue; }
+    if ((m = /^(\d+\.?\d*|\.\d+)(E[+-]?\d+)?/.exec(rest))) { out.push({ t: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue; }
+    if ((m = /^(asin|acos|atan|sin|cos|tan|ln|log|sqrt|pi|ans|e)/.exec(rest))) {
+      const w = m[1]; out.push({ t: (w === 'pi' || w === 'e' || w === 'ans') ? 'const' : 'fn', v: w }); i += w.length; continue;
+    }
+    if ('+-*/^()'.includes(rest[0])) { out.push({ t: 'op', v: rest[0] }); i++; continue; }
+    throw new Error('Syntax error');
   }
-  calcExpr += val;
-  document.getElementById('calc-display').textContent = calcExpr;
+  return out;
 }
-
-function calcClear() {
-  calcExpr = '';
-  calcJustEvaluated = false;
-  document.getElementById('calc-display').textContent = '0';
-}
-
-function calcBackspace() {
-  calcJustEvaluated = false;
-  calcExpr = calcExpr.slice(0, -1);
-  document.getElementById('calc-display').textContent = calcExpr || '0';
-}
-
-function calcEvalRaw(expr) {
-  if (!/^[0-9+\-*/.%()eE\s]+$/.test(expr)) throw new Error('invalid');
-  const result = Function('"use strict"; return (' + expr + ')')();
-  if (!Number.isFinite(result)) throw new Error('invalid');
-  return result;
-}
-
-function calcFormat(n) {
-  if (!Number.isFinite(n)) return 'Error';
-  const abs = Math.abs(n);
-  if (abs !== 0 && (abs >= 1e9 || abs < 1e-6)) {
-    return n.toExponential(6).replace(/\.?0+e/, 'e');
+function evaluate(str, opts) {
+  const tk = tokenize(str); let p = 0;
+  const peek = () => tk[p], nxt = () => tk[p++];
+  const isOp = (t, v) => t && t.t === 'op' && t.v === v;
+  const starts = (t) => t && (t.t === 'num' || t.t === 'const' || t.t === 'fn' || isOp(t, '('));
+  const toRad = (x) => (opts.deg ? x * Math.PI / 180 : x);
+  const fromRad = (x) => (opts.deg ? x * 180 / Math.PI : x);
+  const F = {
+    sin: (x) => Math.sin(toRad(x)), cos: (x) => Math.cos(toRad(x)), tan: (x) => Math.tan(toRad(x)),
+    asin: (x) => fromRad(Math.asin(x)), acos: (x) => fromRad(Math.acos(x)), atan: (x) => fromRad(Math.atan(x)),
+    ln: Math.log, log: Math.log10, sqrt: Math.sqrt,
+  };
+  function expr() {
+    let v = term();
+    while (isOp(peek(), '+') || isOp(peek(), '-')) { const o = nxt().v; const r = term(); v = o === '+' ? v + r : v - r; }
+    return v;
   }
-  return String(Math.round(n * 1e8) / 1e8);
+  function term() {
+    let v = unary();
+    for (;;) {
+      const t = peek();
+      if (isOp(t, '*') || isOp(t, '/')) { nxt(); const r = unary(); v = t.v === '*' ? v * r : v / r; }
+      else if (starts(t)) v *= unary();
+      else return v;
+    }
+  }
+  function unary() {
+    if (isOp(peek(), '-')) { nxt(); return -unary(); }
+    if (isOp(peek(), '+')) { nxt(); return unary(); }
+    return power();
+  }
+  function power() {
+    const b = primary();
+    if (isOp(peek(), '^')) { nxt(); return Math.pow(b, unary()); }
+    return b;
+  }
+  function primary() {
+    const t = nxt();
+    if (!t) throw new Error('Incomplete');
+    if (t.t === 'num') return t.v;
+    if (t.t === 'const') return t.v === 'pi' ? Math.PI : t.v === 'e' ? Math.E : opts.ans;
+    if (t.t === 'fn') {
+      if (!isOp(peek(), '(')) throw new Error('Use ( after ' + t.v);
+      nxt(); const a = expr(); if (isOp(peek(), ')')) nxt();
+      return F[t.v](a);
+    }
+    if (isOp(t, '(')) { const v = expr(); if (isOp(peek(), ')')) nxt(); return v; }
+    throw new Error('Syntax error');
+  }
+  const v = expr();
+  if (p < tk.length) throw new Error('Syntax error');
+  if (!isFinite(v)) throw new Error('Math error');
+  return v;
 }
-
-function calcEquals() {
-  if (!calcExpr) return;
-  try {
-    calcExpr = calcFormat(calcEvalRaw(calcExpr));
-  } catch (e) {
-    calcExpr = '';
-    document.getElementById('calc-display').textContent = 'Error';
-    calcJustEvaluated = false;
-    return;
-  }
-  document.getElementById('calc-display').textContent = calcExpr;
-  calcJustEvaluated = true;
+function fmt(x) {
+  if (x === 0) return '0';
+  const a = Math.abs(x);
+  if (a >= 1e10 || a < 1e-6) return x.toExponential(6).replace(/\.?0+e/, 'e').replace('e+', 'e');
+  return String(Number(x.toPrecision(10)));
 }
+const pretty = (s) => s.replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−').replace(/pi/g, 'π').replace(/sqrt\(/g, '√(').replace(/asin\(/g, 'sin⁻¹(').replace(/acos\(/g, 'cos⁻¹(').replace(/atan\(/g, 'tan⁻¹(');
 
-function calcUnary(fn) {
-  if (!calcExpr) return;
-  let value;
-  try {
-    value = calcEvalRaw(calcExpr);
-  } catch (e) {
-    document.getElementById('calc-display').textContent = 'Error';
-    calcExpr = '';
-    calcJustEvaluated = false;
-    return;
+/* ---------- UI ---------- */
+window.initCalculator = function (getLastInput) {
+  const st = { expr: '', deg: true, inv: false, ans: 0, done: false, err: '' };
+  const panel = document.getElementById('calc'), fab = document.getElementById('fab');
+  fab.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="8" y="5.5" width="8" height="4" rx="1"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/></svg>';
+  const K = (label, act, cls, extra) => ({ label, act, cls: cls || '', extra: extra || '' });
+  const rows = () => [
+    [K('2nd', 'inv', st.inv ? 'on fn' : 'fn'), K(st.deg ? 'DEG' : 'RAD', 'deg', 'fn'), K('(', '('), K(')', ')'), K('⌫', 'back', 'clr')],
+    [K(st.inv ? 'sin⁻¹' : 'sin', st.inv ? 'asin(' : 'sin(', 'fn'), K(st.inv ? 'cos⁻¹' : 'cos', st.inv ? 'acos(' : 'cos(', 'fn'), K(st.inv ? 'tan⁻¹' : 'tan', st.inv ? 'atan(' : 'tan(', 'fn'), K(st.inv ? 'eˣ' : 'ln', st.inv ? 'e^(' : 'ln(', 'fn'), K(st.inv ? '10ˣ' : 'log', st.inv ? '10^(' : 'log(', 'fn')],
+    [K('√', 'sqrt(', 'fn'), K('x²', '^2', 'fn'), K('xʸ', '^', 'fn'), K('π', 'pi', 'fn'), K('e', 'e', 'fn')],
+    [K('7', '7'), K('8', '8'), K('9', '9'), K('÷', '/', 'op'), K('C', 'clear', 'clr')],
+    [K('4', '4'), K('5', '5'), K('6', '6'), K('×', '*', 'op'), K('Ans', 'ans', 'fn')],
+    [K('1', '1'), K('2', '2'), K('3', '3'), K('−', '-', 'op'), K('EE', 'E', 'fn')],
+    [K('0', '0'), K('.', '.'), K('+', '+', 'op'), K('=', '=', 'eq', 'grid-column:span 2')],
+  ];
+  panel.innerHTML = `
+    <div class="calc-head" id="calcHead"><span class="grip"><span class="dots" aria-hidden="true">⠿</span>Calculator</span>
+      <button type="button" id="calcClose" aria-label="Close calculator">&times;</button></div>
+    <div class="disp"><div class="expr"><span id="cExpr"></span></div><div class="res" id="cRes">0</div>
+      <div class="meta"><span id="cMode"></span><span>drag the header to move</span></div></div>
+    <div class="keys" id="cKeys"></div>
+    <div class="calc-foot"><button type="button" class="btn teal" id="cUse">Use result in answer box</button></div>`;
+  const $ = (s) => panel.querySelector(s);
+
+  function preview() {
+    if (!st.expr.trim()) return { txt: '' };
+    try { return { txt: fmt(evaluate(st.expr, st)) }; } catch (e) { return { txt: '' }; }
+  }
+  function paint() {
+    const keys = $('#cKeys'), flat = rows().flat();
+    keys.innerHTML = flat.map((k, i) => `<button type="button" data-i="${i}" class="${k.cls}" style="${k.extra}">${k.label}</button>`).join('');
+    keys.onclick = (e) => { const b = e.target.closest('button'); if (b) press(flat[Number(b.dataset.i)].act); };
+    keys.onmousedown = (e) => e.preventDefault();
+    $('#cExpr').textContent = st.done ? pretty(st.shown) + ' =' : pretty(st.expr);
+    const r = $('#cRes');
+    if (st.err) r.textContent = st.err;
+    else if (st.done && !st.expr) r.textContent = fmt(st.ans);
+    else r.textContent = preview().txt || '0';
+    r.classList.toggle('err', !!st.err);
+    $('#cMode').textContent = (st.deg ? 'degrees' : 'radians') + (st.ans ? '   ans = ' + fmt(st.ans) : '');
+  }
+  function append(s) {
+    if (st.done) {
+      st.done = false;
+      st.expr = (/^[+\-*/^]/.test(s) ? 'ans' : '') + s;   // operators continue from the last answer
+      return;
+    }
+    st.expr += s;
+  }
+  function press(a) {
+    st.err = '';
+    if (a === 'inv') st.inv = !st.inv;
+    else if (a === 'deg') st.deg = !st.deg;
+    else if (a === 'clear') { st.expr = ''; st.done = false; }
+    else if (a === 'back') {
+      if (st.done) { st.done = false; st.expr = ''; }
+      else st.expr = st.expr.replace(/(asin\(|acos\(|atan\(|sqrt\(|sin\(|cos\(|tan\(|log\(|ln\(|ans|pi|.)$/, '');
+    } else if (a === '=') {
+      if (st.expr.trim()) {
+        try { st.ans = evaluate(st.expr, st); st.shown = st.expr; st.expr = ''; st.done = true; }
+        catch (e) { st.err = e.message; }
+      }
+    } else append(a);
+    paint();
   }
 
-  function fail() {
-    document.getElementById('calc-display').textContent = 'Error';
-    calcExpr = '';
-    calcJustEvaluated = false;
+  /* open/close */
+  function setOpen(o) {
+    panel.hidden = !o; fab.setAttribute('aria-expanded', String(o));
+    fab.setAttribute('aria-label', o ? 'Close calculator' : 'Open calculator');
+    if (o) paint();
   }
+  fab.onclick = () => setOpen(panel.hidden);
+  $('#calcClose').onclick = () => setOpen(false);
+  fab.setAttribute('aria-controls', 'calc'); setOpen(false);
 
-  let result;
-  switch (fn) {
-    case 'sqrt':
-      if (value < 0) return fail();
-      result = Math.sqrt(value);
-      break;
-    case 'square':
-      result = value * value;
-      break;
-    case 'reciprocal':
-      if (value === 0) return fail();
-      result = 1 / value;
-      break;
-    case 'sin':
-      result = calcInvMode ? Math.asin(value) * 180 / Math.PI : Math.sin(value * Math.PI / 180);
-      if (calcInvMode && (value < -1 || value > 1)) return fail();
-      break;
-    case 'cos':
-      result = calcInvMode ? Math.acos(value) * 180 / Math.PI : Math.cos(value * Math.PI / 180);
-      if (calcInvMode && (value < -1 || value > 1)) return fail();
-      break;
-    case 'tan':
-      result = calcInvMode ? Math.atan(value) * 180 / Math.PI : Math.tan(value * Math.PI / 180);
-      break;
+  /* insert result into the last-focused answer box */
+  $('#cUse').onclick = () => {
+    const inp = getLastInput && getLastInput();
+    let v = st.done ? st.ans : (() => { try { return evaluate(st.expr || '0', st); } catch (e) { return NaN; } })();
+    if (!isFinite(v) || !inp || !document.contains(inp) || inp.disabled) {
+      $('#cUse').textContent = inp && !inp.disabled ? 'Nothing to insert yet' : 'Tap an answer box first';
+      setTimeout(() => { $('#cUse').textContent = 'Use result in answer box'; }, 1400); return;
+    }
+    inp.value = String(Number(v.toPrecision(6)));
+    $('#cUse').textContent = 'Inserted';
+    setTimeout(() => { $('#cUse').textContent = 'Use result in answer box'; }, 1000);
+  };
+
+  /* keyboard (only when focus is not in a form field) */
+  document.addEventListener('keydown', (e) => {
+    if (panel.hidden || /^(INPUT|SELECT|TEXTAREA)$/.test((e.target.tagName || ''))) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key;
+    if (/^[0-9.]$/.test(k) || '+-*/^()'.includes(k)) { press(k); e.preventDefault(); }
+    else if (k === 'Enter' || k === '=') { press('='); e.preventDefault(); }
+    else if (k === 'Backspace') { press('back'); e.preventDefault(); }
+    else if (k === 'Escape') { setOpen(false); }
+    else if (k === 'p') press('pi'); else if (k === 'e') press('e');
+  });
+
+  /* drag by header (mouse, touch, pen) */
+  const head = $('#calcHead'); let drag = null;
+  head.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return;
+    const r = panel.getBoundingClientRect();
+    drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+    panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px'; panel.style.right = 'auto'; panel.style.bottom = 'auto';
+    head.setPointerCapture(e.pointerId);
+  });
+  head.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const x = Math.min(Math.max(4, e.clientX - drag.dx), window.innerWidth - w - 4);
+    const y = Math.min(Math.max(4, e.clientY - drag.dy), window.innerHeight - h - 4);
+    panel.style.left = x + 'px'; panel.style.top = y + 'px';
+  });
+  const end = () => { drag = null; };
+  head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
+  window.addEventListener('resize', () => {
+    if (panel.style.left) {
+      const r = panel.getBoundingClientRect();
+      panel.style.left = Math.min(Math.max(4, r.left), Math.max(4, window.innerWidth - r.width - 4)) + 'px';
+      panel.style.top = Math.min(Math.max(4, r.top), Math.max(4, window.innerHeight - r.height - 4)) + 'px';
+    }
+  });
+};
+
+/* wire into this app: track last-focused numeric answer input, and boot the calculator */
+let __lastAnswerInput = null;
+document.addEventListener('focusin', (e) => {
+  if (e.target && e.target.matches && e.target.matches('input[type="number"]')) {
+    __lastAnswerInput = e.target;
   }
+});
+initCalculator(() => __lastAnswerInput);
 
-  if (!Number.isFinite(result)) return fail();
-
-  calcExpr = calcFormat(result);
-  document.getElementById('calc-display').textContent = calcExpr;
-  calcJustEvaluated = true;
-}
 </script>
 <script>
 /* ================= NUMERIC HELPERS ================= */
