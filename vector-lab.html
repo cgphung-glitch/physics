@@ -322,6 +322,11 @@
     outline-offset:1px;
   }
 
+  .field-row input[type="range"]{ grid-column:1; }
+  .field-row input[type="number"]{ grid-column:2; width:76px; text-align:right; }
+  .field-row .unit-wrap{ grid-column:2; display:flex; align-items:center; gap:4px; font-size:11px; color:var(--ink-faint); }
+  .field-row .unit-wrap input[type="number"]{ width:72px; }
+
   .coeff-row{
     display:flex;
     align-items:center;
@@ -539,11 +544,13 @@
         </div>
         <div class="field-row">
           <label>Magnitude <span class="val" data-ro="mag-${i}">${v.mag.toFixed(1)}</span></label>
-          <input type="range" min="0" max="10" step="0.1" value="${v.mag}" data-act="mag" data-i="${i}" style="--v-color:var(${colorVar})">
+          <input type="range" min="0" max="10" step="0.1" value="${Math.min(v.mag,10)}" data-act="mag" data-kind="range" data-i="${i}" style="--v-color:var(${colorVar})">
+          <input type="number" min="0" max="999" step="any" inputmode="decimal" value="${+v.mag.toFixed(2)}" data-act="mag" data-kind="num" data-i="${i}" aria-label="${NAMES[i]} magnitude">
         </div>
         <div class="field-row">
-          <label>Direction <span class="val" data-ro="ang-${i}">${v.angle.toFixed(0)}°</span></label>
-          <input type="range" min="0" max="359" step="1" value="${v.angle}" data-act="angle" data-i="${i}" style="--v-color:var(${colorVar})">
+          <label>Direction <span class="val" data-ro="ang-${i}">${+v.angle.toFixed(1)}°</span></label>
+          <input type="range" min="0" max="359" step="1" value="${Math.round(v.angle)%360}" data-act="angle" data-kind="range" data-i="${i}" style="--v-color:var(${colorVar})">
+          <span class="unit-wrap"><input type="number" step="any" inputmode="decimal" value="${+v.angle.toFixed(2)}" data-act="angle" data-kind="num" data-i="${i}" aria-label="${NAMES[i]} angle in degrees">°</span>
         </div>
         <div class="coeff-row">
           <label>Multiple ×</label>
@@ -556,13 +563,35 @@
     });
   }
 
+  const normAngle = a => ((a % 360) + 360) % 360;
+
   vectorListEl.addEventListener('input', (e) => {
     const t = e.target;
     const i = +t.dataset.i;
-    if (t.dataset.act === 'mag'){ state.vectors[i].mag = +t.value; syncReadoutLabel('mag-'+i, (+t.value).toFixed(1)); }
-    if (t.dataset.act === 'angle'){ state.vectors[i].angle = +t.value; syncReadoutLabel('ang-'+i, (+t.value).toFixed(0)+'°'); }
-    if (t.dataset.act === 'coeff'){ state.vectors[i].coeff = clamp(+t.value, -3, 3); }
+    const v = state.vectors[i];
+    if (t.dataset.act === 'mag' || t.dataset.act === 'angle'){
+      const raw = parseFloat(t.value);
+      if (t.dataset.kind === 'num' && !isFinite(raw)) return;   // ignore empty / partial typing
+      const isMag = t.dataset.act === 'mag';
+      if (isMag){ v.mag = clamp(raw, 0, 999); syncReadoutLabel('mag-'+i, v.mag.toFixed(1)); }
+      else { v.angle = normAngle(raw); syncReadoutLabel('ang-'+i, +v.angle.toFixed(1)+'°'); }
+      // keep the paired slider / number box in step with whichever one was edited
+      vectorListEl.querySelectorAll(`[data-act="${t.dataset.act}"][data-i="${i}"]`).forEach(el => {
+        if (el === t) return;
+        if (el.dataset.kind === 'range') el.value = isMag ? Math.min(v.mag, 10) : Math.round(v.angle) % 360;
+        else el.value = isMag ? +v.mag.toFixed(2) : +v.angle.toFixed(2);
+      });
+    }
+    if (t.dataset.act === 'coeff'){ v.coeff = clamp(+t.value, -3, 3); }
     draw(); updateReadout();
+  });
+
+  // once the user finishes typing, show the value that was actually applied (clamped / wrapped to 0–360°)
+  vectorListEl.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t.dataset.kind !== 'num') return;
+    const v = state.vectors[+t.dataset.i];
+    t.value = t.dataset.act === 'mag' ? +v.mag.toFixed(2) : +v.angle.toFixed(2);
   });
 
   vectorListEl.addEventListener('click', (e) => {
@@ -853,7 +882,7 @@
         drawComponents(tailS, eff.dx, eff.dy, color, i);
       }
       if (state.show.angles && v.mag > 0){
-        drawAngleArc(tailS, v.angle, color, 24 + i*10, Math.round(v.angle)+'°');
+        drawAngleArc(tailS, v.angle, color, 24 + i*10, (+v.angle.toFixed(1))+'°');
       }
 
       drawVectorArrow(tailS, tipS, color, 2.6, false);
@@ -911,7 +940,7 @@
       const ea = magAngleOf(eff.dx, eff.dy);
       html += `<div class="ro-item">
         <div class="ro-head"><span class="swatch" style="background:var(${COLORS[i]})"></span>${NAMES[i]}${v.coeff!==1 ? ' <span style="color:var(--ink-faint);font-weight:500;">(×'+v.coeff+')</span>' : ''}</div>
-        <div class="ro-line">mag <b>${v.mag.toFixed(2)}</b> ∠ <b>${v.angle.toFixed(0)}°</b><br>
+        <div class="ro-line">mag <b>${v.mag.toFixed(2)}</b> ∠ <b>${v.angle.toFixed(1)}°</b><br>
         effective: <b>${ea.mag.toFixed(2)}</b> ∠ <b>${ea.ang.toFixed(1)}°</b><br>
         (x, y) = ( <b>${eff.dx.toFixed(2)}</b> , <b>${eff.dy.toFixed(2)}</b> )</div>
       </div>`;
@@ -1090,7 +1119,7 @@
       resultant.dx += eff.dx; resultant.dy += eff.dy;
       rows.push({
         color: cssVar(COLORS[i]),
-        text: `${NAMES[i]}   mag ${v.mag.toFixed(2)}  ∠ ${v.angle.toFixed(0)}°   ×${v.coeff}   →   x=${eff.dx.toFixed(2)}, y=${eff.dy.toFixed(2)}`
+        text: `${NAMES[i]}   mag ${v.mag.toFixed(2)}  ∠ ${v.angle.toFixed(1)}°   ×${v.coeff}   →   x=${eff.dx.toFixed(2)}, y=${eff.dy.toFixed(2)}`
       });
     });
     const anyOn = state.vectors.some(v => v.enabled);
