@@ -509,7 +509,7 @@
             text: `A $${m}\\text{ kg}$ storage crate rests on a horizontal warehouse floor. The coefficients of friction are $\\mu_s = ${us}$ and $\\mu_k = ${uk}$. A worker pushes with a force directed $${deg}^\\circ$ below the horizontal.`,
             questions: [
               { label: '1. Minimum force $F_{\\text{min}}$ to start moving (N):', answer: Fmin, tol: 0.03 },
-              { label: '2. Acceleration $a$ once it starts moving ($m/s^2$):', answer: accel, tol: 0.03 }
+              { label: '2. Acceleration $a$ once it starts moving ($\\mathrm{m/s^2}$):', answer: accel, tol: 0.03 }
             ],
             solution: `
               <p><b>Part 1: Threshold of Slipping</b></p>
@@ -583,8 +583,8 @@
             questions: [
               { label: '1. Normal force $N$ (N):', answer: N, tol: 0.03 },
               { label: '2. Kinetic friction force $f_k$ (N):', answer: fk, tol: 0.03 },
-              { label: '3. Acceleration down ramp $a$ ($m/s^2$):', answer: accel, tol: 0.03 },
-              { label: '4. Speed at distance $d$, $v$ ($m/s$):', answer: v, tol: 0.03 }
+              { label: '3. Acceleration down ramp $a$ ($\\mathrm{m/s^2}$):', answer: accel, tol: 0.03 },
+              { label: '4. Speed at distance $d$, $v$ ($\\mathrm{m/s}$):', answer: v, tol: 0.03 }
             ],
             solution: `
               <p><b>Step-by-step:</b></p>
@@ -621,7 +621,7 @@
             text: `A $${m}\\text{ kg}$ car travels down a $${deg}^\\circ$ hill. Maximum coefficient of static friction is $\\mu_s = ${us}$. The initial speed is $${vi}\\text{ m/s}$.`,
             questions: [
               { label: '1. Maximum uphill friction force $f_{s,\\text{max}}$ (N):', answer: fs_max, tol: 0.03 },
-              { label: '2. Maximum deceleration magnitude $a$ ($m/s^2$):', answer: decel, tol: 0.03 },
+              { label: '2. Maximum deceleration magnitude $a$ ($\\mathrm{m/s^2}$):', answer: decel, tol: 0.03 },
               { label: '3. Stopping distance $d$ (m):', answer: stoppingDist, tol: 0.03 }
             ],
             solution: `
@@ -658,9 +658,9 @@
           return {
             text: `A $m_1 = ${m1}\\text{ kg}$ block rests on a horizontal table and is connected by a string over a frictionless pulley to hanging mass $m_2 = ${m2}\\text{ kg}$. Kinetic friction on table is $\\mu_k = ${uk}$. Released from rest.`,
             questions: [
-              { label: '1. Acceleration of system $a$ ($m/s^2$):', answer: accel, tol: 0.03 },
+              { label: '1. Acceleration of system $a$ ($\\mathrm{m/s^2}$):', answer: accel, tol: 0.03 },
               { label: '2. Tension in string $T$ (N):', answer: tension, tol: 0.03 },
-              { label: '3. Speed after $m_2$ descends ' + h + ' m ($m/s$):', answer: v, tol: 0.03 }
+              { label: '3. Speed after $m_2$ descends ' + h + ' m ($\\mathrm{m/s}$):', answer: v, tol: 0.03 }
             ],
             solution: `
               <p><b>Equations of Motion:</b></p>
@@ -693,7 +693,7 @@
           return {
             text: `A car with $C_d = ${Cd}$ and frontal area $A = ${A}\\text{ m}^2$ travels at $${kmh}\\text{ km/h}$ in air ($\\rho = ${rho}\\text{ kg/m}^3$).`,
             questions: [
-              { label: '1. Speed in $m/s$:', answer: ms, tol: 0.02 },
+              { label: '1. Speed in $\\mathrm{m/s}$:', answer: ms, tol: 0.02 },
               { label: '2. Drag force $F_d$ (N):', answer: Fd, tol: 0.03 },
               { label: '3. Mechanical power needed to overcome drag (kW):', answer: powerkW, tol: 0.03 }
             ],
@@ -755,9 +755,9 @@
           return {
             text: `A $${m}\\text{ kg}$ skydiver falls in air ($\\rho = ${rho}\\text{ kg/m}^3$). Feet-first: $C_d = ${Cd1}, A = ${A1}\\text{ m}^2$. Spread-eagle: $C_d = ${Cd2}, A = ${A2}\\text{ m}^2$.`,
             questions: [
-              { label: '1. Terminal velocity feet-first $v_{t1}$ ($m/s$):', answer: vt1, tol: 0.03 },
+              { label: '1. Terminal velocity feet-first $v_{t1}$ ($\\mathrm{m/s}$):', answer: vt1, tol: 0.03 },
               { label: '2. Drag force at terminal velocity (N):', answer: Fd_term, tol: 0.02 },
-              { label: '3. Terminal velocity spread-eagle $v_{t2}$ ($m/s$):', answer: vt2, tol: 0.03 }
+              { label: '3. Terminal velocity spread-eagle $v_{t2}$ ($\\mathrm{m/s}$):', answer: vt2, tol: 0.03 }
             ],
             solution: `
               <p>At terminal velocity, $F_d = mg = (${m})(${g}) = \\mathbf{${fmt(Fd_term, 1)}\\text{ N}}$</p>
@@ -790,8 +790,8 @@
             text: `A spherical raindrop has radius $r = ${r_mm}\\text{ mm}$, density $\\rho_w = 1000\\text{ kg/m}^3$, drag coeff $C = ${Cd}$, in air ($\\rho = ${rho_a}\\text{ kg/m}^3$).`,
             questions: [
               { label: '1. Raindrop mass $m$ (kg):', answer: mass, tol: 0.03 },
-              { label: '2. Frontal area $A$ ($m^2$):', answer: Area, tol: 0.03 },
-              { label: '3. Terminal velocity $v_t$ ($m/s$):', answer: vt, tol: 0.03 }
+              { label: '2. Frontal area $A$ ($\\mathrm{m^2}$):', answer: Area, tol: 0.03 },
+              { label: '3. Terminal velocity $v_t$ ($\\mathrm{m/s}$):', answer: vt, tol: 0.03 }
             ],
             solution: `
               <p>Radius $r = ${r}\\text{ m}$</p>
@@ -823,7 +823,7 @@
           return {
             text: `A spherical sediment particle of radius $r = ${r_um}\\ \\mu\\text{m}$ and density $\\rho_p = ${rho_p}\\text{ kg/m}^3$ settles in water ($\\rho_f = 1000\\text{ kg/m}^3$, viscosity $\\eta = 1.00 \\times 10^{-3}\\text{ Pa}\\cdot\\text{s}$).`,
             questions: [
-              { label: '1. Terminal settling speed $v_t$ ($m/s$):', answer: vt, tol: 0.03 },
+              { label: '1. Terminal settling speed $v_t$ ($\\mathrm{m/s}$):', answer: vt, tol: 0.03 },
               { label: '2. Time to settle through ' + depth + ' m (s):', answer: time, tol: 0.03 }
             ],
             solution: `
@@ -859,7 +859,7 @@
             text: `A vertical steel cable ($Y = 2.0 \\times 10^{11}\\text{ Pa}$) of length $L = ${L}\\text{ m}$ and diameter $d = ${d_cm}\\text{ cm}$ supports a stationary $${m}\\text{ kg}$ elevator car.`,
             questions: [
               { label: '1. Cable tension $T$ (N):', answer: Tension, tol: 0.02 },
-              { label: '2. Stress in cable $\\sigma$ ($Pa$):', answer: stress, tol: 0.03 },
+              { label: '2. Stress in cable $\\sigma$ ($\\mathrm{Pa}$):', answer: stress, tol: 0.03 },
               { label: '3. Elongation $\\Delta L$ (m):', answer: dL, tol: 0.03 },
               { label: '4. Strain $\\epsilon$:', answer: strain, tol: 0.03 }
             ],
@@ -962,8 +962,8 @@
           return {
             text: `A steel pin ($d = ${d_cm}\\text{ cm}$, shear modulus $S = 8.0 \\times 10^{10}\\text{ Pa}$) experiences a sideways shear force $F = ${Force_kN}\\text{ kN}$.`,
             questions: [
-              { label: '1. Cross-sectional area $A$ ($m^2$):', answer: Area, tol: 0.03 },
-              { label: '2. Shear stress $\\tau$ ($Pa$):', answer: shearStress, tol: 0.03 },
+              { label: '1. Cross-sectional area $A$ ($\\mathrm{m^2}$):', answer: Area, tol: 0.03 },
+              { label: '2. Shear stress $\\tau$ ($\\mathrm{Pa}$):', answer: shearStress, tol: 0.03 },
               { label: '3. Shear strain $\\gamma$:', answer: shearStrain, tol: 0.03 }
             ],
             solution: `
@@ -994,7 +994,7 @@
           return {
             text: `A rigid sealed container is filled with water. Thermal expansion would increase volume by $${pct}\\%$ if unconstrained ($B_{\\text{water}} = 2.20 \\times 10^9\\text{ Pa}$).`,
             questions: [
-              { label: '1. Resulting pressure increase $\\Delta P$ ($Pa$):', answer: deltaP, tol: 0.03 },
+              { label: '1. Resulting pressure increase $\\Delta P$ ($\\mathrm{Pa}$):', answer: deltaP, tol: 0.03 },
               { label: '2. Force exerted on circular cap of diameter ' + cap_d_cm + ' cm (N):', answer: force, tol: 0.03 }
             ],
             solution: `
