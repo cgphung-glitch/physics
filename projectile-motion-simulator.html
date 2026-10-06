@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projectile Motion Simulator & Physics Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+        }
+        canvas {
+            touch-action: none;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.4);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200 min-h-screen flex flex-col overflow-x-hidden">
+
+    <header class="border-b border-slate-800 dark:border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-30 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="p-2 bg-sky-500/20 text-sky-400 rounded-lg">
+                <i class="fa-solid fa-meteor text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight tracking-tight text-white">Projectile Motion Lab</h1>
+                <p class="text-xs text-slate-400 hidden sm:block">Interactive Simulator & Physics Challenge</p>
+            </div>
+        </div>
+
+        <!-- Mode Navigation & Theme Switcher -->
+        <div class="flex items-center space-x-2 sm:space-x-4">
+            <div class="bg-slate-800/80 p-1 rounded-xl flex text-xs font-semibold">
+                <button id="nav-sandbox" class="px-3 py-1.5 rounded-lg bg-sky-600 text-white shadow-sm transition">
+                    <i class="fa-solid fa-flask mr-1"></i> Sandbox
+                </button>
+                <button id="nav-game" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-gamepad mr-1"></i> Game Mode
+                </button>
+            </div>
+
+            <button id="theme-toggle" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Toggle Theme">
+                <i class="fa-solid fa-sun text-amber-400 hidden dark:block"></i>
+                <i class="fa-solid fa-moon text-slate-700 block dark:hidden"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative">
+        
+        <aside id="sandbox-panel" class="w-full lg:w-96 border-b lg:border-b-0 lg:border-r border-slate-800 bg-slate-900/90 flex flex-col overflow-y-auto shrink-0">
+            <div class="p-4 space-y-5">
+
+                <!-- Launch Parameters -->
+                <div class="space-y-4 bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                    <h2 class="text-xs uppercase tracking-wider text-slate-400 font-bold flex justify-between items-center">
+                        <span>Launch Parameters</span>
+                        <i class="fa-solid fa-sliders text-sky-400"></i>
+                    </h2>
+
+                    <!-- Initial Speed (v0) -->
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <label for="input-v0" class="text-slate-300 font-medium">Initial Speed (v₀)</label>
+                            <span id="val-v0" class="font-mono text-sky-400 font-bold">25 m/s</span>
+                        </div>
+                        <input type="range" id="input-v0" min="0" max="100" step="0.5" value="25" class="w-full accent-sky-500 cursor-pointer">
+                    </div>
+
+                    <!-- Launch Angle (theta) -->
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <label for="input-angle" class="text-slate-300 font-medium">Launch Angle (θ)</label>
+                            <span id="val-angle" class="font-mono text-sky-400 font-bold">45°</span>
+                        </div>
+                        <input type="range" id="input-angle" min="0" max="90" step="1" value="45" class="w-full accent-sky-500 cursor-pointer">
+                    </div>
+
+                    <!-- Initial Height (h0) -->
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <label for="input-h0" class="text-slate-300 font-medium">Initial Height (h₀)</label>
+                            <span id="val-h0" class="font-mono text-sky-400 font-bold">10 m</span>
+                        </div>
+                        <input type="range" id="input-h0" min="0" max="100" step="1" value="10" class="w-full accent-sky-500 cursor-pointer">
+                    </div>
+
+                    <!-- Gravity Select & Custom -->
+                    <div>
+                        <label for="select-gravity" class="block text-sm font-medium text-slate-300 mb-1">Gravity Environment</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <select id="select-gravity" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-sky-500">
+                                <option value="9.81">Earth (9.81 m/s²)</option>
+                                <option value="1.62">Moon (1.62 m/s²)</option>
+                                <option value="3.71">Mars (3.71 m/s²)</option>
+                                <option value="24.79">Jupiter (24.79 m/s²)</option>
+                                <option value="custom">Custom Gravity</option>
+                            </select>
+                            <input type="number" id="input-gravity-custom" value="9.81" step="0.1" min="0.1" max="50" class="hidden bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Controls Buttons -->
+                <div class="grid grid-cols-3 gap-2">
+                    <button id="btn-launch" class="col-span-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-xl transition flex items-center justify-center space-x-1.5 shadow-lg shadow-emerald-900/30">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Launch</span>
+                    </button>
+                    <button id="btn-pause" class="col-span-1 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 px-3 rounded-xl transition flex items-center justify-center space-x-1">
+                        <i class="fa-solid fa-pause"></i>
+                        <span id="txt-pause">Pause</span>
+                    </button>
+                    <button id="btn-reset" class="col-span-1 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2.5 px-3 rounded-xl transition flex items-center justify-center space-x-1">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Reset</span>
+                    </button>
+                </div>
+
+                <!-- Path & Overlay Options -->
+                <div class="space-y-3 bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                    <h2 class="text-xs uppercase tracking-wider text-slate-400 font-bold flex justify-between items-center">
+                        <span>Display & Path Tools</span>
+                        <i class="fa-solid fa-eye text-sky-400"></i>
+                    </h2>
+
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center space-x-2 cursor-pointer text-slate-300">
+                            <input type="checkbox" id="chk-vectors" class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-sky-500">
+                            <span>Velocity Vectors (vₓ, vᵧ)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer text-slate-300">
+                            <input type="checkbox" id="chk-max-height" checked class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-sky-500">
+                            <span>Max Height Marker (yₘₐₓ)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer text-slate-300">
+                            <input type="checkbox" id="chk-range" checked class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-sky-500">
+                            <span>Horizontal Range Marker (R)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer text-slate-300">
+                            <input type="checkbox" id="chk-time" checked class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-sky-500">
+                            <span>Total Time & Impact Data</span>
+                        </label>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-700/50 flex space-x-2">
+                        <button id="btn-save-path" class="flex-1 py-1.5 px-2 bg-sky-950 hover:bg-sky-900 border border-sky-800/60 text-sky-300 rounded-lg text-xs font-medium transition flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-bookmark"></i>
+                            <span>Save Path</span>
+                        </button>
+                        <button id="btn-clear-paths" class="flex-1 py-1.5 px-2 bg-rose-950 hover:bg-rose-900 border border-rose-800/60 text-rose-300 rounded-lg text-xs font-medium transition flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span>Clear Saved</span>
+                        </button>
+                    </div>
+
+                    <button id="btn-export" class="w-full mt-2 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-file-export"></i>
+                        <span>Export Canvas Image</span>
+                    </button>
+                </div>
+
+                <!-- Live Summary Statistics Panel -->
+                <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2 text-xs font-mono">
+                    <div class="text-slate-400 font-sans font-bold uppercase tracking-wider text-[10px]">Current Launch Values</div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Max Height (yₘₐₓ):</span>
+                        <span id="calc-ymax" class="text-emerald-400 font-bold">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Total Range (R):</span>
+                        <span id="calc-range" class="text-emerald-400 font-bold">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Flight Time (t_f):</span>
+                        <span id="calc-time" class="text-emerald-400 font-bold">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Impact Speed (v_f):</span>
+                        <span id="calc-vimpact" class="text-amber-400 font-bold">--</span>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <aside id="game-panel" class="hidden w-full lg:w-96 border-b lg:border-b-0 lg:border-r border-slate-800 bg-slate-900/90 flex flex-col overflow-y-auto shrink-0">
+            <div class="p-4 space-y-4">
+                <!-- Stats Overview -->
+                <div class="grid grid-cols-4 gap-2 text-center">
+                    <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-700/50">
+                        <div class="text-[10px] text-slate-400 font-bold uppercase">Score</div>
+                        <div id="game-score" class="text-lg font-bold text-sky-400 font-mono">0</div>
+                    </div>
+                    <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-700/50">
+                        <div class="text-[10px] text-slate-400 font-bold uppercase">Streak</div>
+                        <div id="game-streak" class="text-lg font-bold text-amber-400 font-mono">0 🔥</div>
+                    </div>
+                    <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-700/50">
+                        <div class="text-[10px] text-slate-400 font-bold uppercase">High</div>
+                        <div id="game-highscore" class="text-lg font-bold text-emerald-400 font-mono">0</div>
+                    </div>
+                    <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-700/50">
+                        <div class="text-[10px] text-slate-400 font-bold uppercase">Last</div>
+                        <div id="game-lastscore" class="text-lg font-bold text-slate-300 font-mono">-</div>
+                    </div>
+                </div>
+
+                <!-- Game Setup -->
+                <div id="game-setup-box" class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 space-y-3">
+                    <h2 class="text-sm font-bold text-slate-200">Start Challenge Mode</h2>
+                    <p class="text-xs text-slate-400">Calculate projectile parameters given initial conditions. Get within 3.5% tolerance to earn points!</p>
+                    
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Select Question Count:</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button data-questions="5" class="btn-qcount py-2 bg-sky-600 font-bold text-xs rounded-lg text-white">5 Questions</button>
+                            <button data-questions="10" class="btn-qcount py-2 bg-slate-700 hover:bg-slate-600 font-bold text-xs rounded-lg text-white">10 Questions</button>
+                            <button data-questions="15" class="btn-qcount py-2 bg-slate-700 hover:bg-slate-600 font-bold text-xs rounded-lg text-white">15 Questions</button>
+                        </div>
+                    </div>
+
+                    <button id="btn-start-game" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 font-bold text-sm text-white rounded-xl shadow-lg shadow-emerald-900/20 transition">
+                        Start Quiz Challenge
+                    </button>
+                </div>
+
+                <!-- Active Question -->
+                <div id="game-active-box" class="hidden space-y-4">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-sky-800/50 space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span id="game-q-num" class="font-bold text-sky-400">Question 1 of 5</span>
+                            <span id="game-q-gravity" class="text-slate-400 font-mono">g = 9.81 m/s²</span>
+                        </div>
+                        <div id="game-q-given" class="text-xs font-mono text-slate-300 grid grid-cols-3 pt-1 border-t border-slate-800">
+                            <div>v₀: <span class="text-white font-bold">20 m/s</span></div>
+                            <div>θ: <span class="text-white font-bold">30°</span></div>
+                            <div>h₀: <span class="text-white font-bold">5 m</span></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 text-xs">
+                        <div>
+                            <label class="block text-slate-300 font-medium mb-0.5">1. Max Height (yₘₐₓ, meters):</label>
+                            <input type="number" step="0.01" id="ans-ymax" placeholder="e.g. 10.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 font-mono text-white focus:border-sky-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 font-medium mb-0.5">2. Total Range (R, meters):</label>
+                            <input type="number" step="0.01" id="ans-range" placeholder="e.g. 38.5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 font-mono text-white focus:border-sky-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 font-medium mb-0.5">3. Time of Flight (t_flight, seconds):</label>
+                            <input type="number" step="0.01" id="ans-time" placeholder="e.g. 2.2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 font-mono text-white focus:border-sky-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 font-medium mb-0.5">4. Impact Velocity (v_f, m/s):</label>
+                            <input type="number" step="0.01" id="ans-vimpact" placeholder="e.g. 22.3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 font-mono text-white focus:border-sky-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-2 pt-1">
+                        <button id="btn-submit-answer" class="flex-1 py-2 bg-sky-600 hover:bg-sky-500 font-bold text-xs text-white rounded-lg transition">
+                            Submit Answers
+                        </button>
+                        <button id="btn-stop-game" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold text-xs rounded-lg transition">
+                            Stop
+                        </button>
+                    </div>
+
+                    <div id="game-feedback-box" class="hidden bg-slate-950 p-3 rounded-xl border text-xs space-y-2">
+                        <div id="feedback-status" class="font-bold"></div>
+                        <div id="feedback-details" class="font-mono text-[11px] text-slate-300 space-y-1"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <section class="flex-1 relative flex flex-col items-center bg-slate-950 p-3 lg:p-6 min-h-[350px] overflow-y-auto">
+            <!-- Dynamically auto-sized Canvas Container -->
+            <div id="canvas-container" class="relative w-full max-w-5xl rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl overflow-hidden cursor-crosshair flex items-center justify-center transition-all duration-300">
+                <canvas id="sim-canvas" class="w-full block"></canvas>
+
+                <!-- HUD Hover Tooltip for Cursor Tracking -->
+                <div id="cursor-hud" class="hidden absolute pointer-events-none bg-slate-900/90 border border-sky-500/50 backdrop-blur text-slate-100 p-2.5 rounded-xl shadow-2xl text-xs font-mono space-y-1 transition-opacity duration-150 z-20">
+                    <div class="text-sky-400 font-sans font-bold border-b border-slate-800 pb-1 flex justify-between">
+                        <span>Path Point Tracking</span>
+                        <span id="hud-point-idx" class="text-slate-500"></span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                        <div>Time (t): <span id="hud-t" class="text-amber-300 font-bold"></span>s</div>
+                        <div>Height (y): <span id="hud-y" class="text-emerald-300 font-bold"></span>m</div>
+                        <div>Dist (x): <span id="hud-x" class="text-sky-300 font-bold"></span>m</div>
+                        <div>Straight (r): <span id="hud-r" class="text-indigo-300 font-bold"></span>m</div>
+                        <div>Angle (θ): <span id="hud-angle" class="text-purple-300 font-bold"></span>°</div>
+                        <div>Vel (v): <span id="hud-v" class="text-rose-300 font-bold"></span>m/s</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Info Footer & Scale Indicator -->
+            <div class="w-full max-w-5xl mt-3 px-2 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
+                <div class="flex items-center space-x-4">
+                    <span><i class="fa-solid fa-mouse-pointer text-sky-400 mr-1"></i> Hover/Touch trajectory to inspect values</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span id="scale-indicator" class="font-mono bg-slate-800/80 border border-slate-700/60 px-2 py-0.5 rounded text-[11px]">Grid: 1m</span>
+                </div>
+            </div>
+
+            <!-- PATH PARAMETERS LEGEND LIST BELOW CANVAS -->
+            <div class="w-full max-w-5xl mt-4 bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-2">
+                        <i class="fa-solid fa-list-ol text-sky-400"></i>
+                        <span>Trajectory Paths Legend</span>
+                    </h3>
+                    <span id="path-count-badge" class="text-[11px] font-mono bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">0 Paths</span>
+                </div>
+
+                <div id="path-legend-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-48 overflow-y-auto">
+                    <!-- Legend cards injected dynamically -->
+                    <div class="text-xs text-slate-500 italic p-2 col-span-full text-center">No trajectories launched yet. Press Launch to view path details.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- EXPORT MODAL -->
+    <div id="modal-export" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                <i class="fa-solid fa-file-image text-sky-400"></i>
+                <span>Export Canvas Image</span>
+            </h3>
+            <p class="text-xs text-slate-300">
+                Exports current trajectory view in high-contrast <strong>Light Theme</strong> with complete header titles and path legend.
+            </p>
+
+            <div>
+                <label for="export-name" class="block text-xs font-semibold text-slate-300 mb-1">Prepared By (Your Name):</label>
+                <input type="text" id="export-name" placeholder="e.g. Jane Doe" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-sky-500 focus:outline-none">
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-2">
+                <button id="btn-export-cancel" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg">Cancel</button>
+                <button id="btn-export-confirm" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-lg shadow-lg">Download PNG</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            // Physics inputs
+            v0: 25,
+            angleDeg: 45,
+            h0: 10,
+            g: 9.81,
+
+            // Simulation status
+            isSimulating: false,
+            isPaused: false,
+            hasLaunched: false,
+            currentTime: 0,
+            animFrameId: null,
+
+            // Trajectories data
+            currentTrajectory: null,
+            savedPaths: [], // Array of saved trajectory physics objects
+
+            // Display flags
+            showVectors: false,
+            showMaxHeight: true,
+            showRange: true,
+            showTime: true,
+
+            // UI Mode
+            mode: 'sandbox',
+            theme: 'dark',
+
+            // Game Mode State
+            game: {
+                totalQuestions: 5,
+                currentQIndex: 0,
+                score: 0,
+                streak: 0,
+                highScore: localStorage.getItem('projectile_highscore') ? parseInt(localStorage.getItem('projectile_highscore')) : 0,
+                lastScore: localStorage.getItem('projectile_lastscore') ? parseInt(localStorage.getItem('projectile_lastscore')) : null,
+                currentScenario: null
+            }
+        };
+
+        const PATH_COLORS = [
+            { line: '#0284c7', bg: 'bg-sky-500/20', text: 'text-sky-400', border: 'border-sky-500/40', badge: '#0284c7' },   // Sky Blue (Current)
+            { line: '#d97706', bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/40', badge: '#d97706' }, // Amber
+            { line: '#059669', bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/40', badge: '#059669' }, // Emerald
+            { line: '#db2777', bg: 'bg-pink-500/20', text: 'text-pink-400', border: 'border-pink-500/40', badge: '#db2777' },   // Pink
+            { line: '#9333ea', bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/40', badge: '#9333ea' }, // Purple
+            { line: '#e11d48', bg: 'bg-rose-500/20', text: 'text-rose-400', border: 'border-rose-500/40', badge: '#e11d48' }    // Rose
+        ];
+
+        const elements = {
+            html: document.documentElement,
+            themeToggle: document.getElementById('theme-toggle'),
+            navSandbox: document.getElementById('nav-sandbox'),
+            navGame: document.getElementById('nav-game'),
+            sandboxPanel: document.getElementById('sandbox-panel'),
+            gamePanel: document.getElementById('game-panel'),
+
+            inputV0: document.getElementById('input-v0'),
+            inputAngle: document.getElementById('input-angle'),
+            inputH0: document.getElementById('input-h0'),
+            selectGravity: document.getElementById('select-gravity'),
+            inputGravityCustom: document.getElementById('input-gravity-custom'),
+
+            valV0: document.getElementById('val-v0'),
+            valAngle: document.getElementById('val-angle'),
+            valH0: document.getElementById('val-h0'),
+
+            btnLaunch: document.getElementById('btn-launch'),
+            btnPause: document.getElementById('btn-pause'),
+            txtPause: document.getElementById('txt-pause'),
+            btnReset: document.getElementById('btn-reset'),
+            btnSavePath: document.getElementById('btn-save-path'),
+            btnClearPaths: document.getElementById('btn-clear-paths'),
+            btnExport: document.getElementById('btn-export'),
+
+            chkVectors: document.getElementById('chk-vectors'),
+            chkMaxHeight: document.getElementById('chk-max-height'),
+            chkRange: document.getElementById('chk-range'),
+            chkTime: document.getElementById('chk-time'),
+
+            calcYmax: document.getElementById('calc-ymax'),
+            calcRange: document.getElementById('calc-range'),
+            calcTime: document.getElementById('calc-time'),
+            calcVimpact: document.getElementById('calc-vimpact'),
+
+            container: document.getElementById('canvas-container'),
+            canvas: document.getElementById('sim-canvas'),
+            hud: document.getElementById('cursor-hud'),
+            scaleIndicator: document.getElementById('scale-indicator'),
+
+            pathLegendList: document.getElementById('path-legend-list'),
+            pathCountBadge: document.getElementById('path-count-badge'),
+
+            modalExport: document.getElementById('modal-export'),
+            exportName: document.getElementById('export-name'),
+            btnExportCancel: document.getElementById('btn-export-cancel'),
+            btnExportConfirm: document.getElementById('btn-export-confirm'),
+
+            gameScore: document.getElementById('game-score'),
+            gameStreak: document.getElementById('game-streak'),
+            gameHighscore: document.getElementById('game-highscore'),
+            gameLastscore: document.getElementById('game-lastscore'),
+            gameSetupBox: document.getElementById('game-setup-box'),
+            gameActiveBox: document.getElementById('game-active-box'),
+            btnStartGame: document.getElementById('btn-start-game'),
+            btnStopGame: document.getElementById('btn-stop-game'),
+            btnSubmitAnswer: document.getElementById('btn-submit-answer'),
+            gameQNum: document.getElementById('game-q-num'),
+            gameQGravity: document.getElementById('game-q-gravity'),
+            gameQGiven: document.getElementById('game-q-given'),
+            ansYmax: document.getElementById('ans-ymax'),
+            ansRange: document.getElementById('ans-range'),
+            ansTime: document.getElementById('ans-time'),
+            ansVimpact: document.getElementById('ans-vimpact'),
+            gameFeedbackBox: document.getElementById('game-feedback-box'),
+            feedbackStatus: document.getElementById('feedback-status'),
+            feedbackDetails: document.getElementById('feedback-details')
+        };
+
+        const ctx = elements.canvas.getContext('2d');
+
+        function computeTrajectoryData(v0, angleDeg, h0, g, idNumber = 1) {
+            const rad = (angleDeg * Math.PI) / 180;
+            const vx0 = v0 * Math.cos(rad);
+            const vy0 = v0 * Math.sin(rad);
+
+            const disc = vy0 * vy0 + 2 * g * h0;
+            const tFlight = (vy0 + Math.sqrt(disc)) / g;
+
+            const tPeak = Math.max(0, vy0 / g);
+            const yMax = h0 + (vy0 * vy0) / (2 * g);
+            const range = vx0 * tFlight;
+
+            const vyImpact = vy0 - g * tFlight;
+            const vImpact = Math.sqrt(vx0 * vx0 + vyImpact * vyImpact);
+            const impactAngle = (Math.atan2(Math.abs(vyImpact), vx0) * 180) / Math.PI;
+
+            const points = [];
+            const dt = tFlight / 200;
+            for (let i = 0; i <= 200; i++) {
+                const t = Math.min(i * dt, tFlight);
+                const x = vx0 * t;
+                const y = Math.max(0, h0 + vy0 * t - 0.5 * g * t * t);
+                const vy = vy0 - g * t;
+                const speed = Math.sqrt(vx0 * vx0 + vy * vy);
+                const angle = (Math.atan2(vy, vx0) * 180) / Math.PI;
+                const r = Math.sqrt(x * x + y * y);
+
+                points.push({ t, x, y, vx: vx0, vy, speed, angle, r });
+            }
+
+            return {
+                id: idNumber,
+                v0, angleDeg, h0, g, vx0, vy0,
+                tFlight, yMax, tPeak, range,
+                vImpact, impactAngle, points
+            };
+        }
+
+        let currentPhysics = computeTrajectoryData(state.v0, state.angleDeg, state.h0, state.g, 1);
+
+        let viewport = {
+            scale: 1,
+            offsetX: 50,
+            offsetY: 35,
+            width: 0,
+            height: 0
+        };
+
+        function resizeCanvas() {
+            const containerWidth = elements.container.clientWidth || 800;
+            
+            let maxX = Math.max(currentPhysics.range * 1.15, 20);
+            let maxY = Math.max(currentPhysics.yMax * 1.25, 10);
+
+            state.savedPaths.forEach(p => {
+                maxX = Math.max(maxX, p.range * 1.15);
+                maxY = Math.max(maxY, p.yMax * 1.25);
+            });
+
+            const idealAspectRatio = Math.min(Math.max(maxX / maxY, 1.8), 3.2);
+            let calculatedHeight = containerWidth / idealAspectRatio;
+            calculatedHeight = Math.min(Math.max(calculatedHeight, 260), 450);
+
+            elements.container.style.height = `${calculatedHeight}px`;
+
+            const dpr = window.devicePixelRatio || 1;
+            elements.canvas.width = containerWidth * dpr;
+            elements.canvas.height = calculatedHeight * dpr;
+            
+            viewport.width = containerWidth;
+            viewport.height = calculatedHeight;
+            
+            ctx.scale(dpr, dpr);
+
+            const availableW = viewport.width - 80;
+            const availableH = viewport.height - 50;
+
+            const scaleX = availableW / maxX;
+            const scaleY = availableH / maxY;
+
+            viewport.scale = Math.min(scaleX, scaleY);
+            viewport.offsetX = 50;
+            viewport.offsetY = 30;
+
+            elements.scaleIndicator.textContent = `Scale: 1m = ${viewport.scale.toFixed(1)}px`;
+
+            renderScene();
+        }
+
+        function toScreen(x, y) {
+            const px = viewport.offsetX + x * viewport.scale;
+            const py = viewport.height - viewport.offsetY - y * viewport.scale;
+            return { x: px, y: py };
+        }
+
+        function toPhysics(px, py) {
+            const x = (px - viewport.offsetX) / viewport.scale;
+            const y = (viewport.height - viewport.offsetY - py) / viewport.scale;
+            return { x, y };
+        }
+
+        function renderScene() {
+            const isDark = state.theme === 'dark';
+            
+            const colors = {
+                bg: isDark ? '#020617' : '#f8fafc',
+                grid: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(203, 213, 225, 0.7)',
+                axis: isDark ? '#64748b' : '#475569',
+                ground: isDark ? '#1e293b' : '#e2e8f0',
+                platform: isDark ? '#0284c7' : '#0284c7',
+                projectile: '#f59e0b',
+                text: isDark ? '#f8fafc' : '#0f172a',
+                subtext: isDark ? '#94a3b8' : '#64748b',
+                markerYMax: '#059669',
+                markerRange: '#db2777'
+            };
+
+            ctx.fillStyle = colors.bg;
+            ctx.fillRect(0, 0, viewport.width, viewport.height);
+
+            drawGrid(colors);
+            drawGroundAndPlatform(colors);
+
+            // Draw Saved Ghost Trajectories
+            state.savedPaths.forEach((path, idx) => {
+                const colorObj = PATH_COLORS[(idx + 1) % PATH_COLORS.length];
+                drawTrajectoryLine(path.points, colorObj.line, true);
+                drawPathNumberBadge(path, `#${path.id}`, colorObj.line, colors);
+            });
+
+            // Trajectory line only visible if launched
+            if (state.hasLaunched) {
+                const activePoints = state.isSimulating 
+                    ? currentPhysics.points.filter(p => p.t <= state.currentTime)
+                    : currentPhysics.points;
+
+                const currentColor = PATH_COLORS[0].line;
+                drawTrajectoryLine(activePoints, currentColor, false);
+                
+                drawPathNumberBadge(currentPhysics, `#${currentPhysics.id}`, currentColor, colors);
+
+                if (!state.isSimulating || state.currentTime >= currentPhysics.tFlight) {
+                    drawMarkers(currentPhysics, colors);
+                }
+            }
+
+            // Draw Ball
+            if (state.isSimulating) {
+                drawProjectileAtTime(state.currentTime, colors);
+            } else if (!state.hasLaunched) {
+                drawProjectileAtTime(0, colors);
+            } else if (state.currentTime >= currentPhysics.tFlight) {
+                drawProjectileAtTime(currentPhysics.tFlight, colors);
+            }
+
+            updateLegendUI();
+        }
+
+        function drawGrid(colors) {
+            ctx.strokeStyle = colors.grid;
+            ctx.lineWidth = 1;
+
+            const rawStep = 50 / viewport.scale;
+            const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+            const residual = rawStep / magnitude;
+            let stepMeter = magnitude;
+            if (residual > 5) stepMeter = 10 * magnitude;
+            else if (residual > 2) stepMeter = 5 * magnitude;
+            else if (residual > 1) stepMeter = 2 * magnitude;
+
+            const maxMetersX = (viewport.width - viewport.offsetX) / viewport.scale;
+            const maxMetersY = (viewport.height - viewport.offsetY) / viewport.scale;
+
+            ctx.font = '10px Inter, sans-serif';
+            ctx.fillStyle = colors.subtext;
+
+            for (let x = 0; x <= maxMetersX; x += stepMeter) {
+                const pt = toScreen(x, 0);
+                ctx.beginPath();
+                ctx.moveTo(pt.x, 0);
+                ctx.lineTo(pt.x, viewport.height - viewport.offsetY);
+                ctx.stroke();
+
+                if (x > 0) {
+                    ctx.fillText(`${x}m`, pt.x - 10, viewport.height - viewport.offsetY + 15);
+                }
+            }
+
+            for (let y = 0; y <= maxMetersY; y += stepMeter) {
+                const pt = toScreen(0, y);
+                ctx.beginPath();
+                ctx.moveTo(viewport.offsetX, pt.y);
+                ctx.lineTo(viewport.width, pt.y);
+                ctx.stroke();
+
+                if (y > 0) {
+                    ctx.fillText(`${y}m`, viewport.offsetX - 30, pt.y + 3);
+                }
+            }
+        }
+
+        function drawGroundAndPlatform(colors) {
+            const groundY = viewport.height - viewport.offsetY;
+
+            ctx.fillStyle = colors.ground;
+            ctx.fillRect(0, groundY, viewport.width, viewport.offsetY);
+
+            ctx.strokeStyle = colors.axis;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(viewport.width, groundY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(viewport.offsetX, 0);
+            ctx.lineTo(viewport.offsetX, groundY);
+            ctx.stroke();
+
+            if (currentPhysics.h0 > 0) {
+                const platformTop = toScreen(0, currentPhysics.h0);
+                ctx.fillStyle = colors.platform;
+                ctx.fillRect(viewport.offsetX - 6, platformTop.y, 6, groundY - platformTop.y);
+                
+                ctx.fillStyle = colors.text;
+                ctx.font = '10px Inter, sans-serif';
+                ctx.fillText(`h0=${currentPhysics.h0}m`, viewport.offsetX - 45, platformTop.y + 10);
+            }
+        }
+
+        function drawTrajectoryLine(points, color, isDashed) {
+            if (points.length < 2) return;
+
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            if (isDashed) {
+                ctx.setLineDash([5, 5]);
+            }
+
+            ctx.beginPath();
+            const start = toScreen(points[0].x, points[0].y);
+            ctx.moveTo(start.x, start.y);
+
+            for (let i = 1; i < points.length; i++) {
+                const pt = toScreen(points[i].x, points[i].y);
+                ctx.lineTo(pt.x, pt.y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawPathNumberBadge(physics, labelText, color, colors) {
+            const peakPt = toScreen(physics.vx0 * physics.tPeak, physics.yMax);
+            
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.font = 'bold 12px Inter, sans-serif';
+            
+            const badgeX = peakPt.x;
+            const badgeY = Math.max(peakPt.y - 16, 20);
+
+            ctx.beginPath();
+            ctx.arc(badgeX, badgeY, 11, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(labelText, badgeX, badgeY);
+            ctx.restore();
+        }
+
+        function drawMarkers(p, colors) {
+            ctx.font = 'bold 11px Inter, sans-serif';
+
+            if (state.showMaxHeight) {
+                const ptMax = toScreen(p.vx0 * p.tPeak, p.yMax);
+                ctx.fillStyle = colors.markerYMax;
+                ctx.beginPath();
+                ctx.arc(ptMax.x, ptMax.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.save();
+                ctx.setLineDash([3, 3]);
+                ctx.strokeStyle = colors.markerYMax;
+                ctx.beginPath();
+                ctx.moveTo(ptMax.x, ptMax.y);
+                ctx.lineTo(ptMax.x, viewport.height - viewport.offsetY);
+                ctx.stroke();
+                ctx.restore();
+
+                ctx.fillText(`Max H: ${p.yMax.toFixed(2)}m`, ptMax.x + 8, ptMax.y + 4);
+            }
+
+            if (state.showRange) {
+                const ptRange = toScreen(p.range, 0);
+                ctx.fillStyle = colors.markerRange;
+                ctx.beginPath();
+                ctx.arc(ptRange.x, ptRange.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillText(`Range: ${p.range.toFixed(2)}m`, ptRange.x - 30, ptRange.y - 8);
+            }
+
+            if (state.showTime) {
+                const ptRange = toScreen(p.range, 0);
+                ctx.fillStyle = colors.text;
+                ctx.fillText(`t_flight = ${p.tFlight.toFixed(2)}s`, ptRange.x - 35, ptRange.y + 18);
+            }
+        }
+
+        function drawProjectileAtTime(t, colors) {
+            const vx0 = currentPhysics.vx0;
+            const vy0 = currentPhysics.vy0;
+            const g = currentPhysics.g;
+
+            const x = vx0 * t;
+            const y = Math.max(0, currentPhysics.h0 + vy0 * t - 0.5 * g * t * t);
+            const vy = vy0 - g * t;
+
+            const pt = toScreen(x, y);
+
+            ctx.fillStyle = colors.projectile;
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            if (state.showVectors) {
+                drawVectorArrow(pt, vx0 * 1.2, 0, '#0284c7');
+                drawVectorArrow(pt, 0, -vy * 1.2, '#f43f5e');
+            }
+        }
+
+        function drawVectorArrow(startPt, dx, dy, color) {
+            if (Math.hypot(dx, dy) < 2) return;
+            const endX = startPt.x + dx;
+            const endY = startPt.y + dy;
+
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(startPt.x, startPt.y);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+            const angle = Math.atan2(dy, dx);
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(endX - 7 * Math.cos(angle - Math.PI / 6), endY - 7 * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(endX - 7 * Math.cos(angle + Math.PI / 6), endY - 7 * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+        }
+
+        function generateExportImage(userName) {
+            const exportCanvas = document.createElement('canvas');
+            const expCtx = exportCanvas.getContext('2d');
+
+            const allPaths = [];
+            if (state.hasLaunched) {
+                allPaths.push({ physics: currentPhysics, isCurrent: true, colorIndex: 0 });
+            }
+            state.savedPaths.forEach((p, idx) => {
+                allPaths.push({ physics: p, isCurrent: false, colorIndex: (idx + 1) % PATH_COLORS.length });
+            });
+
+            // Dimensions
+            const graphWidth = viewport.width;
+            const graphHeight = viewport.height;
+            const headerHeight = 70;
+            const rowHeight = 32;
+            const legendHeaderHeight = 35;
+            const legendHeight = allPaths.length > 0 ? legendHeaderHeight + (allPaths.length + 1) * rowHeight + 20 : 60;
+            
+            const totalWidth = graphWidth;
+            const totalHeight = headerHeight + graphHeight + legendHeight + 20;
+
+            exportCanvas.width = totalWidth * 2;
+            exportCanvas.height = totalHeight * 2;
+            expCtx.scale(2, 2);
+
+            // 1. Fill Background
+            expCtx.fillStyle = '#ffffff';
+            expCtx.fillRect(0, 0, totalWidth, totalHeight);
+
+            // 2. Draw Header Titles
+            expCtx.fillStyle = '#0f172a';
+            expCtx.font = 'bold 20px Inter, sans-serif';
+            expCtx.fillText('Projectile Motion Analysis', 25, 32);
+
+            expCtx.fillStyle = '#475569';
+            expCtx.font = '500 13px Inter, sans-serif';
+            const nameStr = userName ? userName : 'Anonymous';
+            expCtx.fillText(`Prepared by '${nameStr}'  |  Date: ${new Date().toLocaleDateString()}`, 25, 52);
+
+            // Divider
+            expCtx.strokeStyle = '#e2e8f0';
+            expCtx.lineWidth = 1;
+            expCtx.beginPath();
+            expCtx.moveTo(25, 62);
+            expCtx.lineTo(totalWidth - 25, 62);
+            expCtx.stroke();
+
+            // 3. Render Trajectory Graph
+            expCtx.save();
+            expCtx.translate(0, headerHeight);
+
+            const expColors = {
+                bg: '#ffffff',
+                grid: 'rgba(203, 213, 225, 0.7)',
+                axis: '#475569',
+                ground: '#f1f5f9',
+                platform: '#0284c7',
+                projectile: '#f59e0b',
+                text: '#0f172a',
+                subtext: '#64748b',
+                markerYMax: '#059669',
+                markerRange: '#db2777'
+            };
+
+            // Grid & Ground
+            expCtx.strokeStyle = expColors.grid;
+            expCtx.lineWidth = 1;
+
+            const rawStep = 50 / viewport.scale;
+            const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+            const residual = rawStep / magnitude;
+            let stepMeter = magnitude;
+            if (residual > 5) stepMeter = 10 * magnitude;
+            else if (residual > 2) stepMeter = 5 * magnitude;
+            else if (residual > 1) stepMeter = 2 * magnitude;
+
+            const maxMetersX = (viewport.width - viewport.offsetX) / viewport.scale;
+            const maxMetersY = (viewport.height - viewport.offsetY) / viewport.scale;
+
+            expCtx.font = '10px Inter, sans-serif';
+            expCtx.fillStyle = expColors.subtext;
+
+            for (let x = 0; x <= maxMetersX; x += stepMeter) {
+                const pt = toScreen(x, 0);
+                expCtx.beginPath();
+                expCtx.moveTo(pt.x, 0);
+                expCtx.lineTo(pt.x, viewport.height - viewport.offsetY);
+                expCtx.stroke();
+                if (x > 0) expCtx.fillText(`${x}m`, pt.x - 10, viewport.height - viewport.offsetY + 15);
+            }
+
+            for (let y = 0; y <= maxMetersY; y += stepMeter) {
+                const pt = toScreen(0, y);
+                expCtx.beginPath();
+                expCtx.moveTo(viewport.offsetX, pt.y);
+                expCtx.lineTo(viewport.width, pt.y);
+                expCtx.stroke();
+                if (y > 0) expCtx.fillText(`${y}m`, viewport.offsetX - 30, pt.y + 3);
+            }
+
+            const groundY = viewport.height - viewport.offsetY;
+            expCtx.fillStyle = expColors.ground;
+            expCtx.fillRect(0, groundY, viewport.width, viewport.offsetY);
+
+            expCtx.strokeStyle = expColors.axis;
+            expCtx.lineWidth = 2;
+            expCtx.beginPath();
+            expCtx.moveTo(0, groundY);
+            expCtx.lineTo(viewport.width, groundY);
+            expCtx.stroke();
+
+            expCtx.beginPath();
+            expCtx.moveTo(viewport.offsetX, 0);
+            expCtx.lineTo(viewport.offsetX, groundY);
+            expCtx.stroke();
+
+            if (currentPhysics.h0 > 0) {
+                const platformTop = toScreen(0, currentPhysics.h0);
+                expCtx.fillStyle = expColors.platform;
+                expCtx.fillRect(viewport.offsetX - 6, platformTop.y, 6, groundY - platformTop.y);
+                expCtx.fillStyle = expColors.text;
+                expCtx.font = '10px Inter, sans-serif';
+                expCtx.fillText(`h0=${currentPhysics.h0}m`, viewport.offsetX - 45, platformTop.y + 10);
+            }
+
+            // Draw paths
+            state.savedPaths.forEach((path, idx) => {
+                const colorObj = PATH_COLORS[(idx + 1) % PATH_COLORS.length];
+                drawTrajectoryLineExport(expCtx, path.points, colorObj.line, true);
+                drawPathNumberBadgeExport(expCtx, path, `#${path.id}`, colorObj.line);
+            });
+
+            if (state.hasLaunched) {
+                const currentColor = PATH_COLORS[0].line;
+                drawTrajectoryLineExport(expCtx, currentPhysics.points, currentColor, false);
+                drawPathNumberBadgeExport(expCtx, currentPhysics, `#${currentPhysics.id}`, currentColor);
+                drawMarkersExport(expCtx, currentPhysics, expColors);
+                drawProjectileAtTimeExport(expCtx, currentPhysics.tFlight, expColors);
+            } else {
+                drawProjectileAtTimeExport(expCtx, 0, expColors);
+            }
+
+            expCtx.restore();
+
+            // 4. Render Embedded Path Legend Table
+            const legendY = headerHeight + graphHeight + 10;
+            expCtx.fillStyle = '#f8fafc';
+            expCtx.strokeStyle = '#e2e8f0';
+            expCtx.lineWidth = 1;
+            expCtx.fillRect(25, legendY, totalWidth - 50, legendHeight);
+            expCtx.strokeRect(25, legendY, totalWidth - 50, legendHeight);
+
+            expCtx.fillStyle = '#0f172a';
+            expCtx.font = 'bold 13px Inter, sans-serif';
+            expCtx.fillText('Trajectory Path Legend', 40, legendY + 22);
+
+            if (allPaths.length === 0) {
+                expCtx.font = 'italic 12px Inter, sans-serif';
+                expCtx.fillStyle = '#94a3b8';
+                expCtx.fillText('No trajectory paths recorded.', 40, legendY + 45);
+            } else {
+                // Table Header
+                const tableY = legendY + 35;
+                expCtx.fillStyle = '#f1f5f9';
+                expCtx.fillRect(35, tableY, totalWidth - 70, rowHeight);
+
+                expCtx.fillStyle = '#475569';
+                expCtx.font = 'bold 11px Inter, sans-serif';
+                
+                const cols = [
+                    { name: 'Path', x: 50 },
+                    { name: 'Speed (v₀)', x: 120 },
+                    { name: 'Angle (θ)', x: 210 },
+                    { name: 'Height (h₀)', x: 290 },
+                    { name: 'Max Height', x: 380 },
+                    { name: 'Range (R)', x: 480 },
+                    { name: 'Flight Time', x: 580 },
+                    { name: 'Gravity', x: 670 }
+                ];
+
+                cols.forEach(col => expCtx.fillText(col.name, col.x, tableY + 20));
+
+                // Table Rows
+                allPaths.forEach((item, rIdx) => {
+                    const p = item.physics;
+                    const c = PATH_COLORS[item.colorIndex];
+                    const ry = tableY + (rIdx + 1) * rowHeight;
+
+                    if (rIdx % 2 === 1) {
+                        expCtx.fillStyle = '#f8fafc';
+                        expCtx.fillRect(35, ry, totalWidth - 70, rowHeight);
+                    }
+
+                    // Badge circle
+                    expCtx.fillStyle = c.badge;
+                    expCtx.beginPath();
+                    expCtx.arc(cols[0].x + 10, ry + 16, 9, 0, Math.PI * 2);
+                    expCtx.fill();
+
+                    expCtx.fillStyle = '#ffffff';
+                    expCtx.font = 'bold 10px Inter, sans-serif';
+                    expCtx.textAlign = 'center';
+                    expCtx.fillText(`#${p.id}`, cols[0].x + 10, ry + 20);
+                    expCtx.textAlign = 'left';
+
+                    expCtx.fillStyle = '#0f172a';
+                    expCtx.font = '500 11px Inter, sans-serif';
+                    expCtx.fillText(`${p.v0} m/s`, cols[1].x, ry + 20);
+                    expCtx.fillText(`${p.angleDeg}°`, cols[2].x, ry + 20);
+                    expCtx.fillText(`${p.h0} m`, cols[3].x, ry + 20);
+                    expCtx.fillText(`${p.yMax.toFixed(2)} m`, cols[4].x, ry + 20);
+                    expCtx.fillText(`${p.range.toFixed(2)} m`, cols[5].x, ry + 20);
+                    expCtx.fillText(`${p.tFlight.toFixed(2)} s`, cols[6].x, ry + 20);
+                    expCtx.fillText(`${p.g} m/s²`, cols[7].x, ry + 20);
+                });
+            }
+
+            return exportCanvas;
+        }
+
+        function drawTrajectoryLineExport(expCtx, points, color, isDashed) {
+            if (points.length < 2) return;
+            expCtx.save();
+            expCtx.strokeStyle = color;
+            expCtx.lineWidth = 3;
+            if (isDashed) expCtx.setLineDash([5, 5]);
+
+            expCtx.beginPath();
+            const start = toScreen(points[0].x, points[0].y);
+            expCtx.moveTo(start.x, start.y);
+
+            for (let i = 1; i < points.length; i++) {
+                const pt = toScreen(points[i].x, points[i].y);
+                expCtx.lineTo(pt.x, pt.y);
+            }
+            expCtx.stroke();
+            expCtx.restore();
+        }
+
+        function drawPathNumberBadgeExport(expCtx, physics, labelText, color) {
+            const peakPt = toScreen(physics.vx0 * physics.tPeak, physics.yMax);
+            expCtx.save();
+            expCtx.fillStyle = color;
+            expCtx.font = 'bold 12px Inter, sans-serif';
+            
+            const badgeX = peakPt.x;
+            const badgeY = Math.max(peakPt.y - 16, 20);
+
+            expCtx.beginPath();
+            expCtx.arc(badgeX, badgeY, 11, 0, Math.PI * 2);
+            expCtx.fill();
+
+            expCtx.fillStyle = '#ffffff';
+            expCtx.textAlign = 'center';
+            expCtx.textBaseline = 'middle';
+            expCtx.fillText(labelText, badgeX, badgeY);
+            expCtx.restore();
+        }
+
+        function drawMarkersExport(expCtx, p, expColors) {
+            expCtx.font = 'bold 11px Inter, sans-serif';
+
+            if (state.showMaxHeight) {
+                const ptMax = toScreen(p.vx0 * p.tPeak, p.yMax);
+                expCtx.fillStyle = expColors.markerYMax;
+                expCtx.beginPath();
+                expCtx.arc(ptMax.x, ptMax.y, 4, 0, Math.PI * 2);
+                expCtx.fill();
+
+                expCtx.save();
+                expCtx.setLineDash([3, 3]);
+                expCtx.strokeStyle = expColors.markerYMax;
+                expCtx.beginPath();
+                expCtx.moveTo(ptMax.x, ptMax.y);
+                expCtx.lineTo(ptMax.x, viewport.height - viewport.offsetY);
+                expCtx.stroke();
+                expCtx.restore();
+
+                expCtx.fillText(`Max H: ${p.yMax.toFixed(2)}m`, ptMax.x + 8, ptMax.y + 4);
+            }
+
+            if (state.showRange) {
+                const ptRange = toScreen(p.range, 0);
+                expCtx.fillStyle = expColors.markerRange;
+                expCtx.beginPath();
+                expCtx.arc(ptRange.x, ptRange.y, 5, 0, Math.PI * 2);
+                expCtx.fill();
+
+                expCtx.fillText(`Range: ${p.range.toFixed(2)}m`, ptRange.x - 30, ptRange.y - 8);
+            }
+
+            if (state.showTime) {
+                const ptRange = toScreen(p.range, 0);
+                expCtx.fillStyle = expColors.text;
+                expCtx.fillText(`t_flight = ${p.tFlight.toFixed(2)}s`, ptRange.x - 35, ptRange.y + 18);
+            }
+        }
+
+        function drawProjectileAtTimeExport(expCtx, t, expColors) {
+            const vx0 = currentPhysics.vx0;
+            const vy0 = currentPhysics.vy0;
+            const g = currentPhysics.g;
+
+            const x = vx0 * t;
+            const y = Math.max(0, currentPhysics.h0 + vy0 * t - 0.5 * g * t * t);
+
+            const pt = toScreen(x, y);
+
+            expCtx.fillStyle = expColors.projectile;
+            expCtx.beginPath();
+            expCtx.arc(pt.x, pt.y, 7, 0, Math.PI * 2);
+            expCtx.fill();
+            expCtx.strokeStyle = '#ffffff';
+            expCtx.lineWidth = 2;
+            expCtx.stroke();
+        }
+
+        function updateLegendUI() {
+            const allPaths = [];
+            if (state.hasLaunched) {
+                allPaths.push({ physics: currentPhysics, isCurrent: true, colorIndex: 0 });
+            }
+            state.savedPaths.forEach((p, idx) => {
+                allPaths.push({ physics: p, isCurrent: false, colorIndex: (idx + 1) % PATH_COLORS.length });
+            });
+
+            elements.pathCountBadge.textContent = `${allPaths.length} Path${allPaths.length === 1 ? '' : 's'}`;
+
+            if (allPaths.length === 0) {
+                elements.pathLegendList.innerHTML = `<div class="text-xs text-slate-500 italic p-2 col-span-full text-center">No trajectories launched yet. Press Launch to view path details.</div>`;
+                return;
+            }
+
+            elements.pathLegendList.innerHTML = allPaths.map(item => {
+                const p = item.physics;
+                const c = PATH_COLORS[item.colorIndex];
+
+                return `
+                    <div class="bg-slate-950/80 border ${c.border} p-2.5 rounded-xl text-xs space-y-1.5 shadow-sm relative overflow-hidden">
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-0.5 rounded-md font-bold text-white text-[11px]" style="background-color: ${c.badge};">
+                                    #${p.id}
+                                </span>
+                                <span class="font-bold text-slate-200">${item.isCurrent ? 'Current Path' : 'Saved Path'}</span>
+                            </div>
+                            <span class="font-mono text-[10px] text-slate-400">g=${p.g}m/s²</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-[11px]">
+                            <div>Speed (v₀): <span class="${c.text} font-bold">${p.v0} m/s</span></div>
+                            <div>Angle (θ): <span class="${c.text} font-bold">${p.angleDeg}°</span></div>
+                            <div>Height (h₀): <span class="text-slate-300 font-bold">${p.h0} m</span></div>
+                            <div>Range (R): <span class="text-emerald-400 font-bold">${p.range.toFixed(1)} m</span></div>
+                            <div>Max Height: <span class="text-emerald-400 font-bold">${p.yMax.toFixed(1)} m</span></div>
+                            <div>Flight Time: <span class="text-amber-400 font-bold">${p.tFlight.toFixed(2)} s</span></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateCalculatedUI() {
+            elements.calcYmax.textContent = `${currentPhysics.yMax.toFixed(2)} m`;
+            elements.calcRange.textContent = `${currentPhysics.range.toFixed(2)} m`;
+            elements.calcTime.textContent = `${currentPhysics.tFlight.toFixed(2)} s`;
+            elements.calcVimpact.textContent = `${currentPhysics.vImpact.toFixed(2)} m/s (${currentPhysics.impactAngle.toFixed(1)}°)`;
+        }
+
+        function startSimulation() {
+            if (state.isSimulating && !state.isPaused) return;
+
+            if (state.currentTime >= currentPhysics.tFlight || !state.hasLaunched) {
+                state.currentTime = 0;
+            }
+
+            state.hasLaunched = true;
+            state.isSimulating = true;
+            state.isPaused = false;
+            elements.txtPause.textContent = 'Pause';
+
+            let lastTimestamp = performance.now();
+
+            function loop(now) {
+                if (!state.isSimulating || state.isPaused) return;
+
+                const dt = (now - lastTimestamp) / 1000;
+                lastTimestamp = now;
+
+                state.currentTime += dt * 1.2;
+
+                if (state.currentTime >= currentPhysics.tFlight) {
+                    state.currentTime = currentPhysics.tFlight;
+                    state.isSimulating = false;
+                }
+
+                renderScene();
+
+                if (state.isSimulating) {
+                    state.animFrameId = requestAnimationFrame(loop);
+                }
+            }
+
+            state.animFrameId = requestAnimationFrame(loop);
+        }
+
+        function pauseSimulation() {
+            if (!state.isSimulating) return;
+            state.isPaused = !state.isPaused;
+            elements.txtPause.textContent = state.isPaused ? 'Resume' : 'Pause';
+            if (!state.isPaused) {
+                startSimulation();
+            }
+        }
+
+        function resetSimulation() {
+            state.isSimulating = false;
+            state.isPaused = false;
+            state.hasLaunched = false;
+            state.currentTime = 0;
+            if (state.animFrameId) cancelAnimationFrame(state.animFrameId);
+            elements.txtPause.textContent = 'Pause';
+            resizeCanvas();
+        }
+
+        function setupCursorTracking() {
+            elements.container.addEventListener('pointermove', (e) => {
+                if (!state.hasLaunched) {
+                    elements.hud.classList.add('hidden');
+                    return;
+                }
+
+                const rect = elements.canvas.getBoundingClientRect();
+                const mousePx = e.clientX - rect.left;
+                const mousePy = e.clientY - rect.top;
+
+                const mousePhys = toPhysics(mousePx, mousePy);
+
+                const points = currentPhysics.points;
+                let closestPt = null;
+                let minDist = Infinity;
+
+                for (let i = 0; i < points.length; i++) {
+                    const pt = points[i];
+                    const dist = Math.hypot(pt.x - mousePhys.x, pt.y - mousePhys.y);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        closestPt = pt;
+                    }
+                }
+
+                if (closestPt && minDist * viewport.scale < 35) {
+                    const screenPt = toScreen(closestPt.x, closestPt.y);
+
+                    elements.hud.style.left = `${Math.min(screenPt.x + 15, viewport.width - 200)}px`;
+                    elements.hud.style.top = `${Math.max(screenPt.y - 110, 15)}px`;
+
+                    document.getElementById('hud-t').textContent = closestPt.t.toFixed(2);
+                    document.getElementById('hud-y').textContent = closestPt.y.toFixed(2);
+                    document.getElementById('hud-x').textContent = closestPt.x.toFixed(2);
+                    document.getElementById('hud-r').textContent = closestPt.r.toFixed(2);
+                    document.getElementById('hud-angle').textContent = closestPt.angle.toFixed(1);
+                    document.getElementById('hud-v').textContent = closestPt.speed.toFixed(2);
+
+                    elements.hud.classList.remove('hidden');
+                } else {
+                    elements.hud.classList.add('hidden');
+                }
+            });
+
+            elements.container.addEventListener('pointerleave', () => {
+                elements.hud.classList.add('hidden');
+            });
+        }
+
+        function updateGameStatsDisplay() {
+            elements.gameScore.textContent = state.game.score;
+            elements.gameStreak.textContent = `${state.game.streak} 🔥`;
+            elements.gameHighscore.textContent = state.game.highScore;
+            elements.gameLastscore.textContent = state.game.lastScore !== null ? state.game.lastScore : '-';
+        }
+
+        function generateGameQuestion() {
+            const v0 = Math.floor(Math.random() * 40) + 10;
+            const angle = Math.floor(Math.random() * 12) * 5 + 15;
+            const h0 = Math.random() > 0.3 ? Math.floor(Math.random() * 20) : 0;
+            const gList = [9.81, 1.62, 3.71];
+            const g = gList[Math.floor(Math.random() * gList.length)];
+
+            const qId = state.savedPaths.length + (state.hasLaunched ? 1 : 0) + 1;
+            state.game.currentScenario = computeTrajectoryData(v0, angle, h0, g, qId);
+            currentPhysics = state.game.currentScenario;
+
+            elements.gameQNum.textContent = `Question ${state.game.currentQIndex + 1} of ${state.game.totalQuestions}`;
+            elements.gameQGravity.textContent = `g = ${g} m/s²`;
+            elements.gameQGiven.innerHTML = `
+                <div>v₀: <span class="text-white font-bold">${v0} m/s</span></div>
+                <div>θ: <span class="text-white font-bold">${angle}°</span></div>
+                <div>h₀: <span class="text-white font-bold">${h0} m</span></div>
+            `;
+
+            elements.ansYmax.value = '';
+            elements.ansRange.value = '';
+            elements.ansTime.value = '';
+            elements.ansVimpact.value = '';
+            elements.gameFeedbackBox.classList.add('hidden');
+
+            resetSimulation();
+        }
+
+        function startQuizGame(questionCount) {
+            state.game.totalQuestions = questionCount;
+            state.game.currentQIndex = 0;
+            state.game.score = 0;
+            state.game.streak = 0;
+
+            elements.gameSetupBox.classList.add('hidden');
+            elements.gameActiveBox.classList.remove('hidden');
+
+            updateGameStatsDisplay();
+            generateGameQuestion();
+        }
+
+        function submitGameAnswer() {
+            const sc = state.game.currentScenario;
+            if (!sc) return;
+
+            const uYmax = parseFloat(elements.ansYmax.value);
+            const uRange = parseFloat(elements.ansRange.value);
+            const uTime = parseFloat(elements.ansTime.value);
+            const uVimpact = parseFloat(elements.ansVimpact.value);
+
+            const isYmaxOk = !isNaN(uYmax) && Math.abs(uYmax - sc.yMax) / sc.yMax <= 0.035;
+            const isRangeOk = !isNaN(uRange) && Math.abs(uRange - sc.range) / sc.range <= 0.035;
+            const isTimeOk = !isNaN(uTime) && Math.abs(uTime - sc.tFlight) / sc.tFlight <= 0.035;
+            const isVimpactOk = !isNaN(uVimpact) && Math.abs(uVimpact - sc.vImpact) / sc.vImpact <= 0.035;
+
+            const correctCount = [isYmaxOk, isRangeOk, isTimeOk, isVimpactOk].filter(Boolean).length;
+            const pointsEarned = correctCount * 25;
+
+            state.game.score += pointsEarned;
+            if (correctCount === 4) {
+                state.game.streak++;
+            } else {
+                state.game.streak = 0;
+            }
+
+            if (state.game.score > state.game.highScore) {
+                state.game.highScore = state.game.score;
+                localStorage.setItem('projectile_highscore', state.game.highScore);
+            }
+
+            updateGameStatsDisplay();
+
+            elements.gameFeedbackBox.classList.remove('hidden');
+            if (correctCount === 4) {
+                elements.feedbackStatus.textContent = "🎉 Excellent! 100% Correct!";
+                elements.feedbackStatus.className = "font-bold text-emerald-400";
+            } else {
+                elements.feedbackStatus.textContent = `Scored ${correctCount}/4 answers correctly (+${pointsEarned} pts)`;
+                elements.feedbackStatus.className = "font-bold text-amber-400";
+            }
+
+            elements.feedbackDetails.innerHTML = `
+                <div class="font-bold border-b border-slate-800 pb-1 mb-1">Exact Solutions:</div>
+                <div>• Max Height: <span class="text-emerald-400 font-bold">${sc.yMax.toFixed(2)}m</span></div>
+                <div>• Range: <span class="text-emerald-400 font-bold">${sc.range.toFixed(2)}m</span></div>
+                <div>• Flight Time: <span class="text-emerald-400 font-bold">${sc.tFlight.toFixed(2)}s</span></div>
+                <div>• Impact Speed: <span class="text-emerald-400 font-bold">${sc.vImpact.toFixed(2)}m/s</span></div>
+            `;
+
+            startSimulation();
+
+            setTimeout(() => {
+                state.game.currentQIndex++;
+                if (state.game.currentQIndex < state.game.totalQuestions) {
+                    generateGameQuestion();
+                } else {
+                    state.game.lastScore = state.game.score;
+                    localStorage.setItem('projectile_lastscore', state.game.lastScore);
+                    updateGameStatsDisplay();
+                    alert(`Challenge Completed!\nFinal Score: ${state.game.score}`);
+                    elements.gameSetupBox.classList.remove('hidden');
+                    elements.gameActiveBox.classList.add('hidden');
+                }
+            }, 3500);
+        }
+
+        function bindEvents() {
+            elements.themeToggle.addEventListener('click', () => {
+                state.theme = state.theme === 'dark' ? 'light' : 'dark';
+                if (state.theme === 'dark') {
+                    elements.html.classList.add('dark');
+                } else {
+                    elements.html.classList.remove('dark');
+                }
+                renderScene();
+            });
+
+            elements.navSandbox.addEventListener('click', () => {
+                state.mode = 'sandbox';
+                elements.sandboxPanel.classList.remove('hidden');
+                elements.gamePanel.classList.add('hidden');
+                elements.navSandbox.className = "px-3 py-1.5 rounded-lg bg-sky-600 text-white shadow-sm transition";
+                elements.navGame.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition";
+                updatePhysicsFromInputs();
+            });
+
+            elements.navGame.addEventListener('click', () => {
+                state.mode = 'game';
+                elements.gamePanel.classList.remove('hidden');
+                elements.sandboxPanel.classList.add('hidden');
+                elements.navGame.className = "px-3 py-1.5 rounded-lg bg-sky-600 text-white shadow-sm transition";
+                elements.navSandbox.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition";
+                updateGameStatsDisplay();
+            });
+
+            function updatePhysicsFromInputs() {
+                state.v0 = parseFloat(elements.inputV0.value);
+                state.angleDeg = parseFloat(elements.inputAngle.value);
+                state.h0 = parseFloat(elements.inputH0.value);
+
+                if (elements.selectGravity.value === 'custom') {
+                    elements.inputGravityCustom.classList.remove('hidden');
+                    state.g = parseFloat(elements.inputGravityCustom.value) || 9.81;
+                } else {
+                    elements.inputGravityCustom.classList.add('hidden');
+                    state.g = parseFloat(elements.selectGravity.value);
+                }
+
+                elements.valV0.textContent = `${state.v0} m/s`;
+                elements.valAngle.textContent = `${state.angleDeg}°`;
+                elements.valH0.textContent = `${state.h0} m`;
+
+                const nextId = state.savedPaths.length + 1;
+                currentPhysics = computeTrajectoryData(state.v0, state.angleDeg, state.h0, state.g, nextId);
+                updateCalculatedUI();
+                resetSimulation();
+            }
+
+            elements.inputV0.addEventListener('input', updatePhysicsFromInputs);
+            elements.inputAngle.addEventListener('input', updatePhysicsFromInputs);
+            elements.inputH0.addEventListener('input', updatePhysicsFromInputs);
+            elements.selectGravity.addEventListener('change', updatePhysicsFromInputs);
+            elements.inputGravityCustom.addEventListener('input', updatePhysicsFromInputs);
+
+            elements.btnLaunch.addEventListener('click', startSimulation);
+            elements.btnPause.addEventListener('click', pauseSimulation);
+            elements.btnReset.addEventListener('click', resetSimulation);
+
+            elements.btnSavePath.addEventListener('click', () => {
+                if (state.hasLaunched) {
+                    state.savedPaths.push(currentPhysics);
+                    
+                    const nextId = state.savedPaths.length + 1;
+                    currentPhysics = computeTrajectoryData(state.v0, state.angleDeg, state.h0, state.g, nextId);
+                    
+                    state.hasLaunched = false;
+                    state.currentTime = 0;
+                    resizeCanvas();
+                }
+            });
+
+            elements.btnClearPaths.addEventListener('click', () => {
+                state.savedPaths = [];
+                currentPhysics.id = 1;
+                resizeCanvas();
+            });
+
+            elements.chkVectors.addEventListener('change', (e) => { state.showVectors = e.target.checked; renderScene(); });
+            elements.chkMaxHeight.addEventListener('change', (e) => { state.showMaxHeight = e.target.checked; renderScene(); });
+            elements.chkRange.addEventListener('change', (e) => { state.showRange = e.target.checked; renderScene(); });
+            elements.chkTime.addEventListener('change', (e) => { state.showTime = e.target.checked; renderScene(); });
+
+            elements.btnExport.addEventListener('click', () => {
+                elements.modalExport.classList.remove('hidden');
+            });
+
+            elements.btnExportCancel.addEventListener('click', () => {
+                elements.modalExport.classList.add('hidden');
+            });
+
+            elements.btnExportConfirm.addEventListener('click', () => {
+                const userName = elements.exportName.value.trim();
+                const expCanvas = generateExportImage(userName);
+
+                const link = document.createElement('a');
+                link.download = `projectile-motion-${Date.now()}.png`;
+                link.href = expCanvas.toDataURL('image/png');
+                link.click();
+
+                elements.modalExport.classList.add('hidden');
+            });
+
+            document.querySelectorAll('.btn-qcount').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.btn-qcount').forEach(b => {
+                        b.className = "btn-qcount py-2 bg-slate-700 hover:bg-slate-600 font-bold text-xs rounded-lg text-white";
+                    });
+                    e.target.className = "btn-qcount py-2 bg-sky-600 font-bold text-xs rounded-lg text-white";
+                    state.game.totalQuestions = parseInt(e.target.getAttribute('data-questions'));
+                });
+            });
+
+            elements.btnStartGame.addEventListener('click', () => {
+                startQuizGame(state.game.totalQuestions);
+            });
+
+            elements.btnSubmitAnswer.addEventListener('click', submitGameAnswer);
+
+            elements.btnStopGame.addEventListener('click', () => {
+                elements.gameSetupBox.classList.remove('hidden');
+                elements.gameActiveBox.classList.add('hidden');
+            });
+
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        window.onload = function() {
+            bindEvents();
+            setupCursorTracking();
+            resizeCanvas();
+            updateCalculatedUI();
+        };
+    </script>
+</body>
+</html>
