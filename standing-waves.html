@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standing Wave Physics Simulator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        physics: {
+                            blue: '#3b82f6',
+                            cyan: '#06b6d4',
+                            amber: '#f59e0b',
+                            emerald: '#10b981',
+                            rose: '#f43f5e',
+                            violet: '#8b5cf6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(75, 85, 99, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300 flex flex-col selection:bg-physics-blue selection:text-white">
+
+    <!-- Header / Navigation Bar -->
+    <header class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 px-4 py-3 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <!-- App Title & Badge -->
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-physics-blue/10 dark:bg-physics-blue/20 text-physics-blue rounded-xl">
+                    <i class="fa-solid font-bold fa-wave-square text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold leading-tight tracking-tight">Standing Wave Lab</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Interactive Wave Mechanics Physics Engine</p>
+                </div>
+            </div>
+
+            <!-- Resonance Indicator & Top Controls -->
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <!-- Resonance Status Badge -->
+                <div id="resonanceBadge" class="flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide transition-all shadow-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping mr-2"></span>
+                    <span id="resonanceText">Standing Wave Resonance</span>
+                </div>
+
+                <!-- Dark / Light Theme Toggle -->
+                <button id="themeToggleBtn" class="p-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all border border-slate-200 dark:border-slate-700" title="Toggle Light/Dark Theme">
+                    <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                </button>
+
+                <!-- Project Manager Trigger -->
+                <button id="openSavedBtn" class="flex items-center gap-1.5 px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-xs font-semibold rounded-xl transition-all">
+                    <i class="fa-solid fa-folder-open text-physics-amber"></i>
+                    <span class="hidden sm:inline">Saved Presets</span>
+                </button>
+
+                <!-- Export Button -->
+                <button id="exportModalTriggerBtn" class="flex items-center gap-1.5 px-3 py-2 bg-physics-blue hover:bg-blue-600 text-white text-xs font-semibold rounded-xl shadow-md transition-all">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Export</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+        <!-- Left / Top Column: Canvas Display & Playback Controls (lg:col-span-8) -->
+        <div class="lg:col-span-8 flex flex-col space-y-4">
+
+            <!-- Canvas Viewport Wrapper -->
+            <div class="relative bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 shadow-xl flex flex-col min-h-[360px] sm:min-h-[460px]">
+                
+                <!-- Overlay Canvas Header Stats -->
+                <div class="absolute top-3 left-3 right-3 flex justify-between items-start pointer-events-none z-10 text-xs font-mono text-slate-300">
+                    <div class="bg-slate-900/80 backdrop-blur border border-slate-700/60 rounded-lg p-2 space-y-0.5">
+                        <div class="text-physics-cyan font-bold" id="canvasSystemTitle">String (Fixed-Fixed Ends)</div>
+                        <div>L = <span id="statL">1.00</span> m | v = <span id="statV">340</span> m/s</div>
+                        <div>f = <span id="statF">170.00</span> Hz | λ = <span id="statLambda">2.00</span> m</div>
+                    </div>
+                    
+                    <div class="bg-slate-900/80 backdrop-blur border border-slate-700/60 rounded-lg p-2 text-right">
+                        <div class="text-physics-amber font-bold" id="canvasHarmonicTitle">Harmonic: n = 1</div>
+                        <div class="text-slate-400" id="canvasWaveRepresentation">Displacement Wave</div>
+                    </div>
+                </div>
+
+                <!-- Interactive Main Physics Canvas -->
+                <canvas id="waveCanvas" class="w-full h-full flex-1 cursor-crosshair block"></canvas>
+
+                <!-- Interactive Canvas Legends Bar -->
+                <div class="bg-slate-900/90 border-t border-slate-800 px-4 py-2 flex flex-wrap justify-between items-center text-xs text-slate-400 gap-2">
+                    <div class="flex items-center space-x-4">
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-physics-blue inline-block"></span> Resultant Wave
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400/60 inline-block"></span> Incident / Reflected
+                        </span>
+                        <span id="particleLegend" class="hidden sm:flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-physics-rose inline-block"></span> Air Molecules
+                        </span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-[11px]">
+                        <span class="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded border border-blue-500/30 font-semibold">N</span> Node (Fixed / Zero)
+                        <span class="px-1.5 py-0.5 bg-rose-500/20 text-rose-300 rounded border border-rose-500/30 font-semibold">AN</span> Antinode (Max Peak)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Playback Control Bar -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                
+                <!-- Main Action Buttons -->
+                <div class="flex items-center space-x-2 w-full sm:w-auto justify-center">
+                    <!-- Play / Pause -->
+                    <button id="playPauseBtn" class="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-5 py-2.5 bg-physics-blue hover:bg-blue-600 text-white font-semibold rounded-xl shadow-md transition-all">
+                        <i id="playPauseIcon" class="fa-solid fa-pause"></i>
+                        <span id="playPauseText">Pause</span>
+                    </button>
+                    
+                    <!-- Stop (Reset time) -->
+                    <button id="stopBtn" class="p-2.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all border border-slate-200 dark:border-slate-600" title="Stop & Reset Time">
+                        <i class="fa-solid fa-stop text-slate-500 dark:text-slate-400"></i>
+                    </button>
+
+                    <!-- Restart -->
+                    <button id="restartBtn" class="p-2.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all border border-slate-200 dark:border-slate-600" title="Restart Animation">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+
+                <!-- Mode & Speed Controls -->
+                <div class="flex flex-wrap items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+                    <!-- Animation Mode Selector (Time-Lapse vs Static) -->
+                    <div class="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium">
+                        <button id="modeAnimBtn" class="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-physics-blue shadow-sm font-semibold transition-all">
+                            <i class="fa-solid fa-film mr-1"></i> Continuous
+                        </button>
+                        <button id="modeStaticBtn" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all">
+                            <i class="fa-solid fa-camera mr-1"></i> Envelope (Static)
+                        </button>
+                    </div>
+
+                    <!-- Speed Slider -->
+                    <div class="flex items-center space-x-2 bg-slate-50 dark:bg-slate-900/50 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <i class="fa-solid fa-gauge-high text-xs text-slate-400"></i>
+                        <span class="text-xs font-mono w-8 text-slate-600 dark:text-slate-300" id="speedValText">1.0x</span>
+                        <input id="speedSlider" type="range" min="0.1" max="2.0" step="0.1" value="1.0" class="w-20 accent-physics-blue cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Interactive Physics Control Panel (lg:col-span-4) -->
+        <div class="lg:col-span-4 flex flex-col space-y-4">
+            
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-5">
+                <h2 class="text-base font-bold flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-3">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-physics-blue"></i> Physical System
+                    </span>
+                    <button id="quickSaveBtn" class="text-xs font-semibold text-physics-blue hover:text-blue-600 flex items-center gap-1 px-2.5 py-1 bg-physics-blue/10 rounded-lg">
+                        <i class="fa-solid fa-bookmark"></i> Save Path
+                    </button>
+                </h2>
+
+                <!-- 1. Wave System Type Selector -->
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">System Geometry</label>
+                    <select id="systemTypeSelect" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-physics-blue outline-none transition-all">
+                        <option value="string">Vibrating String (Fixed-Fixed)</option>
+                        <option value="open-open">Open Tube / Pipe (Open-Open)</option>
+                        <option value="closed-open">Closed-Open Tube (Fixed-Free)</option>
+                    </select>
+                </div>
+
+                <!-- 2. Wave View Type (Displacement vs Pressure) -->
+                <div id="waveViewWrapper" class="space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Wave Visualization Aspect</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="viewDisplacementBtn" class="py-2 px-3 text-xs font-semibold rounded-xl border border-physics-blue bg-physics-blue/10 text-physics-blue transition-all text-center">
+                            Displacement Wave
+                        </button>
+                        <button id="viewPressureBtn" class="py-2 px-3 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all text-center">
+                            Pressure Wave
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. Harmonics / Mode Selector (n) -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Harmonic Mode ($n$)</label>
+                        <span id="nValueDisplay" class="text-xs font-mono font-bold px-2 py-0.5 bg-physics-amber/20 text-physics-amber rounded">n = 1 (Fundamental)</span>
+                    </div>
+                    <div class="grid grid-cols-5 gap-1.5" id="harmonicButtonsGrid">
+                        <!-- Harmonic Quick buttons will be generated dynamically -->
+                    </div>
+                </div>
+
+                <hr class="border-slate-100 dark:border-slate-700/60">
+
+                <!-- 4. Linked Parameter Sliders (v, L, f, lambda) -->
+                <div class="space-y-4">
+                    <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex justify-between items-center">
+                        <span>Physical Parameters</span>
+                        <button id="snapResonanceBtn" class="text-[11px] text-physics-cyan hover:underline font-normal">
+                            Snap to Resonance
+                        </button>
+                    </div>
+
+                    <!-- System Length (L) -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-medium">
+                            <span>Tube / String Length ($L$)</span>
+                            <span class="font-mono text-physics-blue"><span id="lengthVal">1.00</span> m</span>
+                        </div>
+                        <input id="lengthSlider" type="range" min="0.2" max="3.0" step="0.05" value="1.0" class="w-full accent-physics-blue cursor-pointer">
+                    </div>
+
+                    <!-- Wave Speed (v) -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-medium">
+                            <span>Wave Speed ($v$)</span>
+                            <span class="font-mono text-physics-blue"><span id="speedWaveVal">340</span> m/s</span>
+                        </div>
+                        <input id="waveSpeedSlider" type="range" min="50" max="1000" step="10" value="340" class="w-full accent-physics-blue cursor-pointer">
+                    </div>
+
+                    <!-- Frequency (f) -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-medium">
+                            <span>Frequency ($f$)</span>
+                            <span class="font-mono text-physics-blue"><span id="freqVal">170.0</span> Hz</span>
+                        </div>
+                        <input id="freqSlider" type="range" min="10" max="2000" step="1" value="170" class="w-full accent-physics-blue cursor-pointer">
+                    </div>
+
+                    <!-- Wavelength (lambda) -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-medium">
+                            <span>Wavelength ($\lambda = v/f$)</span>
+                            <span class="font-mono text-physics-blue"><span id="lambdaVal">2.00</span> m</span>
+                        </div>
+                        <input id="lambdaSlider" type="range" min="0.1" max="5.0" step="0.02" value="2.0" class="w-full accent-physics-blue cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Component Overlay Toggles -->
+                <div class="bg-slate-50 dark:bg-slate-900/60 p-3 rounded-xl space-y-2 border border-slate-200 dark:border-slate-700/60">
+                    <div class="text-xs font-semibold text-slate-500 dark:text-slate-400">Component Wave Overlays</div>
+                    <div class="flex items-center justify-between text-xs">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input id="toggleIncidentCheck" type="checkbox" checked class="rounded accent-physics-blue">
+                            <span>Incident & Reflected Waves</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input id="toggleParticlesCheck" type="checkbox" checked class="rounded accent-physics-rose">
+                            <span>Air Particles (Tubes)</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Saved Presets Modal -->
+    <div id="savedModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl max-w-lg w-full p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-3">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-folder-open text-physics-amber"></i> Saved Project Paths
+                </h3>
+                <button id="closeSavedModalBtn" class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- List of Presets -->
+            <div id="presetListContainer" class="max-h-64 overflow-y-auto space-y-2 pr-1">
+                <!-- Preset items rendered via JS -->
+            </div>
+
+            <div class="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-700">
+                <button id="clearAllPresetsBtn" class="text-xs text-rose-500 hover:underline">Clear All History</button>
+                <button id="saveNewPathModalBtn" class="px-4 py-2 bg-physics-blue hover:bg-blue-600 text-white text-xs font-semibold rounded-xl">
+                    + Save Current Scenario
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl max-w-md w-full p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-3">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-file-export text-physics-blue"></i> Export Clean Light Theme Snapshot
+                </h3>
+                <button id="closeExportModalBtn" class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Author / Investigator Name *</label>
+                    <input id="exportAuthorName" type="text" placeholder="e.g. Dr. Jane Doe / Student Name" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-physics-blue">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Project / Experiment Title</label>
+                    <input id="exportProjectTitle" type="text" placeholder="e.g. Fundamental Harmonic Resonance" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-physics-blue">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Notes / Lab Observations</label>
+                    <textarea id="exportNotes" rows="2" placeholder="e.g. Node observed at L/2, resonance peak matched theoretical model." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-physics-blue"></textarea>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end space-x-2 border-t border-slate-100 dark:border-slate-700">
+                <button id="cancelExportBtn" class="px-4 py-2 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-xl text-slate-600 dark:text-slate-300">
+                    Cancel
+                </button>
+                <button id="confirmExportBtn" class="px-4 py-2 bg-physics-blue hover:bg-blue-600 text-white text-xs font-semibold rounded-xl shadow-md">
+                    Generate PNG Image
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Export Offscreen Canvas -->
+    <canvas id="exportCanvas" class="hidden"></canvas>
+
+    <script>
+        /*
+         * Standing Wave Physics Simulator Engine
+         * Fixed analytical boundary equations for String, Open Tube, and Closed Tube.
+         */
+
+        const state = {
+            systemType: 'string', // 'string', 'open-open', 'closed-open'
+            waveView: 'displacement', // 'displacement', 'pressure'
+            n: 1, // Harmonic mode
+            v: 340, // Wave Speed (m/s)
+            L: 1.0, // Length of system (m)
+            f: 170.0, // Frequency (Hz)
+            lambda: 2.0, // Wavelength (m)
+            isResonant: true,
+            animating: true,
+            mode: 'continuous', // 'continuous' or 'static'
+            speedMultiplier: 1.0,
+            showIncident: true,
+            showParticles: true,
+            time: 0,
+            theme: 'dark',
+            particles: []
+        };
+
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
+        const exportCanvas = document.getElementById('exportCanvas');
+
+        function initParticles() {
+            state.particles = [];
+            const numParticles = 320;
+            for (let i = 0; i < numParticles; i++) {
+                state.particles.push({
+                    xRatio: Math.random(), // Relative position along tube [0, 1]
+                    yOffset: (Math.random() - 0.5) * 0.65,
+                    radius: 1.8 + Math.random() * 1.5,
+                    colorAlpha: 0.5 + Math.random() * 0.5
+                });
+            }
+        }
+
+        function getResonanceParameters(system, n, L, v) {
+            let resLambda = 0;
+            if (system === 'string' || system === 'open-open') {
+                resLambda = (2 * L) / n;
+            } else if (system === 'closed-open') {
+                // Closed-Open only allows odd harmonics n = 1, 3, 5, 7...
+                resLambda = (4 * L) / n;
+            }
+            const resFreq = v / resLambda;
+            return { resLambda, resFreq };
+        }
+
+        function updateResonanceState() {
+            const { resFreq, resLambda } = getResonanceParameters(state.systemType, state.n, state.L, state.v);
+            const freqDiff = Math.abs(state.f - resFreq);
+            state.isResonant = freqDiff < (0.015 * resFreq) || freqDiff < 0.5;
+
+            // Update UI status elements
+            const badge = document.getElementById('resonanceBadge');
+            const badgeText = document.getElementById('resonanceText');
+            if (state.isResonant) {
+                badge.className = "flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide transition-all shadow-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30";
+                badgeText.textContent = `Resonance (n=${state.n})`;
+            } else {
+                badge.className = "flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide transition-all shadow-sm bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30";
+                badgeText.textContent = "Non-Resonant Superposition";
+            }
+
+            document.getElementById('statL').textContent = state.L.toFixed(2);
+            document.getElementById('statV').textContent = Math.round(state.v);
+            document.getElementById('statF').textContent = state.f.toFixed(1);
+            document.getElementById('statLambda').textContent = state.lambda.toFixed(2);
+
+            document.getElementById('lengthVal').textContent = state.L.toFixed(2);
+            document.getElementById('speedWaveVal').textContent = Math.round(state.v);
+            document.getElementById('freqVal').textContent = state.f.toFixed(1);
+            document.getElementById('lambdaVal').textContent = state.lambda.toFixed(2);
+        }
+
+        function syncSliders() {
+            document.getElementById('lengthSlider').value = state.L;
+            document.getElementById('waveSpeedSlider').value = state.v;
+            document.getElementById('freqSlider').value = state.f;
+            document.getElementById('lambdaSlider').value = state.lambda;
+        }
+
+        function snapToResonance() {
+            const { resFreq, resLambda } = getResonanceParameters(state.systemType, state.n, state.L, state.v);
+            state.f = resFreq;
+            state.lambda = resLambda;
+            syncSliders();
+            updateResonanceState();
+        }
+
+        /**
+         * Calculates exact standing wave displacement and component waves at point x [0, L]
+         */
+        function getWaveDisplacement(x, t) {
+            const omega = 2 * Math.PI * state.f;
+            const Amp = 0.35; // Peak amplitude scale factor
+
+            let yIncident = 0;
+            let yReflected = 0;
+            let yResultant = 0;
+
+            if (state.isResonant) {
+                // Exact analytical spatial envelope when tuned to resonance
+                let spatialFactor = 0;
+                let isDispView = (state.waveView === 'displacement');
+
+                if (state.systemType === 'string') {
+                    // String (Fixed-Fixed): Nodes at x=0 and x=L -> sin(n*pi*x/L)
+                    spatialFactor = Math.sin((state.n * Math.PI * x) / state.L);
+                    yIncident = 0.5 * Amp * Math.sin((2 * Math.PI * x / state.lambda) - omega * t);
+                    yReflected = -0.5 * Amp * Math.sin((2 * Math.PI * x / state.lambda) + omega * t);
+                } else if (state.systemType === 'open-open') {
+                    // Open Tube (Open-Open)
+                    if (isDispView) {
+                        // Displacement: Antinodes at x=0 and x=L -> cos(n*pi*x/L)
+                        spatialFactor = Math.cos((state.n * Math.PI * x) / state.L);
+                    } else {
+                        // Pressure: Nodes at x=0 and x=L -> sin(n*pi*x/L)
+                        spatialFactor = Math.sin((state.n * Math.PI * x) / state.L);
+                    }
+                    yIncident = 0.5 * Amp * Math.cos((2 * Math.PI * x / state.lambda) - omega * t);
+                    yReflected = 0.5 * Amp * Math.cos((2 * Math.PI * x / state.lambda) + omega * t);
+                } else if (state.systemType === 'closed-open') {
+                    // Closed-Open Tube: Closed at x=0 (Node), Open at x=L (Antinode)
+                    if (isDispView) {
+                        // Displacement Node at x=0, Antinode at x=L -> sin(n*pi*x / (2L))
+                        spatialFactor = Math.sin((state.n * Math.PI * x) / (2 * state.L));
+                    } else {
+                        // Pressure Antinode at x=0, Node at x=L -> cos(n*pi*x / (2L))
+                        spatialFactor = Math.cos((state.n * Math.PI * x) / (2 * state.L));
+                    }
+                    yIncident = 0.5 * Amp * Math.sin((2 * Math.PI * x / state.lambda) - omega * t);
+                    yReflected = 0.5 * Amp * Math.cos((2 * Math.PI * x / state.lambda) + omega * t);
+                }
+
+                yResultant = Amp * spatialFactor * Math.cos(omega * t);
+            } else {
+                // Non-resonant superposition of incident and reflected travelling waves
+                const k = (2 * Math.PI) / state.lambda;
+                if (state.systemType === 'string') {
+                    yIncident = 0.5 * Amp * Math.sin(k * x - omega * t);
+                    yReflected = -0.5 * Amp * Math.sin(k * x + omega * t);
+                } else if (state.systemType === 'open-open') {
+                    yIncident = 0.5 * Amp * Math.cos(k * x - omega * t);
+                    yReflected = 0.5 * Amp * Math.cos(k * x + omega * t);
+                } else {
+                    yIncident = 0.5 * Amp * Math.sin(k * x - omega * t);
+                    yReflected = 0.5 * Amp * Math.cos(k * x + omega * t);
+                }
+                yResultant = yIncident + yReflected;
+            }
+
+            return { yIncident, yReflected, yResultant };
+        }
+
+        function getNodeAntinodePositions() {
+            const nodes = [];
+            const antinodes = [];
+            const L = state.L;
+            const n = state.n;
+            const isDisp = (state.waveView === 'displacement');
+
+            if (state.systemType === 'string') {
+                // String Fixed-Fixed: Nodes at k * L / n ; Antinodes at (k + 0.5) * L / n
+                for (let k = 0; k <= n; k++) {
+                    nodes.push((k * L) / n);
+                }
+                for (let k = 0; k < n; k++) {
+                    antinodes.push(((k + 0.5) * L) / n);
+                }
+            } else if (state.systemType === 'open-open') {
+                if (isDisp) {
+                    // Displacement: Antinodes at k * L / n ; Nodes at (k + 0.5) * L / n
+                    for (let k = 0; k <= n; k++) {
+                        antinodes.push((k * L) / n);
+                    }
+                    for (let k = 0; k < n; k++) {
+                        nodes.push(((k + 0.5) * L) / n);
+                    }
+                } else {
+                    // Pressure: Nodes at k * L / n ; Antinodes at (k + 0.5) * L / n
+                    for (let k = 0; k <= n; k++) {
+                        nodes.push((k * L) / n);
+                    }
+                    for (let k = 0; k < n; k++) {
+                        antinodes.push(((k + 0.5) * L) / n);
+                    }
+                }
+            } else if (state.systemType === 'closed-open') {
+                // Closed-Open (n = 1, 3, 5, 7...)
+                const numQuarterWaves = n;
+                const quarterL = L / numQuarterWaves;
+
+                if (isDisp) {
+                    // Displacement Node at x=0, AN at x=L
+                    for (let i = 0; i <= numQuarterWaves; i++) {
+                        const posX = i * quarterL;
+                        if (i % 2 === 0) nodes.push(posX);
+                        else antinodes.push(posX);
+                    }
+                } else {
+                    // Pressure AN at x=0, Node at x=L
+                    for (let i = 0; i <= numQuarterWaves; i++) {
+                        const posX = i * quarterL;
+                        if (i % 2 === 0) antinodes.push(posX);
+                        else nodes.push(posX);
+                    }
+                }
+            }
+
+            return { nodes, antinodes };
+        }
+
+        function drawScene() {
+            const dpr = window.devicePixelRatio || 1;
+            const width = canvas.width / dpr;
+            const height = canvas.height / dpr;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const paddingX = 60;
+            const startX = paddingX;
+            const endX = width - paddingX;
+            const drawWidth = endX - startX;
+            const centerY = height / 2;
+            const maxAmpPixels = height * 0.28;
+
+            // Draw System Boundaries
+            if (state.systemType === 'string') {
+                // String Fixed Pins at 0 and L
+                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                // Left fixed anchor
+                ctx.moveTo(startX, centerY - 28);
+                ctx.lineTo(startX, centerY + 28);
+                // Right fixed anchor
+                ctx.moveTo(endX, centerY - 28);
+                ctx.lineTo(endX, centerY + 28);
+                ctx.stroke();
+
+                // Anchor clamps
+                ctx.fillStyle = '#475569';
+                ctx.fillRect(startX - 8, centerY - 12, 8, 24);
+                ctx.fillRect(endX, centerY - 12, 8, 24);
+            } else {
+                // Tube Cylinder
+                const tubeHeight = maxAmpPixels * 2.2;
+                ctx.fillStyle = 'rgba(30, 41, 59, 0.4)';
+                ctx.fillRect(startX, centerY - tubeHeight/2, drawWidth, tubeHeight);
+
+                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 3;
+
+                // Tube Top & Bottom Walls
+                ctx.beginPath();
+                ctx.moveTo(startX, centerY - tubeHeight/2);
+                ctx.lineTo(endX, centerY - tubeHeight/2);
+                ctx.moveTo(startX, centerY + tubeHeight/2);
+                ctx.lineTo(endX, centerY + tubeHeight/2);
+                ctx.stroke();
+
+                if (state.systemType === 'closed-open') {
+                    // Closed left end wall
+                    ctx.fillStyle = '#475569';
+                    ctx.fillRect(startX - 8, centerY - tubeHeight/2 - 4, 8, tubeHeight + 8);
+                }
+            }
+
+            // Draw Air Molecules for Tube Modes
+            if (state.systemType !== 'string' && state.showParticles) {
+                const omega = 2 * Math.PI * state.f;
+                const tubeHeight = maxAmpPixels * 2.0;
+
+                state.particles.forEach(p => {
+                    const physX = p.xRatio * state.L;
+                    let disp = 0;
+
+                    if (state.isResonant) {
+                        let spatialFactor = 0;
+                        if (state.systemType === 'open-open') {
+                            spatialFactor = Math.cos((state.n * Math.PI * physX) / state.L);
+                        } else if (state.systemType === 'closed-open') {
+                            spatialFactor = Math.sin((state.n * Math.PI * physX) / (2 * state.L));
+                        }
+                        disp = 0.08 * spatialFactor * Math.cos(omega * state.time);
+                    } else {
+                        const wave = getWaveDisplacement(physX, state.time);
+                        disp = wave.yResultant * 0.1;
+                    }
+
+                    const px = startX + (physX + disp) * (drawWidth / state.L);
+                    const py = centerY + p.yOffset * tubeHeight;
+
+                    ctx.fillStyle = `rgba(244, 63, 94, ${p.colorAlpha})`;
+                    ctx.beginPath();
+                    ctx.arc(px, py, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            const steps = 300;
+
+            // Incident / Reflected Component Waves
+            if (state.showIncident && state.mode === 'continuous') {
+                ctx.lineWidth = 1.5;
+
+                // Incident (Cyan)
+                ctx.strokeStyle = 'rgba(6, 182, 212, 0.5)';
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                for (let i = 0; i <= steps; i++) {
+                    const xPhys = (i / steps) * state.L;
+                    const px = startX + (i / steps) * drawWidth;
+                    const { yIncident } = getWaveDisplacement(xPhys, state.time);
+                    const py = centerY - yIncident * maxAmpPixels;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+
+                // Reflected (Emerald)
+                ctx.strokeStyle = 'rgba(16, 185, 129, 0.5)';
+                ctx.beginPath();
+                for (let i = 0; i <= steps; i++) {
+                    const xPhys = (i / steps) * state.L;
+                    const px = startX + (i / steps) * drawWidth;
+                    const { yReflected } = getWaveDisplacement(xPhys, state.time);
+                    const py = centerY - yReflected * maxAmpPixels;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Static Standing Wave Envelope Frame
+            if (state.mode === 'static') {
+                ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+
+                // Upper envelope boundary
+                ctx.beginPath();
+                for (let i = 0; i <= steps; i++) {
+                    const xPhys = (i / steps) * state.L;
+                    const px = startX + (i / steps) * drawWidth;
+                    const { yResultant } = getWaveDisplacement(xPhys, 0); // Peak amplitude frame
+                    const py = centerY - Math.abs(yResultant) * maxAmpPixels;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+
+                // Lower envelope boundary
+                ctx.beginPath();
+                for (let i = 0; i <= steps; i++) {
+                    const xPhys = (i / steps) * state.L;
+                    const px = startX + (i / steps) * drawWidth;
+                    const { yResultant } = getWaveDisplacement(xPhys, 0);
+                    const py = centerY + Math.abs(yResultant) * maxAmpPixels;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Resultant Wave Curve
+            ctx.lineWidth = 3.5;
+            ctx.strokeStyle = state.isResonant ? '#3b82f6' : '#f59e0b';
+            ctx.beginPath();
+            for (let i = 0; i <= steps; i++) {
+                const xPhys = (i / steps) * state.L;
+                const px = startX + (i / steps) * drawWidth;
+                const { yResultant } = getWaveDisplacement(xPhys, state.time);
+                const py = centerY - yResultant * maxAmpPixels;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            // Draw Node (N) and Antinode (AN) Visual Labels
+            const { nodes, antinodes } = getNodeAntinodePositions();
+
+            // Render Node Markers
+            nodes.forEach(xPhys => {
+                const px = startX + (xPhys / state.L) * drawWidth;
+                ctx.fillStyle = '#3b82f6';
+                ctx.beginPath();
+                ctx.arc(px, centerY, 5.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#60a5fa';
+                ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('N', px, centerY + 22);
+            });
+
+            // Render Antinode Markers
+            antinodes.forEach(xPhys => {
+                const px = startX + (xPhys / state.L) * drawWidth;
+                ctx.fillStyle = '#f43f5e';
+                ctx.beginPath();
+                ctx.arc(px, centerY, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#fb7185';
+                ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('AN', px, centerY - 18);
+            });
+
+            // Advance Time Step
+            if (state.animating && state.mode === 'continuous') {
+                state.time += 0.005 * state.speedMultiplier;
+            }
+
+            requestAnimationFrame(drawScene);
+        }
+
+        const PRESETS_STORAGE_KEY = 'standing_wave_presets_v1';
+
+        function getSavedPresets() {
+            try {
+                return JSON.parse(localStorage.getItem(PRESETS_STORAGE_KEY)) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveCurrentStatePath() {
+            const presets = getSavedPresets();
+            const newPreset = {
+                id: Date.now(),
+                title: `${state.systemType.toUpperCase()} - n=${state.n} (${state.f.toFixed(1)}Hz)`,
+                date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                state: { ...state, particles: [] }
+            };
+            presets.unshift(newPreset);
+            localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(presets));
+            renderSavedPresetsList();
+        }
+
+        function renderSavedPresetsList() {
+            const container = document.getElementById('presetListContainer');
+            const presets = getSavedPresets();
+
+            if (presets.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">No saved wave paths yet. Click "Save Path" to record a snapshot state!</div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            presets.forEach(p => {
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 text-xs";
+                item.innerHTML = `
+                    <div>
+                        <div class="font-bold text-slate-800 dark:text-slate-200">${p.title}</div>
+                        <div class="text-[10px] text-slate-400">L=${p.state.L}m | v=${p.state.v}m/s | λ=${p.state.lambda}m | ${p.date}</div>
+                    </div>
+                    <div class="flex items-center space-x-1.5">
+                        <button class="load-btn px-2.5 py-1 bg-physics-blue text-white font-semibold rounded-lg hover:bg-blue-600">Load</button>
+                        <button class="del-btn p-1 text-slate-400 hover:text-rose-500"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+
+                item.querySelector('.load-btn').onclick = () => {
+                    Object.assign(state, p.state);
+                    syncSliders();
+                    renderHarmonicButtons();
+                    updateResonanceState();
+                    document.getElementById('systemTypeSelect').value = state.systemType;
+                    document.getElementById('savedModal').classList.add('hidden');
+                };
+
+                item.querySelector('.del-btn').onclick = () => {
+                    const filtered = getSavedPresets().filter(x => x.id !== p.id);
+                    localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(filtered));
+                    renderSavedPresetsList();
+                };
+
+                container.appendChild(item);
+            });
+        }
+
+        function generateExportImage(authorName, projectTitle, notes) {
+            const expCanvas = document.getElementById('exportCanvas');
+            const expCtx = expCanvas.getContext('2d');
+
+            expCanvas.width = 1200;
+            expCanvas.height = 700;
+
+            const w = expCanvas.width;
+            const h = expCanvas.height;
+
+            expCtx.fillStyle = '#ffffff';
+            expCtx.fillRect(0, 0, w, h);
+
+            // Title Header Bar
+            expCtx.fillStyle = '#f8fafc';
+            expCtx.fillRect(0, 0, w, 110);
+            expCtx.strokeStyle = '#e2e8f0';
+            expCtx.lineWidth = 2;
+            expCtx.beginPath();
+            expCtx.moveTo(0, 110); expCtx.lineTo(w, 110); expCtx.stroke();
+
+            expCtx.fillStyle = '#0f172a';
+            expCtx.font = 'bold 26px Inter, sans-serif';
+            expCtx.fillText(projectTitle || 'Standing Wave Physics Analysis', 40, 48);
+
+            expCtx.fillStyle = '#475569';
+            expCtx.font = '15px Inter, sans-serif';
+            expCtx.fillText(`Investigator: ${authorName || 'Anonymous'} | Date: ${new Date().toLocaleDateString()}`, 40, 82);
+
+            // Physics Stats Box
+            expCtx.fillStyle = '#f1f5f9';
+            expCtx.roundRect(40, 130, w - 80, 75, 12);
+            expCtx.fill();
+
+            expCtx.fillStyle = '#1e293b';
+            expCtx.font = 'bold 14px Inter, sans-serif';
+            const sysName = state.systemType === 'string' ? 'String (Fixed-Fixed)' : (state.systemType === 'open-open' ? 'Open Tube (Open-Open)' : 'Closed-Open Tube');
+            expCtx.fillText(`System: ${sysName} | Mode: n = ${state.n} | ${state.isResonant ? 'RESONANCE' : 'NON-RESONANT'}`, 60, 158);
+
+            expCtx.font = '13px Inter, sans-serif';
+            expCtx.fillStyle = '#64748b';
+            expCtx.fillText(`Length (L): ${state.L.toFixed(2)} m  |  Wave Speed (v): ${Math.round(state.v)} m/s  |  Frequency (f): ${state.f.toFixed(1)} Hz  |  Wavelength (λ): ${state.lambda.toFixed(2)} m`, 60, 184);
+
+            // Wave Visual Canvas
+            const startX = 80;
+            const endX = w - 80;
+            const drawWidth = endX - startX;
+            const centerY = 400;
+            const maxAmpPixels = 120;
+
+            if (state.systemType !== 'string') {
+                expCtx.fillStyle = '#f8fafc';
+                expCtx.fillRect(startX, centerY - maxAmpPixels * 1.1, drawWidth, maxAmpPixels * 2.2);
+                expCtx.strokeStyle = '#94a3b8';
+                expCtx.lineWidth = 2;
+                expCtx.strokeRect(startX, centerY - maxAmpPixels * 1.1, drawWidth, maxAmpPixels * 2.2);
+            } else {
+                expCtx.strokeStyle = '#64748b';
+                expCtx.lineWidth = 4;
+                expCtx.beginPath();
+                expCtx.moveTo(startX, centerY - 30); expCtx.lineTo(startX, centerY + 30);
+                expCtx.moveTo(endX, centerY - 30); expCtx.lineTo(endX, centerY + 30);
+                expCtx.stroke();
+            }
+
+            const steps = 300;
+            expCtx.lineWidth = 4;
+            expCtx.strokeStyle = '#2563eb';
+            expCtx.beginPath();
+            for (let i = 0; i <= steps; i++) {
+                const xPhys = (i / steps) * state.L;
+                const px = startX + (i / steps) * drawWidth;
+                const { yResultant } = getWaveDisplacement(xPhys, 0);
+                const py = centerY - yResultant * maxAmpPixels;
+                if (i === 0) expCtx.moveTo(px, py);
+                else expCtx.lineTo(px, py);
+            }
+            expCtx.stroke();
+
+            // Envelopes
+            expCtx.strokeStyle = '#93c5fd';
+            expCtx.lineWidth = 2;
+            expCtx.setLineDash([6, 6]);
+            expCtx.beginPath();
+            for (let i = 0; i <= steps; i++) {
+                const xPhys = (i / steps) * state.L;
+                const px = startX + (i / steps) * drawWidth;
+                const { yResultant } = getWaveDisplacement(xPhys, 0);
+                const py = centerY + Math.abs(yResultant) * maxAmpPixels;
+                if (i === 0) expCtx.moveTo(px, py);
+                else expCtx.lineTo(px, py);
+            }
+            expCtx.stroke();
+            expCtx.setLineDash([]);
+
+            // Export Markers
+            const { nodes, antinodes } = getNodeAntinodePositions();
+            nodes.forEach(xPhys => {
+                const px = startX + (xPhys / state.L) * drawWidth;
+                expCtx.fillStyle = '#2563eb';
+                expCtx.beginPath(); expCtx.arc(px, centerY, 6, 0, Math.PI * 2); expCtx.fill();
+                expCtx.font = 'bold 12px Inter, sans-serif';
+                expCtx.fillText('N', px - 4, centerY + 24);
+            });
+            antinodes.forEach(xPhys => {
+                const px = startX + (xPhys / state.L) * drawWidth;
+                expCtx.fillStyle = '#e11d48';
+                expCtx.beginPath(); expCtx.arc(px, centerY, 5, 0, Math.PI * 2); expCtx.fill();
+                expCtx.font = 'bold 12px Inter, sans-serif';
+                expCtx.fillText('AN', px - 8, centerY - 18);
+            });
+
+            if (notes) {
+                expCtx.fillStyle = '#f8fafc';
+                expCtx.roundRect(40, 580, w - 80, 80, 10);
+                expCtx.fill();
+                expCtx.strokeStyle = '#e2e8f0';
+                expCtx.strokeRect(40, 580, w - 80, 80);
+
+                expCtx.fillStyle = '#334155';
+                expCtx.font = 'bold 12px Inter, sans-serif';
+                expCtx.fillText('LAB OBSERVATIONS / NOTES:', 55, 602);
+                expCtx.font = '12px Inter, sans-serif';
+                expCtx.fillText(notes, 55, 625);
+            }
+
+            const dataUrl = expCanvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `Standing_Wave_${state.systemType}_n${state.n}.png`;
+            link.href = dataUrl;
+            link.click();
+        }
+
+        function renderHarmonicButtons() {
+            const container = document.getElementById('harmonicButtonsGrid');
+            container.innerHTML = '';
+
+            const isClosed = state.systemType === 'closed-open';
+            const allowedN = isClosed ? [1, 3, 5, 7, 9] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+            if (!allowedN.includes(state.n)) {
+                state.n = 1;
+            }
+
+            allowedN.forEach(num => {
+                const btn = document.createElement('button');
+                const isSelected = state.n === num;
+                btn.className = `py-1.5 text-xs font-bold rounded-lg border transition-all ${
+                    isSelected
+                        ? 'bg-physics-amber text-slate-900 border-physics-amber shadow-sm'
+                        : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`;
+                btn.textContent = `n=${num}`;
+                btn.onclick = () => {
+                    state.n = num;
+                    renderHarmonicButtons();
+                    snapToResonance();
+                };
+                container.appendChild(btn);
+            });
+
+            let label = `n = ${state.n} `;
+            if (state.n === 1) label += '(Fundamental)';
+            else if (isClosed) label += `(${Math.floor(state.n/2)}rd Overtone)`;
+            else label += `(${state.n - 1}th Overtone)`;
+
+            document.getElementById('nValueDisplay').textContent = label;
+            document.getElementById('canvasHarmonicTitle').textContent = `Harmonic: n = ${state.n}`;
+        }
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+        }
+
+        function initEventListeners() {
+            document.getElementById('themeToggleBtn').addEventListener('click', () => {
+                const html = document.documentElement;
+                if (html.classList.contains('dark')) {
+                    html.classList.remove('dark');
+                    document.getElementById('themeIcon').className = 'fa-solid fa-sun text-lg text-amber-500';
+                    state.theme = 'light';
+                } else {
+                    html.classList.add('dark');
+                    document.getElementById('themeIcon').className = 'fa-solid fa-moon text-lg';
+                    state.theme = 'dark';
+                }
+            });
+
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            playPauseBtn.addEventListener('click', () => {
+                state.animating = !state.animating;
+                document.getElementById('playPauseIcon').className = state.animating ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+                document.getElementById('playPauseText').textContent = state.animating ? 'Pause' : 'Play';
+            });
+
+            document.getElementById('stopBtn').addEventListener('click', () => {
+                state.animating = false;
+                state.time = 0;
+                document.getElementById('playPauseIcon').className = 'fa-solid fa-play';
+                document.getElementById('playPauseText').textContent = 'Play';
+            });
+
+            document.getElementById('restartBtn').addEventListener('click', () => {
+                state.time = 0;
+                state.animating = true;
+                document.getElementById('playPauseIcon').className = 'fa-solid fa-pause';
+                document.getElementById('playPauseText').textContent = 'Pause';
+            });
+
+            const modeAnimBtn = document.getElementById('modeAnimBtn');
+            const modeStaticBtn = document.getElementById('modeStaticBtn');
+
+            modeAnimBtn.addEventListener('click', () => {
+                state.mode = 'continuous';
+                modeAnimBtn.className = "px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-physics-blue shadow-sm font-semibold transition-all";
+                modeStaticBtn.className = "px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all";
+            });
+
+            modeStaticBtn.addEventListener('click', () => {
+                state.mode = 'static';
+                modeStaticBtn.className = "px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-physics-blue shadow-sm font-semibold transition-all";
+                modeAnimBtn.className = "px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all";
+            });
+
+            document.getElementById('speedSlider').addEventListener('input', (e) => {
+                state.speedMultiplier = parseFloat(e.target.value);
+                document.getElementById('speedValText').textContent = state.speedMultiplier.toFixed(1) + 'x';
+            });
+
+            document.getElementById('systemTypeSelect').addEventListener('change', (e) => {
+                state.systemType = e.target.value;
+                document.getElementById('canvasSystemTitle').textContent = 
+                    state.systemType === 'string' ? 'String (Fixed-Fixed Ends)' : 
+                    (state.systemType === 'open-open' ? 'Open Tube (Open-Open)' : 'Closed-Open Tube (Fixed-Free)');
+
+                const viewWrapper = document.getElementById('waveViewWrapper');
+                const particleLegend = document.getElementById('particleLegend');
+                if (state.systemType === 'string') {
+                    viewWrapper.classList.add('hidden');
+                    particleLegend.classList.add('hidden');
+                    state.waveView = 'displacement';
+                } else {
+                    viewWrapper.classList.remove('hidden');
+                    particleLegend.classList.remove('hidden');
+                }
+
+                renderHarmonicButtons();
+                snapToResonance();
+            });
+
+            const viewDispBtn = document.getElementById('viewDisplacementBtn');
+            const viewPressBtn = document.getElementById('viewPressureBtn');
+
+            viewDispBtn.addEventListener('click', () => {
+                state.waveView = 'displacement';
+                viewDispBtn.className = "py-2 px-3 text-xs font-semibold rounded-xl border border-physics-blue bg-physics-blue/10 text-physics-blue transition-all text-center";
+                viewPressBtn.className = "py-2 px-3 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all text-center";
+                document.getElementById('canvasWaveRepresentation').textContent = "Displacement Wave";
+                updateResonanceState();
+            });
+
+            viewPressBtn.addEventListener('click', () => {
+                state.waveView = 'pressure';
+                viewPressBtn.className = "py-2 px-3 text-xs font-semibold rounded-xl border border-physics-blue bg-physics-blue/10 text-physics-blue transition-all text-center";
+                viewDispBtn.className = "py-2 px-3 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all text-center";
+                document.getElementById('canvasWaveRepresentation').textContent = "Pressure Wave";
+                updateResonanceState();
+            });
+
+            document.getElementById('lengthSlider').addEventListener('input', (e) => {
+                state.L = parseFloat(e.target.value);
+                const { resFreq } = getResonanceParameters(state.systemType, state.n, state.L, state.v);
+                state.f = resFreq;
+                state.lambda = state.v / state.f;
+                syncSliders();
+                updateResonanceState();
+            });
+
+            document.getElementById('waveSpeedSlider').addEventListener('input', (e) => {
+                state.v = parseFloat(e.target.value);
+                state.lambda = state.v / state.f;
+                syncSliders();
+                updateResonanceState();
+            });
+
+            document.getElementById('freqSlider').addEventListener('input', (e) => {
+                state.f = parseFloat(e.target.value);
+                state.lambda = state.v / state.f;
+                syncSliders();
+                updateResonanceState();
+            });
+
+            document.getElementById('lambdaSlider').addEventListener('input', (e) => {
+                state.lambda = parseFloat(e.target.value);
+                state.f = state.v / state.lambda;
+                syncSliders();
+                updateResonanceState();
+            });
+
+            document.getElementById('snapResonanceBtn').addEventListener('click', snapToResonance);
+
+            document.getElementById('toggleIncidentCheck').addEventListener('change', (e) => {
+                state.showIncident = e.target.checked;
+            });
+
+            document.getElementById('toggleParticlesCheck').addEventListener('change', (e) => {
+                state.showParticles = e.target.checked;
+            });
+
+            const savedModal = document.getElementById('savedModal');
+            document.getElementById('openSavedBtn').addEventListener('click', () => {
+                renderSavedPresetsList();
+                savedModal.classList.remove('hidden');
+            });
+            document.getElementById('closeSavedModalBtn').addEventListener('click', () => {
+                savedModal.classList.add('hidden');
+            });
+            document.getElementById('quickSaveBtn').addEventListener('click', () => {
+                saveCurrentStatePath();
+                renderSavedPresetsList();
+                savedModal.classList.remove('hidden');
+            });
+            document.getElementById('saveNewPathModalBtn').addEventListener('click', () => {
+                saveCurrentStatePath();
+            });
+            document.getElementById('clearAllPresetsBtn').addEventListener('click', () => {
+                localStorage.removeItem(PRESETS_STORAGE_KEY);
+                renderSavedPresetsList();
+            });
+
+            const exportModal = document.getElementById('exportModal');
+            document.getElementById('exportModalTriggerBtn').addEventListener('click', () => {
+                exportModal.classList.remove('hidden');
+            });
+            document.getElementById('closeExportModalBtn').addEventListener('click', () => {
+                exportModal.classList.add('hidden');
+            });
+            document.getElementById('cancelExportBtn').addEventListener('click', () => {
+                exportModal.classList.add('hidden');
+            });
+            document.getElementById('confirmExportBtn').addEventListener('click', () => {
+                const author = document.getElementById('exportAuthorName').value.trim();
+                const title = document.getElementById('exportProjectTitle').value.trim();
+                const notes = document.getElementById('exportNotes').value.trim();
+                generateExportImage(author, title, notes);
+                exportModal.classList.add('hidden');
+            });
+
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        window.onload = function () {
+            initParticles();
+            resizeCanvas();
+            renderHarmonicButtons();
+            initEventListeners();
+            snapToResonance();
+
+            if (state.systemType === 'string') {
+                document.getElementById('waveViewWrapper').classList.add('hidden');
+                document.getElementById('particleLegend').classList.add('hidden');
+            }
+
+            drawScene();
+        };
+    </script>
+</body>
+</html>
