@@ -810,7 +810,7 @@
             if (state.showTime) {
                 const ptRange = toScreen(p.range, 0);
                 ctx.fillStyle = colors.text;
-                ctx.fillText(`t<sub>flight</sub> = ${p.tFlight.toFixed(2)}s`, ptRange.x - 35, ptRange.y + 18);
+                ctx.fillText(`t = ${p.tFlight.toFixed(2)}s`, ptRange.x - 35, ptRange.y + 18);
             }
         }
 
@@ -1157,7 +1157,7 @@
             if (state.showTime) {
                 const ptRange = toScreen(p.range, 0);
                 expCtx.fillStyle = expColors.text;
-                expCtx.fillText(`t<sub>flight</sub> = ${p.tFlight.toFixed(2)}s`, ptRange.x - 35, ptRange.y + 18);
+                expCtx.fillText(`t = ${p.tFlight.toFixed(2)}s`, ptRange.x - 35, ptRange.y + 18);
             }
         }
 
