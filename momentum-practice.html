@@ -1768,8 +1768,8 @@ return {
     const nextLabel = S.game ? (S.game.idx >= S.game.n ? 'See results' : 'Next question') : 'Next problem';
     $('#actions').innerHTML = done
       ? `<button class="btn ghost" id="btnSol" type="button">${q.showSol ? 'Hide solution' : 'Show solution'}</button><button class="btn primary" id="btnNext" type="button">${nextLabel}</button>`
-      : `<button class="btn primary wide" id="btnCheck" type="button">Check answers</button><button class="btn ghost" id="btnSol" type="button">Show solution</button>${S.game ? '<span></span>' : '<button class="btn ghost" id="btnSkip" type="button">Skip problem</button>'}`;
-    $('#hint').textContent = done ? '' : 'Signs follow the convention in the problem. Type 11600 or 1.16e4; answers within 2% count as correct. Showing the solution first counts as a miss.';
+      : `<button class="btn primary wide" id="btnCheck" type="button">Check answers</button><button class="btn ghost" id="btnSol" type="button" disabled title="Check your answers to unlock the worked solution">Show solution</button>${S.game ? '<span></span>' : '<button class="btn ghost" id="btnSkip" type="button">Skip problem</button>'}`;
+    $('#hint').textContent = done ? '' : 'Signs follow the convention in the problem. Type 11600 or 1.16e4; answers within 2% count as correct. The worked solution unlocks after you check your answers.';
     if ($('#btnCheck')) $('#btnCheck').onclick = check;
     $('#btnSol').onclick = toggleSolution;
     if ($('#btnNext')) $('#btnNext').onclick = next;
@@ -1812,7 +1812,7 @@ return {
     const vals = inst.parts.map((p, i) => $('#in' + i).value);
     const empty = vals.findIndex((v) => !v.trim());
     if (empty >= 0) {
-      q.msg = { cls: 'bad', text: 'Fill in every box, or choose Show solution.' };
+      q.msg = { cls: 'bad', text: 'Fill in every box (a best guess is fine), then check your answers.' };
       q.results = null; paintFeedback(); $('#in' + empty).focus(); return;
     }
     const res = inst.parts.map((p, i) => Pz.checkPart(p, vals[i]));
@@ -1846,15 +1846,7 @@ return {
   }
   function toggleSolution() {
     const q = S.q;
-    if (q.phase === 'answering') {
-      q.phase = 'revealed'; q.results = null;
-      record(false, 0, q.inst.parts.length);
-      q.msg = { cls: 'bad', text: 'Solution shown before checking, so this one counts as a miss and the streak resets.' };
-      q.showSol = true;
-      paintFeedback(); paintActions(); renderProgress(); renderSolution();
-      $('#solution').scrollIntoView({ block: 'start', behavior: 'smooth' });
-      return;
-    }
+    if (q.phase === 'answering') return;   // the worked solution stays locked until the answers are checked
     q.showSol = !q.showSol; paintActions(); renderSolution();
     if (q.showSol) $('#solution').scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
