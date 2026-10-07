@@ -4,26 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projectile Motion Simulator & Physics Game</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS v3.4 — static compiled build (replaces the CDN script; dark mode via the html.dark class) -->
+    <style id="tailwind-static">
+*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.container{width:100%}@media (min-width:640px){.container{max-width:640px}}@media (min-width:768px){.container{max-width:768px}}@media (min-width:1024px){.container{max-width:1024px}}@media (min-width:1280px){.container{max-width:1280px}}@media (min-width:1536px){.container{max-width:1536px}}.pointer-events-none{pointer-events:none}.visible{visibility:visible}.static{position:static}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0}.top-0{top:0}.z-20{z-index:20}.z-30{z-index:30}.z-50{z-index:50}.col-span-1{grid-column:span 1/span 1}.col-span-2{grid-column:span 2/span 2}.col-span-full{grid-column:1/-1}.mb-0\.5{margin-bottom:.125rem}.mb-1{margin-bottom:.25rem}.mr-1{margin-right:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.max-h-48{max-height:12rem}.min-h-\[350px\]{min-height:350px}.min-h-screen{min-height:100vh}.w-full{width:100%}.max-w-5xl{max-width:64rem}.max-w-md{max-width:28rem}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.cursor-crosshair{cursor:crosshair}.cursor-pointer{cursor:pointer}.resize{resize:both}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-2{gap:.5rem}.gap-2\.5{gap:.625rem}.gap-x-2{-moz-column-gap:.5rem;column-gap:.5rem}.gap-x-3{-moz-column-gap:.75rem;column-gap:.75rem}.gap-y-0\.5{row-gap:.125rem}.gap-y-1{row-gap:.25rem}.space-x-1>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-right:calc(.25rem*var(--tw-space-x-reverse));margin-left:calc(.25rem*(1 - var(--tw-space-x-reverse)))}.space-x-1\.5>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-right:calc(.375rem*var(--tw-space-x-reverse));margin-left:calc(.375rem*(1 - var(--tw-space-x-reverse)))}.space-x-2>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-right:calc(.5rem*var(--tw-space-x-reverse));margin-left:calc(.5rem*(1 - var(--tw-space-x-reverse)))}.space-x-3>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-right:calc(.75rem*var(--tw-space-x-reverse));margin-left:calc(.75rem*(1 - var(--tw-space-x-reverse)))}.space-x-4>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-right:calc(1rem*var(--tw-space-x-reverse));margin-left:calc(1rem*(1 - var(--tw-space-x-reverse)))}.space-y-1>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.25rem*var(--tw-space-y-reverse))}.space-y-1\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.375rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.375rem*var(--tw-space-y-reverse))}.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.5rem*var(--tw-space-y-reverse))}.space-y-3>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.75rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.75rem*var(--tw-space-y-reverse))}.space-y-4>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem*var(--tw-space-y-reverse))}.space-y-5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem*var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.overflow-x-hidden{overflow-x:hidden}.rounded{border-radius:.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:.5rem}.rounded-md{border-radius:.375rem}.rounded-xl{border-radius:.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-amber-500\/40{border-color:rgba(245,158,11,.4)}.border-emerald-500\/40{border-color:rgba(16,185,129,.4)}.border-pink-500\/40{border-color:rgba(236,72,153,.4)}.border-purple-500\/40{border-color:rgba(168,85,247,.4)}.border-rose-500\/40{border-color:rgba(244,63,94,.4)}.border-rose-800\/60{border-color:rgba(159,18,57,.6)}.border-sky-500\/40{border-color:rgba(14,165,233,.4)}.border-sky-500\/50{border-color:rgba(14,165,233,.5)}.border-sky-800\/50{border-color:rgba(7,89,133,.5)}.border-sky-800\/60{border-color:rgba(7,89,133,.6)}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85/var(--tw-border-opacity,1))}.border-slate-700\/50{border-color:rgba(51,65,85,.5)}.border-slate-700\/60{border-color:rgba(51,65,85,.6)}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59/var(--tw-border-opacity,1))}.border-slate-800\/80{border-color:rgba(30,41,59,.8)}.bg-amber-500\/20{background-color:rgba(245,158,11,.2)}.bg-emerald-500\/20{background-color:rgba(16,185,129,.2)}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105/var(--tw-bg-opacity,1))}.bg-pink-500\/20{background-color:rgba(236,72,153,.2)}.bg-purple-500\/20{background-color:rgba(168,85,247,.2)}.bg-rose-500\/20{background-color:rgba(244,63,94,.2)}.bg-rose-950{--tw-bg-opacity:1;background-color:rgb(76 5 25/var(--tw-bg-opacity,1))}.bg-sky-500\/20{background-color:rgba(14,165,233,.2)}.bg-sky-600{--tw-bg-opacity:1;background-color:rgb(2 132 199/var(--tw-bg-opacity,1))}.bg-sky-950{--tw-bg-opacity:1;background-color:rgb(8 47 73/var(--tw-bg-opacity,1))}.bg-slate-700{--tw-bg-opacity:1;background-color:rgb(51 65 85/var(--tw-bg-opacity,1))}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59/var(--tw-bg-opacity,1))}.bg-slate-800\/50{background-color:rgba(30,41,59,.5)}.bg-slate-800\/60{background-color:rgba(30,41,59,.6)}.bg-slate-800\/80{background-color:rgba(30,41,59,.8)}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42/var(--tw-bg-opacity,1))}.bg-slate-900\/80{background-color:rgba(15,23,42,.8)}.bg-slate-900\/90{background-color:rgba(15,23,42,.9)}.bg-slate-950{--tw-bg-opacity:1;background-color:rgb(2 6 23/var(--tw-bg-opacity,1))}.bg-slate-950\/60{background-color:rgba(2,6,23,.6)}.bg-slate-950\/80{background-color:rgba(2,6,23,.8)}.p-1{padding:.25rem}.p-2{padding:.5rem}.p-2\.5{padding:.625rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.pb-1{padding-bottom:.25rem}.pb-2{padding-bottom:.5rem}.pt-1{padding-top:.25rem}.pt-2{padding-top:.5rem}.text-center{text-align:center}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace}.font-sans{font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:.75rem;line-height:1rem}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-.025em}.tracking-wider{letter-spacing:.05em}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77/var(--tw-text-opacity,1))}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36/var(--tw-text-opacity,1))}.text-emerald-300{--tw-text-opacity:1;color:rgb(110 231 183/var(--tw-text-opacity,1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153/var(--tw-text-opacity,1))}.text-indigo-300{--tw-text-opacity:1;color:rgb(165 180 252/var(--tw-text-opacity,1))}.text-pink-400{--tw-text-opacity:1;color:rgb(244 114 182/var(--tw-text-opacity,1))}.text-purple-300{--tw-text-opacity:1;color:rgb(216 180 254/var(--tw-text-opacity,1))}.text-purple-400{--tw-text-opacity:1;color:rgb(192 132 252/var(--tw-text-opacity,1))}.text-rose-300{--tw-text-opacity:1;color:rgb(253 164 175/var(--tw-text-opacity,1))}.text-rose-400{--tw-text-opacity:1;color:rgb(251 113 133/var(--tw-text-opacity,1))}.text-sky-300{--tw-text-opacity:1;color:rgb(125 211 252/var(--tw-text-opacity,1))}.text-sky-400{--tw-text-opacity:1;color:rgb(56 189 248/var(--tw-text-opacity,1))}.text-sky-500{--tw-text-opacity:1;color:rgb(14 165 233/var(--tw-text-opacity,1))}.text-slate-100{--tw-text-opacity:1;color:rgb(241 245 249/var(--tw-text-opacity,1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240/var(--tw-text-opacity,1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225/var(--tw-text-opacity,1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184/var(--tw-text-opacity,1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139/var(--tw-text-opacity,1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85/var(--tw-text-opacity,1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}.accent-sky-500{accent-color:#0ea5e9}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgba(0,0,0,.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color)}.shadow-2xl,.shadow-lg{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgba(0,0,0,.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-emerald-900\/20{--tw-shadow-color:rgba(6,78,59,.2);--tw-shadow:var(--tw-shadow-colored)}.shadow-emerald-900\/30{--tw-shadow-color:rgba(6,78,59,.3);--tw-shadow:var(--tw-shadow-colored)}.ring{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000)}.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur{--tw-backdrop-blur:blur(8px)}.backdrop-blur,.backdrop-blur-sm{-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px)}.transition{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,-webkit-backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter,-webkit-backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(.4,0,.2,1)}.duration-150,.transition-opacity{transition-duration:.15s}.duration-200{transition-duration:.2s}.duration-300{transition-duration:.3s}.hover\:bg-emerald-500:hover{--tw-bg-opacity:1;background-color:rgb(16 185 129/var(--tw-bg-opacity,1))}.hover\:bg-rose-900:hover{--tw-bg-opacity:1;background-color:rgb(136 19 55/var(--tw-bg-opacity,1))}.hover\:bg-sky-500:hover{--tw-bg-opacity:1;background-color:rgb(14 165 233/var(--tw-bg-opacity,1))}.hover\:bg-sky-900:hover{--tw-bg-opacity:1;background-color:rgb(12 74 110/var(--tw-bg-opacity,1))}.hover\:bg-slate-600:hover{--tw-bg-opacity:1;background-color:rgb(71 85 105/var(--tw-bg-opacity,1))}.hover\:bg-slate-700:hover{--tw-bg-opacity:1;background-color:rgb(51 65 85/var(--tw-bg-opacity,1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}.focus\:border-sky-500:focus{--tw-border-opacity:1;border-color:rgb(14 165 233/var(--tw-border-opacity,1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-sky-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(14 165 233/var(--tw-ring-opacity,1))}.active\:bg-emerald-700:active{--tw-bg-opacity:1;background-color:rgb(4 120 87/var(--tw-bg-opacity,1))}.dark\:block:is(.dark *){display:block}.dark\:hidden:is(.dark *){display:none}.dark\:border-slate-800:is(.dark *){--tw-border-opacity:1;border-color:rgb(30 41 59/var(--tw-border-opacity,1))}.dark\:bg-slate-900:is(.dark *){--tw-bg-opacity:1;background-color:rgb(15 23 42/var(--tw-bg-opacity,1))}.dark\:text-slate-100:is(.dark *){--tw-text-opacity:1;color:rgb(241 245 249/var(--tw-text-opacity,1))}@media (min-width:640px){.sm\:block{display:block}.sm\:space-x-4>:not([hidden])~:not([hidden]){--tw-space-x-reverse:0;margin-right:calc(1rem*var(--tw-space-x-reverse));margin-left:calc(1rem*(1 - var(--tw-space-x-reverse)))}}@media (min-width:768px){.md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (min-width:1024px){.lg\:w-96{width:24rem}.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.lg\:flex-row{flex-direction:row}.lg\:overflow-hidden{overflow:hidden}.lg\:border-b-0{border-bottom-width:0}.lg\:border-r{border-right-width:1px}.lg\:p-6{padding:1.5rem}}
+    </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0284c7',
-                            600: '#0369a1',
-                            700: '#075985',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body {
@@ -208,8 +193,12 @@
                         <span id="calc-time" class="text-emerald-400 font-bold">--</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-slate-400">Impact Speed (v<sub>f</sub>):</span>
+                        <span class="text-slate-400">Impact Velocity (v<sub>f</sub>):</span>
                         <span id="calc-vimpact" class="text-amber-400 font-bold">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Components (v<sub>x</sub>, v<sub>y</sub>):</span>
+                        <span id="calc-vimpact-comp" class="text-amber-400 font-bold">--</span>
                     </div>
                 </div>
 
@@ -465,6 +454,7 @@
             calcRange: document.getElementById('calc-range'),
             calcTime: document.getElementById('calc-time'),
             calcVimpact: document.getElementById('calc-vimpact'),
+            calcVimpactComp: document.getElementById('calc-vimpact-comp'),
 
             container: document.getElementById('canvas-container'),
             canvas: document.getElementById('sim-canvas'),
@@ -517,6 +507,7 @@
             const vyImpact = vy0 - g * tFlight;
             const vImpact = Math.sqrt(vx0 * vx0 + vyImpact * vyImpact);
             const impactAngle = (Math.atan2(Math.abs(vyImpact), vx0) * 180) / Math.PI;
+            const impactAngleSigned = (Math.atan2(vyImpact, vx0) * 180) / Math.PI;   // negative = below horizontal
 
             const points = [];
             const dt = tFlight / 200;
@@ -536,7 +527,7 @@
                 id: idNumber,
                 v0, angleDeg, h0, g, vx0, vy0,
                 tFlight, yMax, tPeak, range,
-                vImpact, impactAngle, points
+                vImpact, impactAngle, impactAngleSigned, vxImpact: vx0, vyImpact, points
             };
         }
 
@@ -630,6 +621,7 @@
                 const colorObj = PATH_COLORS[(idx + 1) % PATH_COLORS.length];
                 drawTrajectoryLine(path.points, colorObj.line, true);
                 drawPathNumberBadge(path, `#${path.id}`, colorObj.line, colors);
+                if (state.showTime) drawImpactEnd(ctx, path, colors, colorObj.line, false);
             });
 
             // Trajectory line only visible if launched
@@ -804,13 +796,15 @@
                 ctx.arc(ptRange.x, ptRange.y, 5, 0, Math.PI * 2);
                 ctx.fill();
 
-                ctx.fillText(`Range: ${p.range.toFixed(2)}m`, ptRange.x - 30, ptRange.y - 8);
+                // with impact data shown, keep the label clear of the impact arrow (right of the landing ring)
+                ctx.fillText(`Range: ${p.range.toFixed(2)}m`, state.showTime ? ptRange.x + 16 : ptRange.x - 30, state.showTime ? ptRange.y - 14 : ptRange.y - 8);
             }
 
             if (state.showTime) {
                 const ptRange = toScreen(p.range, 0);
                 ctx.fillStyle = colors.text;
                 ctx.fillText(`t = ${p.tFlight.toFixed(2)}s`, ptRange.x - 35, ptRange.y + 18);
+                drawImpactEnd(ctx, p, colors, '#ef4444', true);
             }
         }
 
@@ -837,6 +831,64 @@
                 drawVectorArrow(pt, vx0 * 1.2, 0, '#0284c7');
                 drawVectorArrow(pt, 0, -vy * 1.2, '#f43f5e');
             }
+        }
+
+        // End of the path: ring at the landing point; for the current path also the impact-velocity arrow and label.
+        function drawImpactEnd(g, p, colors, color, detailed) {
+            const pt = toScreen(p.range, 0);
+            g.save();
+            g.strokeStyle = color;
+            g.fillStyle = color;
+            g.setLineDash([]);
+            g.lineWidth = 2;
+            g.beginPath();
+            g.arc(pt.x, pt.y, detailed ? 11 : 6, 0, Math.PI * 2);
+            g.stroke();
+
+            if (detailed) {
+                // direction of motion at impact in screen space (screen y points down)
+                const len = Math.hypot(p.vxImpact, p.vyImpact) || 1;
+                const dx = p.vxImpact / len, dy = -p.vyImpact / len;
+                const ringR = 12, L = 52;
+                const tipX = pt.x - dx * ringR, tipY = pt.y - dy * ringR;
+                const tailX = pt.x - dx * (ringR + L), tailY = pt.y - dy * (ringR + L);
+
+                g.lineWidth = 2.5;
+                g.beginPath();
+                g.moveTo(tailX, tailY);
+                g.lineTo(tipX, tipY);
+                g.stroke();
+                const a = Math.atan2(dy, dx);
+                g.beginPath();
+                g.moveTo(tipX, tipY);
+                g.lineTo(tipX - 9 * Math.cos(a - Math.PI / 6), tipY - 9 * Math.sin(a - Math.PI / 6));
+                g.lineTo(tipX - 9 * Math.cos(a + Math.PI / 6), tipY - 9 * Math.sin(a + Math.PI / 6));
+                g.closePath();
+                g.fill();
+
+                // label on a small pill so it stays readable over the path
+                const l1 = `Impact: ${p.vImpact.toFixed(2)} m/s`;
+                const l2 = `${p.impactAngle.toFixed(1)}° below horizontal`;
+                g.font = 'bold 11px Inter, sans-serif';
+                g.textAlign = 'left';
+                g.textBaseline = 'alphabetic';
+                const w = Math.max(g.measureText(l1).width, g.measureText(l2).width) + 12;
+                const h = 34;
+                let bx = tailX - 6 - w, by = tailY - h - 2;
+                if (bx < 4) { bx = pt.x + 16; by = pt.y - h - 14; }      // no room on the left: put it right of the landing point
+                bx = Math.min(bx, viewport.width - w - 4);
+                by = Math.max(by, 4);
+                g.globalAlpha = 0.92;
+                g.fillStyle = colors.bg || '#ffffff';
+                g.fillRect(bx, by, w, h);
+                g.globalAlpha = 1;
+                g.lineWidth = 1.5;
+                g.strokeRect(bx, by, w, h);
+                g.fillStyle = colors.text;
+                g.fillText(l1, bx + 6, by + 14);
+                g.fillText(l2, bx + 6, by + 28);
+            }
+            g.restore();
         }
 
         function drawVectorArrow(startPt, dx, dy, color) {
@@ -993,6 +1045,7 @@
                 const colorObj = PATH_COLORS[(idx + 1) % PATH_COLORS.length];
                 drawTrajectoryLineExport(expCtx, path.points, colorObj.line, true);
                 drawPathNumberBadgeExport(expCtx, path, `#${path.id}`, colorObj.line);
+                if (state.showTime) drawImpactEnd(expCtx, path, expColors, colorObj.line, false);
             });
 
             if (state.hasLaunched) {
@@ -1032,16 +1085,24 @@
                 expCtx.fillStyle = '#475569';
                 expCtx.font = 'bold 11px Inter, sans-serif';
                 
+                // columns are laid out for ~850px and squeezed proportionally on narrower graphs
+                const colScale = Math.min(1, (totalWidth - 195) / 765);
+                const colX = (x) => 50 + (x - 50) * colScale;
                 const cols = [
                     { name: 'Path', x: 50 },
-                    { name: 'Speed (v₀)', x: 120 },
-                    { name: 'Angle (θ)', x: 210 },
-                    { name: 'Height (h₀)', x: 290 },
-                    { name: 'Max Height', x: 380 },
-                    { name: 'Range (R)', x: 480 },
-                    { name: 'Flight Time', x: 580 },
-                    { name: 'Gravity', x: 670 }
-                ];
+                    { name: 'Speed (v₀)', x: 105 },
+                    { name: 'Angle (θ)', x: 180 },
+                    { name: 'Height (h₀)', x: 245 },
+                    { name: 'Max Height', x: 320 },
+                    { name: 'Range (R)', x: 400 },
+                    { name: 'Flight Time', x: 475 },
+                    { name: 'Gravity', x: 555 },
+                    { name: 'Impact Speed', x: 630 },
+                    { name: 'Impact Angle', x: 727 },
+                    { name: 'Impact (vₓ, vᵧ)', x: 815 }
+                ].map(c => ({ ...c, x: colX(c.x) }));
+                const colFont = colScale < 0.85 ? 10 : 11;
+                expCtx.font = `bold ${colFont}px Inter, sans-serif`;
 
                 cols.forEach(col => expCtx.fillText(col.name, col.x, tableY + 20));
 
@@ -1069,7 +1130,7 @@
                     expCtx.textAlign = 'left';
 
                     expCtx.fillStyle = '#0f172a';
-                    expCtx.font = '500 11px Inter, sans-serif';
+                    expCtx.font = `500 ${colFont}px Inter, sans-serif`;
                     expCtx.fillText(`${p.v0} m/s`, cols[1].x, ry + 20);
                     expCtx.fillText(`${p.angleDeg}°`, cols[2].x, ry + 20);
                     expCtx.fillText(`${p.h0} m`, cols[3].x, ry + 20);
@@ -1077,6 +1138,10 @@
                     expCtx.fillText(`${p.range.toFixed(2)} m`, cols[5].x, ry + 20);
                     expCtx.fillText(`${p.tFlight.toFixed(2)} s`, cols[6].x, ry + 20);
                     expCtx.fillText(`${p.g} m/s²`, cols[7].x, ry + 20);
+                    expCtx.fillStyle = '#be123c';
+                    expCtx.fillText(`${p.vImpact.toFixed(2)} m/s`, cols[8].x, ry + 20);
+                    expCtx.fillText(`${fmtSigned(p.impactAngleSigned, 1)}°`, cols[9].x, ry + 20);
+                    expCtx.fillText(`(${fmtSigned(p.vxImpact, 2)}, ${fmtSigned(p.vyImpact, 2)})`, cols[10].x, ry + 20);
                 });
             }
 
@@ -1151,13 +1216,14 @@
                 expCtx.arc(ptRange.x, ptRange.y, 5, 0, Math.PI * 2);
                 expCtx.fill();
 
-                expCtx.fillText(`Range: ${p.range.toFixed(2)}m`, ptRange.x - 30, ptRange.y - 8);
+                expCtx.fillText(`Range: ${p.range.toFixed(2)}m`, state.showTime ? ptRange.x + 16 : ptRange.x - 30, state.showTime ? ptRange.y - 14 : ptRange.y - 8);
             }
 
             if (state.showTime) {
                 const ptRange = toScreen(p.range, 0);
                 expCtx.fillStyle = expColors.text;
                 expCtx.fillText(`t = ${p.tFlight.toFixed(2)}s`, ptRange.x - 35, ptRange.y + 18);
+                drawImpactEnd(expCtx, p, expColors, '#ef4444', true);
             }
         }
 
@@ -1218,17 +1284,28 @@
                             <div>Range (R): <span class="text-emerald-400 font-bold">${p.range.toFixed(1)} m</span></div>
                             <div>Max Height: <span class="text-emerald-400 font-bold">${p.yMax.toFixed(1)} m</span></div>
                             <div>Flight Time: <span class="text-amber-400 font-bold">${p.tFlight.toFixed(2)} s</span></div>
+                            <div>Impact (v<sub>f</sub>): <span class="text-rose-400 font-bold">${p.vImpact.toFixed(2)} m/s</span></div>
+                            <div>Impact Angle: <span class="text-rose-400 font-bold">${fmtSigned(p.impactAngleSigned, 1)}°</span></div>
+                            <div class="col-span-2">Impact (v<sub>x</sub>, v<sub>y</sub>): <span class="text-rose-400 font-bold">(${fmtSigned(p.vxImpact, 2)}, ${fmtSigned(p.vyImpact, 2)}) m/s</span></div>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
+        // number with a real minus sign (and no "-0.0")
+        function fmtSigned(v, d) {
+            const t = v.toFixed(d);
+            return /^-0\.?0*$/.test(t) ? t.slice(1) : t.replace('-', '\u2212');
+        }
+
         function updateCalculatedUI() {
             elements.calcYmax.textContent = `${currentPhysics.yMax.toFixed(2)} m`;
             elements.calcRange.textContent = `${currentPhysics.range.toFixed(2)} m`;
             elements.calcTime.textContent = `${currentPhysics.tFlight.toFixed(2)} s`;
-            elements.calcVimpact.textContent = `${currentPhysics.vImpact.toFixed(2)} m/s (${currentPhysics.impactAngle.toFixed(1)}°)`;
+            elements.calcVimpact.textContent = `${currentPhysics.vImpact.toFixed(2)} m/s ∠ ${fmtSigned(currentPhysics.impactAngleSigned, 1)}°`;
+            elements.calcVimpact.title = `${currentPhysics.impactAngle.toFixed(1)}° below horizontal`;
+            elements.calcVimpactComp.textContent = `(${fmtSigned(currentPhysics.vxImpact, 2)}, ${fmtSigned(currentPhysics.vyImpact, 2)}) m/s`;
         }
 
         function startSimulation() {
@@ -1477,6 +1554,14 @@
                 elements.navGame.className = "px-3 py-1.5 rounded-lg bg-sky-600 text-white shadow-sm transition";
                 elements.navSandbox.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition";
                 updateGameStatsDisplay();
+
+                // Fresh slate for the challenge: drop saved paths and the sandbox plot
+                state.savedPaths = [];
+                if (state.game.currentScenario && !elements.gameActiveBox.classList.contains('hidden')) {
+                    currentPhysics = state.game.currentScenario;   // a question is in progress: plot must match it
+                }
+                currentPhysics.id = 1;
+                resetSimulation();                                // stops any animation, clears the plot, redraws
             });
 
             function updatePhysicsFromInputs() {
