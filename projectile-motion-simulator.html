@@ -196,7 +196,7 @@
                 <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2 text-xs font-mono">
                     <div class="text-slate-400 font-sans font-bold uppercase tracking-wider text-[10px]">Current Launch Values</div>
                     <div class="flex justify-between">
-                        <span class="text-slate-400">Max Height (yₘₐₓ):</span>
+                        <span class="text-slate-400">Max Height (y<sub>max</sub>):</span>
                         <span id="calc-ymax" class="text-emerald-400 font-bold">--</span>
                     </div>
                     <div class="flex justify-between">
@@ -204,11 +204,11 @@
                         <span id="calc-range" class="text-emerald-400 font-bold">--</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-slate-400">Flight Time (t_f):</span>
+                        <span class="text-slate-400">Flight Time (t<sub>f</sub>):</span>
                         <span id="calc-time" class="text-emerald-400 font-bold">--</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-slate-400">Impact Speed (v_f):</span>
+                        <span class="text-slate-400">Impact Speed (v<sub>f</sub>):</span>
                         <span id="calc-vimpact" class="text-amber-400 font-bold">--</span>
                     </div>
                 </div>
@@ -273,7 +273,7 @@
 
                     <div class="space-y-2 text-xs">
                         <div>
-                            <label class="block text-slate-300 font-medium mb-0.5">1. Max Height (yₘₐₓ, meters):</label>
+                            <label class="block text-slate-300 font-medium mb-0.5">1. Max Height (y<sub>max</sub>, meters):</label>
                             <input type="number" step="0.01" id="ans-ymax" placeholder="e.g. 10.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 font-mono text-white focus:border-sky-500 focus:outline-none">
                         </div>
                         <div>
@@ -281,11 +281,11 @@
                             <input type="number" step="0.01" id="ans-range" placeholder="e.g. 38.5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 font-mono text-white focus:border-sky-500 focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-slate-300 font-medium mb-0.5">3. Time of Flight (t_flight, seconds):</label>
+                            <label class="block text-slate-300 font-medium mb-0.5">3. Time of Flight (t<sub>flight</sub>, seconds):</label>
                             <input type="number" step="0.01" id="ans-time" placeholder="e.g. 2.2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 font-mono text-white focus:border-sky-500 focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-slate-300 font-medium mb-0.5">4. Impact Velocity (v_f, m/s):</label>
+                            <label class="block text-slate-300 font-medium mb-0.5">4. Impact Velocity (v<sub>f</sub>, m/s):</label>
                             <input type="number" step="0.01" id="ans-vimpact" placeholder="e.g. 22.3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 font-mono text-white focus:border-sky-500 focus:outline-none">
                         </div>
                     </div>
@@ -810,7 +810,7 @@
             if (state.showTime) {
                 const ptRange = toScreen(p.range, 0);
                 ctx.fillStyle = colors.text;
-                ctx.fillText(`t_flight = ${p.tFlight.toFixed(2)}s`, ptRange.x - 35, ptRange.y + 18);
+                ctx.fillText(`t<sub>flight</sub> = ${p.tFlight.toFixed(2)}s`, ptRange.x - 35, ptRange.y + 18);
             }
         }
 
@@ -1157,7 +1157,7 @@
             if (state.showTime) {
                 const ptRange = toScreen(p.range, 0);
                 expCtx.fillStyle = expColors.text;
-                expCtx.fillText(`t_flight = ${p.tFlight.toFixed(2)}s`, ptRange.x - 35, ptRange.y + 18);
+                expCtx.fillText(`t<sub>flight</sub> = ${p.tFlight.toFixed(2)}s`, ptRange.x - 35, ptRange.y + 18);
             }
         }
 
