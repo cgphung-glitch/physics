@@ -1645,6 +1645,7 @@ return {
   /* ---------- state ---------- */
   const S = { mode: store.mode, set: store.set, q: null, game: null, bag: [], lastId: null, lastInput: null };
   const modeLabel = { practice: 'Practice', g5: 'Game 5', g10: 'Game 10', g15: 'Game 15' };
+  const gameScore = (g) => g.correct - g.skips;   // each skip costs one point
 
   function pool() { return Pz.list.filter((p) => S.set === 'all' || p.set === Number(S.set)); }
   function nextId() {
@@ -1669,7 +1670,7 @@ return {
   function startMode(m) {
     S.mode = m; store.mode = m; S.bag = []; S.lastId = null;
     if (m === 'practice') S.game = null;
-    else { const n = Number(m.slice(1)); S.game = { n, idx: 0, correct: 0, parts: 0, partsOk: 0, ids: gameIds(n), run: 0, bestRun: 0 }; }
+    else { const n = Number(m.slice(1)); S.game = { n, idx: 0, correct: 0, parts: 0, partsOk: 0, ids: gameIds(n), run: 0, bestRun: 0, skips: 0 }; }
     save(); syncControls(); newQuestion();
   }
   function newQuestion() {
@@ -1682,7 +1683,7 @@ return {
   /* ---------- rendering: ledger, controls, progress ---------- */
   function renderLedger() {
     const g = S.game, s = store.session;
-    const score = g ? `${g.correct}/${g.idx}` : `${s.correct}/${s.attempted}`;
+    const score = g ? `${gameScore(g)}/${g.idx}` : `${s.correct}/${s.attempted}`;
     const high = S.mode === 'practice' ? String(store.high.practice) : `${store.high[S.mode]}/${S.mode.slice(1)}`;
     const last = store.last ? `${store.last.score}/${store.last.total}` : '–';
     $('#ledger').innerHTML = `
@@ -1768,12 +1769,12 @@ return {
     const nextLabel = S.game ? (S.game.idx >= S.game.n ? 'See results' : 'Next question') : 'Next problem';
     $('#actions').innerHTML = done
       ? `<button class="btn ghost" id="btnSol" type="button">${q.showSol ? 'Hide solution' : 'Show solution'}</button><button class="btn primary" id="btnNext" type="button">${nextLabel}</button>`
-      : `<button class="btn primary wide" id="btnCheck" type="button">Check answers</button><button class="btn ghost" id="btnSol" type="button" disabled title="Check your answers to unlock the worked solution">Show solution</button>${S.game ? '<span></span>' : '<button class="btn ghost" id="btnSkip" type="button">Skip problem</button>'}`;
-    $('#hint').textContent = done ? '' : 'Signs follow the convention in the problem. Type 11600 or 1.16e4; answers within 2% count as correct. The worked solution unlocks after you check your answers.';
+      : `<button class="btn primary wide" id="btnCheck" type="button">Check answers</button><button class="btn ghost" id="btnSol" type="button" disabled title="Check your answers to unlock the worked solution">Show solution</button><button class="btn ghost" id="btnSkip" type="button">${S.game ? 'Skip (\u22121 point)' : 'Skip problem'}</button>`;
+    $('#hint').textContent = done ? '' : 'Signs follow the convention in the problem. Type 11600 or 1.16e4; answers within 2% count as correct. The worked solution unlocks after you check your answers.' + (S.game ? ' Skipping a question costs 1 point.' : '');
     if ($('#btnCheck')) $('#btnCheck').onclick = check;
     $('#btnSol').onclick = toggleSolution;
     if ($('#btnNext')) $('#btnNext').onclick = next;
-    if ($('#btnSkip')) $('#btnSkip').onclick = () => newQuestion();
+    if ($('#btnSkip')) $('#btnSkip').onclick = () => (S.game ? skipQuestion() : newQuestion());
     void last;
   }
   function paintFeedback() {
@@ -1850,22 +1851,44 @@ return {
     q.showSol = !q.showSol; paintActions(); renderSolution();
     if (q.showSol) $('#solution').scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
+  function skipQuestion() {
+    const q = S.q, g = S.game, btn = $('#btnSkip');
+    if (!g || !q || q.phase !== 'answering') return;
+    if (!q.skipArmed) {                                   // first tap arms it, second tap confirms
+      q.skipArmed = true;
+      btn.textContent = 'Tap again to skip (\u22121)';
+      q.skipTimer = setTimeout(() => {
+        if (S.q === q && q.phase === 'answering') { q.skipArmed = false; const b = $('#btnSkip'); if (b) b.textContent = 'Skip (\u22121 point)'; }
+      }, 3000);
+      return;
+    }
+    clearTimeout(q.skipTimer);
+    const total = q.inst.parts.length;
+    store.life.attempted++; store.life.parts += total;     // counts as an attempted miss
+    store.streak = 0;
+    g.idx++; g.parts += total; g.skips++; g.run = 0;
+    save(); renderLedger();
+    if (g.idx >= g.n) return finishGame();
+    newQuestion();
+  }
   function next() {
     if (S.game && S.game.idx >= S.game.n) return finishGame();
     newQuestion();
   }
   function finishGame() {
     const g = S.game, key = S.mode; g.finished = true;
-    const isHigh = g.correct > store.high[key];
-    if (isHigh) store.high[key] = g.correct;
-    store.last = { score: g.correct, total: g.n, mode: key, when: Date.now() };
+    const score = gameScore(g);
+    const isHigh = score > store.high[key];
+    if (isHigh) store.high[key] = score;
+    store.last = { score, total: g.n, mode: key, when: Date.now() };
     save(); renderLedger(); renderProgress();
     const pct = Math.round((g.correct / g.n) * 100), pPct = g.parts ? Math.round((g.partsOk / g.parts) * 100) : 0;
     $('#stage').innerHTML = `
       <section class="summary" aria-live="polite">
         <h2>${modeLabel[key]} complete</h2>
-        <div class="big">${g.correct}<small> / ${g.n}</small></div>
-        ${isHigh && g.correct > 0 ? '<div class="newhigh">New high score</div>' : ''}
+        <div class="big">${score}<small> / ${g.n}</small></div>
+        ${g.skips ? `<p class="hint">${g.correct} correct \u2212 ${g.skips} skipped = ${score} point${Math.abs(score) === 1 ? '' : 's'}</p>` : ''}
+        ${isHigh && score > 0 ? '<div class="newhigh">New high score</div>' : ''}
         <div class="stats"><div><b>${pct}%</b>problems correct</div><div><b>${pPct}%</b>parts correct</div><div><b>${g.bestRun}</b>best run</div></div>
         <div class="actions"><button class="btn primary" id="again" type="button">Play again</button><button class="btn ghost" id="back" type="button">Back to practice</button></div>
       </section>`;
