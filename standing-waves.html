@@ -66,7 +66,7 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold leading-tight tracking-tight">Standing Wave Lab</h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Interactive Wave Mechanics Physics Engine</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Interactive Physics Wave Engine</p>
                 </div>
             </div>
 
@@ -101,7 +101,7 @@
     <!-- Main Content Area -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-        <!-- Left / Top Column: Canvas Display & Playback Controls (lg:col-span-8) -->
+        <!-- Left Column: Canvas Display & Playback Controls (lg:col-span-8) -->
         <div class="lg:col-span-8 flex flex-col space-y-4">
 
             <!-- Canvas Viewport Wrapper -->
@@ -111,8 +111,8 @@
                 <div class="absolute top-3 left-3 right-3 flex justify-between items-start pointer-events-none z-10 text-xs font-mono text-slate-300">
                     <div class="bg-slate-900/80 backdrop-blur border border-slate-700/60 rounded-lg p-2 space-y-0.5">
                         <div class="text-physics-cyan font-bold" id="canvasSystemTitle">String (Fixed-Fixed Ends)</div>
-                        <div>L = <span id="statL">1.00</span> m | v = <span id="statV">340</span> m/s</div>
-                        <div>f = <span id="statF">170.00</span> Hz | λ = <span id="statLambda">2.00</span> m</div>
+                        <div><i>L</i> = <span id="statL">1.00</span> m | <i>v</i> = <span id="statV">340</span> m/s</div>
+                        <div><i>f</i> = <span id="statF">170.00</span> Hz | λ = <span id="statLambda">2.00</span> m</div>
                     </div>
                     
                     <div class="bg-slate-900/80 backdrop-blur border border-slate-700/60 rounded-lg p-2 text-right">
@@ -138,8 +138,8 @@
                         </span>
                     </div>
                     <div class="flex items-center space-x-3 text-[11px]">
-                        <span class="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded border border-blue-500/30 font-semibold">N</span> Node (Fixed / Zero)
-                        <span class="px-1.5 py-0.5 bg-rose-500/20 text-rose-300 rounded border border-rose-500/30 font-semibold">AN</span> Antinode (Max Peak)
+                        <span class="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded border border-blue-500/30 font-semibold">N</span> Node
+                        <span class="px-1.5 py-0.5 bg-rose-500/20 text-rose-300 rounded border border-rose-500/30 font-semibold">AN</span> Antinode
                     </div>
                 </div>
             </div>
@@ -168,7 +168,7 @@
 
                 <!-- Mode & Speed Controls -->
                 <div class="flex flex-wrap items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
-                    <!-- Animation Mode Selector (Time-Lapse vs Static) -->
+                    <!-- Animation Mode Selector (Continuous vs Static Envelope) -->
                     <div class="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium">
                         <button id="modeAnimBtn" class="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-physics-blue shadow-sm font-semibold transition-all">
                             <i class="fa-solid fa-film mr-1"></i> Continuous
@@ -228,11 +228,11 @@
                 <!-- 3. Harmonics / Mode Selector (n) -->
                 <div class="space-y-2">
                     <div class="flex justify-between items-center">
-                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Harmonic Mode ($n$)</label>
+                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Harmonic Mode (<i>n</i>)</label>
                         <span id="nValueDisplay" class="text-xs font-mono font-bold px-2 py-0.5 bg-physics-amber/20 text-physics-amber rounded">n = 1 (Fundamental)</span>
                     </div>
                     <div class="grid grid-cols-5 gap-1.5" id="harmonicButtonsGrid">
-                        <!-- Harmonic Quick buttons will be generated dynamically -->
+                        <!-- Harmonic buttons rendered dynamically -->
                     </div>
                 </div>
 
@@ -250,7 +250,7 @@
                     <!-- System Length (L) -->
                     <div class="space-y-1">
                         <div class="flex justify-between text-xs font-medium">
-                            <span>Tube / String Length ($L$)</span>
+                            <span>Tube / String Length (<i>L</i>)</span>
                             <span class="font-mono text-physics-blue"><span id="lengthVal">1.00</span> m</span>
                         </div>
                         <input id="lengthSlider" type="range" min="0.2" max="3.0" step="0.05" value="1.0" class="w-full accent-physics-blue cursor-pointer">
@@ -259,7 +259,7 @@
                     <!-- Wave Speed (v) -->
                     <div class="space-y-1">
                         <div class="flex justify-between text-xs font-medium">
-                            <span>Wave Speed ($v$)</span>
+                            <span>Wave Speed (<i>v</i>)</span>
                             <span class="font-mono text-physics-blue"><span id="speedWaveVal">340</span> m/s</span>
                         </div>
                         <input id="waveSpeedSlider" type="range" min="50" max="1000" step="10" value="340" class="w-full accent-physics-blue cursor-pointer">
@@ -268,16 +268,16 @@
                     <!-- Frequency (f) -->
                     <div class="space-y-1">
                         <div class="flex justify-between text-xs font-medium">
-                            <span>Frequency ($f$)</span>
+                            <span>Frequency (<i>f</i>)</span>
                             <span class="font-mono text-physics-blue"><span id="freqVal">170.0</span> Hz</span>
                         </div>
                         <input id="freqSlider" type="range" min="10" max="2000" step="1" value="170" class="w-full accent-physics-blue cursor-pointer">
                     </div>
 
-                    <!-- Wavelength (lambda) -->
+                    <!-- Wavelength (lambda = v / f) -->
                     <div class="space-y-1">
                         <div class="flex justify-between text-xs font-medium">
-                            <span>Wavelength ($\lambda = v/f$)</span>
+                            <span>Wavelength (λ = <i>v</i> / <i>f</i>)</span>
                             <span class="font-mono text-physics-blue"><span id="lambdaVal">2.00</span> m</span>
                         </div>
                         <input id="lambdaSlider" type="range" min="0.1" max="5.0" step="0.02" value="2.0" class="w-full accent-physics-blue cursor-pointer">
@@ -317,7 +317,6 @@
                 </button>
             </div>
 
-            <!-- List of Presets -->
             <div id="presetListContainer" class="max-h-64 overflow-y-auto space-y-2 pr-1">
                 <!-- Preset items rendered via JS -->
             </div>
@@ -336,7 +335,7 @@
         <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl max-w-md w-full p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-3">
                 <h3 class="text-lg font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-file-export text-physics-blue"></i> Export Clean Light Theme Snapshot
+                    <i class="fa-solid fa-file-export text-physics-blue"></i> Export Light Theme Snapshot
                 </h3>
                 <button id="closeExportModalBtn" class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -356,7 +355,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Notes / Lab Observations</label>
-                    <textarea id="exportNotes" rows="2" placeholder="e.g. Node observed at L/2, resonance peak matched theoretical model." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-physics-blue"></textarea>
+                    <textarea id="exportNotes" rows="2" placeholder="e.g. Peak displacements bounded strictly within tube boundary walls." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-physics-blue"></textarea>
                 </div>
             </div>
 
@@ -371,13 +370,13 @@
         </div>
     </div>
 
-    <!-- Hidden Export Offscreen Canvas -->
+    <!-- Hidden Offscreen Export Canvas -->
     <canvas id="exportCanvas" class="hidden"></canvas>
 
     <script>
         /*
          * Standing Wave Physics Simulator Engine
-         * Fixed analytical boundary equations for String, Open Tube, and Closed Tube.
+         * Boundary Enclosed Wave, Tube Physics & Exact Ordinal Overtones
          */
 
         const state = {
@@ -401,17 +400,46 @@
 
         const canvas = document.getElementById('waveCanvas');
         const ctx = canvas.getContext('2d');
-        const exportCanvas = document.getElementById('exportCanvas');
+
+        /**
+         * Converts an integer number into ordinal text string (1st, 2nd, 3rd, 4th, 5th, etc.)
+         */
+        function getOrdinalSuffix(num) {
+            const j = num % 10;
+            const k = num % 100;
+            if (j === 1 && k !== 11) return num + "st";
+            if (j === 2 && k !== 12) return num + "nd";
+            if (j === 3 && k !== 13) return num + "rd";
+            return num + "th";
+        }
+
+        /**
+         * Generates the physical harmonic title and overtone designation label
+         */
+        function getOvertoneLabel(systemType, n) {
+            if (n === 1) {
+                return `n = 1 (Fundamental)`;
+            }
+
+            if (systemType === 'string' || systemType === 'open-open') {
+                const overtoneNum = n - 1;
+                return `n = ${n} (${getOrdinalSuffix(overtoneNum)} Overtone)`;
+            } else if (systemType === 'closed-open') {
+                const overtoneNum = Math.floor((n - 1) / 2);
+                return `n = ${n} (${getOrdinalSuffix(overtoneNum)} Overtone)`;
+            }
+            return `n = ${n}`;
+        }
 
         function initParticles() {
             state.particles = [];
-            const numParticles = 320;
+            const numParticles = 350;
             for (let i = 0; i < numParticles; i++) {
                 state.particles.push({
-                    xRatio: Math.random(), // Relative position along tube [0, 1]
-                    yOffset: (Math.random() - 0.5) * 0.65,
-                    radius: 1.8 + Math.random() * 1.5,
-                    colorAlpha: 0.5 + Math.random() * 0.5
+                    xRatio: Math.random(),
+                    yRatio: Math.random(),
+                    radius: 1.6 + Math.random() * 1.5,
+                    colorAlpha: 0.45 + Math.random() * 0.5
                 });
             }
         }
@@ -421,7 +449,6 @@
             if (system === 'string' || system === 'open-open') {
                 resLambda = (2 * L) / n;
             } else if (system === 'closed-open') {
-                // Closed-Open only allows odd harmonics n = 1, 3, 5, 7...
                 resLambda = (4 * L) / n;
             }
             const resFreq = v / resLambda;
@@ -433,12 +460,11 @@
             const freqDiff = Math.abs(state.f - resFreq);
             state.isResonant = freqDiff < (0.015 * resFreq) || freqDiff < 0.5;
 
-            // Update UI status elements
             const badge = document.getElementById('resonanceBadge');
             const badgeText = document.getElementById('resonanceText');
             if (state.isResonant) {
                 badge.className = "flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide transition-all shadow-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30";
-                badgeText.textContent = `Resonance (n=${state.n})`;
+                badgeText.textContent = `Resonance (${getOvertoneLabel(state.systemType, state.n)})`;
             } else {
                 badge.className = "flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide transition-all shadow-sm bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30";
                 badgeText.textContent = "Non-Resonant Superposition";
@@ -471,44 +497,37 @@
         }
 
         /**
-         * Calculates exact standing wave displacement and component waves at point x [0, L]
+         * Calculates wave displacements at coordinate x [0, L]
          */
         function getWaveDisplacement(x, t) {
             const omega = 2 * Math.PI * state.f;
-            const Amp = 0.35; // Peak amplitude scale factor
+            const Amp = 1.0;
 
             let yIncident = 0;
             let yReflected = 0;
             let yResultant = 0;
 
             if (state.isResonant) {
-                // Exact analytical spatial envelope when tuned to resonance
                 let spatialFactor = 0;
                 let isDispView = (state.waveView === 'displacement');
 
                 if (state.systemType === 'string') {
-                    // String (Fixed-Fixed): Nodes at x=0 and x=L -> sin(n*pi*x/L)
+                    // Fixed-Fixed String: Zero displacement nodes at x=0 and x=L
                     spatialFactor = Math.sin((state.n * Math.PI * x) / state.L);
                     yIncident = 0.5 * Amp * Math.sin((2 * Math.PI * x / state.lambda) - omega * t);
                     yReflected = -0.5 * Amp * Math.sin((2 * Math.PI * x / state.lambda) + omega * t);
                 } else if (state.systemType === 'open-open') {
-                    // Open Tube (Open-Open)
                     if (isDispView) {
-                        // Displacement: Antinodes at x=0 and x=L -> cos(n*pi*x/L)
                         spatialFactor = Math.cos((state.n * Math.PI * x) / state.L);
                     } else {
-                        // Pressure: Nodes at x=0 and x=L -> sin(n*pi*x/L)
                         spatialFactor = Math.sin((state.n * Math.PI * x) / state.L);
                     }
                     yIncident = 0.5 * Amp * Math.cos((2 * Math.PI * x / state.lambda) - omega * t);
                     yReflected = 0.5 * Amp * Math.cos((2 * Math.PI * x / state.lambda) + omega * t);
                 } else if (state.systemType === 'closed-open') {
-                    // Closed-Open Tube: Closed at x=0 (Node), Open at x=L (Antinode)
                     if (isDispView) {
-                        // Displacement Node at x=0, Antinode at x=L -> sin(n*pi*x / (2L))
                         spatialFactor = Math.sin((state.n * Math.PI * x) / (2 * state.L));
                     } else {
-                        // Pressure Antinode at x=0, Node at x=L -> cos(n*pi*x / (2L))
                         spatialFactor = Math.cos((state.n * Math.PI * x) / (2 * state.L));
                     }
                     yIncident = 0.5 * Amp * Math.sin((2 * Math.PI * x / state.lambda) - omega * t);
@@ -517,7 +536,6 @@
 
                 yResultant = Amp * spatialFactor * Math.cos(omega * t);
             } else {
-                // Non-resonant superposition of incident and reflected travelling waves
                 const k = (2 * Math.PI) / state.lambda;
                 if (state.systemType === 'string') {
                     yIncident = 0.5 * Amp * Math.sin(k * x - omega * t);
@@ -543,7 +561,6 @@
             const isDisp = (state.waveView === 'displacement');
 
             if (state.systemType === 'string') {
-                // String Fixed-Fixed: Nodes at k * L / n ; Antinodes at (k + 0.5) * L / n
                 for (let k = 0; k <= n; k++) {
                     nodes.push((k * L) / n);
                 }
@@ -552,7 +569,6 @@
                 }
             } else if (state.systemType === 'open-open') {
                 if (isDisp) {
-                    // Displacement: Antinodes at k * L / n ; Nodes at (k + 0.5) * L / n
                     for (let k = 0; k <= n; k++) {
                         antinodes.push((k * L) / n);
                     }
@@ -560,7 +576,6 @@
                         nodes.push(((k + 0.5) * L) / n);
                     }
                 } else {
-                    // Pressure: Nodes at k * L / n ; Antinodes at (k + 0.5) * L / n
                     for (let k = 0; k <= n; k++) {
                         nodes.push((k * L) / n);
                     }
@@ -569,19 +584,16 @@
                     }
                 }
             } else if (state.systemType === 'closed-open') {
-                // Closed-Open (n = 1, 3, 5, 7...)
                 const numQuarterWaves = n;
                 const quarterL = L / numQuarterWaves;
 
                 if (isDisp) {
-                    // Displacement Node at x=0, AN at x=L
                     for (let i = 0; i <= numQuarterWaves; i++) {
                         const posX = i * quarterL;
                         if (i % 2 === 0) nodes.push(posX);
                         else antinodes.push(posX);
                     }
                 } else {
-                    // Pressure AN at x=0, Node at x=L
                     for (let i = 0; i <= numQuarterWaves; i++) {
                         const posX = i * quarterL;
                         if (i % 2 === 0) antinodes.push(posX);
@@ -605,54 +617,57 @@
             const endX = width - paddingX;
             const drawWidth = endX - startX;
             const centerY = height / 2;
-            const maxAmpPixels = height * 0.28;
 
-            // Draw System Boundaries
+            const maxAmpPixels = Math.min(height * 0.32, 130);
+
+            // Tube height & boundary enclosing wave bounds
+            const tubeInnerHalfHeight = maxAmpPixels * 1.08; 
+            const tubeTopY = centerY - tubeInnerHalfHeight;
+            const tubeBottomY = centerY + tubeInnerHalfHeight;
+            const tubeTotalHeight = tubeInnerHalfHeight * 2;
+
             if (state.systemType === 'string') {
-                // String Fixed Pins at 0 and L
+                // Fixed End Supports
                 ctx.strokeStyle = '#64748b';
                 ctx.lineWidth = 4;
                 ctx.beginPath();
-                // Left fixed anchor
-                ctx.moveTo(startX, centerY - 28);
-                ctx.lineTo(startX, centerY + 28);
-                // Right fixed anchor
-                ctx.moveTo(endX, centerY - 28);
-                ctx.lineTo(endX, centerY + 28);
+                ctx.moveTo(startX, centerY - maxAmpPixels - 15);
+                ctx.lineTo(startX, centerY + maxAmpPixels + 15);
+                ctx.moveTo(endX, centerY - maxAmpPixels - 15);
+                ctx.lineTo(endX, centerY + maxAmpPixels + 15);
                 ctx.stroke();
 
-                // Anchor clamps
                 ctx.fillStyle = '#475569';
                 ctx.fillRect(startX - 8, centerY - 12, 8, 24);
                 ctx.fillRect(endX, centerY - 12, 8, 24);
             } else {
-                // Tube Cylinder
-                const tubeHeight = maxAmpPixels * 2.2;
-                ctx.fillStyle = 'rgba(30, 41, 59, 0.4)';
-                ctx.fillRect(startX, centerY - tubeHeight/2, drawWidth, tubeHeight);
+                // Tube Interior Background
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
+                ctx.fillRect(startX, tubeTopY, drawWidth, tubeTotalHeight);
 
-                ctx.strokeStyle = '#64748b';
-                ctx.lineWidth = 3;
+                // Tube Upper and Lower Enclosing Wall Boundaries
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 4;
 
-                // Tube Top & Bottom Walls
                 ctx.beginPath();
-                ctx.moveTo(startX, centerY - tubeHeight/2);
-                ctx.lineTo(endX, centerY - tubeHeight/2);
-                ctx.moveTo(startX, centerY + tubeHeight/2);
-                ctx.lineTo(endX, centerY + tubeHeight/2);
+                ctx.moveTo(startX, tubeTopY);
+                ctx.lineTo(endX, tubeTopY);
+                ctx.moveTo(startX, tubeBottomY);
+                ctx.lineTo(endX, tubeBottomY);
                 ctx.stroke();
 
                 if (state.systemType === 'closed-open') {
-                    // Closed left end wall
+                    // Closed Left End Wall
                     ctx.fillStyle = '#475569';
-                    ctx.fillRect(startX - 8, centerY - tubeHeight/2 - 4, 8, tubeHeight + 8);
+                    ctx.fillRect(startX - 10, tubeTopY - 4, 10, tubeTotalHeight + 8);
+                    ctx.strokeStyle = '#64748b';
+                    ctx.strokeRect(startX - 10, tubeTopY - 4, 10, tubeTotalHeight + 8);
                 }
             }
 
-            // Draw Air Molecules for Tube Modes
+            // Air Molecule Particle Displacement Physics
             if (state.systemType !== 'string' && state.showParticles) {
                 const omega = 2 * Math.PI * state.f;
-                const tubeHeight = maxAmpPixels * 2.0;
 
                 state.particles.forEach(p => {
                     const physX = p.xRatio * state.L;
@@ -668,11 +683,11 @@
                         disp = 0.08 * spatialFactor * Math.cos(omega * state.time);
                     } else {
                         const wave = getWaveDisplacement(physX, state.time);
-                        disp = wave.yResultant * 0.1;
+                        disp = wave.yResultant * 0.08;
                     }
 
-                    const px = startX + (physX + disp) * (drawWidth / state.L);
-                    const py = centerY + p.yOffset * tubeHeight;
+                    const px = Math.max(startX + 2, Math.min(endX - 2, startX + (physX + disp) * (drawWidth / state.L)));
+                    const py = tubeTopY + 6 + p.yRatio * (tubeTotalHeight - 12);
 
                     ctx.fillStyle = `rgba(244, 63, 94, ${p.colorAlpha})`;
                     ctx.beginPath();
@@ -683,12 +698,12 @@
 
             const steps = 300;
 
-            // Incident / Reflected Component Waves
+            // Component Waves
             if (state.showIncident && state.mode === 'continuous') {
                 ctx.lineWidth = 1.5;
 
-                // Incident (Cyan)
-                ctx.strokeStyle = 'rgba(6, 182, 212, 0.5)';
+                // Incident Wave
+                ctx.strokeStyle = 'rgba(6, 182, 212, 0.6)';
                 ctx.setLineDash([4, 4]);
                 ctx.beginPath();
                 for (let i = 0; i <= steps; i++) {
@@ -701,8 +716,8 @@
                 }
                 ctx.stroke();
 
-                // Reflected (Emerald)
-                ctx.strokeStyle = 'rgba(16, 185, 129, 0.5)';
+                // Reflected Wave
+                ctx.strokeStyle = 'rgba(16, 185, 129, 0.6)';
                 ctx.beginPath();
                 for (let i = 0; i <= steps; i++) {
                     const xPhys = (i / steps) * state.L;
@@ -716,25 +731,23 @@
                 ctx.setLineDash([]);
             }
 
-            // Static Standing Wave Envelope Frame
+            // Static Wave Envelope
             if (state.mode === 'static') {
-                ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
+                ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)';
                 ctx.lineWidth = 2;
                 ctx.setLineDash([6, 6]);
 
-                // Upper envelope boundary
                 ctx.beginPath();
                 for (let i = 0; i <= steps; i++) {
                     const xPhys = (i / steps) * state.L;
                     const px = startX + (i / steps) * drawWidth;
-                    const { yResultant } = getWaveDisplacement(xPhys, 0); // Peak amplitude frame
+                    const { yResultant } = getWaveDisplacement(xPhys, 0);
                     const py = centerY - Math.abs(yResultant) * maxAmpPixels;
                     if (i === 0) ctx.moveTo(px, py);
                     else ctx.lineTo(px, py);
                 }
                 ctx.stroke();
 
-                // Lower envelope boundary
                 ctx.beginPath();
                 for (let i = 0; i <= steps; i++) {
                     const xPhys = (i / steps) * state.L;
@@ -748,7 +761,7 @@
                 ctx.setLineDash([]);
             }
 
-            // Resultant Wave Curve
+            // Primary Standing Wave Curve
             ctx.lineWidth = 3.5;
             ctx.strokeStyle = state.isResonant ? '#3b82f6' : '#f59e0b';
             ctx.beginPath();
@@ -762,10 +775,9 @@
             }
             ctx.stroke();
 
-            // Draw Node (N) and Antinode (AN) Visual Labels
+            // Render Node (N) and Antinode (AN) markers
             const { nodes, antinodes } = getNodeAntinodePositions();
 
-            // Render Node Markers
             nodes.forEach(xPhys => {
                 const px = startX + (xPhys / state.L) * drawWidth;
                 ctx.fillStyle = '#3b82f6';
@@ -776,10 +788,9 @@
                 ctx.fillStyle = '#60a5fa';
                 ctx.font = 'bold 11px Inter, sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText('N', px, centerY + 22);
+                ctx.fillText('N', px, centerY + (state.systemType !== 'string' ? tubeInnerHalfHeight - 10 : 22));
             });
 
-            // Render Antinode Markers
             antinodes.forEach(xPhys => {
                 const px = startX + (xPhys / state.L) * drawWidth;
                 ctx.fillStyle = '#f43f5e';
@@ -790,10 +801,9 @@
                 ctx.fillStyle = '#fb7185';
                 ctx.font = 'bold 11px Inter, sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText('AN', px, centerY - 18);
+                ctx.fillText('AN', px, centerY - (state.systemType !== 'string' ? tubeInnerHalfHeight - 16 : 18));
             });
 
-            // Advance Time Step
             if (state.animating && state.mode === 'continuous') {
                 state.time += 0.005 * state.speedMultiplier;
             }
@@ -801,7 +811,7 @@
             requestAnimationFrame(drawScene);
         }
 
-        const PRESETS_STORAGE_KEY = 'standing_wave_presets_v1';
+        const PRESETS_STORAGE_KEY = 'standing_wave_presets_v2';
 
         function getSavedPresets() {
             try {
@@ -815,7 +825,7 @@
             const presets = getSavedPresets();
             const newPreset = {
                 id: Date.now(),
-                title: `${state.systemType.toUpperCase()} - n=${state.n} (${state.f.toFixed(1)}Hz)`,
+                title: `${state.systemType.toUpperCase()} - ${getOvertoneLabel(state.systemType, state.n)} (${state.f.toFixed(1)}Hz)`,
                 date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
                 state: { ...state, particles: [] }
             };
@@ -829,7 +839,7 @@
             const presets = getSavedPresets();
 
             if (presets.length === 0) {
-                container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">No saved wave paths yet. Click "Save Path" to record a snapshot state!</div>`;
+                container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">No saved wave paths yet. Click "Save Path" to record a scenario!</div>`;
                 return;
             }
 
@@ -871,12 +881,14 @@
             const expCanvas = document.getElementById('exportCanvas');
             const expCtx = expCanvas.getContext('2d');
 
+            // Set generous dimensions (800px height) to prevent clipping top or bottom
             expCanvas.width = 1200;
-            expCanvas.height = 700;
+            expCanvas.height = 800;
 
             const w = expCanvas.width;
             const h = expCanvas.height;
 
+            // Clean Light Theme Background
             expCtx.fillStyle = '#ffffff';
             expCtx.fillRect(0, 0, w, h);
 
@@ -896,60 +908,137 @@
             expCtx.font = '15px Inter, sans-serif';
             expCtx.fillText(`Investigator: ${authorName || 'Anonymous'} | Date: ${new Date().toLocaleDateString()}`, 40, 82);
 
-            // Physics Stats Box
+            // Physics Parameters Info Box
             expCtx.fillStyle = '#f1f5f9';
-            expCtx.roundRect(40, 130, w - 80, 75, 12);
-            expCtx.fill();
+            if (expCtx.roundRect) {
+                expCtx.beginPath();
+                expCtx.roundRect(40, 130, w - 80, 75, 12);
+                expCtx.fill();
+            } else {
+                expCtx.fillRect(40, 130, w - 80, 75);
+            }
 
             expCtx.fillStyle = '#1e293b';
             expCtx.font = 'bold 14px Inter, sans-serif';
             const sysName = state.systemType === 'string' ? 'String (Fixed-Fixed)' : (state.systemType === 'open-open' ? 'Open Tube (Open-Open)' : 'Closed-Open Tube');
-            expCtx.fillText(`System: ${sysName} | Mode: n = ${state.n} | ${state.isResonant ? 'RESONANCE' : 'NON-RESONANT'}`, 60, 158);
+            expCtx.fillText(`System: ${sysName} | Mode: ${getOvertoneLabel(state.systemType, state.n)} | ${state.isResonant ? 'RESONANCE' : 'NON-RESONANT'}`, 60, 158);
 
             expCtx.font = '13px Inter, sans-serif';
             expCtx.fillStyle = '#64748b';
             expCtx.fillText(`Length (L): ${state.L.toFixed(2)} m  |  Wave Speed (v): ${Math.round(state.v)} m/s  |  Frequency (f): ${state.f.toFixed(1)} Hz  |  Wavelength (λ): ${state.lambda.toFixed(2)} m`, 60, 184);
 
-            // Wave Visual Canvas
+            // Wave Canvas Viewport Geometry Parameters
             const startX = 80;
             const endX = w - 80;
             const drawWidth = endX - startX;
-            const centerY = 400;
-            const maxAmpPixels = 120;
+            
+            // Baseline Y positioned cleanly in upper-middle of export frame to avoid clipping top envelope
+            const centerY = 410;
+            const maxAmpPixels = 125;
+            const tubeInnerHalfHeight = maxAmpPixels * 1.08;
+            const tubeTopY = centerY - tubeInnerHalfHeight;
+            const tubeBottomY = centerY + tubeInnerHalfHeight;
+            const tubeTotalHeight = tubeInnerHalfHeight * 2;
 
             if (state.systemType !== 'string') {
+                // Light Background Tube Interior
                 expCtx.fillStyle = '#f8fafc';
-                expCtx.fillRect(startX, centerY - maxAmpPixels * 1.1, drawWidth, maxAmpPixels * 2.2);
+                expCtx.fillRect(startX, tubeTopY, drawWidth, tubeTotalHeight);
                 expCtx.strokeStyle = '#94a3b8';
-                expCtx.lineWidth = 2;
-                expCtx.strokeRect(startX, centerY - maxAmpPixels * 1.1, drawWidth, maxAmpPixels * 2.2);
+                expCtx.lineWidth = 3;
+                expCtx.strokeRect(startX, tubeTopY, drawWidth, tubeTotalHeight);
+
+                if (state.systemType === 'closed-open') {
+                    expCtx.fillStyle = '#64748b';
+                    expCtx.fillRect(startX - 10, tubeTopY - 2, 10, tubeTotalHeight + 4);
+                }
             } else {
+                // Fixed End Supports
                 expCtx.strokeStyle = '#64748b';
                 expCtx.lineWidth = 4;
                 expCtx.beginPath();
-                expCtx.moveTo(startX, centerY - 30); expCtx.lineTo(startX, centerY + 30);
-                expCtx.moveTo(endX, centerY - 30); expCtx.lineTo(endX, centerY + 30);
+                expCtx.moveTo(startX, centerY - maxAmpPixels - 20); expCtx.lineTo(startX, centerY + maxAmpPixels + 20);
+                expCtx.moveTo(endX, centerY - maxAmpPixels - 20); expCtx.lineTo(endX, centerY + maxAmpPixels + 20);
                 expCtx.stroke();
             }
 
+            // Export Air Molecules (for Tube modes)
+            if (state.systemType !== 'string' && state.showParticles) {
+                const omega = 2 * Math.PI * state.f;
+                state.particles.forEach(p => {
+                    const physX = p.xRatio * state.L;
+                    let disp = 0;
+                    if (state.isResonant) {
+                        let spatialFactor = 0;
+                        if (state.systemType === 'open-open') spatialFactor = Math.cos((state.n * Math.PI * physX) / state.L);
+                        else if (state.systemType === 'closed-open') spatialFactor = Math.sin((state.n * Math.PI * physX) / (2 * state.L));
+                        disp = 0.08 * spatialFactor * Math.cos(omega * state.time);
+                    } else {
+                        const wave = getWaveDisplacement(physX, state.time);
+                        disp = wave.yResultant * 0.08;
+                    }
+                    const px = Math.max(startX + 2, Math.min(endX - 2, startX + (physX + disp) * (drawWidth / state.L)));
+                    const py = tubeTopY + 6 + p.yRatio * (tubeTotalHeight - 12);
+                    expCtx.fillStyle = `rgba(225, 29, 72, 0.45)`;
+                    expCtx.beginPath();
+                    expCtx.arc(px, py, p.radius, 0, Math.PI * 2);
+                    expCtx.fill();
+                });
+            }
+
             const steps = 300;
-            expCtx.lineWidth = 4;
-            expCtx.strokeStyle = '#2563eb';
+
+            // Incident & Reflected Overlays
+            if (state.showIncident) {
+                expCtx.lineWidth = 2;
+
+                // Incident Wave (Cyan)
+                expCtx.strokeStyle = 'rgba(6, 182, 212, 0.7)';
+                expCtx.setLineDash([5, 5]);
+                expCtx.beginPath();
+                for (let i = 0; i <= steps; i++) {
+                    const xPhys = (i / steps) * state.L;
+                    const px = startX + (i / steps) * drawWidth;
+                    const { yIncident } = getWaveDisplacement(xPhys, state.time);
+                    const py = centerY - yIncident * maxAmpPixels;
+                    if (i === 0) expCtx.moveTo(px, py);
+                    else expCtx.lineTo(px, py);
+                }
+                expCtx.stroke();
+
+                // Reflected Wave (Emerald)
+                expCtx.strokeStyle = 'rgba(16, 185, 129, 0.7)';
+                expCtx.beginPath();
+                for (let i = 0; i <= steps; i++) {
+                    const xPhys = (i / steps) * state.L;
+                    const px = startX + (i / steps) * drawWidth;
+                    const { yReflected } = getWaveDisplacement(xPhys, state.time);
+                    const py = centerY - yReflected * maxAmpPixels;
+                    if (i === 0) expCtx.moveTo(px, py);
+                    else expCtx.lineTo(px, py);
+                }
+                expCtx.stroke();
+                expCtx.setLineDash([]);
+            }
+
+            // Static Wave Envelopes (+/- Max Bounds)
+            expCtx.strokeStyle = '#3b82f6';
+            expCtx.lineWidth = 2;
+            expCtx.setLineDash([6, 6]);
+
+            // Upper Positive Envelope Curve
             expCtx.beginPath();
             for (let i = 0; i <= steps; i++) {
                 const xPhys = (i / steps) * state.L;
                 const px = startX + (i / steps) * drawWidth;
                 const { yResultant } = getWaveDisplacement(xPhys, 0);
-                const py = centerY - yResultant * maxAmpPixels;
+                const py = centerY - Math.abs(yResultant) * maxAmpPixels;
                 if (i === 0) expCtx.moveTo(px, py);
                 else expCtx.lineTo(px, py);
             }
             expCtx.stroke();
 
-            // Envelopes
-            expCtx.strokeStyle = '#93c5fd';
-            expCtx.lineWidth = 2;
-            expCtx.setLineDash([6, 6]);
+            // Lower Negative Envelope Curve
             expCtx.beginPath();
             for (let i = 0; i <= steps; i++) {
                 const xPhys = (i / steps) * state.L;
@@ -962,35 +1051,107 @@
             expCtx.stroke();
             expCtx.setLineDash([]);
 
-            // Export Markers
+            // Primary Solid Wave Line
+            expCtx.lineWidth = 4;
+            expCtx.strokeStyle = '#1d4ed8';
+            expCtx.beginPath();
+            for (let i = 0; i <= steps; i++) {
+                const xPhys = (i / steps) * state.L;
+                const px = startX + (i / steps) * drawWidth;
+                const { yResultant } = getWaveDisplacement(xPhys, state.time);
+                const py = centerY - yResultant * maxAmpPixels;
+                if (i === 0) expCtx.moveTo(px, py);
+                else expCtx.lineTo(px, py);
+            }
+            expCtx.stroke();
+
+            // Node (N) & Antinode (AN) Markers
             const { nodes, antinodes } = getNodeAntinodePositions();
             nodes.forEach(xPhys => {
                 const px = startX + (xPhys / state.L) * drawWidth;
-                expCtx.fillStyle = '#2563eb';
+                expCtx.fillStyle = '#1d4ed8';
                 expCtx.beginPath(); expCtx.arc(px, centerY, 6, 0, Math.PI * 2); expCtx.fill();
                 expCtx.font = 'bold 12px Inter, sans-serif';
-                expCtx.fillText('N', px - 4, centerY + 24);
+                expCtx.textAlign = 'center';
+                expCtx.fillText('N', px, centerY + (state.systemType !== 'string' ? tubeInnerHalfHeight - 12 : 24));
             });
             antinodes.forEach(xPhys => {
                 const px = startX + (xPhys / state.L) * drawWidth;
                 expCtx.fillStyle = '#e11d48';
                 expCtx.beginPath(); expCtx.arc(px, centerY, 5, 0, Math.PI * 2); expCtx.fill();
                 expCtx.font = 'bold 12px Inter, sans-serif';
-                expCtx.fillText('AN', px - 8, centerY - 18);
+                expCtx.textAlign = 'center';
+                expCtx.fillText('AN', px, centerY - (state.systemType !== 'string' ? tubeInnerHalfHeight - 18 : 20));
             });
 
+            // Interactive Export Visual Legend
+            expCtx.fillStyle = '#f8fafc';
+            expCtx.strokeStyle = '#cbd5e1';
+            if (expCtx.roundRect) {
+                expCtx.beginPath();
+                expCtx.roundRect(startX, 580, drawWidth, 42, 8);
+                expCtx.fill(); expCtx.stroke();
+            } else {
+                expCtx.fillRect(startX, 580, drawWidth, 42);
+                expCtx.strokeRect(startX, 580, drawWidth, 42);
+            }
+
+            expCtx.font = '12px Inter, sans-serif';
+            expCtx.textAlign = 'left';
+            
+            // Resultant Wave Legend Item
+            expCtx.fillStyle = '#1d4ed8';
+            expCtx.fillRect(startX + 20, 597, 18, 8);
+            expCtx.fillStyle = '#334155';
+            expCtx.fillText('Resultant Wave', startX + 45, 605);
+
+            // Incident Wave Legend Item
+            expCtx.fillStyle = '#06b6d4';
+            expCtx.fillRect(startX + 180, 597, 18, 4);
+            expCtx.fillStyle = '#334155';
+            expCtx.fillText('Incident Wave', startX + 205, 605);
+
+            // Reflected Wave Legend Item
+            expCtx.fillStyle = '#10b981';
+            expCtx.fillRect(startX + 330, 597, 18, 4);
+            expCtx.fillStyle = '#334155';
+            expCtx.fillText('Reflected Wave', startX + 355, 605);
+
+            // Envelope Legend Item
+            expCtx.strokeStyle = '#3b82f6';
+            expCtx.setLineDash([3, 3]);
+            expCtx.beginPath(); expCtx.moveTo(startX + 480, 601); expCtx.lineTo(startX + 498, 601); expCtx.stroke();
+            expCtx.setLineDash([]);
+            expCtx.fillStyle = '#334155';
+            expCtx.fillText('Wave Envelope', startX + 505, 605);
+
+            // Node/Antinode Legend Item
+            expCtx.fillStyle = '#1d4ed8';
+            expCtx.beginPath(); expCtx.arc(startX + 630, 601, 4, 0, Math.PI * 2); expCtx.fill();
+            expCtx.fillText('Node (N)', startX + 640, 605);
+
+            expCtx.fillStyle = '#e11d48';
+            expCtx.beginPath(); expCtx.arc(startX + 720, 601, 4, 0, Math.PI * 2); expCtx.fill();
+            expCtx.fillText('Antinode (AN)', startX + 730, 605);
+
+            // Optional Observation Notes Section
             if (notes) {
                 expCtx.fillStyle = '#f8fafc';
-                expCtx.roundRect(40, 580, w - 80, 80, 10);
-                expCtx.fill();
+                if (expCtx.roundRect) {
+                    expCtx.beginPath();
+                    expCtx.roundRect(40, 650, w - 80, 110, 10);
+                    expCtx.fill();
+                } else {
+                    expCtx.fillRect(40, 650, w - 80, 110);
+                }
                 expCtx.strokeStyle = '#e2e8f0';
-                expCtx.strokeRect(40, 580, w - 80, 80);
+                expCtx.strokeRect(40, 650, w - 80, 110);
 
                 expCtx.fillStyle = '#334155';
-                expCtx.font = 'bold 12px Inter, sans-serif';
-                expCtx.fillText('LAB OBSERVATIONS / NOTES:', 55, 602);
-                expCtx.font = '12px Inter, sans-serif';
-                expCtx.fillText(notes, 55, 625);
+                expCtx.font = 'bold 13px Inter, sans-serif';
+                expCtx.fillText('LAB OBSERVATIONS / NOTES:', 60, 678);
+                expCtx.font = '13px Inter, sans-serif';
+                expCtx.fillText(notes, 60, 706);
             }
 
             const dataUrl = expCanvas.toDataURL('image/png');
@@ -1005,7 +1166,7 @@
             container.innerHTML = '';
 
             const isClosed = state.systemType === 'closed-open';
-            const allowedN = isClosed ? [1, 3, 5, 7, 9] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            const allowedN = isClosed ? [1, 3, 5, 7, 9, 11, 13] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
             if (!allowedN.includes(state.n)) {
                 state.n = 1;
@@ -1028,13 +1189,9 @@
                 container.appendChild(btn);
             });
 
-            let label = `n = ${state.n} `;
-            if (state.n === 1) label += '(Fundamental)';
-            else if (isClosed) label += `(${Math.floor(state.n/2)}rd Overtone)`;
-            else label += `(${state.n - 1}th Overtone)`;
-
+            const label = getOvertoneLabel(state.systemType, state.n);
             document.getElementById('nValueDisplay').textContent = label;
-            document.getElementById('canvasHarmonicTitle').textContent = `Harmonic: n = ${state.n}`;
+            document.getElementById('canvasHarmonicTitle').textContent = `Harmonic: ${label}`;
         }
 
         function resizeCanvas() {
