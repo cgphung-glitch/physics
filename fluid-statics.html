@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fluid Statics · Practice</title>
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js"
+            onload="window.renderMathInElement && renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true},{left: '$', right: '$', display: false}]});"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        :root {
+            --bg: #0b0f17;
+            --surface: #131a26;
+            --card: #1c2638;
+            --text: #e8edf5;
+            --subtext: #9aa9bb;
+            --primary: #5f9ef0;
+            --primary-dark: #3d7fd6;
+            --accent: #38b2ac;
+            --danger: #f56565;
+            --success: #48bb78;
+            --border: #2a3548;
+            --shadow: 0 8px 20px rgba(0,0,0,0.5);
+            --radius: 16px;
+        }
+        body.light {
+            --bg: #f2f5f9;
+            --surface: #ffffff;
+            --card: #ffffff;
+            --text: #1a2634;
+            --subtext: #5d6f83;
+            --primary: #2b6cb0;
+            --primary-dark: #1e4e8c;
+            --accent: #2c7a7b;
+            --border: #dde3ec;
+            --shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: background 0.2s, color 0.2s;
+            padding: 12px 12px 90px;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        .app {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .theme-toggle {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 6px 14px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.15s;
+            box-shadow: var(--shadow);
+        }
+        .theme-toggle:hover {
+            border-color: var(--primary);
+        }
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .stat-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 6px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        .stat-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--subtext);
+            font-weight: 600;
+        }
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow);
+            white-space: nowrap;
+        }
+        .btn:hover {
+            border-color: var(--primary);
+            background: var(--card);
+        }
+        .btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 18px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+        .problem-text {
+            font-size: 1rem;
+            margin-bottom: 14px;
+        }
+        .problem-text p {
+            margin-bottom: 8px;
+        }
+        .answer-area {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 12px 0;
+        }
+        .answer-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .answer-row label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            min-width: 110px;
+            color: var(--subtext);
+        }
+        .answer-row input {
+            flex: 1;
+            min-width: 140px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: 0.15s;
+        }
+        .answer-row input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(95,158,240,0.2);
+        }
+        .unit-hint {
+            font-size: 0.8rem;
+            color: var(--subtext);
+            font-weight: 500;
+        }
+        .solution {
+            background: var(--surface);
+            border-left: 4px solid var(--primary);
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-top: 14px;
+            font-size: 0.92rem;
+            display: none;
+            word-break: break-word;
+        }
+        .solution.show {
+            display: block;
+        }
+        .solution h4 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+        .feedback {
+            font-weight: 600;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+        .feedback.correct {
+            color: var(--success);
+        }
+        .feedback.incorrect {
+            color: var(--danger);
+        }
+        .progress-bar {
+            height: 6px;
+            background: var(--surface);
+            border-radius: 10px;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        .game-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-left: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        body {
+            --panel: var(--card); --panel2: var(--surface); --line: var(--border);
+            --ink: var(--text); --muted: var(--subtext);
+            --amber: var(--primary); --amber-ink: #fff;
+            --teal: var(--accent); --teal-ink: #fff; --bad: var(--danger);
+        }
+        .fab {
+            position: fixed; right: 14px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: 58px; height: 58px; border-radius: 50%; border: 0;
+            background: var(--amber); color: var(--amber-ink); box-shadow: var(--shadow); z-index: 50; display: grid; place-items: center; touch-action: manipulation; cursor: pointer;
+        }
+        .fab svg { width: 28px; height: 28px; }
+        .calc {
+            position: fixed; z-index: 55; right: 12px; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); width: min(330px, calc(100vw - 24px));
+            background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); user-select: none; -webkit-user-select: none; overflow: hidden; color: var(--ink);
+        }
+        .calc[hidden] { display: none; }
+        .calc-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 6px 12px; background: var(--panel2); cursor: grab; touch-action: none; font-size: 12.5px; color: var(--muted); }
+        .calc-head:active { cursor: grabbing; }
+        .calc-head .grip { display: flex; gap: 8px; align-items: center; }
+        .calc-head .dots { letter-spacing: 2px; }
+        .calc-head button { width: 38px; height: 38px; border: 0; background: transparent; border-radius: 8px; font-size: 20px; line-height: 1; color: var(--ink); cursor: pointer; }
+        .disp { padding: 10px 14px 6px; text-align: right; min-height: 92px; display: flex; flex-direction: column; justify-content: flex-end; }
+        .disp .expr { font-size: 15px; color: var(--muted); min-height: 22px; overflow-x: auto; white-space: nowrap; direction: rtl; text-align: left; }
+        .disp .expr span { direction: ltr; unicode-bidi: plaintext; }
+        .disp .res { font-size: 30px; font-weight: 600; overflow-x: auto; white-space: nowrap; line-height: 1.25; }
+        .disp .res.err { color: var(--bad); font-size: 18px; }
+        .disp .meta { font-size: 11.5px; color: var(--muted); display: flex; justify-content: space-between; }
+        .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 8px 10px 10px; }
+        .keys button {
+            min-height: 46px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); color: var(--ink); font-size: 16px; padding: 0; touch-action: manipulation; cursor: pointer; font-family: inherit;
+        }
+        .keys button:active { transform: translateY(1px); filter: brightness(1.15); }
+        .keys .fn { font-size: 13.5px; color: var(--teal); }
+        .keys .op { color: var(--amber); font-weight: 600; }
+        .keys .eq { background: var(--amber); color: var(--amber-ink); border-color: var(--amber); font-weight: 700; }
+        .keys .clr { color: var(--bad); }
+        .keys .on { background: var(--teal); color: var(--teal-ink); border-color: var(--teal); }
+        .calc-foot { padding: 0 10px 10px; }
+        .calc-foot .btn { width: 100%; min-height: 42px; font-size: 13.5px; justify-content: center; box-shadow: none; }
+        .btn.teal { background: var(--teal); border-color: var(--teal); color: var(--teal-ink); font-weight: 600; }
+        .formula-ref {
+            display: none;
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+        }
+        .formula-ref.show {
+            display: block;
+        }
+        .formula-ref ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .formula-ref li {
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .formula-ref li:last-child {
+            border-bottom: none;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: var(--subtext);
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 1.3rem; }
+            .stat-value { font-size: 1.1rem; }
+            .btn { font-size: 0.78rem; padding: 7px 12px; }
+            .card { padding: 16px 14px; }
+            .answer-row label { min-width: 90px; font-size: 0.82rem; }
+        }
+        .katex { font-size: 1.05em; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <header>
+        <h1>🌊 Fluid Statics</h1>
+        <button class="theme-toggle" id="themeToggle">🌙 Dark</button>
+    </header>
+
+    <div class="stats-panel">
+        <div class="stat-box"><div class="stat-label">Score</div><div class="stat-value" id="scoreDisplay">0</div></div>
+        <div class="stat-box"><div class="stat-label">Last</div><div class="stat-value" id="lastScoreDisplay">—</div></div>
+        <div class="stat-box"><div class="stat-label">High</div><div class="stat-value" id="highScoreDisplay">0</div></div>
+        <div class="stat-box"><div class="stat-label">Streak</div><div class="stat-value" id="streakDisplay">0</div></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn active" id="mixBtn" data-set="mix">🎲 All</button>
+        <button class="btn" id="set1Btn" data-set="1">Density</button>
+        <button class="btn" id="set2Btn" data-set="2">Pressure</button>
+        <button class="btn" id="set3Btn" data-set="3">Hydrostatic</button>
+        <button class="btn" id="set4Btn" data-set="4">Pascal</button>
+        <button class="btn" id="set5Btn" data-set="5">Manometers</button>
+        <button class="btn" id="set6Btn" data-set="6">Buoyancy</button>
+        <button class="btn" id="set7Btn" data-set="7">Surface</button>
+        <button class="btn" id="set8Btn" data-set="8">Body</button>
+    </div>
+
+    <div class="controls" style="margin-top:-8px;">
+        <button class="btn" id="game5Btn" data-game="5">🏁 5 Q</button>
+        <button class="btn" id="game10Btn" data-game="10">🏁 10 Q</button>
+        <button class="btn" id="game15Btn" data-game="15">🏁 15 Q</button>
+        <button class="btn" id="resetBtn">↺ Reset</button>
+        <button class="btn" id="formulaBtn">📐 Formulas</button>
+    </div>
+
+    <div class="formula-ref" id="formulaRef">
+        <strong>Reference formulas</strong>
+        <ul>
+            <li>$\rho = m/V$ &nbsp;·&nbsp; $P = F/A$ &nbsp;·&nbsp; $P = P_0 + \rho g h$</li>
+            <li>$F_B = \rho_{\text{fluid}} g V_{\text{disp}}$ &nbsp;·&nbsp; floating: $F_B = mg$</li>
+            <li>Hydraulic: $F_1/A_1 = F_2/A_2$ &nbsp;·&nbsp; $A_1 d_1 = A_2 d_2$</li>
+            <li>Manometer: $P_g = \rho g h$ &nbsp;·&nbsp; $1\ \text{mm Hg} = 133.3\ \text{Pa}$</li>
+            <li>Surface tension: $F = \gamma L$ (film: $2\gamma L$) &nbsp;·&nbsp; bubble: $\Delta P = 4\gamma/r$</li>
+            <li>Capillary: $h = \frac{2\gamma\cos\theta}{\rho g r}$ &nbsp;·&nbsp; $P_g = \rho g h$</li>
+            <li>Absolute: $P_{\text{abs}} = P_{\text{atm}} + P_g$ &nbsp;·&nbsp; $P_{\text{atm}} = 1.013\times10^5\ \text{Pa}$</li>
+        </ul>
+    </div>
+
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div id="problemContainer">
+        <div class="loading">Loading problem…</div>
+    </div>
+</div>
+
+<!-- Calculator -->
+<button class="fab" id="fab" type="button" aria-label="Open calculator"></button>
+<div class="calc" id="calc" role="dialog" aria-label="Calculator" hidden></div>
+
+<script>
+    // KaTeX is loaded with `defer`, so it may not exist yet when the first problem renders.
+    // Typeset now if available; otherwise once everything has loaded (onload handler also covers the initial render).
+    function typeset(el) {
+        const opts = {delimiters: [{left: '$$', right: '$$', display: true},{left: '$', right: '$', display: false}]};
+        if (typeof window.renderMathInElement === 'function') {
+            try { window.renderMathInElement(el, opts); } catch (e) { console.warn('KaTeX render failed', e); }
+        } else {
+            window.addEventListener('load', () => {
+                if (typeof window.renderMathInElement === 'function' && document.contains(el)) {
+                    try { window.renderMathInElement(el, opts); } catch (e) {}
+                }
+            }, { once: true });
+        }
+    }
+    // ==================== PROBLEM GENERATORS ====================
+    // Each generator returns { text, answers: [{label, value, unit, tolerance}], solution }
+    // All values are SI unless stated.
+
+    const G = 9.80;
+    const P_ATM = 1.013e5;
+    const RHO_W = 1000;
+    const RHO_SW = 1025;
+    const RHO_HG = 13600;
+    const RHO_AL = 2700;
+    const RHO_ICE = 917;
+    const RHO_BLOOD = 1060;
+    const GAMMA_W = 0.0728;
+    const GAMMA_S = 0.0370;
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    function round(v, d = 3) { return Math.round(v * 10**d) / 10**d; }
+    function fmt(v, d = 3) {
+        if (Math.abs(v) >= 1e4 || (Math.abs(v) < 0.01 && v !== 0)) return v.toExponential(2);
+        return Number(v.toFixed(d)).toString();
+    }
+
+    // ---- Set 1: Density, mass, volume ----
+    const set1Gens = [
+        () => { // reservoir
+            const L = rand(1.5, 5.0), W = rand(0.8, 2.5), d = rand(10, 40);
+            const A = L * 1000 * W * 1000;
+            const V = A * d;
+            const m = RHO_W * V;
+            const Wt = m * G;
+            return {
+                text: `A reservoir has a rectangular surface $${round(L,2)}\\times10^3\\ \\mathrm{m}$ by $${round(W,2)}\\times10^3\\ \\mathrm{m}$ and average depth $${round(d,1)}\\ \\mathrm{m}$. Find (a) volume in m³, (b) mass of freshwater, (c) weight in N.`,
+                answers: [
+                    { label: 'Volume (m³)', value: V, tol: 0.02 },
+                    { label: 'Mass (kg)', value: m, tol: 0.02 },
+                    { label: 'Weight (N)', value: Wt, tol: 0.02 }
+                ],
+                solution: `$A=(${round(L,2)}\\times10^3)(${round(W,2)}\\times10^3)=${fmt(A)}\\ \\mathrm{m^2}$<br>$V=Ad=${fmt(A)}\\times${round(d,1)}=${fmt(V)}\\ \\mathrm{m^3}$<br>$m=\\rho V=1000\\times${fmt(V)}=${fmt(m)}\\ \\mathrm{kg}$<br>$W=mg=${fmt(m)}\\times9.80=${fmt(Wt)}\\ \\mathrm{N}$`
+            };
+        },
+        () => { // composite dock
+            const mAl = rand(600, 1200), mFoam = rand(100, 300);
+            const L = rand(6, 10), W = rand(2, 3.5), H = rand(0.4, 0.8);
+            const V = L * W * H;
+            const m = mAl + mFoam;
+            const rho = m / V;
+            const subFrac = rho / RHO_W;
+            return {
+                text: `A floating dock has aluminum frame mass $${round(mAl,0)}\\ \\mathrm{kg}$ and foam mass $${round(mFoam,0)}\\ \\mathrm{kg}$. External dimensions $${round(L,1)}\\times${round(W,1)}\\times${round(H,2)}\\ \\mathrm{m}$. Find (a) volume, (b) average density, (c) does it float in freshwater, (d) fraction submerged.`,
+                answers: [
+                    { label: 'Volume (m³)', value: V, tol: 0.02 },
+                    { label: 'Avg density (kg/m³)', value: rho, tol: 0.03 },
+                    { label: 'Floats? (1=yes,0=no)', value: rho < RHO_W ? 1 : 0, tol: 0 },
+                    { label: 'Submerged fraction', value: subFrac, tol: 0.04 }
+                ],
+                solution: `$V=(${round(L,1)})(${round(W,1)})(${round(H,2)})=${fmt(V)}\\ \\mathrm{m^3}$<br>$m=${round(mAl,0)}+${round(mFoam,0)}=${round(m,0)}\\ \\mathrm{kg}$<br>$\\rho=${round(m,0)}/${fmt(V)}=${fmt(rho)}\\ \\mathrm{kg/m^3}$<br>$\\rho<1000$ → floats. $V_{sub}/V=\\rho/\\rho_w=${fmt(subFrac)}$`
+            };
+        },
+        () => { // unknown liquid density
+            const mEmpty = rand(0.3, 0.6), mLiq = rand(1.0, 2.5);
+            const V_L = rand(1.0, 2.5);
+            const V = V_L * 1e-3;
+            const m = mLiq;
+            const rho = m / V;
+            const gcm = rho / 1000;
+            return {
+                text: `A bottle has mass $${round(mEmpty,3)}\\ \\mathrm{kg}$ empty and $${round(mEmpty+m,3)}\\ \\mathrm{kg}$ filled with liquid. Internal volume is $${round(V_L,2)}\\ \\mathrm{L}$. Find (a) liquid mass, (b) density in kg/m³, (c) density in g/cm³, (d) floats on freshwater? (1=yes,0=no).`,
+                answers: [
+                    { label: 'Liquid mass (kg)', value: m, tol: 0.02 },
+                    { label: 'Density (kg/m³)', value: rho, tol: 0.03 },
+                    { label: 'Density (g/cm³)', value: gcm, tol: 0.03 },
+                    { label: 'Floats on water?', value: rho < 1000 ? 1 : 0, tol: 0 }
+                ],
+                solution: `$m_{liq}=${round(mEmpty+m,3)}-${round(mEmpty,3)}=${round(m,3)}\\ \\mathrm{kg}$<br>$V=${round(V_L,2)}\\ \\mathrm{L}=${fmt(V)}\\ \\mathrm{m^3}$<br>$\\rho=${round(m,3)}/${fmt(V)}=${fmt(rho)}\\ \\mathrm{kg/m^3}=${fmt(gcm)}\\ \\mathrm{g/cm^3}$<br>${rho < 1000 ? 'Less dense → floats.' : 'Denser → sinks.'}`
+            };
+        },
+        () => { // gasoline can
+            const mSteel = rand(2.0, 4.0);
+            const Vgas = rand(15, 25);
+            const Vsteel = rand(0.25, 0.50);
+            const rhoGas = rand(650, 720);
+            const mGas = rhoGas * Vgas * 1e-3;
+            const mTot = mSteel + mGas;
+            const Vext = (Vgas + Vsteel) * 1e-3;
+            const rhoAvg = mTot / Vext;
+            return {
+                text: `Steel gasoline can: empty mass $${round(mSteel,2)}\\ \\mathrm{kg}$, capacity $${round(Vgas,1)}\\ \\mathrm{L}$, steel volume $${round(Vsteel,2)}\\ \\mathrm{L}$. Gasoline density $${round(rhoGas,0)}\\ \\mathrm{kg/m^3}$. Find (a) gasoline mass, (b) total mass, (c) external volume (m³), (d) average density.`,
+                answers: [
+                    { label: 'Gasoline mass (kg)', value: mGas, tol: 0.03 },
+                    { label: 'Total mass (kg)', value: mTot, tol: 0.03 },
+                    { label: 'External volume (m³)', value: Vext, tol: 0.03 },
+                    { label: 'Avg density (kg/m³)', value: rhoAvg, tol: 0.03 }
+                ],
+                solution: `$m_g=\\rho_g V_g=${round(rhoGas,0)}\\times${fmt(Vgas*1e-3)}=${fmt(mGas)}\\ \\mathrm{kg}$<br>$m_{tot}=${round(mSteel,2)}+${fmt(mGas)}=${fmt(mTot)}\\ \\mathrm{kg}$<br>$V_{ext}=(${round(Vgas,1)}+${round(Vsteel,2)})\\ \\mathrm{L}=${fmt(Vext)}\\ \\mathrm{m^3}$<br>$\\rho_{avg}=${fmt(mTot)}/${fmt(Vext)}=${fmt(rhoAvg)}\\ \\mathrm{kg/m^3}$`
+            };
+        },
+        () => { // material ID
+            const m = rand(1.0, 3.0);
+            const d = rand(3, 7), L = rand(6, 14);
+            const r = d / 200; // cm -> m
+            const Lm = L / 100;
+            const V = Math.PI * r * r * Lm;
+            const rho = m / V;
+            let mat = 'unknown';
+            if (Math.abs(rho - 2700) < 400) mat = 'aluminum';
+            else if (Math.abs(rho - 7800) < 500) mat = 'iron/steel';
+            else if (Math.abs(rho - 8440) < 500) mat = 'brass';
+            else if (Math.abs(rho - 8800) < 500) mat = 'copper';
+            return {
+                text: `A solid cylinder has mass $${round(m,3)}\\ \\mathrm{kg}$, diameter $${round(d,2)}\\ \\mathrm{cm}$, length $${round(L,1)}\\ \\mathrm{cm}$. Find density (kg/m³). Identify material: aluminum 2700, iron/steel 7800, brass 8440, copper 8800.`,
+                answers: [
+                    { label: 'Density (kg/m³)', value: rho, tol: 0.04 },
+                    { label: 'Material (1=Al,2=Fe,3=brass,4=Cu)', value: rho < 4000 ? 1 : (rho < 8100 ? 2 : (rho < 8600 ? 3 : 4)), tol: 0 }
+                ],
+                solution: `$r=${round(d,2)}/2\\ \\mathrm{cm}=${round(r,4)}\\ \\mathrm{m}$, $L=${round(L,1)}\\ \\mathrm{cm}=${round(Lm,3)}\\ \\mathrm{m}$<br>$V=\\pi r^2L=${fmt(V)}\\ \\mathrm{m^3}$<br>$\\rho=${round(m,3)}/${fmt(V)}=${fmt(rho)}\\ \\mathrm{kg/m^3}$ → ${mat}`
+            };
+        }
+    ];
+
+    // ---- Set 2: Pressure and force ----
+    const set2Gens = [
+        () => { // high heel
+            const m = rand(50, 80), d = rand(0.6, 1.2);
+            const F = m * G;
+            const r = d / 200;
+            const A = Math.PI * r * r;
+            const P = F / A;
+            const atm = P / P_ATM;
+            return {
+                text: `A $${round(m,1)}\\ \\mathrm{kg}$ person stands on one circular heel of diameter $${round(d,2)}\\ \\mathrm{cm}$. Find pressure in Pa and atm.`,
+                answers: [
+                    { label: 'Pressure (Pa)', value: P, tol: 0.04 },
+                    { label: 'Pressure (atm)', value: atm, tol: 0.04 }
+                ],
+                solution: `$F=mg=${round(m,1)}\\times9.80=${fmt(F)}\\ \\mathrm{N}$<br>$r=${round(d,2)}/2\\ \\mathrm{cm}=${round(r,4)}\\ \\mathrm{m}$, $A=\\pi r^2=${fmt(A)}\\ \\mathrm{m^2}$<br>$P=F/A=${fmt(P)}\\ \\mathrm{Pa}=${fmt(atm)}\\ \\mathrm{atm}$`
+            };
+        },
+        () => { // circular hatch
+            const d = rand(0.5, 1.2), dP = rand(1.0e5, 5.0e5);
+            const r = d / 2;
+            const A = Math.PI * r * r;
+            const F = dP * A;
+            return {
+                text: `A circular hatch of diameter $${round(d,2)}\\ \\mathrm{m}$ has pressure difference $${fmt(dP)}\\ \\mathrm{Pa}$ across it. Find net force. Does it act inward (1) or outward (0) if larger pressure is outside?`,
+                answers: [
+                    { label: 'Force (N)', value: F, tol: 0.03 },
+                    { label: 'Direction (1=in,0=out)', value: 1, tol: 0 }
+                ],
+                solution: `$r=${round(d,2)}/2=${round(r,3)}\\ \\mathrm{m}$, $A=\\pi r^2=${fmt(A)}\\ \\mathrm{m^2}$<br>$F=\\Delta P A=${fmt(dP)}\\times${fmt(A)}=${fmt(F)}\\ \\mathrm{N}$ inward (outside pressure larger).`
+            };
+        },
+        () => { // snowshoe
+            const m = rand(60, 95);
+            const As = rand(0.12, 0.25), Ab = rand(0.02, 0.045);
+            const W = m * G;
+            const Ps = W / (2 * As);
+            const Pb = W / (2 * Ab);
+            const factor = Pb / Ps;
+            return {
+                text: `A $${round(m,1)}\\ \\mathrm{kg}$ hiker stands on two snowshoes (each $${round(As,3)}\\ \\mathrm{m^2}$) then two boots (each $${round(Ab,3)}\\ \\mathrm{m^2}$). Find snowshoe pressure (Pa), boot pressure (Pa), and reduction factor.`,
+                answers: [
+                    { label: 'Snowshoe pressure (Pa)', value: Ps, tol: 0.03 },
+                    { label: 'Boot pressure (Pa)', value: Pb, tol: 0.03 },
+                    { label: 'Reduction factor', value: factor, tol: 0.04 }
+                ],
+                solution: `$W=mg=${round(m,1)}\\times9.80=${fmt(W)}\\ \\mathrm{N}$<br>$P_s=W/(2A_s)=${fmt(W)}/(2\\times${round(As,3)})=${fmt(Ps)}\\ \\mathrm{Pa}$<br>$P_b=W/(2A_b)=${fmt(W)}/(2\\times${round(Ab,3)})=${fmt(Pb)}\\ \\mathrm{Pa}$<br>Factor $=${fmt(Pb)}/${fmt(Ps)}=${fmt(factor)}$`
+            };
+        },
+        () => { // piston and spring
+            const A = rand(2.0e-3, 6.0e-3), Fs = rand(400, 900);
+            const Pg = P_ATM + Fs / A;
+            return {
+                text: `A frictionless piston of area $${fmt(A)}\\ \\mathrm{m^2}$ has atmospheric pressure $1.013\\times10^5\\ \\mathrm{Pa}$ above and a spring pushing down with $${round(Fs,0)}\\ \\mathrm{N}$. Find absolute gas pressure (Pa) needed for equilibrium.`,
+                answers: [{ label: 'Absolute pressure (Pa)', value: Pg, tol: 0.03 }],
+                solution: `$P_g = P_{atm} + F_s/A = 1.013\\times10^5 + ${round(Fs,0)}/${fmt(A)} = ${fmt(Pg)}\\ \\mathrm{Pa}$`
+            };
+        },
+        () => { // window force and bolts
+            const w = rand(0.8, 1.6), h = rand(0.5, 1.1), P = rand(2.0e3, 6.0e3), n = randInt(8, 16);
+            const A = w * h;
+            const F = P * A;
+            const Fb = F / n;
+            return {
+                text: `A rectangular window $${round(w,2)}\\ \\mathrm{m}\\times${round(h,2)}\\ \\mathrm{m}$ has average gauge pressure $${fmt(P)}\\ \\mathrm{Pa}$. ${n} identical bolts share the force equally. Find total force (N) and force per bolt (N).`,
+                answers: [
+                    { label: 'Total force (N)', value: F, tol: 0.03 },
+                    { label: 'Force per bolt (N)', value: Fb, tol: 0.03 }
+                ],
+                solution: `$A=${round(w,2)}\\times${round(h,2)}=${fmt(A)}\\ \\mathrm{m^2}$<br>$F=PA=${fmt(P)}\\times${fmt(A)}=${fmt(F)}\\ \\mathrm{N}$<br>$F_{bolt}=${fmt(F)}/${n}=${fmt(Fb)}\\ \\mathrm{N}$`
+            };
+        }
+    ];
+
+    // ---- Set 3: Hydrostatic pressure and depth ----
+    const set3Gens = [
+        () => { // diver
+            const h = rand(8, 30);
+            const Pg = RHO_SW * G * h;
+            const Pabs = P_ATM + Pg;
+            return {
+                text: `A diver is $${round(h,1)}\\ \\mathrm{m}$ below seawater surface. Find gauge pressure (Pa), gauge pressure (atm), absolute pressure (Pa).`,
+                answers: [
+                    { label: 'Gauge (Pa)', value: Pg, tol: 0.03 },
+                    { label: 'Gauge (atm)', value: Pg / P_ATM, tol: 0.03 },
+                    { label: 'Absolute (Pa)', value: Pabs, tol: 0.03 }
+                ],
+                solution: `$P_g=\\rho g h=1025\\times9.80\\times${round(h,1)}=${fmt(Pg)}\\ \\mathrm{Pa}=${fmt(Pg/P_ATM)}\\ \\mathrm{atm}$<br>$P_{abs}=1.013\\times10^5+${fmt(Pg)}=${fmt(Pabs)}\\ \\mathrm{Pa}$`
+            };
+        },
+        () => { // dam force
+            const w = rand(50, 120), H = rand(15, 35);
+            const Pbase = RHO_W * G * H;
+            const Pavg = Pbase / 2;
+            const A = w * H;
+            const F = Pavg * A;
+            return {
+                text: `A vertical dam $${round(w,0)}\\ \\mathrm{m}$ wide retains freshwater to depth $${round(H,1)}\\ \\mathrm{m}$. Find (a) gauge pressure at base (Pa), (b) average pressure (Pa), (c) horizontal force (N).`,
+                answers: [
+                    { label: 'Base pressure (Pa)', value: Pbase, tol: 0.03 },
+                    { label: 'Average pressure (Pa)', value: Pavg, tol: 0.03 },
+                    { label: 'Force (N)', value: F, tol: 0.04 }
+                ],
+                solution: `$P_{base}=\\rho gH=1000\\times9.80\\times${round(H,1)}=${fmt(Pbase)}\\ \\mathrm{Pa}$<br>$P_{avg}=P_{base}/2=${fmt(Pavg)}\\ \\mathrm{Pa}$<br>$A=${round(w,0)}\\times${round(H,1)}=${fmt(A)}\\ \\mathrm{m^2}$<br>$F=P_{avg}A=${fmt(Pavg)}\\times${fmt(A)}=${fmt(F)}\\ \\mathrm{N}$`
+            };
+        },
+        () => { // layered tank
+            const hHg = rand(0.08, 0.25), hW = rand(0.6, 1.8);
+            const Pg = RHO_HG * G * hHg + RHO_W * G * hW;
+            const Pabs = P_ATM + Pg;
+            return {
+                text: `A tank has mercury $${round(hHg,3)}\\ \\mathrm{m}$ deep below water $${round(hW,2)}\\ \\mathrm{m}$ deep. Open to air. Find gauge pressure (Pa) and absolute pressure (Pa) at the bottom.`,
+                answers: [
+                    { label: 'Gauge (Pa)', value: Pg, tol: 0.03 },
+                    { label: 'Absolute (Pa)', value: Pabs, tol: 0.03 }
+                ],
+                solution: `$P_g=\\rho_{Hg}gh_{Hg}+\\rho_w gh_w=13600\\times9.80\\times${round(hHg,3)}+1000\\times9.80\\times${round(hW,2)}=${fmt(Pg)}\\ \\mathrm{Pa}$<br>$P_{abs}=1.013\\times10^5+${fmt(Pg)}=${fmt(Pabs)}\\ \\mathrm{Pa}$`
+            };
+        },
+        () => { // equivalent depth
+            const Pch = rand(2.5, 8.0); // atm
+            const dP = (Pch - 1) * P_ATM;
+            const h = dP / (RHO_W * G);
+            return {
+                text: `A chamber has absolute pressure $${round(Pch,2)}\\ \\mathrm{atm}$. Exterior is 1 atm. What freshwater depth gives the same gauge pressure difference? (m)`,
+                answers: [{ label: 'Depth (m)', value: h, tol: 0.03 }],
+                solution: `$\\Delta P=(${round(Pch,2)}-1)\\times1.013\\times10^5=${fmt(dP)}\\ \\mathrm{Pa}$<br>$h=\\Delta P/(\\rho g)=${fmt(dP)}/(1000\\times9.80)=${fmt(h)}\\ \\mathrm{m}$`
+            };
+        },
+        () => { // eardrum limit
+            const dP = rand(15, 40) * 1e3;
+            const h = dP / (RHO_W * G);
+            const Pabs = P_ATM + dP;
+            return {
+                text: `Eardrum tolerates max pressure difference $${round(dP/1000,1)}\\ \\mathrm{kPa}$. Find max freshwater depth (m) and absolute pressure (Pa) at that depth.`,
+                answers: [
+                    { label: 'Max depth (m)', value: h, tol: 0.03 },
+                    { label: 'Absolute pressure (Pa)', value: Pabs, tol: 0.03 }
+                ],
+                solution: `$h=\\Delta P/(\\rho g)=${fmt(dP)}/(1000\\times9.80)=${fmt(h)}\\ \\mathrm{m}$<br>$P_{abs}=1.013\\times10^5+${fmt(dP)}=${fmt(Pabs)}\\ \\mathrm{Pa}$`
+            };
+        }
+    ];
+
+    // ---- Set 4: Pascal's principle and hydraulics ----
+    const set4Gens = [
+        () => { // hydraulic jack
+            const dM = rand(2, 5), dL = rand(15, 30), mCar = rand(1000, 2500);
+            const ratio = (dM / dL) ** 2;
+            const FL = mCar * G;
+            const FM = FL * ratio;
+            const rM = dM / 200;
+            const AM = Math.PI * rM * rM;
+            const P = FM / AM;
+            const dLift = rand(0.08, 0.25);
+            const dMtravel = dLift / ratio;
+            return {
+                text: `Hydraulic jack: master piston diameter $${round(dM,1)}\\ \\mathrm{cm}$, lifting piston $${round(dL,1)}\\ \\mathrm{cm}$. Car mass $${round(mCar,0)}\\ \\mathrm{kg}$. Find (a) master force (N), (b) gauge pressure (Pa), (c) master travel to raise car $${round(dLift,3)}\\ \\mathrm{m}$ (m).`,
+                answers: [
+                    { label: 'Master force (N)', value: FM, tol: 0.04 },
+                    { label: 'Gauge pressure (Pa)', value: P, tol: 0.04 },
+                    { label: 'Master travel (m)', value: dMtravel, tol: 0.04 }
+                ],
+                solution: `$A_M/A_L=(${round(dM,1)}/${round(dL,1)})^2=${fmt(ratio)}$<br>$F_L=mg=${round(mCar,0)}\\times9.80=${fmt(FL)}\\ \\mathrm{N}$<br>$F_M=F_L\\times${fmt(ratio)}=${fmt(FM)}\\ \\mathrm{N}$<br>$A_M=\\pi(${round(rM,4)})^2=${fmt(AM)}\\ \\mathrm{m^2}$<br>$P=F_M/A_M=${fmt(P)}\\ \\mathrm{Pa}$<br>$d_M=d_L/\\text{ratio}=${round(dLift,3)}/${fmt(ratio)}=${fmt(dMtravel)}\\ \\mathrm{m}$`
+            };
+        },
+        () => { // hydraulic brakes
+            const Fped = rand(300, 600), dM = rand(1.0, 1.8), dS = rand(3.0, 4.5);
+            const rM = dM / 200, rS = dS / 200;
+            const AM = Math.PI * rM * rM, AS = Math.PI * rS * rS;
+            const P = Fped / AM;
+            const FS = P * AS;
+            const Ftot = 4 * FS;
+            return {
+                text: `Brake pedal force $${round(Fped,0)}\\ \\mathrm{N}$ on master cylinder diameter $${round(dM,1)}\\ \\mathrm{cm}$. Four slave cylinders each diameter $${round(dS,1)}\\ \\mathrm{cm}$. Find (a) pressure (Pa), (b) force per slave (N), (c) total slave force (N).`,
+                answers: [
+                    { label: 'Pressure (Pa)', value: P, tol: 0.03 },
+                    { label: 'Force per slave (N)', value: FS, tol: 0.03 },
+                    { label: 'Total slave force (N)', value: Ftot, tol: 0.03 }
+                ],
+                solution: `$A_M=\\pi(${round(rM,4)})^2=${fmt(AM)}\\ \\mathrm{m^2}$, $P=${round(Fped,0)}/${fmt(AM)}=${fmt(P)}\\ \\mathrm{Pa}$<br>$A_S=\\pi(${round(rS,4)})^2=${fmt(AS)}\\ \\mathrm{m^2}$, $F_S=PA_S=${fmt(FS)}\\ \\mathrm{N}$<br>$F_{tot}=4\\times${fmt(FS)}=${fmt(Ftot)}\\ \\mathrm{N}$`
+            };
+        },
+        () => { // press unequal heights
+            const Ain = rand(4e-4, 8e-4), Aout = rand(3e-2, 6e-2);
+            const Fin = rand(200, 500), h = rand(0.8, 2.0);
+            const rhoOil = rand(800, 900);
+            const Pin = Fin / Ain;
+            const Pout = Pin + rhoOil * G * h;
+            const Fout = Pout * Aout;
+            return {
+                text: `Hydraulic press: input area $${fmt(Ain)}\\ \\mathrm{m^2}$, output area $${fmt(Aout)}\\ \\mathrm{m^2}$. Output is $${round(h,2)}\\ \\mathrm{m}$ lower. Input force $${round(Fin,0)}\\ \\mathrm{N}$. Oil density $${round(rhoOil,0)}\\ \\mathrm{kg/m^3}$. Find output pressure (Pa) and output force (N).`,
+                answers: [
+                    { label: 'Output pressure (Pa)', value: Pout, tol: 0.03 },
+                    { label: 'Output force (N)', value: Fout, tol: 0.03 }
+                ],
+                solution: `$P_{in}=F/A=${round(Fin,0)}/${fmt(Ain)}=${fmt(Pin)}\\ \\mathrm{Pa}$<br>$P_{out}=P_{in}+\\rho gh=${fmt(Pin)}+${round(rhoOil,0)}\\times9.80\\times${round(h,2)}=${fmt(Pout)}\\ \\mathrm{Pa}$<br>$F_{out}=P_{out}A_{out}=${fmt(Pout)}\\times${fmt(Aout)}=${fmt(Fout)}\\ \\mathrm{N}$`
+            };
+        },
+        () => { // hydraulic lift work
+            const ratio = rand(20, 60), Fin = rand(150, 400), din = rand(0.8, 1.8);
+            const Fout = ratio * Fin;
+            const dout = din / ratio;
+            const Win = Fin * din;
+            const Wout = Fout * dout;
+            return {
+                text: `Hydraulic lift: output area is ${round(ratio,1)}× input area. Input force $${round(Fin,0)}\\ \\mathrm{N}$ through $${round(din,2)}\\ \\mathrm{m}$. Find (a) output force (N), (b) output displacement (m), (c) input work (J), (d) output work (J).`,
+                answers: [
+                    { label: 'Output force (N)', value: Fout, tol: 0.03 },
+                    { label: 'Output displacement (m)', value: dout, tol: 0.03 },
+                    { label: 'Input work (J)', value: Win, tol: 0.03 },
+                    { label: 'Output work (J)', value: Wout, tol: 0.03 }
+                ],
+                solution: `$F_{out}=${round(ratio,1)}\\times${round(Fin,0)}=${fmt(Fout)}\\ \\mathrm{N}$<br>$d_{out}=d_{in}/\\text{ratio}=${round(din,2)}/${round(ratio,1)}=${fmt(dout)}\\ \\mathrm{m}$<br>$W_{in}=${round(Fin,0)}\\times${round(din,2)}=${fmt(Win)}\\ \\mathrm{J}$<br>$W_{out}=${fmt(Fout)}\\times${fmt(dout)}=${fmt(Wout)}\\ \\mathrm{J}$`
+            };
+        },
+        () => { // cork bottle
+            const dc = rand(1.5, 3.0), db = rand(10, 20), F = rand(100, 300);
+            const rc = dc / 200, rb = db / 200;
+            const Ac = Math.PI * rc * rc, Ab = Math.PI * rb * rb;
+            const dP = F / Ac;
+            const dFb = dP * Ab;
+            return {
+                text: `A cork of diameter $${round(dc,2)}\\ \\mathrm{cm}$ is pushed with $${round(F,0)}\\ \\mathrm{N}$. Bottle bottom diameter $${round(db,1)}\\ \\mathrm{cm}$. Find (a) added pressure (Pa), (b) added outward force on bottom (N).`,
+                answers: [
+                    { label: 'Added pressure (Pa)', value: dP, tol: 0.03 },
+                    { label: 'Added bottom force (N)', value: dFb, tol: 0.03 }
+                ],
+                solution: `$A_c=\\pi(${round(rc,4)})^2=${fmt(Ac)}\\ \\mathrm{m^2}$, $\\Delta P=F/A_c=${round(F,0)}/${fmt(Ac)}=${fmt(dP)}\\ \\mathrm{Pa}$<br>$A_b=\\pi(${round(rb,4)})^2=${fmt(Ab)}\\ \\mathrm{m^2}$, $\\Delta F_b=\\Delta P A_b=${fmt(dFb)}\\ \\mathrm{N}$`
+            };
+        }
+    ];
+
+    // ---- Set 5: Manometers and barometers ----
+    const set5Gens = [
+        () => { // tire pressure
+            const psi = rand(25, 45);
+            const Pg = psi * 6895;
+            const Pabs = Pg + P_ATM;
+            const atm = Pabs / P_ATM;
+            return {
+                text: `A tire gauge reads $${round(psi,1)}\\ \\mathrm{psi}$ at sea level. (1 psi = 6895 Pa). Find gauge pressure (Pa), absolute pressure (Pa), absolute pressure (atm).`,
+                answers: [
+                    { label: 'Gauge (Pa)', value: Pg, tol: 0.03 },
+                    { label: 'Absolute (Pa)', value: Pabs, tol: 0.03 },
+                    { label: 'Absolute (atm)', value: atm, tol: 0.03 }
+                ],
+                solution: `$P_g=${round(psi,1)}\\times6895=${fmt(Pg)}\\ \\mathrm{Pa}$<br>$P_{abs}=${fmt(Pg)}+1.013\\times10^5=${fmt(Pabs)}\\ \\mathrm{Pa}=${fmt(atm)}\\ \\mathrm{atm}$`
+            };
+        },
+        () => { // open water manometer
+            const h = rand(0.10, 0.35);
+            const Pg = RHO_W * G * h;
+            const Pabs = P_ATM + Pg;
+            return {
+                text: `Open-tube water manometer: connected side is $${round(h*100,1)}\\ \\mathrm{cm}$ lower than open side. Find gas gauge pressure (Pa) and absolute pressure (Pa).`,
+                answers: [
+                    { label: 'Gauge (Pa)', value: Pg, tol: 0.03 },
+                    { label: 'Absolute (Pa)', value: Pabs, tol: 0.03 }
+                ],
+                solution: `$P_g=\\rho gh=1000\\times9.80\\times${round(h,3)}=${fmt(Pg)}\\ \\mathrm{Pa}$<br>$P_{abs}=1.013\\times10^5+${fmt(Pg)}=${fmt(Pabs)}\\ \\mathrm{Pa}$`
+            };
+        },
+        () => { // mercury manometer subatmospheric
+            const hmm = rand(20, 80);
+            const h = hmm / 1000;
+            const Pg = -RHO_HG * G * h;
+            const Pabs = P_ATM + Pg;
+            return {
+                text: `Mercury manometer: chamber side is $${round(hmm,1)}\\ \\mathrm{mm}$ higher than open side. Find chamber gauge pressure (Pa) and absolute pressure (Pa).`,
+                answers: [
+                    { label: 'Gauge (Pa)', value: Pg, tol: 0.03 },
+                    { label: 'Absolute (Pa)', value: Pabs, tol: 0.03 }
+                ],
+                solution: `$P_g=-\\rho_{Hg}gh=-13600\\times9.80\\times${round(h,4)}=${fmt(Pg)}\\ \\mathrm{Pa}$<br>$P_{abs}=1.013\\times10^5+(${fmt(Pg)})=${fmt(Pabs)}\\ \\mathrm{Pa}$`
+            };
+        },
+        () => { // barometer altitude
+            const hmm = rand(680, 740);
+            const dh = (760 - hmm) / 1000;
+            const dP = RHO_HG * G * dh;
+            const H = dP / (1.20 * G);
+            return {
+                text: `Barometer reads $${round(hmm,1)}\\ \\mathrm{mm\\ Hg}$. Sea-level is 760 mm Hg. Air density 1.20 kg/m³. Estimate altitude (m) above sea level.`,
+                answers: [{ label: 'Altitude (m)', value: H, tol: 0.04 }],
+                solution: `$\\Delta h=760-${round(hmm,1)}=${round(760-hmm,1)}\\ \\mathrm{mm}=${round(dh,4)}\\ \\mathrm{m}$<br>$\\Delta P=\\rho_{Hg}g\\Delta h=13600\\times9.80\\times${round(dh,4)}=${fmt(dP)}\\ \\mathrm{Pa}$<br>$H=\\Delta P/(\\rho_{air}g)=${fmt(dP)}/(1.20\\times9.80)=${fmt(H)}\\ \\mathrm{m}$`
+            };
+        },
+        () => { // IV bag
+            const Pvein = rand(10, 25); // mmHg
+            const factor = 1.15;
+            const PIV = Pvein * factor;
+            const PIV_Pa = PIV * 133.3;
+            const h = PIV_Pa / (1030 * G);
+            return {
+                text: `Vein gauge pressure $${round(Pvein,1)}\\ \\mathrm{mm\\ Hg}$. IV solution density 1030 kg/m³. How high (m) must bag be for IV pressure 15% greater than vein pressure?`,
+                answers: [{ label: 'Height (m)', value: h, tol: 0.04 }],
+                solution: `$P_{IV}=1.15\\times${round(Pvein,1)}=${round(PIV,2)}\\ \\mathrm{mm\\ Hg}=${fmt(PIV_Pa)}\\ \\mathrm{Pa}$<br>$h=P/(\\rho g)=${fmt(PIV_Pa)}/(1030\\times9.80)=${fmt(h)}\\ \\mathrm{m}$`
+            };
+        }
+    ];
+
+    // ---- Set 6: Buoyancy and Archimedes ----
+    const set6Gens = [
+        () => { // floating raft
+            const L = rand(3, 6), W = rand(1.5, 3), H = rand(0.2, 0.5), rho = rand(500, 750);
+            const V = L * W * H;
+            const m = rho * V;
+            const subDepth = (m / RHO_W) / (L * W);
+            const maxLoad = RHO_W * V - m;
+            return {
+                text: `Wooden raft $${round(L,1)}\\times${round(W,1)}\\times${round(H,2)}\\ \\mathrm{m}$, average density $${round(rho,0)}\\ \\mathrm{kg/m^3}$. Find (a) mass (kg), (b) submerged depth unloaded (m), (c) max additional load before top is at water level (kg).`,
+                answers: [
+                    { label: 'Mass (kg)', value: m, tol: 0.03 },
+                    { label: 'Submerged depth (m)', value: subDepth, tol: 0.03 },
+                    { label: 'Max load (kg)', value: maxLoad, tol: 0.04 }
+                ],
+                solution: `$V=${round(L,1)}\\times${round(W,1)}\\times${round(H,2)}=${fmt(V)}\\ \\mathrm{m^3}$<br>$m=\\rho V=${round(rho,0)}\\times${fmt(V)}=${fmt(m)}\\ \\mathrm{kg}$<br>$V_{sub}=m/\\rho_w=${fmt(m)}/1000=${fmt(m/1000)}\\ \\mathrm{m^3}$<br>$d=V_{sub}/(LW)=${fmt(m/1000)}/${round(L*W,2)}=${fmt(subDepth)}\\ \\mathrm{m}$<br>$m_{load}=\\rho_w V-m=${fmt(RHO_W*V)}-${fmt(m)}=${fmt(maxLoad)}\\ \\mathrm{kg}$`
+            };
+        },
+        () => { // aluminum block suspended
+            const V = rand(0.005, 0.03);
+            const m = RHO_AL * V;
+            const Wt = m * G;
+            const FB = RHO_W * G * V;
+            const T = Wt - FB;
+            return {
+                text: `Solid aluminum block volume $${fmt(V)}\\ \\mathrm{m^3}$ fully submerged in freshwater, held by cable. Find (a) weight (N), (b) buoyant force (N), (c) cable tension (N).`,
+                answers: [
+                    { label: 'Weight (N)', value: Wt, tol: 0.03 },
+                    { label: 'Buoyant force (N)', value: FB, tol: 0.03 },
+                    { label: 'Tension (N)', value: T, tol: 0.03 }
+                ],
+                solution: `$m=\\rho_{Al}V=2700\\times${fmt(V)}=${fmt(m)}\\ \\mathrm{kg}$<br>$W=mg=${fmt(m)}\\times9.80=${fmt(Wt)}\\ \\mathrm{N}$<br>$F_B=\\rho_w gV=1000\\times9.80\\times${fmt(V)}=${fmt(FB)}\\ \\mathrm{N}$<br>$T=W-F_B=${fmt(Wt)}-${fmt(FB)}=${fmt(T)}\\ \\mathrm{N}$`
+            };
+        },
+        () => { // apparent mass
+            const mAir = rand(0.4, 1.2), mApp = mAir * rand(0.55, 0.85);
+            const dM = mAir - mApp;
+            const FB = dM * G;
+            const V = dM / RHO_W;
+            const rho = mAir / V;
+            const isGranite = Math.abs(rho - 2700) < Math.abs(rho - 2650);
+            return {
+                text: `Mineral mass $${round(mAir,3)}\\ \\mathrm{kg}$ in air, apparent mass $${round(mApp,3)}\\ \\mathrm{kg}$ in freshwater. Find (a) buoyant force (N), (b) volume (m³), (c) density (kg/m³), (d) 1=quartz(2650), 2=granite(2700).`,
+                answers: [
+                    { label: 'Buoyant force (N)', value: FB, tol: 0.03 },
+                    { label: 'Volume (m³)', value: V, tol: 0.03 },
+                    { label: 'Density (kg/m³)', value: rho, tol: 0.04 },
+                    { label: 'Material (1 or 2)', value: isGranite ? 2 : 1, tol: 0 }
+                ],
+                solution: `$\\Delta m=${round(mAir,3)}-${round(mApp,3)}=${round(dM,4)}\\ \\mathrm{kg}$<br>$F_B=\\Delta m g=${round(dM,4)}\\times9.80=${fmt(FB)}\\ \\mathrm{N}$<br>$V=\\Delta m/\\rho_w=${round(dM,4)}/1000=${fmt(V)}\\ \\mathrm{m^3}$<br>$\\rho=${round(mAir,3)}/${fmt(V)}=${fmt(rho)}\\ \\mathrm{kg/m^3}$ → ${isGranite ? 'granite' : 'quartz'}`
+            };
+        },
+        () => { // loaded boat
+            const mEmpty = rand(2000, 5000), mCargo = rand(1000, 3000), A = rand(12, 25);
+            const mTot = mEmpty + mCargo;
+            const Vdisp = mTot / RHO_SW;
+            const dV = mCargo / RHO_SW;
+            const dd = dV / A;
+            return {
+                text: `Boat empty mass $${round(mEmpty,0)}\\ \\mathrm{kg}$, cargo $${round(mCargo,0)}\\ \\mathrm{kg}$. Floats in seawater (1025 kg/m³). Waterline area $${round(A,1)}\\ \\mathrm{m^2}$. Find (a) displaced volume loaded (m³), (b) extra draft (m).`,
+                answers: [
+                    { label: 'Displaced volume (m³)', value: Vdisp, tol: 0.03 },
+                    { label: 'Extra draft (m)', value: dd, tol: 0.03 }
+                ],
+                solution: `$m_{tot}=${round(mEmpty,0)}+${round(mCargo,0)}=${round(mTot,0)}\\ \\mathrm{kg}$<br>$V_{disp}=m_{tot}/\\rho_{sw}=${round(mTot,0)}/1025=${fmt(Vdisp)}\\ \\mathrm{m^3}$<br>$\\Delta V=${round(mCargo,0)}/1025=${fmt(dV)}\\ \\mathrm{m^3}$<br>$\\Delta d=\\Delta V/A=${fmt(dV)}/${round(A,1)}=${fmt(dd)}\\ \\mathrm{m}$`
+            };
+        },
+        () => { // helium balloon
+            const r = rand(3, 6);
+            const rhoAir = 1.20, rhoHe = 0.166, mEq = rand(120, 250);
+            const V = (4/3) * Math.PI * r**3;
+            const FB = rhoAir * G * V;
+            const WHe = rhoHe * G * V;
+            const mAir = rhoAir * V, mHe = rhoHe * V;
+            const payload = mAir - mHe - mEq;
+            return {
+                text: `Spherical helium balloon radius $${round(r,1)}\\ \\mathrm{m}$. Air density 1.20, helium 0.166 kg/m³. Envelope+basket mass $${round(mEq,0)}\\ \\mathrm{kg}$. Find (a) buoyant force (N), (b) helium weight (N), (c) max payload mass (kg).`,
+                answers: [
+                    { label: 'Buoyant force (N)', value: FB, tol: 0.03 },
+                    { label: 'Helium weight (N)', value: WHe, tol: 0.03 },
+                    { label: 'Payload mass (kg)', value: payload, tol: 0.04 }
+                ],
+                solution: `$V=\\frac{4}{3}\\pi(${round(r,1)})^3=${fmt(V)}\\ \\mathrm{m^3}$<br>$F_B=\\rho_{air}gV=1.20\\times9.80\\times${fmt(V)}=${fmt(FB)}\\ \\mathrm{N}$<br>$W_{He}=\\rho_{He}gV=0.166\\times9.80\\times${fmt(V)}=${fmt(WHe)}\\ \\mathrm{N}$<br>$m_{air}=1.20\\times${fmt(V)}=${fmt(mAir)}\\ \\mathrm{kg}$, $m_{He}=0.166\\times${fmt(V)}=${fmt(mHe)}\\ \\mathrm{kg}$<br>$m_{payload}=${fmt(mAir)}-${fmt(mHe)}-${round(mEq,0)}=${fmt(payload)}\\ \\mathrm{kg}$`
+            };
+        }
+    ];
+
+    // ---- Set 7: Surface tension and capillary ----
+    const set7Gens = [
+        () => { // soap film wire
+            const Lcm = rand(4, 9), d = rand(2, 6);
+            const L = Lcm / 100;
+            const F = 2 * GAMMA_S * L;
+            const W = F * (d / 100);
+            return {
+                text: `Soap film on rectangular frame, movable wire length $${round(Lcm,1)}\\ \\mathrm{cm}$. Surface tension 0.0370 N/m. Find (a) force to hold wire (N), (b) work to pull $${round(d,1)}\\ \\mathrm{cm}$ (J).`,
+                answers: [
+                    { label: 'Force (N)', value: F, tol: 0.04 },
+                    { label: 'Work (J)', value: W, tol: 0.04 }
+                ],
+                solution: `$F=2\\gamma L=2(0.0370)(${round(L,3)})=${fmt(F)}\\ \\mathrm{N}$<br>$W=Fd=${fmt(F)}\\times${round(d/100,3)}=${fmt(W)}\\ \\mathrm{J}$`
+            };
+        },
+        () => { // soap bubble pressure
+            const r_mm = rand(0.4, 1.2);
+            const r = r_mm / 1000;
+            const dP = 4 * GAMMA_S / r;
+            const Pabs = P_ATM + dP;
+            const dP2 = dP / 2;
+            return {
+                text: `Soap bubble radius $${round(r_mm,2)}\\ \\mathrm{mm}$, $\\gamma=0.0370\\ \\mathrm{N/m}$. Find (a) gauge pressure (Pa), (b) absolute pressure (Pa), (c) gauge pressure if radius doubles (Pa).`,
+                answers: [
+                    { label: 'Gauge pressure (Pa)', value: dP, tol: 0.04 },
+                    { label: 'Absolute pressure (Pa)', value: Pabs, tol: 0.03 },
+                    { label: 'New gauge (Pa)', value: dP2, tol: 0.04 }
+                ],
+                solution: `$\\Delta P=4\\gamma/r=4(0.0370)/${round(r,5)}=${fmt(dP)}\\ \\mathrm{Pa}$<br>$P_{abs}=1.013\\times10^5+${fmt(dP)}=${fmt(Pabs)}\\ \\mathrm{Pa}$<br>Double radius → half pressure = ${fmt(dP2)} Pa`
+            };
+        },
+        () => { // capillary rise water
+            const r_mm = rand(0.15, 0.5);
+            const r = r_mm / 1000;
+            const h = 2 * GAMMA_W / (RHO_W * G * r);
+            const r2 = r * 3;
+            const h2 = 2 * GAMMA_W / (RHO_W * G * r2);
+            return {
+                text: `Clean glass capillary tube radius $${round(r_mm,3)}\\ \\mathrm{mm}$ in water ($\\gamma=0.0728\\ \\mathrm{N/m}$, $\\theta=0^\\circ$). Find capillary rise (cm) and rise (cm) if radius is tripled.`,
+                answers: [
+                    { label: 'Rise (cm)', value: h*100, tol: 0.04 },
+                    { label: 'Rise tripled radius (cm)', value: h2*100, tol: 0.04 }
+                ],
+                solution: `$h=2\\gamma/(\\rho g r)=2(0.0728)/(1000\\times9.80\\times${round(r,5)})=${fmt(h)}\\ \\mathrm{m}=${fmt(h*100)}\\ \\mathrm{cm}$<br>Tripled radius → $h/3=${fmt(h2)}\\ \\mathrm{m}=${fmt(h2*100)}\\ \\mathrm{cm}$`
+            };
+        },
+        () => { // mercury capillary depression
+            const r_mm = rand(0.4, 0.9);
+            const r = r_mm / 1000;
+            const theta = 140 * Math.PI / 180;
+            const h = 2 * 0.465 * Math.cos(theta) / (RHO_HG * G * r);
+            return {
+                text: `Mercury in glass tube radius $${round(r_mm,2)}\\ \\mathrm{mm}$, $\\gamma=0.465\\ \\mathrm{N/m}$, $\\theta=140^\\circ$. Calculate capillary height (mm). Is mercury depressed (1) or raised (0)?`,
+                answers: [
+                    { label: 'Height (mm)', value: h*1000, tol: 0.05 },
+                    { label: 'Depressed? (1=yes,0=no)', value: h < 0 ? 1 : 0, tol: 0 }
+                ],
+                solution: `$h=2\\gamma\\cos\\theta/(\\rho g r)=2(0.465)\\cos140^\\circ/(13600\\times9.80\\times${round(r,5)})=${fmt(h)}\\ \\mathrm{m}=${fmt(h*1000)}\\ \\mathrm{mm}$<br>Negative → depressed.`
+            };
+        },
+        () => { // needle surface tension
+            const L = rand(0.05, 0.12);
+            const F = GAMMA_W * L;
+            const m = F / G;
+            return {
+                text: `Needle on water, effective contact-line length $${round(L,3)}\\ \\mathrm{m}$, $\\gamma=0.0728\\ \\mathrm{N/m}$, $F=\\gamma L$. Find (a) max force (N), (b) equivalent mass (g).`,
+                answers: [
+                    { label: 'Max force (N)', value: F, tol: 0.04 },
+                    { label: 'Equivalent mass (g)', value: m*1000, tol: 0.04 }
+                ],
+                solution: `$F=\\gamma L=0.0728\\times${round(L,3)}=${fmt(F)}\\ \\mathrm{N}$<br>$m=F/g=${fmt(F)}/9.80=${fmt(m)}\\ \\mathrm{kg}=${fmt(m*1000)}\\ \\mathrm{g}$`
+            };
+        }
+    ];
+
+    // ---- Set 8: Pressures in the body ----
+    const set8Gens = [
+        () => { // blood pressure heart to feet
+            const h = rand(1.0, 1.7);
+            const dP = RHO_BLOOD * G * h;
+            const mmHg = dP / 133.3;
+            return {
+                text: `Standing person heart-to-foot distance $${round(h,2)}\\ \\mathrm{m}$. Blood density 1060 kg/m³. Find pressure increase at feet relative to heart in Pa and mm Hg.`,
+                answers: [
+                    { label: 'Pressure increase (Pa)', value: dP, tol: 0.03 },
+                    { label: 'Pressure increase (mm Hg)', value: mmHg, tol: 0.03 }
+                ],
+                solution: `$\\Delta P=\\rho gh=1060\\times9.80\\times${round(h,2)}=${fmt(dP)}\\ \\mathrm{Pa}$<br>$=${fmt(dP)}/133.3=${fmt(mmHg)}\\ \\mathrm{mm\\ Hg}$`
+            };
+        },
+        () => { // intraocular pressure
+            const P1 = rand(15, 30), P2 = rand(60, 100);
+            const A = rand(5, 9) * 1e-4;
+            const F1 = P1 * 133.3 * A;
+            const F2 = P2 * 133.3 * A;
+            return {
+                text: `Eye back-of-eye area $${fmt(A)}\\ \\mathrm{m^2}$. Intraocular gauge pressure $${round(P1,1)}\\ \\mathrm{mm\\ Hg}$. Find force (N). Then find force if pressure rises to $${round(P2,1)}\\ \\mathrm{mm\\ Hg}$.`,
+                answers: [
+                    { label: 'Force at low pressure (N)', value: F1, tol: 0.03 },
+                    { label: 'Force at high pressure (N)', value: F2, tol: 0.03 }
+                ],
+                solution: `$P_1=${round(P1,1)}\\times133.3=${fmt(P1*133.3)}\\ \\mathrm{Pa}$, $F_1=P_1A=${fmt(F1)}\\ \\mathrm{N}$<br>$P_2=${round(P2,1)}\\times133.3=${fmt(P2*133.3)}\\ \\mathrm{Pa}$, $F_2=P_2A=${fmt(F2)}\\ \\mathrm{N}$`
+            };
+        },
+        () => { // eardrum pressure and depth
+            const A = rand(0.4, 0.9) * 1e-4;
+            const dP = rand(10, 25) * 1e3;
+            const F = dP * A;
+            const h = dP / (RHO_W * G);
+            return {
+                text: `Eardrum area $${fmt(A)}\\ \\mathrm{m^2}$, pressure difference $${round(dP/1000,1)}\\ \\mathrm{kPa}$. Find force (N) and freshwater depth (m) producing this gauge pressure.`,
+                answers: [
+                    { label: 'Force (N)', value: F, tol: 0.03 },
+                    { label: 'Depth (m)', value: h, tol: 0.03 }
+                ],
+                solution: `$F=PA=${fmt(dP)}\\times${fmt(A)}=${fmt(F)}\\ \\mathrm{N}$<br>$h=P/(\\rho g)=${fmt(dP)}/(1000\\times9.80)=${fmt(h)}\\ \\mathrm{m}$`
+            };
+        },
+        () => { // IV vs venous pressure
+            const Pvein = rand(10, 22);
+            const h = rand(0.25, 0.55);
+            const PIV = RHO_W * G * h;
+            const PIV_mmHg = PIV / 133.3;
+            const enters = PIV_mmHg > Pvein;
+            return {
+                text: `Vein gauge pressure $${round(Pvein,1)}\\ \\mathrm{mm\\ Hg}$. IV solution density 1000 kg/m³, bag $${round(h,2)}\\ \\mathrm{m}$ above needle. Find IV gauge pressure at needle (mm Hg). Does fluid enter vein? (1=yes,0=no).`,
+                answers: [
+                    { label: 'IV pressure (mm Hg)', value: PIV_mmHg, tol: 0.04 },
+                    { label: 'Enters vein? (1=yes,0=no)', value: enters ? 1 : 0, tol: 0 }
+                ],
+                solution: `$P_{IV}=\\rho gh=1000\\times9.80\\times${round(h,2)}=${fmt(PIV)}\\ \\mathrm{Pa}=${fmt(PIV_mmHg)}\\ \\mathrm{mm\\ Hg}$<br>${enters ? 'Greater than vein → enters.' : 'Less than vein → does not enter.'}`
+            };
+        },
+        () => { // skeletal pressure
+            const F = rand(3000, 6000), A = rand(5, 10) * 1e-4;
+            const P = F / A;
+            const atm = P / P_ATM;
+            return {
+                text: `Compressive force $${round(F,0)}\\ \\mathrm{N}$ across disc area $${fmt(A)}\\ \\mathrm{m^2}$. Find pressure in Pa and atm.`,
+                answers: [
+                    { label: 'Pressure (Pa)', value: P, tol: 0.03 },
+                    { label: 'Pressure (atm)', value: atm, tol: 0.03 }
+                ],
+                solution: `$P=F/A=${round(F,0)}/${fmt(A)}=${fmt(P)}\\ \\mathrm{Pa}$<br>$=${fmt(P)}/1.013\\times10^5=${fmt(atm)}\\ \\mathrm{atm}$`
+            };
+        }
+    ];
+
+    // allSets: index 0 = set1, etc.
+    const allSets = [set1Gens, set2Gens, set3Gens, set4Gens, set5Gens, set6Gens, set7Gens, set8Gens];
+
+    // ==================== APP STATE ====================
+    let currentSet = 'mix';       // 'mix' or 1..8
+    let gameMode = null;           // null, 5, 10, 15
+    let gameQuestions = [];        // array of { setIdx, genIdx, instance }
+    let gameIndex = 0;
+    let gameScore = 0;
+    let gameActive = false;
+    let answered = false;
+    let lastScore = null;
+    let highScore = 0;
+    let streak = 0;
+    let problem = null;
+
+    // Persistent stats
+    function loadStats() {
+        try {
+            const s = localStorage.getItem('fluidStats');
+            if (s) {
+                const o = JSON.parse(s);
+                highScore = o.highScore ?? 0;
+                lastScore = o.lastScore ?? null;
+                streak = o.streak ?? 0;
+            }
+        } catch (e) {}
+    }
+    function saveStats() {
+        try {
+            localStorage.setItem('fluidStats', JSON.stringify({ highScore, lastScore, streak }));
+        } catch (e) {}
+    }
+
+    // ==================== UI ELEMENTS ====================
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const lastScoreDisplay = document.getElementById('lastScoreDisplay');
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
+    const streakDisplay = document.getElementById('streakDisplay');
+    const progressFill = document.getElementById('progressFill');
+    const problemContainer = document.getElementById('problemContainer');
+    const formulaRef = document.getElementById('formulaRef');
+    const themeToggle = document.getElementById('themeToggle');
+    const mixBtn = document.getElementById('mixBtn');
+    const setBtns = [1,2,3,4,5,6,7,8].map(i => document.getElementById('set'+i+'Btn'));
+    const game5Btn = document.getElementById('game5Btn');
+    const game10Btn = document.getElementById('game10Btn');
+    const game15Btn = document.getElementById('game15Btn');
+    const resetBtn = document.getElementById('resetBtn');
+    const formulaBtn = document.getElementById('formulaBtn');
+
+    // ==================== HELPERS ====================
+    function updateStatsUI() {
+        scoreDisplay.textContent = gameScore;
+        lastScoreDisplay.textContent = lastScore !== null ? lastScore : '—';
+        highScoreDisplay.textContent = highScore;
+        streakDisplay.textContent = streak;
+    }
+
+    function setActiveButton() {
+        mixBtn.classList.toggle('active', currentSet === 'mix' && !gameActive);
+        setBtns.forEach((b, i) => {
+            b.classList.toggle('active', currentSet === i+1 && !gameActive);
+        });
+        game5Btn.classList.toggle('active', gameActive && gameMode === 5);
+        game10Btn.classList.toggle('active', gameActive && gameMode === 10);
+        game15Btn.classList.toggle('active', gameActive && gameMode === 15);
+    }
+
+    function updateProgress() {
+        if (!gameActive) { progressFill.style.width = '0%'; return; }
+        const total = gameQuestions.length;
+        const pct = total ? (gameIndex / total) * 100 : 0;
+        progressFill.style.width = pct + '%';
+    }
+
+    // ==================== GENERATION ====================
+    function generateOne(setIdx) {
+        const gens = allSets[setIdx - 1];
+        const gi = randInt(0, gens.length - 1);
+        return { setIdx, genIdx: gi, instance: gens[gi]() };
+    }
+
+    function generateGame(n) {
+        gameActive = true;
+        gameMode = n;
+        gameQuestions = [];
+        gameIndex = 0;
+        gameScore = 0;
+        // Build pool of all generators
+        const pool = [];
+        for (let s = 1; s <= 8; s++) {
+            for (let g = 0; g < allSets[s-1].length; g++) {
+                pool.push({ setIdx: s, genIdx: g });
+            }
+        }
+        // Shuffle pool
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = randInt(0, i);
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        // Take n unique
+        const chosen = pool.slice(0, n);
+        gameQuestions = chosen.map(c => ({
+            setIdx: c.setIdx,
+            genIdx: c.genIdx,
+            instance: allSets[c.setIdx-1][c.genIdx]()
+        }));
+        answered = false;
+        updateStatsUI();
+        setActiveButton();
+        updateProgress();
+        showProblem();
+    }
+
+    function generateSingle() {
+        gameActive = false;
+        gameMode = null;
+        gameQuestions = [];
+        gameIndex = 0;
+        gameScore = 0;
+        answered = false;
+        if (currentSet === 'mix') {
+            const s = randInt(1, 8);
+            const gens = allSets[s-1];
+            const gi = randInt(0, gens.length - 1);
+            problem = { setIdx: s, genIdx: gi, instance: gens[gi]() };
+        } else {
+            const gens = allSets[currentSet-1];
+            const gi = randInt(0, gens.length - 1);
+            problem = { setIdx: currentSet, genIdx: gi, instance: gens[gi]() };
+        }
+        updateStatsUI();
+        setActiveButton();
+        updateProgress();
+        renderProblem(problem.instance);
+    }
+
+    function showProblem() {
+        if (!gameActive) { generateSingle(); return; }
+        if (gameIndex >= gameQuestions.length) {
+            // Game over
+            lastScore = gameScore;
+            if (gameScore > highScore) highScore = gameScore;
+            saveStats();
+            updateStatsUI();
+            problemContainer.innerHTML = `
+                <div class="card" style="text-align:center;">
+                    <h2>🏁 Game Over</h2>
+                    <p style="font-size:1.2rem;margin:12px 0;">Score: <strong>${gameScore}/${gameQuestions.length}</strong></p>
+                    <p style="color:var(--subtext);">High score: ${highScore}</p>
+                    <button class="btn btn-primary" style="margin-top:16px;" onclick="resetAll()">Play Again</button>
+                </div>
+            `;
+            gameActive = false;
+            setActiveButton();
+            updateProgress();
+            return;
+        }
+        answered = false;
+        const q = gameQuestions[gameIndex];
+        renderProblem(q.instance);
+        updateProgress();
+    }
+
+    // ==================== RENDERING ====================
+    function renderProblem(inst) {
+        problemContainer.innerHTML = '';
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        // Problem text
+        const textDiv = document.createElement('div');
+        textDiv.className = 'problem-text';
+        textDiv.innerHTML = inst.text;
+        card.appendChild(textDiv);
+
+        // Badge
+        if (gameActive) {
+            const badge = document.createElement('span');
+            badge.className = 'game-badge';
+            badge.textContent = `Q ${gameIndex+1}/${gameQuestions.length}`;
+            card.insertBefore(badge, textDiv);
+        }
+
+        // Answer area
+        const ansDiv = document.createElement('div');
+        ansDiv.className = 'answer-area';
+        inst.answers.forEach((a, i) => {
+            const row = document.createElement('div');
+            row.className = 'answer-row';
+            const label = document.createElement('label');
+            label.textContent = a.label + (a.unit ? ` (${a.unit})` : '');
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.step = 'any';
+            input.placeholder = 'Enter value';
+            input.id = 'ans' + i;
+            row.appendChild(label);
+            row.appendChild(input);
+            ansDiv.appendChild(row);
+        });
+        card.appendChild(ansDiv);
+
+        // Buttons
+        const btnRow = document.createElement('div');
+        btnRow.style.display = 'flex';
+        btnRow.style.gap = '8px';
+        btnRow.style.marginTop = '12px';
+        btnRow.style.flexWrap = 'wrap';
+
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'btn btn-primary';
+        submitBtn.textContent = 'Submit';
+        submitBtn.id = 'submitBtn';
+        submitBtn.onclick = () => submitAnswer(inst);
+
+        const showSolBtn = document.createElement('button');
+        showSolBtn.className = 'btn';
+        showSolBtn.textContent = 'Show Solution';
+        showSolBtn.id = 'showSolBtn';
+        showSolBtn.disabled = true;
+        showSolBtn.onclick = () => {
+            document.getElementById('solutionBox').classList.add('show');
+            showSolBtn.disabled = true;
+        };
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'btn';
+        nextBtn.textContent = gameActive ? 'Next ▶' : 'New Problem';
+        nextBtn.id = 'nextBtn';
+        nextBtn.style.display = 'none';
+        nextBtn.onclick = () => {
+            if (gameActive) { gameIndex++; showProblem(); }
+            else { generateSingle(); }
+        };
+
+        btnRow.appendChild(submitBtn);
+        btnRow.appendChild(showSolBtn);
+        btnRow.appendChild(nextBtn);
+        card.appendChild(btnRow);
+
+        // Feedback
+        const feedback = document.createElement('div');
+        feedback.id = 'feedback';
+        feedback.className = 'feedback';
+        card.appendChild(feedback);
+
+        // Solution
+        const solDiv = document.createElement('div');
+        solDiv.id = 'solutionBox';
+        solDiv.className = 'solution';
+        solDiv.innerHTML = '<h4>Worked Solution</h4>' + inst.solution;
+        card.appendChild(solDiv);
+
+        problemContainer.appendChild(card);
+        // Re-render KaTeX
+        typeset(card);
+    }
+
+    function submitAnswer(inst) {
+        if (answered) return;
+        const inputs = inst.answers.map((_, i) => document.getElementById('ans' + i));
+        const vals = inputs.map(inp => inp.value.trim() === '' ? NaN : parseFloat(inp.value));
+        if (vals.some(v => isNaN(v))) {
+            document.getElementById('feedback').textContent = '⚠️ Please fill in all fields.';
+            document.getElementById('feedback').className = 'feedback incorrect';
+            return;
+        }
+        answered = true;
+        let correct = 0;
+        inst.answers.forEach((a, i) => {
+            const tol = Math.abs(a.value) * (a.tol || 0.03) + 1e-12;
+            const diff = Math.abs(vals[i] - a.value);
+            if (diff <= tol) correct++;
+        });
+        const allCorrect = correct === inst.answers.length;
+        const fb = document.getElementById('feedback');
+        if (allCorrect) {
+            fb.textContent = '✅ All correct!';
+            fb.className = 'feedback correct';
+            gameScore++;
+            streak++;
+            if (!gameActive) { lastScore = 1; if (1 > highScore) highScore = 1; }
+        } else {
+            fb.textContent = `❌ ${correct}/${inst.answers.length} correct. Check solution.`;
+            fb.className = 'feedback incorrect';
+            streak = 0;
+            if (!gameActive) { lastScore = 0; }
+        }
+        // Disable inputs
+        inputs.forEach(inp => inp.disabled = true);
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('showSolBtn').disabled = false;
+        document.getElementById('nextBtn').style.display = 'inline-flex';
+        updateStatsUI();
+        saveStats();
+    }
+
+    // ==================== PUBLIC FUNCTIONS ====================
+    window.resetAll = function() {
+        gameActive = false;
+        gameMode = null;
+        gameQuestions = [];
+        gameIndex = 0;
+        gameScore = 0;
+        currentSet = 'mix';
+        streak = 0;
+        updateStatsUI();
+        setActiveButton();
+        formulaRef.classList.remove('show');
+        generateSingle();
+    };
+
+    // ==================== EVENT LISTENERS ====================
+    mixBtn.onclick = () => { currentSet = 'mix'; gameActive = false; gameMode = null; streak = 0; updateStatsUI(); setActiveButton(); generateSingle(); };
+    setBtns.forEach((b, i) => {
+        b.onclick = () => { currentSet = i+1; gameActive = false; gameMode = null; streak = 0; updateStatsUI(); setActiveButton(); generateSingle(); };
+    });
+    game5Btn.onclick = () => generateGame(5);
+    game10Btn.onclick = () => generateGame(10);
+    game15Btn.onclick = () => generateGame(15);
+    resetBtn.onclick = () => resetAll();
+    formulaBtn.onclick = () => formulaRef.classList.toggle('show');
+
+    // Theme
+    themeToggle.onclick = () => {
+        document.body.classList.toggle('light');
+        const isLight = document.body.classList.contains('light');
+        themeToggle.textContent = isLight ? '☀️ Light' : '🌙 Dark';
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    };
+    // Load theme
+    if (localStorage.getItem('theme') === 'light') {
+        document.body.classList.add('light');
+        themeToggle.textContent = '☀️ Light';
+    }
+
+    // Calculator
+    document.getElementById('fab').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="8" y="5.5" width="8" height="4" rx="1"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/></svg>';
+    let lastInput = null;
+    document.addEventListener('focusin', (e) => {
+        if (e.target && e.target.tagName === 'INPUT' && /^ans\d+$/.test(e.target.id)) lastInput = e.target;
+    });
+/* ---------- expression engine (no eval) ---------- */
+function tokenize(s) {
+  const out = []; let i = 0;
+  while (i < s.length) {
+    const rest = s.slice(i); let m;
+    if (/^\s/.test(rest)) { i++; continue; }
+    if ((m = /^(\d+\.?\d*|\.\d+)(E[+-]?\d+)?/.exec(rest))) { out.push({ t: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue; }
+    if ((m = /^(asin|acos|atan|sin|cos|tan|ln|log|sqrt|pi|ans|e)/.exec(rest))) {
+      const w = m[1]; out.push({ t: (w === 'pi' || w === 'e' || w === 'ans') ? 'const' : 'fn', v: w }); i += w.length; continue;
+    }
+    if ('+-*/^()'.includes(rest[0])) { out.push({ t: 'op', v: rest[0] }); i++; continue; }
+    throw new Error('Syntax error');
+  }
+  return out;
+}
+function evaluate(str, opts) {
+  const tk = tokenize(str); let p = 0;
+  const peek = () => tk[p], nxt = () => tk[p++];
+  const isOp = (t, v) => t && t.t === 'op' && t.v === v;
+  const starts = (t) => t && (t.t === 'num' || t.t === 'const' || t.t === 'fn' || isOp(t, '('));
+  const toRad = (x) => (opts.deg ? x * Math.PI / 180 : x);
+  const fromRad = (x) => (opts.deg ? x * 180 / Math.PI : x);
+  const F = {
+    sin: (x) => Math.sin(toRad(x)), cos: (x) => Math.cos(toRad(x)), tan: (x) => Math.tan(toRad(x)),
+    asin: (x) => fromRad(Math.asin(x)), acos: (x) => fromRad(Math.acos(x)), atan: (x) => fromRad(Math.atan(x)),
+    ln: Math.log, log: Math.log10, sqrt: Math.sqrt,
+  };
+  function expr() {
+    let v = term();
+    while (isOp(peek(), '+') || isOp(peek(), '-')) { const o = nxt().v; const r = term(); v = o === '+' ? v + r : v - r; }
+    return v;
+  }
+  function term() {
+    let v = unary();
+    for (;;) {
+      const t = peek();
+      if (isOp(t, '*') || isOp(t, '/')) { nxt(); const r = unary(); v = t.v === '*' ? v * r : v / r; }
+      else if (starts(t)) v *= unary();
+      else return v;
+    }
+  }
+  function unary() {
+    if (isOp(peek(), '-')) { nxt(); return -unary(); }
+    if (isOp(peek(), '+')) { nxt(); return unary(); }
+    return power();
+  }
+  function power() {
+    const b = primary();
+    if (isOp(peek(), '^')) { nxt(); return Math.pow(b, unary()); }
+    return b;
+  }
+  function primary() {
+    const t = nxt();
+    if (!t) throw new Error('Incomplete');
+    if (t.t === 'num') return t.v;
+    if (t.t === 'const') return t.v === 'pi' ? Math.PI : t.v === 'e' ? Math.E : opts.ans;
+    if (t.t === 'fn') {
+      if (!isOp(peek(), '(')) throw new Error('Use ( after ' + t.v);
+      nxt(); const a = expr(); if (isOp(peek(), ')')) nxt();
+      return F[t.v](a);
+    }
+    if (isOp(t, '(')) { const v = expr(); if (isOp(peek(), ')')) nxt(); return v; }
+    throw new Error('Syntax error');
+  }
+  const v = expr();
+  if (p < tk.length) throw new Error('Syntax error');
+  if (!isFinite(v)) throw new Error('Math error');
+  return v;
+}
+function calcFmt(x) {
+  if (x === 0) return '0';
+  const a = Math.abs(x);
+  if (a >= 1e10 || a < 1e-6) return x.toExponential(6).replace(/\.?0+e/, 'e').replace('e+', 'e');
+  return String(Number(x.toPrecision(10)));
+}
+const pretty = (s) => s.replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−').replace(/pi/g, 'π').replace(/sqrt\(/g, '√(').replace(/asin\(/g, 'sin⁻¹(').replace(/acos\(/g, 'cos⁻¹(').replace(/atan\(/g, 'tan⁻¹(');
+
+/* ---------- UI ---------- */
+window.initCalculator = function (getLastInput) {
+  const st = { expr: '', deg: true, inv: false, ans: 0, done: false, err: '' };
+  const panel = document.getElementById('calc'), fab = document.getElementById('fab');
+  const K = (label, act, cls, extra) => ({ label, act, cls: cls || '', extra: extra || '' });
+  const rows = () => [
+    [K('2nd', 'inv', st.inv ? 'on fn' : 'fn'), K(st.deg ? 'DEG' : 'RAD', 'deg', 'fn'), K('(', '('), K(')', ')'), K('⌫', 'back', 'clr')],
+    [K(st.inv ? 'sin⁻¹' : 'sin', st.inv ? 'asin(' : 'sin(', 'fn'), K(st.inv ? 'cos⁻¹' : 'cos', st.inv ? 'acos(' : 'cos(', 'fn'), K(st.inv ? 'tan⁻¹' : 'tan', st.inv ? 'atan(' : 'tan(', 'fn'), K(st.inv ? 'eˣ' : 'ln', st.inv ? 'e^(' : 'ln(', 'fn'), K(st.inv ? '10ˣ' : 'log', st.inv ? '10^(' : 'log(', 'fn')],
+    [K('√', 'sqrt(', 'fn'), K('x²', '^2', 'fn'), K('xʸ', '^', 'fn'), K('π', 'pi', 'fn'), K('e', 'e', 'fn')],
+    [K('7', '7'), K('8', '8'), K('9', '9'), K('÷', '/', 'op'), K('C', 'clear', 'clr')],
+    [K('4', '4'), K('5', '5'), K('6', '6'), K('×', '*', 'op'), K('Ans', 'ans', 'fn')],
+    [K('1', '1'), K('2', '2'), K('3', '3'), K('−', '-', 'op'), K('EE', 'E', 'fn')],
+    [K('0', '0'), K('.', '.'), K('+', '+', 'op'), K('=', '=', 'eq', 'grid-column:span 2')],
+  ];
+  panel.innerHTML = `
+    <div class="calc-head" id="calcHead"><span class="grip"><span class="dots" aria-hidden="true">⠿</span>Calculator</span>
+      <button type="button" id="calcClose" aria-label="Close calculator">&times;</button></div>
+    <div class="disp"><div class="expr"><span id="cExpr"></span></div><div class="res" id="cRes">0</div>
+      <div class="meta"><span id="cMode"></span><span>drag the header to move</span></div></div>
+    <div class="keys" id="cKeys"></div>
+    <div class="calc-foot"><button type="button" class="btn teal" id="cUse">Use result in answer box</button></div>`;
+  const $ = (s) => panel.querySelector(s);
+
+  function preview() {
+    if (!st.expr.trim()) return { txt: '' };
+    try { return { txt: calcFmt(evaluate(st.expr, st)) }; } catch (e) { return { txt: '' }; }
+  }
+  function paint() {
+    const keys = $('#cKeys'), flat = rows().flat();
+    keys.innerHTML = flat.map((k, i) => `<button type="button" data-i="${i}" class="${k.cls}" style="${k.extra}">${k.label}</button>`).join('');
+    keys.onclick = (e) => { const b = e.target.closest('button'); if (b) press(flat[Number(b.dataset.i)].act); };
+    keys.onmousedown = (e) => e.preventDefault();
+    $('#cExpr').textContent = st.done ? pretty(st.shown) + ' =' : pretty(st.expr);
+    const r = $('#cRes');
+    if (st.err) r.textContent = st.err;
+    else if (st.done && !st.expr) r.textContent = calcFmt(st.ans);
+    else r.textContent = preview().txt || '0';
+    r.classList.toggle('err', !!st.err);
+    $('#cMode').textContent = (st.deg ? 'degrees' : 'radians') + (st.ans ? '   ans = ' + calcFmt(st.ans) : '');
+  }
+  function append(s) {
+    if (st.done) {
+      st.done = false;
+      st.expr = (/^[+\-*/^]/.test(s) ? 'ans' : '') + s;   // operators continue from the last answer
+      return;
+    }
+    st.expr += s;
+  }
+  function press(a) {
+    st.err = '';
+    if (a === 'inv') st.inv = !st.inv;
+    else if (a === 'deg') st.deg = !st.deg;
+    else if (a === 'clear') { st.expr = ''; st.done = false; }
+    else if (a === 'back') {
+      if (st.done) { st.done = false; st.expr = ''; }
+      else st.expr = st.expr.replace(/(asin\(|acos\(|atan\(|sqrt\(|sin\(|cos\(|tan\(|log\(|ln\(|ans|pi|.)$/, '');
+    } else if (a === '=') {
+      if (st.expr.trim()) {
+        try { st.ans = evaluate(st.expr, st); st.shown = st.expr; st.expr = ''; st.done = true; }
+        catch (e) { st.err = e.message; }
+      }
+    } else append(a);
+    paint();
+  }
+
+  /* open/close */
+  function setOpen(o) {
+    panel.hidden = !o; fab.setAttribute('aria-expanded', String(o));
+    fab.setAttribute('aria-label', o ? 'Close calculator' : 'Open calculator');
+    if (o) paint();
+  }
+  fab.onclick = () => setOpen(panel.hidden);
+  $('#calcClose').onclick = () => setOpen(false);
+  fab.setAttribute('aria-controls', 'calc'); setOpen(false);
+
+  /* insert result into the last-focused answer box */
+  $('#cUse').onclick = () => {
+    const inp = getLastInput && getLastInput();
+    let v = st.done ? st.ans : (() => { try { return evaluate(st.expr || '0', st); } catch (e) { return NaN; } })();
+    if (!isFinite(v) || !inp || !document.contains(inp) || inp.disabled) {
+      $('#cUse').textContent = inp && !inp.disabled ? 'Nothing to insert yet' : 'Tap an answer box first';
+      setTimeout(() => { $('#cUse').textContent = 'Use result in answer box'; }, 1400); return;
+    }
+    inp.value = String(Number(v.toPrecision(6)));
+    $('#cUse').textContent = 'Inserted';
+    setTimeout(() => { $('#cUse').textContent = 'Use result in answer box'; }, 1000);
+  };
+
+  /* keyboard (only when focus is not in a form field) */
+  document.addEventListener('keydown', (e) => {
+    if (panel.hidden || /^(INPUT|SELECT|TEXTAREA)$/.test((e.target.tagName || ''))) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key;
+    if (/^[0-9.]$/.test(k) || '+-*/^()'.includes(k)) { press(k); e.preventDefault(); }
+    else if (k === 'Enter' || k === '=') { press('='); e.preventDefault(); }
+    else if (k === 'Backspace') { press('back'); e.preventDefault(); }
+    else if (k === 'Escape') { setOpen(false); }
+    else if (k === 'p') press('pi'); else if (k === 'e') press('e');
+  });
+
+  /* drag by header (mouse, touch, pen) */
+  const head = $('#calcHead'); let drag = null;
+  head.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return;
+    const r = panel.getBoundingClientRect();
+    drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+    panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px'; panel.style.right = 'auto'; panel.style.bottom = 'auto';
+    head.setPointerCapture(e.pointerId);
+  });
+  head.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const x = Math.min(Math.max(4, e.clientX - drag.dx), window.innerWidth - w - 4);
+    const y = Math.min(Math.max(4, e.clientY - drag.dy), window.innerHeight - h - 4);
+    panel.style.left = x + 'px'; panel.style.top = y + 'px';
+  });
+  const end = () => { drag = null; };
+  head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
+  window.addEventListener('resize', () => {
+    if (panel.style.left) {
+      const r = panel.getBoundingClientRect();
+      panel.style.left = Math.min(Math.max(4, r.left), Math.max(4, window.innerWidth - r.width - 4)) + 'px';
+      panel.style.top = Math.min(Math.max(4, r.top), Math.max(4, window.innerHeight - r.height - 4)) + 'px';
+    }
+  });
+};
+
+    window.initCalculator(() => lastInput);
+
+    // ==================== INIT ====================
+    loadStats();
+    updateStatsUI();
+    setActiveButton();
+    generateSingle();
+
+</script>
+</body>
+</html>
