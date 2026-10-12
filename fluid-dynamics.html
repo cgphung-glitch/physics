@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fluid Dynamics · Practice</title>
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js"
+            onload="window.renderMathInElement && renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true},{left: '$', right: '$', display: false}]});"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0b0f17;
+            --surface: #131a26;
+            --card: #1c2638;
+            --text: #e8edf5;
+            --subtext: #9aa9bb;
+            --primary: #5f9ef0;
+            --primary-dark: #3d7fd6;
+            --accent: #38b2ac;
+            --danger: #f56565;
+            --success: #48bb78;
+            --border: #2a3548;
+            --shadow: 0 8px 20px rgba(0,0,0,0.5);
+            --radius: 16px;
+        }
+        body.light {
+            --bg: #f2f5f9;
+            --surface: #ffffff;
+            --card: #ffffff;
+            --text: #1a2634;
+            --subtext: #5d6f83;
+            --primary: #2b6cb0;
+            --primary-dark: #1e4e8c;
+            --accent: #2c7a7b;
+            --border: #dde3ec;
+            --shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: background 0.2s, color 0.2s;
+            padding: 12px 12px 90px;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        .app { max-width: 820px; margin: 0 auto; }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .theme-toggle {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 6px 14px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.15s;
+            box-shadow: var(--shadow);
+        }
+        .theme-toggle:hover { border-color: var(--primary); }
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .stat-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 6px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        .stat-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--subtext);
+            font-weight: 600;
+        }
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow);
+            white-space: nowrap;
+        }
+        .btn:hover { border-color: var(--primary); background: var(--card); }
+        .btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 18px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+        .problem-text { font-size: 1rem; margin-bottom: 14px; }
+        .problem-text p { margin-bottom: 8px; }
+        .answer-area { display: flex; flex-direction: column; gap: 12px; margin: 12px 0; }
+        .answer-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .answer-row label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            min-width: 140px;
+            color: var(--subtext);
+        }
+        .answer-row input {
+            flex: 1;
+            min-width: 140px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: 0.15s;
+        }
+        .answer-row input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(95,158,240,0.2);
+        }
+        .solution {
+            background: var(--surface);
+            border-left: 4px solid var(--primary);
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-top: 14px;
+            font-size: 0.92rem;
+            display: none;
+            word-break: break-word;
+            overflow-x: auto;
+        }
+        .solution.show { display: block; }
+        .solution h4 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+        .feedback { font-weight: 600; margin-top: 8px; font-size: 0.9rem; }
+        .feedback.correct { color: var(--success); }
+        .feedback.incorrect { color: var(--danger); }
+        .progress-bar {
+            height: 6px;
+            background: var(--surface);
+            border-radius: 10px;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        .game-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-left: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        body {
+            --panel: var(--card); --panel2: var(--surface); --line: var(--border);
+            --ink: var(--text); --muted: var(--subtext);
+            --amber: var(--primary); --amber-ink: #fff;
+            --teal: var(--accent); --teal-ink: #fff; --bad: var(--danger);
+        }
+        .fab {
+            position: fixed; right: 14px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: 58px; height: 58px; border-radius: 50%; border: 0;
+            background: var(--amber); color: var(--amber-ink); box-shadow: var(--shadow); z-index: 50; display: grid; place-items: center; touch-action: manipulation; cursor: pointer;
+        }
+        .fab svg { width: 28px; height: 28px; }
+        .calc {
+            position: fixed; z-index: 55; right: 12px; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); width: min(330px, calc(100vw - 24px));
+            background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); user-select: none; -webkit-user-select: none; overflow: hidden; color: var(--ink);
+        }
+        .calc[hidden] { display: none; }
+        .calc-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 6px 12px; background: var(--panel2); cursor: grab; touch-action: none; font-size: 12.5px; color: var(--muted); }
+        .calc-head:active { cursor: grabbing; }
+        .calc-head .grip { display: flex; gap: 8px; align-items: center; }
+        .calc-head .dots { letter-spacing: 2px; }
+        .calc-head button { width: 38px; height: 38px; border: 0; background: transparent; border-radius: 8px; font-size: 20px; line-height: 1; color: var(--ink); cursor: pointer; }
+        .disp { padding: 10px 14px 6px; text-align: right; min-height: 92px; display: flex; flex-direction: column; justify-content: flex-end; }
+        .disp .expr { font-size: 15px; color: var(--muted); min-height: 22px; overflow-x: auto; white-space: nowrap; direction: rtl; text-align: left; }
+        .disp .expr span { direction: ltr; unicode-bidi: plaintext; }
+        .disp .res { font-size: 30px; font-weight: 600; overflow-x: auto; white-space: nowrap; line-height: 1.25; }
+        .disp .res.err { color: var(--bad); font-size: 18px; }
+        .disp .meta { font-size: 11.5px; color: var(--muted); display: flex; justify-content: space-between; }
+        .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 8px 10px 10px; }
+        .keys button {
+            min-height: 46px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); color: var(--ink); font-size: 16px; padding: 0; touch-action: manipulation; cursor: pointer; font-family: inherit;
+        }
+        .keys button:active { transform: translateY(1px); filter: brightness(1.15); }
+        .keys .fn { font-size: 13.5px; color: var(--teal); }
+        .keys .op { color: var(--amber); font-weight: 600; }
+        .keys .eq { background: var(--amber); color: var(--amber-ink); border-color: var(--amber); font-weight: 700; }
+        .keys .clr { color: var(--bad); }
+        .keys .on { background: var(--teal); color: var(--teal-ink); border-color: var(--teal); }
+        .calc-foot { padding: 0 10px 10px; }
+        .calc-foot .btn { width: 100%; min-height: 42px; font-size: 13.5px; justify-content: center; box-shadow: none; }
+        .btn.teal { background: var(--teal); border-color: var(--teal); color: var(--teal-ink); font-weight: 600; }
+        .formula-ref {
+            display: none;
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .formula-ref.show { display: block; }
+        .formula-ref ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+        .formula-ref li { padding: 4px 0; border-bottom: 1px solid var(--border); }
+        .formula-ref li:last-child { border-bottom: none; }
+        .loading { text-align: center; padding: 30px; color: var(--subtext); }
+        @media (max-width: 480px) {
+            h1 { font-size: 1.3rem; }
+            .stat-value { font-size: 1.1rem; }
+            .btn { font-size: 0.75rem; padding: 7px 10px; }
+            .card { padding: 16px 14px; }
+            .answer-row label { min-width: 100px; font-size: 0.8rem; }
+        }
+        .katex { font-size: 1.05em; }
+        .set-scroll {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .set-scroll .btn { font-size: 0.7rem; padding: 5px 10px; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <header>
+        <h1>🌊 Fluid Dynamics</h1>
+        <button class="theme-toggle" id="themeToggle">🌙 Dark</button>
+    </header>
+
+    <div class="stats-panel">
+        <div class="stat-box"><div class="stat-label">Score</div><div class="stat-value" id="scoreDisplay">0</div></div>
+        <div class="stat-box"><div class="stat-label">Last</div><div class="stat-value" id="lastScoreDisplay">—</div></div>
+        <div class="stat-box"><div class="stat-label">High</div><div class="stat-value" id="highScoreDisplay">0</div></div>
+        <div class="stat-box"><div class="stat-label">Streak</div><div class="stat-value" id="streakDisplay">0</div></div>
+    </div>
+
+    <div class="controls set-scroll" id="setButtons">
+        <!-- Generated via JS -->
+    </div>
+
+    <div class="controls">
+        <button class="btn" id="game5Btn" data-game="5">🏁 5 Q</button>
+        <button class="btn" id="game10Btn" data-game="10">🏁 10 Q</button>
+        <button class="btn" id="game15Btn" data-game="15">🏁 15 Q</button>
+        <button class="btn" id="resetBtn">↺ Reset</button>
+        <button class="btn" id="formulaBtn">📐 Formulas</button>
+    </div>
+
+    <div class="formula-ref" id="formulaRef">
+        <strong>Reference formulas</strong>
+        <ul>
+            <li>$Q = A\bar v$ &nbsp;·&nbsp; $A_1v_1 = A_2v_2$</li>
+            <li>Bernoulli: $P_1 + \frac12\rho v_1^2 + \rho g z_1 = P_2 + \frac12\rho v_2^2 + \rho g z_2$</li>
+            <li>Torricelli: $v = \sqrt{2gH}$ &nbsp;·&nbsp; Drain: $t = \frac{2A_t}{A_o\sqrt{2g}}(\sqrt{H_0}-\sqrt{H_f})$</li>
+            <li>Pump power: $\mathcal P = Q[\Delta P + \frac12\rho(v_2^2-v_1^2) + \rho g\Delta z + \Delta P_{loss}]$</li>
+            <li>Viscous shear: $F = \eta A U/b$ &nbsp;·&nbsp; $\tau = F/A$ &nbsp;·&nbsp; $\dot\gamma = U/b$</li>
+            <li>Poiseuille: $R_f = \frac{8\eta L}{\pi a^4}$ &nbsp;·&nbsp; $\Delta P = R_f Q$ &nbsp;·&nbsp; $u_{max}=2\bar v$</li>
+            <li>Reynolds: $\mathrm{Re} = \frac{\rho \bar v D}{\eta} = \frac{4\rho Q}{\pi\eta D}$</li>
+            <li>Stokes: $v_t = \frac{2a^2g(\rho_s-\rho_f)}{9\eta}$ &nbsp;·&nbsp; $F_D = 6\pi\eta a v_t$</li>
+            <li>Quadratic drag: $v_t = \sqrt{\frac{2(mg-F_B)}{C_D\rho_f A_p}}$</li>
+            <li>Diffusion: $x_{rms}=\sqrt{2Dt}$ &nbsp;·&nbsp; $r_{rms}=\sqrt{6Dt}$ &nbsp;·&nbsp; $t=x^2/(2D)$</li>
+            <li>Fick: $J = D\Delta c/L$ &nbsp;·&nbsp; $\dot n = AJ$</li>
+            <li>Osmosis: $\Delta P_{stop} = \Delta\Pi$ &nbsp;·&nbsp; $h_{eq} = \Delta\Pi/(\rho g)$ &nbsp;·&nbsp; $Q_{reverse}=L_pA(\Delta P-\Delta\Pi)$</li>
+        </ul>
+    </div>
+
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div id="problemContainer">
+        <div class="loading">Loading problem…</div>
+    </div>
+</div>
+
+<!-- Calculator -->
+<button class="fab" id="fab" type="button" aria-label="Open calculator"></button>
+<div class="calc" id="calc" role="dialog" aria-label="Calculator" hidden></div>
+
+<script>
+    // KaTeX is loaded with `defer`, so it may not exist yet when the first problem renders.
+    function typeset(el) {
+        const opts = {delimiters: [{left: '$$', right: '$$', display: true},{left: '$', right: '$', display: false}]};
+        if (typeof window.renderMathInElement === 'function') {
+            try { window.renderMathInElement(el, opts); } catch (e) { console.warn('KaTeX render failed', e); }
+        } else {
+            window.addEventListener('load', () => {
+                if (typeof window.renderMathInElement === 'function' && document.contains(el)) {
+                    try { window.renderMathInElement(el, opts); } catch (e) {}
+                }
+            }, { once: true });
+        }
+    }
+    // ==================== CONSTANTS ====================
+    const G = 9.80;
+    const RHO_W = 1000;
+    const ETA_W = 1.00e-3;
+    const P_ATM = 101300;
+    const MMHG = 133.3;
+
+    // ==================== UTILITIES ====================
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+    function round(v, d = 4) { return Math.round(v * 10**d) / 10**d; }
+    function fmt(v, d = 4) {
+        if (Math.abs(v) >= 1e5 || (Math.abs(v) < 0.001 && v !== 0)) return v.toExponential(3);
+        return Number(v.toFixed(d)).toString();
+    }
+    function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = randInt(0, i);
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    // ==================== PROBLEM GENERATORS ====================
+    // Each generator returns { text, answers: [{label, value, tol}], solution }
+
+    // ---- Set 01: Flow rate, collected volume, variable delivery ----
+    const set01Gens = [
+        () => {
+            const d = rand(14, 24); // mm
+            const tRamp = rand(6, 16); // min
+            const Q0 = rand(8, 22); // L/min
+            const slope = rand(0.2, 0.7); // L/min per min
+            const target = rand(150, 450); // L
+            const A = Math.PI * (d/1000)**2 / 4;
+            const Qf = Q0 + slope * tRamp;
+            const v0 = (Q0/60000) / A;
+            const vf = (Qf/60000) / A;
+            const Vramp = Q0 * tRamp + 0.5 * slope * tRamp**2;
+            const Qavg = Vramp / tRamp;
+            const tExtra = (target - Vramp) / Qf;
+            const tTotal = tRamp + tExtra;
+            return {
+                text: `A delivery pipe has internal diameter $${d}\\ \\mathrm{mm}$. During the first $${tRamp}\\ \\mathrm{min}$, flow in L/min is $Q(t)=${Q0}+${slope}t$. After that, flow stays at the final value. Starting empty, find (a) initial and final pipe speeds (m/s), (b) volume delivered during the ramp (L), (c) time-averaged flow during the ramp (L/min), (d) total time to collect $${target}\\ \\mathrm{L}$ (min).`,
+                answers: [
+                    { label: 'Initial speed (m/s)', value: v0, tol: 0.03 },
+                    { label: 'Final speed (m/s)', value: vf, tol: 0.03 },
+                    { label: 'Ramp volume (L)', value: Vramp, tol: 0.03 },
+                    { label: 'Avg ramp flow (L/min)', value: Qavg, tol: 0.03 },
+                    { label: 'Total time (min)', value: tTotal, tol: 0.03 }
+                ],
+                solution: `$A=\\pi(${d}/1000)^2/4=${fmt(A)}\\ \\mathrm{m^2}$<br>$v_0=(${Q0}/60000)/A=${fmt(v0)}\\ \\mathrm{m/s}$<br>$v_f=(${Qf}/60000)/A=${fmt(vf)}\\ \\mathrm{m/s}$<br>$V_{ramp}=${Q0}(${tRamp})+\\frac12(${slope})(${tRamp})^2=${fmt(Vramp)}\\ \\mathrm L$<br>$Q_{avg}=V_{ramp}/t_{ramp}=${fmt(Qavg)}\\ \\mathrm{L/min}$<br>$t_{extra}=(${target}-${fmt(Vramp)})/${Qf}=${fmt(tExtra)}\\ \\mathrm{min}$<br>$t_{total}=${tRamp}+${fmt(tExtra)}=${fmt(tTotal)}\\ \\mathrm{min}$`
+            };
+        },
+        () => {
+            const d = rand(18, 30);
+            const tRamp = rand(5, 12);
+            const Q0 = rand(10, 25);
+            const slope = rand(0.2, 0.8);
+            const target = rand(200, 500);
+            const A = Math.PI * (d/1000)**2 / 4;
+            const Qf = Q0 + slope * tRamp;
+            const v0 = (Q0/60000) / A;
+            const vf = (Qf/60000) / A;
+            const Vramp = Q0 * tRamp + 0.5 * slope * tRamp**2;
+            const Qavg = Vramp / tRamp;
+            const tExtra = (target - Vramp) / Qf;
+            const tTotal = tRamp + tExtra;
+            return {
+                text: `A pipe of internal diameter $${d}\\ \\mathrm{mm}$ has ramp flow $Q(t)=${Q0}+${slope}t$ L/min for $${tRamp}\\ \\mathrm{min}$, then constant. Find (a) initial and final speeds (m/s), (b) ramp volume (L), (c) average ramp flow (L/min), (d) total time for $${target}\\ \\mathrm{L}$ (min).`,
+                answers: [
+                    { label: 'Initial speed (m/s)', value: v0, tol: 0.03 },
+                    { label: 'Final speed (m/s)', value: vf, tol: 0.03 },
+                    { label: 'Ramp volume (L)', value: Vramp, tol: 0.03 },
+                    { label: 'Avg ramp flow (L/min)', value: Qavg, tol: 0.03 },
+                    { label: 'Total time (min)', value: tTotal, tol: 0.03 }
+                ],
+                solution: `$A=${fmt(A)}\\ \\mathrm{m^2}$<br>$v_0=${fmt(v0)}\\ \\mathrm{m/s}$, $v_f=${fmt(vf)}\\ \\mathrm{m/s}$<br>$V_{ramp}=${fmt(Vramp)}\\ \\mathrm L$, $Q_{avg}=${fmt(Qavg)}\\ \\mathrm{L/min}$<br>$t_{extra}=${fmt(tExtra)}\\ \\mathrm{min}$, $t_{total}=${fmt(tTotal)}\\ \\mathrm{min}$`
+            };
+        }
+    ];
+
+    // ---- Set 02: Continuity through a nozzle ----
+    const set02Gens = [
+        () => {
+            const d1 = rand(20, 32), d2 = rand(6, 12);
+            const v1 = rand(0.8, 2.0);
+            const A1 = Math.PI * (d1/1000)**2 / 4;
+            const Q = A1 * v1;
+            const v2 = v1 * (d1/d2)**2;
+            const V45 = Q * 45;
+            const EK = 0.5 * RHO_W * Q * v2**2;
+            const dP = 0.5 * RHO_W * (v2**2 - v1**2);
+            return {
+                text: `Water enters a level hose of diameter $${d1}\\ \\mathrm{mm}$ at $${round(v1,2)}\\ \\mathrm{m/s}$ and exits through a nozzle of diameter $${d2}\\ \\mathrm{mm}$. Find (a) flow (m³/s), (b) nozzle speed (m/s), (c) volume in 45 s (L), (d) exit kinetic-energy transport rate (W), (e) ideal pressure decrease (Pa).`,
+                answers: [
+                    { label: 'Flow (m³/s)', value: Q, tol: 0.03 },
+                    { label: 'Nozzle speed (m/s)', value: v2, tol: 0.03 },
+                    { label: 'Volume in 45s (L)', value: V45*1000, tol: 0.03 },
+                    { label: 'Kinetic energy rate (W)', value: EK, tol: 0.04 },
+                    { label: 'Pressure decrease (Pa)', value: dP, tol: 0.04 }
+                ],
+                solution: `$A_1=\\pi(${d1}/1000)^2/4=${fmt(A1)}\\ \\mathrm{m^2}$<br>$Q=A_1v_1=${fmt(Q)}\\ \\mathrm{m^3/s}$<br>$v_2=v_1(d_1/d_2)^2=${round(v1,2)}(${d1}/${d2})^2=${fmt(v2)}\\ \\mathrm{m/s}$<br>$V=Q(45)=${fmt(V45)}\\ \\mathrm{m^3}=${fmt(V45*1000)}\\ \\mathrm L$<br>$\\dot E_K=\\frac12\\rho Qv_2^2=${fmt(EK)}\\ \\mathrm W$<br>$\\Delta P=\\frac12\\rho(v_2^2-v_1^2)=${fmt(dP)}\\ \\mathrm{Pa}$`
+            };
+        },
+        () => {
+            const d1 = rand(24, 36), d2 = rand(7, 14);
+            const v1 = rand(0.8, 2.2);
+            const A1 = Math.PI * (d1/1000)**2 / 4;
+            const Q = A1 * v1;
+            const v2 = v1 * (d1/d2)**2;
+            const V45 = Q * 45;
+            const EK = 0.5 * RHO_W * Q * v2**2;
+            const dP = 0.5 * RHO_W * (v2**2 - v1**2);
+            return {
+                text: `A hose of diameter $${d1}\\ \\mathrm{mm}$ carries water at $${round(v1,2)}\\ \\mathrm{m/s}$ into a $${d2}\\ \\mathrm{mm}$ nozzle. Find (a) flow (m³/s), (b) nozzle speed (m/s), (c) volume in 45 s (L), (d) kinetic-energy transport rate (W), (e) ideal pressure drop (Pa).`,
+                answers: [
+                    { label: 'Flow (m³/s)', value: Q, tol: 0.03 },
+                    { label: 'Nozzle speed (m/s)', value: v2, tol: 0.03 },
+                    { label: 'Volume in 45s (L)', value: V45*1000, tol: 0.03 },
+                    { label: 'Kinetic energy rate (W)', value: EK, tol: 0.04 },
+                    { label: 'Pressure decrease (Pa)', value: dP, tol: 0.04 }
+                ],
+                solution: `$Q=${fmt(Q)}\\ \\mathrm{m^3/s}$, $v_2=${fmt(v2)}\\ \\mathrm{m/s}$<br>$V=${fmt(V45*1000)}\\ \\mathrm L$, $\\dot E_K=${fmt(EK)}\\ \\mathrm W$, $\\Delta P=${fmt(dP)}\\ \\mathrm{Pa}$`
+            };
+        }
+    ];
+
+    // ---- Set 03: Branch flow, capillary count ----
+    const set03Gens = [
+        () => {
+            const Q0 = rand(3, 8); // L/min
+            const d0 = rand(14, 24); // mm
+            const frac = rand(0.2, 0.45);
+            const dc = rand(6, 11); // µm
+            const vc = rand(0.2, 0.6); // mm/s
+            const Lc = rand(0.5, 1.5); // mm
+            const A0 = Math.PI * (d0/1000)**2 / 4;
+            const v0 = (Q0/60000) / A0;
+            const Qo = frac * Q0;
+            const Qb = (1-frac) * Q0;
+            const Ac = Math.PI * (dc*1e-6)**2 / 4;
+            const N = (Qo/60000) / (Ac * vc*1e-3);
+            const Atot = N * Ac;
+            const t = (Lc*1e-3) / (vc*1e-3);
+            return {
+                text: `A main vessel carries $${Q0}\\ \\mathrm{L/min}$ through diameter $${d0}\\ \\mathrm{mm}$. Fraction $${frac}$ enters an organ supplied by identical capillaries (diameter $${dc}\\ \\mu\\mathrm{m}$, speed $${vc}\\ \\mathrm{mm/s}$, length $${Lc}\\ \\mathrm{mm}$). Find (a) main speed (m/s), (b) organ flow (L/min), (c) remaining flow (L/min), (d) equivalent capillary count, (e) total capillary area (m²), (f) transit time (s).`,
+                answers: [
+                    { label: 'Main speed (m/s)', value: v0, tol: 0.03 },
+                    { label: 'Organ flow (L/min)', value: Qo, tol: 0.03 },
+                    { label: 'Remaining flow (L/min)', value: Qb, tol: 0.03 },
+                    { label: 'Capillary count', value: N, tol: 0.05 },
+                    { label: 'Total area (m²)', value: Atot, tol: 0.05 },
+                    { label: 'Transit time (s)', value: t, tol: 0.03 }
+                ],
+                solution: `$v_0=(${Q0}/60000)/A_0=${fmt(v0)}\\ \\mathrm{m/s}$<br>$Q_o=${frac}(${Q0})=${fmt(Qo)}\\ \\mathrm{L/min}$, $Q_b=${fmt(Qb)}\\ \\mathrm{L/min}$<br>$A_c=\\pi(${dc}\\times10^{-6})^2/4=${fmt(Ac)}\\ \\mathrm{m^2}$<br>$N=Q_o/(A_cv_c)=${fmt(N)}$<br>$A_{tot}=N A_c=${fmt(Atot)}\\ \\mathrm{m^2}$<br>$t=L_c/v_c=${fmt(t)}\\ \\mathrm s$`
+            };
+        },
+        () => {
+            const Q0 = rand(4, 9);
+            const d0 = rand(16, 26);
+            const frac = rand(0.15, 0.5);
+            const dc = rand(7, 12);
+            const vc = rand(0.25, 0.65);
+            const Lc = rand(0.6, 1.4);
+            const A0 = Math.PI * (d0/1000)**2 / 4;
+            const v0 = (Q0/60000) / A0;
+            const Qo = frac * Q0;
+            const Qb = (1-frac) * Q0;
+            const Ac = Math.PI * (dc*1e-6)**2 / 4;
+            const N = (Qo/60000) / (Ac * vc*1e-3);
+            const Atot = N * Ac;
+            const t = (Lc*1e-3) / (vc*1e-3);
+            return {
+                text: `Main vessel: $${Q0}\\ \\mathrm{L/min}$, diameter $${d0}\\ \\mathrm{mm}$. Fraction $${frac}$ goes to capillaries ($${dc}\\ \\mu\\mathrm{m}$, $${vc}\\ \\mathrm{mm/s}$, $${Lc}\\ \\mathrm{mm}$). Find (a) main speed, (b) organ flow, (c) remaining flow, (d) capillary count, (e) total area, (f) transit time.`,
+                answers: [
+                    { label: 'Main speed (m/s)', value: v0, tol: 0.03 },
+                    { label: 'Organ flow (L/min)', value: Qo, tol: 0.03 },
+                    { label: 'Remaining flow (L/min)', value: Qb, tol: 0.03 },
+                    { label: 'Capillary count', value: N, tol: 0.05 },
+                    { label: 'Total area (m²)', value: Atot, tol: 0.05 },
+                    { label: 'Transit time (s)', value: t, tol: 0.03 }
+                ],
+                solution: `$v_0=${fmt(v0)}\\ \\mathrm{m/s}$<br>$Q_o=${fmt(Qo)}\\ \\mathrm{L/min}$, $Q_b=${fmt(Qb)}\\ \\mathrm{L/min}$<br>$N=${fmt(N)}$, $A_{tot}=${fmt(Atot)}\\ \\mathrm{m^2}$<br>$t=${fmt(t)}\\ \\mathrm s$`
+            };
+        }
+    ];
+
+    // ---- Set 04: Bernoulli with elevation ----
+    const set04Gens = [
+        () => {
+            const Q = rand(1.5, 4.5); // L/s
+            const d1 = rand(30, 60), d2 = rand(15, 30);
+            const P1g = rand(200, 450); // kPa
+            const dz = rand(4, 12); // m
+            const Pmin = rand(30, 70); // kPa
+            const Qs = Q / 1000;
+            const A1 = Math.PI * (d1/1000)**2 / 4;
+            const A2 = Math.PI * (d2/1000)**2 / 4;
+            const v1 = Qs / A1;
+            const v2 = Qs / A2;
+            const dPK = 0.5 * RHO_W * (v2**2 - v1**2);
+            const dPg = RHO_W * G * dz;
+            const P2g = P1g*1000 - dPK - dPg;
+            const P2abs = P2g + P_ATM;
+            const hmax = (P1g*1000 - Pmin*1000 - dPK) / (RHO_W * G);
+            return {
+                text: `A loss-free water pipe carries $${Q}\\ \\mathrm{L/s}$. At section 1, diameter $${d1}\\ \\mathrm{mm}$, gauge pressure $${P1g}\\ \\mathrm{kPa}$. Section 2 has diameter $${d2}\\ \\mathrm{mm}$ and is $${dz}\\ \\mathrm m$ higher. Find (a) $v_1$ and $v_2$ (m/s), (b) $P_{2,g}$ (Pa), (c) $P_{2,abs}$ (Pa), (d) max elevation for $P_{2,g}\\ge ${Pmin}\\ \\mathrm{kPa}$ (m).`,
+                answers: [
+                    { label: 'v₁ (m/s)', value: v1, tol: 0.03 },
+                    { label: 'v₂ (m/s)', value: v2, tol: 0.03 },
+                    { label: 'P₂ gauge (Pa)', value: P2g, tol: 0.03 },
+                    { label: 'P₂ abs (Pa)', value: P2abs, tol: 0.03 },
+                    { label: 'Max elevation (m)', value: hmax, tol: 0.03 }
+                ],
+                solution: `$Q=${Qs}\\ \\mathrm{m^3/s}$<br>$v_1=${fmt(v1)}\\ \\mathrm{m/s}$, $v_2=${fmt(v2)}\\ \\mathrm{m/s}$<br>$\\Delta P_K=${fmt(dPK)}\\ \\mathrm{Pa}$, $\\Delta P_g=${fmt(dPg)}\\ \\mathrm{Pa}$<br>$P_{2,g}=${P1g}\\times10^3-${fmt(dPK)}-${fmt(dPg)}=${fmt(P2g)}\\ \\mathrm{Pa}$<br>$P_{2,abs}=${fmt(P2g)}+101300=${fmt(P2abs)}\\ \\mathrm{Pa}$<br>$h_{max}=(${P1g}-${Pmin})\\times10^3-\\Delta P_K)/(\\rho g)=${fmt(hmax)}\\ \\mathrm m$`
+            };
+        },
+        () => {
+            const Q = rand(1, 5);
+            const d1 = rand(36, 60), d2 = rand(18, 30);
+            const P1g = rand(180, 420);
+            const dz = rand(3, 15);
+            const Pmin = rand(25, 65);
+            const Qs = Q / 1000;
+            const A1 = Math.PI * (d1/1000)**2 / 4;
+            const A2 = Math.PI * (d2/1000)**2 / 4;
+            const v1 = Qs / A1;
+            const v2 = Qs / A2;
+            const dPK = 0.5 * RHO_W * (v2**2 - v1**2);
+            const dPg = RHO_W * G * dz;
+            const P2g = P1g*1000 - dPK - dPg;
+            const P2abs = P2g + P_ATM;
+            const hmax = (P1g*1000 - Pmin*1000 - dPK) / (RHO_W * G);
+            return {
+                text: `A loss-free pipe carries $${Q}\\ \\mathrm{L/s}$. Section 1: diameter $${d1}\\ \\mathrm{mm}$, gauge $${P1g}\\ \\mathrm{kPa}$. Section 2: diameter $${d2}\\ \\mathrm{mm}$, $${dz}\\ \\mathrm m$ higher. Find (a) speeds, (b) $P_{2,g}$ (Pa), (c) $P_{2,abs}$ (Pa), (d) max elevation for $P_{2,g}\\ge ${Pmin}\\ \\mathrm{kPa}$ (m).`,
+                answers: [
+                    { label: 'v₁ (m/s)', value: v1, tol: 0.03 },
+                    { label: 'v₂ (m/s)', value: v2, tol: 0.03 },
+                    { label: 'P₂ gauge (Pa)', value: P2g, tol: 0.03 },
+                    { label: 'P₂ abs (Pa)', value: P2abs, tol: 0.03 },
+                    { label: 'Max elevation (m)', value: hmax, tol: 0.03 }
+                ],
+                solution: `$v_1=${fmt(v1)}\\ \\mathrm{m/s}$, $v_2=${fmt(v2)}\\ \\mathrm{m/s}$<br>$P_{2,g}=${fmt(P2g)}\\ \\mathrm{Pa}$, $P_{2,abs}=${fmt(P2abs)}\\ \\mathrm{Pa}$<br>$h_{max}=${fmt(hmax)}\\ \\mathrm m$`
+            };
+        }
+    ];
+
+    // ---- Set 05: Pitot measurement ----
+    const set05Gens = [
+        () => {
+            const d = rand(100, 200); // mm
+            const rhoAir = rand(1.15, 1.30);
+            const rhoMan = rand(850, 1300);
+            const hmm = rand(10, 35); // mm
+            const h = hmm / 1000;
+            const dP = (rhoMan - rhoAir) * G * h;
+            const v = Math.sqrt(2 * dP / rhoAir);
+            const A = Math.PI * (d/1000)**2 / 4;
+            const Q = A * v;
+            const mdot = rhoAir * Q;
+            const factor = rand(1.1, 1.5);
+            const h2 = hmm * factor**2;
+            return {
+                text: `A Pitot-static probe measures air flow in a duct of diameter $${d}\\ \\mathrm{mm}$. Air density $${round(rhoAir,3)}\\ \\mathrm{kg/m^3}$; manometer liquid density $${rhoMan}\\ \\mathrm{kg/m^3}$; vertical liquid difference $${hmm}\\ \\mathrm{mm}$. Include gas-density correction. Find (a) $\\Delta P$ (Pa), (b) air speed (m/s), (c) volume flow (m³/s), (d) mass flow (kg/s), (e) new manometer height if speed rises by factor $${round(factor,2)}$ (mm).`,
+                answers: [
+                    { label: 'ΔP (Pa)', value: dP, tol: 0.03 },
+                    { label: 'Air speed (m/s)', value: v, tol: 0.03 },
+                    { label: 'Volume flow (m³/s)', value: Q, tol: 0.03 },
+                    { label: 'Mass flow (kg/s)', value: mdot, tol: 0.03 },
+                    { label: 'New height (mm)', value: h2, tol: 0.03 }
+                ],
+                solution: `$\\Delta P=(${rhoMan}-${round(rhoAir,3)})(9.80)(${h})=${fmt(dP)}\\ \\mathrm{Pa}$<br>$v=\\sqrt{2\\Delta P/\\rho_{air}}=${fmt(v)}\\ \\mathrm{m/s}$<br>$A=${fmt(A)}\\ \\mathrm{m^2}$, $Q=${fmt(Q)}\\ \\mathrm{m^3/s}$, $\\dot m=${fmt(mdot)}\\ \\mathrm{kg/s}$<br>$h_2=h_1(\\text{factor})^2=${hmm}(${round(factor,2)})^2=${fmt(h2)}\\ \\mathrm{mm}$`
+            };
+        },
+        () => {
+            const d = rand(80, 180);
+            const rhoAir = rand(1.15, 1.30);
+            const rhoMan = rand(800, 1400);
+            const hmm = rand(8, 40);
+            const h = hmm / 1000;
+            const dP = (rhoMan - rhoAir) * G * h;
+            const v = Math.sqrt(2 * dP / rhoAir);
+            const A = Math.PI * (d/1000)**2 / 4;
+            const Q = A * v;
+            const mdot = rhoAir * Q;
+            const factor = rand(1.1, 1.5);
+            const h2 = hmm * factor**2;
+            return {
+                text: `Pitot-static probe in a duct of diameter $${d}\\ \\mathrm{mm}$. Air density $${round(rhoAir,3)}\\ \\mathrm{kg/m^3}$, manometer liquid $${rhoMan}\\ \\mathrm{kg/m^3}$, liquid difference $${hmm}\\ \\mathrm{mm}$. Find (a) $\\Delta P$ (Pa), (b) speed (m/s), (c) volume flow (m³/s), (d) mass flow (kg/s), (e) new height if speed rises by factor $${round(factor,2)}$ (mm).`,
+                answers: [
+                    { label: 'ΔP (Pa)', value: dP, tol: 0.03 },
+                    { label: 'Air speed (m/s)', value: v, tol: 0.03 },
+                    { label: 'Volume flow (m³/s)', value: Q, tol: 0.03 },
+                    { label: 'Mass flow (kg/s)', value: mdot, tol: 0.03 },
+                    { label: 'New height (mm)', value: h2, tol: 0.03 }
+                ],
+                solution: `$\\Delta P=${fmt(dP)}\\ \\mathrm{Pa}$, $v=${fmt(v)}\\ \\mathrm{m/s}$<br>$Q=${fmt(Q)}\\ \\mathrm{m^3/s}$, $\\dot m=${fmt(mdot)}\\ \\mathrm{kg/s}$<br>$h_2=${fmt(h2)}\\ \\mathrm{mm}$`
+            };
+        }
+    ];
+
+    // ---- Set 06: Torricelli discharge and drain time ----
+    const set06Gens = [
+        () => {
+            const At = rand(0.3, 1.2); // m²
+            const do_ = rand(8, 20); // mm
+            const H0 = rand(1.5, 4.0);
+            const Hf = rand(0.3, 1.2);
+            const Ao = Math.PI * (do_/1000)**2 / 4;
+            const v0 = Math.sqrt(2 * G * H0);
+            const vf = Math.sqrt(2 * G * Hf);
+            const Q0 = Ao * v0;
+            const Qf = Ao * vf;
+            const V = At * (H0 - Hf);
+            const t = (2 * At) / (Ao * Math.sqrt(2*G)) * (Math.sqrt(H0) - Math.sqrt(Hf));
+            const tShort = V / Q0;
+            const pct = 100 * (t - tShort) / t;
+            return {
+                text: `A vertical tank (area $${round(At,2)}\\ \\mathrm{m^2}$) has a small outlet of diameter $${do_}\\ \\mathrm{mm}$. Water height falls from $${round(H0,2)}$ to $${round(Hf,2)}\\ \\mathrm m$. Find (a) initial outlet speed (m/s), (b) final outlet speed (m/s), (c) initial flow (L/s), (d) final flow (L/s), (e) drained volume (m³), (f) drain time by integration (s), (g) % underestimate if using initial flow.`,
+                answers: [
+                    { label: 'Initial speed (m/s)', value: v0, tol: 0.03 },
+                    { label: 'Final speed (m/s)', value: vf, tol: 0.03 },
+                    { label: 'Initial flow (L/s)', value: Q0*1000, tol: 0.03 },
+                    { label: 'Final flow (L/s)', value: Qf*1000, tol: 0.03 },
+                    { label: 'Drained volume (m³)', value: V, tol: 0.03 },
+                    { label: 'Drain time (s)', value: t, tol: 0.04 },
+                    { label: '% underestimate', value: pct, tol: 0.05 }
+                ],
+                solution: `$A_o=\\pi(${do_}/1000)^2/4=${fmt(Ao)}\\ \\mathrm{m^2}$<br>$v_0=\\sqrt{2gH_0}=${fmt(v0)}\\ \\mathrm{m/s}$, $v_f=${fmt(vf)}\\ \\mathrm{m/s}$<br>$Q_0=${fmt(Q0*1000)}\\ \\mathrm{L/s}$, $Q_f=${fmt(Qf*1000)}\\ \\mathrm{L/s}$<br>$V=${fmt(V)}\\ \\mathrm{m^3}$<br>$t=\\frac{2A_t}{A_o\\sqrt{2g}}(\\sqrt{H_0}-\\sqrt{H_f})=${fmt(t)}\\ \\mathrm s$<br>$t_{short}=V/Q_0=${fmt(tShort)}\\ \\mathrm s$, underestimate $=${fmt(pct)}\\%$`
+            };
+        },
+        () => {
+            const At = rand(0.25, 1.5);
+            const do_ = rand(6, 22);
+            const H0 = rand(1.0, 4.5);
+            const Hf = rand(0.2, 1.5);
+            const Ao = Math.PI * (do_/1000)**2 / 4;
+            const v0 = Math.sqrt(2 * G * H0);
+            const vf = Math.sqrt(2 * G * Hf);
+            const Q0 = Ao * v0;
+            const Qf = Ao * vf;
+            const V = At * (H0 - Hf);
+            const t = (2 * At) / (Ao * Math.sqrt(2*G)) * (Math.sqrt(H0) - Math.sqrt(Hf));
+            const tShort = V / Q0;
+            const pct = 100 * (t - tShort) / t;
+            return {
+                text: `A tank of area $${round(At,2)}\\ \\mathrm{m^2}$ drains through a $${do_}\\ \\mathrm{mm}$ outlet. Height falls from $${round(H0,2)}$ to $${round(Hf,2)}\\ \\mathrm m$. Find (a) initial speed, (b) final speed, (c) initial flow, (d) final flow, (e) drained volume, (f) integrated drain time, (g) % underestimate.`,
+                answers: [
+                    { label: 'Initial speed (m/s)', value: v0, tol: 0.03 },
+                    { label: 'Final speed (m/s)', value: vf, tol: 0.03 },
+                    { label: 'Initial flow (L/s)', value: Q0*1000, tol: 0.03 },
+                    { label: 'Final flow (L/s)', value: Qf*1000, tol: 0.03 },
+                    { label: 'Drained volume (m³)', value: V, tol: 0.03 },
+                    { label: 'Drain time (s)', value: t, tol: 0.04 },
+                    { label: '% underestimate', value: pct, tol: 0.05 }
+                ],
+                solution: `$v_0=${fmt(v0)}\\ \\mathrm{m/s}$, $v_f=${fmt(vf)}\\ \\mathrm{m/s}$<br>$Q_0=${fmt(Q0*1000)}\\ \\mathrm{L/s}$, $Q_f=${fmt(Qf*1000)}\\ \\mathrm{L/s}$<br>$V=${fmt(V)}\\ \\mathrm{m^3}$, $t=${fmt(t)}\\ \\mathrm s$<br>Underestimate $=${fmt(pct)}\\%$`
+            };
+        }
+    ];
+
+    // ---- Set 07: Pump power and efficiency ----
+    const set07Gens = [
+        () => {
+            const Q = rand(1.0, 4.5); // L/s
+            const dP = rand(50, 140); // kPa
+            const dz = rand(6, 18); // m
+            const v1 = rand(0.5, 2.0), v2 = rand(3, 7);
+            const Ploss = rand(10, 35); // kPa
+            const eff = rand(0.6, 0.85);
+            const hours = rand(1.5, 4);
+            const Qs = Q / 1000;
+            const Pp = Qs * dP * 1000;
+            const Pk = 0.5 * RHO_W * Qs * (v2**2 - v1**2);
+            const Pg = RHO_W * Qs * G * dz;
+            const Pl = Qs * Ploss * 1000;
+            const Ph = Pp + Pk + Pg + Pl;
+            const Pin = Ph / eff;
+            const E = (Pin / 1000) * hours;
+            const Qnew = 1.20 * Q;
+            return {
+                text: `A pump provides $${Q}\\ \\mathrm{L/s}$, increases static pressure by $${dP}\\ \\mathrm{kPa}$, raises elevation by $${dz}\\ \\mathrm m$, changes speed from $${round(v1,2)}$ to $${round(v2,2)}\\ \\mathrm{m/s}$, with loss $${Ploss}\\ \\mathrm{kPa}$. Efficiency $${round(eff,2)}$. Find (a) pressure power (W), (b) kinetic power (W), (c) elevation power (W), (d) loss power (W), (e) total hydraulic power (W), (f) input power (W), (g) input energy in ${round(hours,1)} h (kWh), (h) flow supported by 1.20× input power (L/s).`,
+                answers: [
+                    { label: 'Pressure power (W)', value: Pp, tol: 0.03 },
+                    { label: 'Kinetic power (W)', value: Pk, tol: 0.03 },
+                    { label: 'Elevation power (W)', value: Pg, tol: 0.03 },
+                    { label: 'Loss power (W)', value: Pl, tol: 0.03 },
+                    { label: 'Hydraulic power (W)', value: Ph, tol: 0.03 },
+                    { label: 'Input power (W)', value: Pin, tol: 0.03 },
+                    { label: 'Energy (kWh)', value: E, tol: 0.03 },
+                    { label: 'New flow (L/s)', value: Qnew, tol: 0.03 }
+                ],
+                solution: `$\\mathcal P_P=Q\\Delta P=${fmt(Pp)}\\ \\mathrm W$<br>$\\mathcal P_K=\\frac12\\rho Q(v_2^2-v_1^2)=${fmt(Pk)}\\ \\mathrm W$<br>$\\mathcal P_g=\\rho gQ\\Delta z=${fmt(Pg)}\\ \\mathrm W$<br>$\\mathcal P_{loss}=Q\\Delta P_{loss}=${fmt(Pl)}\\ \\mathrm W$<br>$\\mathcal P_h=${fmt(Ph)}\\ \\mathrm W$, $\\mathcal P_{in}=${fmt(Pin)}\\ \\mathrm W$<br>$E=${fmt(E)}\\ \\mathrm{kWh}$<br>At fixed energy/volume, $Q_{new}=1.20Q=${fmt(Qnew)}\\ \\mathrm{L/s}$`
+            };
+        },
+        () => {
+            const Q = rand(1.5, 5.0);
+            const dP = rand(60, 150);
+            const dz = rand(5, 20);
+            const v1 = rand(0.5, 2.5), v2 = rand(3.5, 7.5);
+            const Ploss = rand(12, 40);
+            const eff = rand(0.6, 0.85);
+            const hours = rand(1.5, 5);
+            const Qs = Q / 1000;
+            const Pp = Qs * dP * 1000;
+            const Pk = 0.5 * RHO_W * Qs * (v2**2 - v1**2);
+            const Pg = RHO_W * Qs * G * dz;
+            const Pl = Qs * Ploss * 1000;
+            const Ph = Pp + Pk + Pg + Pl;
+            const Pin = Ph / eff;
+            const E = (Pin / 1000) * hours;
+            const Qnew = 1.20 * Q;
+            return {
+                text: `A pump: $${Q}\\ \\mathrm{L/s}$, $\\Delta P=${dP}\\ \\mathrm{kPa}$, $\\Delta z=${dz}\\ \\mathrm m$, $v_1=${round(v1,2)}$, $v_2=${round(v2,2)}\\ \\mathrm{m/s}$, loss $${Ploss}\\ \\mathrm{kPa}$, efficiency $${round(eff,2)}$. Find (a) pressure power, (b) kinetic power, (c) elevation power, (d) loss power, (e) hydraulic power, (f) input power, (g) energy in ${round(hours,1)} h, (h) new flow at 1.20× input power.`,
+                answers: [
+                    { label: 'Pressure power (W)', value: Pp, tol: 0.03 },
+                    { label: 'Kinetic power (W)', value: Pk, tol: 0.03 },
+                    { label: 'Elevation power (W)', value: Pg, tol: 0.03 },
+                    { label: 'Loss power (W)', value: Pl, tol: 0.03 },
+                    { label: 'Hydraulic power (W)', value: Ph, tol: 0.03 },
+                    { label: 'Input power (W)', value: Pin, tol: 0.03 },
+                    { label: 'Energy (kWh)', value: E, tol: 0.03 },
+                    { label: 'New flow (L/s)', value: Qnew, tol: 0.03 }
+                ],
+                solution: `$\\mathcal P_P=${fmt(Pp)}\\ \\mathrm W$, $\\mathcal P_K=${fmt(Pk)}\\ \\mathrm W$, $\\mathcal P_g=${fmt(Pg)}\\ \\mathrm W$, $\\mathcal P_{loss}=${fmt(Pl)}\\ \\mathrm W$<br>$\\mathcal P_h=${fmt(Ph)}\\ \\mathrm W$, $\\mathcal P_{in}=${fmt(Pin)}\\ \\mathrm W$, $E=${fmt(E)}\\ \\mathrm{kWh}$<br>$Q_{new}=${fmt(Qnew)}\\ \\mathrm{L/s}$`
+            };
+        }
+    ];
+
+    // ---- Set 08: Newtonian plate shear ----
+    const set08Gens = [
+        () => {
+            const A = rand(80, 200) / 10000; // m²
+            const b = rand(0.5, 1.5) / 1000; // m
+            const U = rand(5, 15) / 100; // m/s
+            const F = rand(0.15, 0.5); // N
+            const eta = F * b / (A * U);
+            const tau = F / A;
+            const gamma = U / b;
+            const P = F * U;
+            const Fnew = F * 2 * 1.5; // half gap, 1.5× speed
+            const Pnew = Fnew * 1.5 * U;
+            const Wnew = Fnew * 0.25;
+            return {
+                text: `Two parallel plates: area $${round(A*10000,1)}\\ \\mathrm{cm^2}$, gap $${round(b*1000,2)}\\ \\mathrm{mm}$. Moving upper plate at $${round(U*100,1)}\\ \\mathrm{cm/s}$ needs $${round(F,2)}\\ \\mathrm N$. Find (a) viscosity (Pa·s), (b) shear stress (Pa), (c) shear rate (s⁻¹), (d) power (W). Then halve gap and multiply speed by 1.5: (e) new force (N), (f) new power (W), (g) work over 0.250 m (J).`,
+                answers: [
+                    { label: 'Viscosity (Pa·s)', value: eta, tol: 0.04 },
+                    { label: 'Shear stress (Pa)', value: tau, tol: 0.03 },
+                    { label: 'Shear rate (s⁻¹)', value: gamma, tol: 0.03 },
+                    { label: 'Power (W)', value: P, tol: 0.03 },
+                    { label: 'New force (N)', value: Fnew, tol: 0.03 },
+                    { label: 'New power (W)', value: Pnew, tol: 0.03 },
+                    { label: 'Work (J)', value: Wnew, tol: 0.03 }
+                ],
+                solution: `$\\eta=Fb/(AU)=${round(F,2)}\\times${round(b,5)}/(${round(A,6)}\\times${round(U,3)})=${fmt(eta)}\\ \\mathrm{Pa\\,s}$<br>$\\tau=F/A=${fmt(tau)}\\ \\mathrm{Pa}$<br>$\\dot\\gamma=U/b=${fmt(gamma)}\\ \\mathrm{s^{-1}}$<br>$\\mathcal P=FU=${fmt(P)}\\ \\mathrm W$<br>New: $F'=F(2)(1.5)=${fmt(Fnew)}\\ \\mathrm N$, $\\mathcal P'=F'(1.5U)=${fmt(Pnew)}\\ \\mathrm W$<br>$W'=F'(0.250)=${fmt(Wnew)}\\ \\mathrm J$`
+            };
+        },
+        () => {
+            const A = rand(100, 220) / 10000;
+            const b = rand(0.6, 1.8) / 1000;
+            const U = rand(6, 18) / 100;
+            const F = rand(0.2, 0.55);
+            const eta = F * b / (A * U);
+            const tau = F / A;
+            const gamma = U / b;
+            const P = F * U;
+            const Fnew = F * 2 * 1.6;
+            const Pnew = Fnew * 1.6 * U;
+            const Wnew = Fnew * 0.25;
+            return {
+                text: `Parallel plates: area $${round(A*10000,1)}\\ \\mathrm{cm^2}$, gap $${round(b*1000,2)}\\ \\mathrm{mm}$, speed $${round(U*100,1)}\\ \\mathrm{cm/s}$, force $${round(F,2)}\\ \\mathrm N$. Find (a) viscosity, (b) shear stress, (c) shear rate, (d) power. Then halve gap, speed ×1.6: (e) new force, (f) new power, (g) work over 0.250 m.`,
+                answers: [
+                    { label: 'Viscosity (Pa·s)', value: eta, tol: 0.04 },
+                    { label: 'Shear stress (Pa)', value: tau, tol: 0.03 },
+                    { label: 'Shear rate (s⁻¹)', value: gamma, tol: 0.03 },
+                    { label: 'Power (W)', value: P, tol: 0.03 },
+                    { label: 'New force (N)', value: Fnew, tol: 0.03 },
+                    { label: 'New power (W)', value: Pnew, tol: 0.03 },
+                    { label: 'Work (J)', value: Wnew, tol: 0.03 }
+                ],
+                solution: `$\\eta=${fmt(eta)}\\ \\mathrm{Pa\\,s}$, $\\tau=${fmt(tau)}\\ \\mathrm{Pa}$, $\\dot\\gamma=${fmt(gamma)}\\ \\mathrm{s^{-1}}$, $\\mathcal P=${fmt(P)}\\ \\mathrm W$<br>$F'=${fmt(Fnew)}\\ \\mathrm N$, $\\mathcal P'=${fmt(Pnew)}\\ \\mathrm W$, $W'=${fmt(Wnew)}\\ \\mathrm J$`
+            };
+        }
+    ];
+
+    // ---- Set 09: Poiseuille pressure drop ----
+    const set09Gens = [
+        () => {
+            const rho = 1000;
+            const eta = rand(1.2, 3.5) / 1000;
+            const a = rand(0.5, 1.2) / 1000;
+            const L = rand(0.2, 0.5);
+            const QmL = rand(5, 25);
+            const Q = QmL * 1e-6 / 60;
+            const Rf = 8 * eta * L / (Math.PI * a**4);
+            const dP = Rf * Q;
+            const vbar = Q / (Math.PI * a**2);
+            const umax = 2 * vbar;
+            const uhalf = 0.75 * umax;
+            const F = dP * Math.PI * a**2;
+            const P = dP * Q;
+            const Re = rho * vbar * 2 * a / eta;
+            return {
+                text: `A Newtonian liquid (ρ=1000 kg/m³, η=${round(eta*1000,2)} mPa·s) flows through a horizontal tube of radius $${round(a*1000,2)}\\ \\mathrm{mm}$, length $${round(L,2)}\\ \\mathrm m$, at $${QmL}\\ \\mathrm{mL/min}$. Find (a) resistance (Pa·s/m³), (b) pressure drop (Pa), (c) mean speed (m/s), (d) centerline speed (m/s), (e) speed at half-radius (m/s), (f) net axial pressure force (N), (g) dissipated power (W), (h) Reynolds number.`,
+                answers: [
+                    { label: 'Resistance (Pa·s/m³)', value: Rf, tol: 0.04 },
+                    { label: 'Pressure drop (Pa)', value: dP, tol: 0.04 },
+                    { label: 'Mean speed (m/s)', value: vbar, tol: 0.03 },
+                    { label: 'Centerline speed (m/s)', value: umax, tol: 0.03 },
+                    { label: 'Speed at half-radius (m/s)', value: uhalf, tol: 0.03 },
+                    { label: 'Axial force (N)', value: F, tol: 0.04 },
+                    { label: 'Dissipated power (W)', value: P, tol: 0.04 },
+                    { label: 'Reynolds number', value: Re, tol: 0.04 }
+                ],
+                solution: `$R_f=8\\eta L/(\\pi a^4)=${fmt(Rf)}\\ \\mathrm{Pa\\,s/m^3}$<br>$\\Delta P=R_fQ=${fmt(dP)}\\ \\mathrm{Pa}$<br>$\\bar v=Q/(\\pi a^2)=${fmt(vbar)}\\ \\mathrm{m/s}$<br>$u_{max}=2\\bar v=${fmt(umax)}\\ \\mathrm{m/s}$, $u(a/2)=\\frac34u_{max}=${fmt(uhalf)}\\ \\mathrm{m/s}$<br>$F=\\Delta P\\pi a^2=${fmt(F)}\\ \\mathrm N$, $\\mathcal P_{diss}=\\Delta PQ=${fmt(P)}\\ \\mathrm W$<br>$\\mathrm{Re}=\\rho\\bar v(2a)/\\eta=${fmt(Re)}$`
+            };
+        },
+        () => {
+            const rho = 1000;
+            const eta = rand(1.0, 3.0) / 1000;
+            const a = rand(0.6, 1.1) / 1000;
+            const L = rand(0.25, 0.45);
+            const QmL = rand(8, 20);
+            const Q = QmL * 1e-6 / 60;
+            const Rf = 8 * eta * L / (Math.PI * a**4);
+            const dP = Rf * Q;
+            const vbar = Q / (Math.PI * a**2);
+            const umax = 2 * vbar;
+            const uhalf = 0.75 * umax;
+            const F = dP * Math.PI * a**2;
+            const P = dP * Q;
+            const Re = rho * vbar * 2 * a / eta;
+            return {
+                text: `A liquid (ρ=1000 kg/m³, η=${round(eta*1000,2)} mPa·s) flows through a horizontal tube of radius $${round(a*1000,2)}\\ \\mathrm{mm}$, length $${round(L,2)}\\ \\mathrm m$, at $${QmL}\\ \\mathrm{mL/min}$. Find (a) resistance, (b) pressure drop, (c) mean speed, (d) centerline speed, (e) speed at half-radius, (f) axial force, (g) dissipated power, (h) Reynolds number.`,
+                answers: [
+                    { label: 'Resistance (Pa·s/m³)', value: Rf, tol: 0.04 },
+                    { label: 'Pressure drop (Pa)', value: dP, tol: 0.04 },
+                    { label: 'Mean speed (m/s)', value: vbar, tol: 0.03 },
+                    { label: 'Centerline speed (m/s)', value: umax, tol: 0.03 },
+                    { label: 'Speed at half-radius (m/s)', value: uhalf, tol: 0.03 },
+                    { label: 'Axial force (N)', value: F, tol: 0.04 },
+                    { label: 'Dissipated power (W)', value: P, tol: 0.04 },
+                    { label: 'Reynolds number', value: Re, tol: 0.04 }
+                ],
+                solution: `$R_f=${fmt(Rf)}\\ \\mathrm{Pa\\,s/m^3}$, $\\Delta P=${fmt(dP)}\\ \\mathrm{Pa}$<br>$\\bar v=${fmt(vbar)}\\ \\mathrm{m/s}$, $u_{max}=${fmt(umax)}\\ \\mathrm{m/s}$, $u(a/2)=${fmt(uhalf)}\\ \\mathrm{m/s}$<br>$F=${fmt(F)}\\ \\mathrm N$, $\\mathcal P=${fmt(P)}\\ \\mathrm W$, $\\mathrm{Re}=${fmt(Re)}$`
+            };
+        }
+    ];
+
+    // ---- Set 10: Radius sensitivity ----
+    const set10Gens = [
+        () => {
+            const Q0 = 24.0; // mL/min
+            const rFactor = rand(0.75, 0.95);
+            const pFactor = rand(1.0, 1.5);
+            const etaFactor = rand(0.85, 1.15);
+            const LFactor = rand(0.85, 1.25);
+            const Rratio = (etaFactor * LFactor) / (rFactor**4);
+            const Qratio = pFactor / Rratio;
+            const Qnew = Q0 * Qratio;
+            const pct = 100 * (Qratio - 1);
+            const pRestore = Rratio;
+            const rRestore = ((1 * etaFactor * LFactor) / pFactor) ** 0.25;
+            return {
+                text: `A laminar tube initially carries $${Q0}\\ \\mathrm{mL/min}$. Radius changes to $${round(rFactor,2)}$×, pressure drop to $${round(pFactor,2)}$×, viscosity to $${round(etaFactor,2)}$×, length to $${round(LFactor,2)}$×. Find (a) resistance ratio, (b) flow ratio, (c) new flow (mL/min), (d) % flow change, (e) pressure factor to restore original flow, (f) radius factor for 1× flow at pressure factor $${round(pFactor,2)}$.`,
+                answers: [
+                    { label: 'Resistance ratio', value: Rratio, tol: 0.04 },
+                    { label: 'Flow ratio', value: Qratio, tol: 0.04 },
+                    { label: 'New flow (mL/min)', value: Qnew, tol: 0.04 },
+                    { label: '% flow change', value: pct, tol: 0.05 },
+                    { label: 'Pressure restore factor', value: pRestore, tol: 0.04 },
+                    { label: 'Radius factor', value: rRestore, tol: 0.05 }
+                ],
+                solution: `$R_2/R_1=(\\eta_2/\\eta_1)(L_2/L_1)/(r_2/r_1)^4=${round(etaFactor,2)}\\times${round(LFactor,2)}/${round(rFactor,2)}^4=${fmt(Rratio)}$<br>$Q_2/Q_1=(\\Delta P_2/\\Delta P_1)/(R_2/R_1)=${round(pFactor,2)}/${fmt(Rratio)}=${fmt(Qratio)}$<br>$Q_2=${Q0}\\times${fmt(Qratio)}=${fmt(Qnew)}\\ \\mathrm{mL/min}$, change $=${fmt(pct)}\\%$<br>Restore: $\\Delta P_2/\\Delta P_1=R_2/R_1=${fmt(pRestore)}$<br>For 1× flow: $r_2/r_1=[(\\eta_2/\\eta_1)(L_2/L_1)/(\\Delta P_2/\\Delta P_1)]^{1/4}=${fmt(rRestore)}$`
+            };
+        },
+        () => {
+            const Q0 = 24.0;
+            const rFactor = rand(0.78, 0.94);
+            const pFactor = rand(1.05, 1.4);
+            const etaFactor = rand(0.9, 1.1);
+            const LFactor = rand(0.9, 1.2);
+            const Rratio = (etaFactor * LFactor) / (rFactor**4);
+            const Qratio = pFactor / Rratio;
+            const Qnew = Q0 * Qratio;
+            const pct = 100 * (Qratio - 1);
+            const pRestore = Rratio;
+            const rRestore = ((1 * etaFactor * LFactor) / pFactor) ** 0.25;
+            return {
+                text: `A laminar tube initially carries $${Q0}\\ \\mathrm{mL/min}$. Radius ×$${round(rFactor,2)}$, pressure ×$${round(pFactor,2)}$, viscosity ×$${round(etaFactor,2)}$, length ×$${round(LFactor,2)}$. Find (a) resistance ratio, (b) flow ratio, (c) new flow (mL/min), (d) % flow change, (e) pressure factor to restore original flow, (f) radius factor for 1× flow at pressure ×$${round(pFactor,2)}$.`,
+                answers: [
+                    { label: 'Resistance ratio', value: Rratio, tol: 0.04 },
+                    { label: 'Flow ratio', value: Qratio, tol: 0.04 },
+                    { label: 'New flow (mL/min)', value: Qnew, tol: 0.04 },
+                    { label: '% flow change', value: pct, tol: 0.05 },
+                    { label: 'Pressure restore factor', value: pRestore, tol: 0.04 },
+                    { label: 'Radius factor', value: rRestore, tol: 0.05 }
+                ],
+                solution: `$R_2/R_1=${fmt(Rratio)}$, $Q_2/Q_1=${fmt(Qratio)}$<br>$Q_2=${fmt(Qnew)}\\ \\mathrm{mL/min}$, change $=${fmt(pct)}\\%$<br>Restore pressure factor $=${fmt(pRestore)}$<br>Radius factor $=${fmt(rRestore)}$`
+            };
+        }
+    ];
+
+    // ---- Set 11: Series-parallel resistance networks ----
+    const set11Gens = [
+        () => {
+            const R0 = rand(1.5, 4) * 1e10;
+            const R1 = rand(4, 9) * 1e10;
+            const R2 = rand(2, 5) * 1e10;
+            const dPtot = rand(12, 30) * 1e3;
+            const Rp = R1 * R2 / (R1 + R2);
+            const Req = R0 + Rp;
+            const Q = dPtot / Req;
+            const dP0 = Q * R0;
+            const dPp = Q * Rp;
+            const Q1 = dPp / R1;
+            const Q2 = dPp / R2;
+            const Pdiss = dPtot * Q;
+            return {
+                text: `A network has a common upstream tube $R_0=${fmt(R0/1e10)}×10^{10}$, then two parallel branches $R_1=${fmt(R1/1e10)}×10^{10}$ and $R_2=${fmt(R2/1e10)}×10^{10}$ Pa·s/m³. Total pressure drop $${round(dPtot/1000,1)}\\ \\mathrm{kPa}$. Find (a) parallel resistance, (b) total equivalent resistance, (c) total flow (m³/s), (d) pressure drop through common tube (Pa), (e) pressure drop across branches (Pa), (f) branch 1 flow (m³/s), (g) branch 2 flow (m³/s), (h) total dissipation (W).`,
+                answers: [
+                    { label: 'Parallel resistance', value: Rp, tol: 0.04 },
+                    { label: 'Total resistance', value: Req, tol: 0.04 },
+                    { label: 'Total flow (m³/s)', value: Q, tol: 0.04 },
+                    { label: 'Common ΔP (Pa)', value: dP0, tol: 0.04 },
+                    { label: 'Branch ΔP (Pa)', value: dPp, tol: 0.04 },
+                    { label: 'Branch 1 flow (m³/s)', value: Q1, tol: 0.04 },
+                    { label: 'Branch 2 flow (m³/s)', value: Q2, tol: 0.04 },
+                    { label: 'Total dissipation (W)', value: Pdiss, tol: 0.04 }
+                ],
+                solution: `$R_p=R_1R_2/(R_1+R_2)=${fmt(Rp)}\\ \\mathrm{Pa\\,s/m^3}$<br>$R_{eq}=R_0+R_p=${fmt(Req)}$<br>$Q=\\Delta P_{tot}/R_{eq}=${fmt(Q)}\\ \\mathrm{m^3/s}$<br>$\\Delta P_0=QR_0=${fmt(dP0)}\\ \\mathrm{Pa}$, $\\Delta P_p=QR_p=${fmt(dPp)}\\ \\mathrm{Pa}$<br>$Q_1=\\Delta P_p/R_1=${fmt(Q1)}$, $Q_2=\\Delta P_p/R_2=${fmt(Q2)}$<br>Check: $Q_1+Q_2=${fmt(Q1+Q2)}=Q$<br>$\\mathcal P_{diss}=\\Delta P_{tot}Q=${fmt(Pdiss)}\\ \\mathrm W$`
+            };
+        },
+        () => {
+            const R0 = rand(2, 5) * 1e10;
+            const R1 = rand(5, 12) * 1e10;
+            const R2 = rand(2.5, 6) * 1e10;
+            const dPtot = rand(15, 35) * 1e3;
+            const Rp = R1 * R2 / (R1 + R2);
+            const Req = R0 + Rp;
+            const Q = dPtot / Req;
+            const dP0 = Q * R0;
+            const dPp = Q * Rp;
+            const Q1 = dPp / R1;
+            const Q2 = dPp / R2;
+            const Pdiss = dPtot * Q;
+            return {
+                text: `Network: common $R_0=${fmt(R0/1e10)}×10^{10}$, parallel branches $R_1=${fmt(R1/1e10)}×10^{10}$ and $R_2=${fmt(R2/1e10)}×10^{10}$ Pa·s/m³. Total $\\Delta P=${round(dPtot/1000,1)}\\ \\mathrm{kPa}$. Find (a) parallel R, (b) total R, (c) total Q, (d) common ΔP, (e) branch ΔP, (f) Q₁, (g) Q₂, (h) dissipation.`,
+                answers: [
+                    { label: 'Parallel resistance', value: Rp, tol: 0.04 },
+                    { label: 'Total resistance', value: Req, tol: 0.04 },
+                    { label: 'Total flow (m³/s)', value: Q, tol: 0.04 },
+                    { label: 'Common ΔP (Pa)', value: dP0, tol: 0.04 },
+                    { label: 'Branch ΔP (Pa)', value: dPp, tol: 0.04 },
+                    { label: 'Branch 1 flow (m³/s)', value: Q1, tol: 0.04 },
+                    { label: 'Branch 2 flow (m³/s)', value: Q2, tol: 0.04 },
+                    { label: 'Total dissipation (W)', value: Pdiss, tol: 0.04 }
+                ],
+                solution: `$R_p=${fmt(Rp)}$, $R_{eq}=${fmt(Req)}$, $Q=${fmt(Q)}\\ \\mathrm{m^3/s}$<br>$\\Delta P_0=${fmt(dP0)}\\ \\mathrm{Pa}$, $\\Delta P_p=${fmt(dPp)}\\ \\mathrm{Pa}$<br>$Q_1=${fmt(Q1)}$, $Q_2=${fmt(Q2)}$, $\\mathcal P=${fmt(Pdiss)}\\ \\mathrm W$`
+            };
+        }
+    ];
+
+    // ---- Set 12: Reynolds inverse design ----
+    const set12Gens = [
+        () => {
+            const QmL = rand(80, 250); // mL/min
+            const rho = rand(1000, 1150);
+            const eta = rand(1.5, 4) / 1000;
+            const ReTarget = 1000;
+            const Q = QmL * 1e-6 / 60;
+            const dmin = 4 * rho * Q / (Math.PI * eta * ReTarget);
+            const d = 1.25 * dmin;
+            const Re = 4 * rho * Q / (Math.PI * eta * d);
+            const vbar = 4 * Q / (Math.PI * d**2);
+            const L = rand(1.5, 3.0);
+            const dP = 128 * eta * L * Q / (Math.PI * d**4);
+            const Qmax = Math.PI * eta * d * ReTarget / (4 * rho);
+            return {
+                text: `Design for $${QmL}\\ \\mathrm{mL/min}$, ρ=$${round(rho,0)} kg/m³, η=$${round(eta*1000,2)} mPa·s, Re≤$${ReTarget}$. Find (a) minimum diameter (m), (b) chosen diameter = 1.25×min (m), (c) actual Re, (d) mean speed (m/s), (e) pressure drop in L=$${round(L,2)} m (Pa), (f) max flow at chosen diameter for Re=$${ReTarget} (mL/min).`,
+                answers: [
+                    { label: 'd_min (m)', value: dmin, tol: 0.04 },
+                    { label: 'd_chosen (m)', value: d, tol: 0.04 },
+                    { label: 'Actual Re', value: Re, tol: 0.04 },
+                    { label: 'Mean speed (m/s)', value: vbar, tol: 0.03 },
+                    { label: 'Pressure drop (Pa)', value: dP, tol: 0.04 },
+                    { label: 'Max flow (mL/min)', value: Qmax*1e6*60, tol: 0.04 }
+                ],
+                solution: `$d_{min}=4\\rho Q/(\\pi\\eta\\mathrm{Re}_{lim})=${fmt(dmin)}\\ \\mathrm m$<br>$d=1.25d_{min}=${fmt(d)}\\ \\mathrm m$<br>$\\mathrm{Re}=4\\rho Q/(\\pi\\eta d)=${fmt(Re)}$<br>$\\bar v=4Q/(\\pi d^2)=${fmt(vbar)}\\ \\mathrm{m/s}$<br>$\\Delta P=128\\eta LQ/(\\pi d^4)=${fmt(dP)}\\ \\mathrm{Pa}$<br>$Q_{max}=\\pi\\eta d\\mathrm{Re}_{lim}/(4\\rho)=${fmt(Qmax*1e6*60)}\\ \\mathrm{mL/min}$`
+            };
+        },
+        () => {
+            const QmL = rand(60, 300);
+            const rho = rand(1000, 1150);
+            const eta = rand(1.2, 4.5) / 1000;
+            const ReTarget = 1000;
+            const Q = QmL * 1e-6 / 60;
+            const dmin = 4 * rho * Q / (Math.PI * eta * ReTarget);
+            const d = 1.25 * dmin;
+            const Re = 4 * rho * Q / (Math.PI * eta * d);
+            const vbar = 4 * Q / (Math.PI * d**2);
+            const L = rand(1.5, 3.5);
+            const dP = 128 * eta * L * Q / (Math.PI * d**4);
+            const Qmax = Math.PI * eta * d * ReTarget / (4 * rho);
+            return {
+                text: `Design for $${QmL}\\ \\mathrm{mL/min}$, ρ=$${round(rho,0)} kg/m³, η=$${round(eta*1000,2)} mPa·s, Re≤1000. Find (a) d_min (m), (b) d = 1.25×d_min (m), (c) actual Re, (d) mean speed (m/s), (e) ΔP in L=$${round(L,2)} m (Pa), (f) Q_max for Re=1000 (mL/min).`,
+                answers: [
+                    { label: 'd_min (m)', value: dmin, tol: 0.04 },
+                    { label: 'd_chosen (m)', value: d, tol: 0.04 },
+                    { label: 'Actual Re', value: Re, tol: 0.04 },
+                    { label: 'Mean speed (m/s)', value: vbar, tol: 0.03 },
+                    { label: 'Pressure drop (Pa)', value: dP, tol: 0.04 },
+                    { label: 'Max flow (mL/min)', value: Qmax*1e6*60, tol: 0.04 }
+                ],
+                solution: `$d_{min}=${fmt(dmin)}\\ \\mathrm m$, $d=${fmt(d)}\\ \\mathrm m$<br>$\\mathrm{Re}=${fmt(Re)}$, $\\bar v=${fmt(vbar)}\\ \\mathrm{m/s}$<br>$\\Delta P=${fmt(dP)}\\ \\mathrm{Pa}$, $Q_{max}=${fmt(Qmax*1e6*60)}\\ \\mathrm{mL/min}$`
+            };
+        }
+    ];
+
+    // ---- Set 13: Stokes settling ----
+    const set13Gens = [
+        () => {
+            const a = rand(10, 28) * 1e-6;
+            const rho_s = rand(1800, 2800);
+            const rho_f = rand(1000, 1100);
+            const eta = rand(0.8, 2.2) / 1000;
+            const V = (4/3) * Math.PI * a**3;
+            const W = rho_s * V * G;
+            const FB = rho_f * V * G;
+            const vt = 2 * a**2 * G * (rho_s - rho_f) / (9 * eta);
+            const FD = W - FB;
+            const Re = 2 * rho_f * a * vt / eta;
+            const dist = rand(0.08, 0.18);
+            const t = dist / vt;
+            const vt2 = 1.5**2 * vt;
+            const Re2 = 1.5**3 * Re;
+            return {
+                text: `A sphere of radius $${round(a*1e6,1)}\\ \\mu\\mathrm m$, density $${round(rho_s,0)}\\ \\mathrm{kg/m^3}$ settles in liquid of density $${round(rho_f,0)}\\ \\mathrm{kg/m^3}$, viscosity $${round(eta*1000,2)}\\ \\mathrm{mPa\\,s}$. Find (a) weight (N), (b) buoyancy (N), (c) terminal speed (m/s), (d) drag at terminal (N), (e) Re, (f) time to settle $${round(dist*100,1)}\\ \\mathrm{cm}$ (s), (g) speed for radius ×1.5 (m/s), (h) Re for radius ×1.5.`,
+                answers: [
+                    { label: 'Weight (N)', value: W, tol: 0.04 },
+                    { label: 'Buoyancy (N)', value: FB, tol: 0.04 },
+                    { label: 'Terminal speed (m/s)', value: vt, tol: 0.04 },
+                    { label: 'Drag (N)', value: FD, tol: 0.04 },
+                    { label: 'Reynolds number', value: Re, tol: 0.05 },
+                    { label: 'Time (s)', value: t, tol: 0.04 },
+                    { label: 'Speed ×1.5 (m/s)', value: vt2, tol: 0.04 },
+                    { label: 'Re ×1.5', value: Re2, tol: 0.05 }
+                ],
+                solution: `$V=\\frac43\\pi a^3=${fmt(V)}\\ \\mathrm{m^3}$<br>$W=\\rho_sVg=${fmt(W)}\\ \\mathrm N$, $F_B=\\rho_fVg=${fmt(FB)}\\ \\mathrm N$<br>$v_t=2a^2g(\\rho_s-\\rho_f)/(9\\eta)=${fmt(vt)}\\ \\mathrm{m/s}$<br>$F_D=W-F_B=${fmt(FD)}\\ \\mathrm N$<br>$\\mathrm{Re}=2\\rho_f av_t/\\eta=${fmt(Re)}$<br>$t=${round(dist,2)}/${fmt(vt)}=${fmt(t)}\\ \\mathrm s$<br>Radius ×1.5: $v_t'=1.5^2v_t=${fmt(vt2)}$, $\\mathrm{Re}'=1.5^3\\mathrm{Re}=${fmt(Re2)}$`
+            };
+        },
+        () => {
+            const a = rand(12, 30) * 1e-6;
+            const rho_s = rand(1900, 2900);
+            const rho_f = rand(1000, 1100);
+            const eta = rand(1.0, 2.5) / 1000;
+            const V = (4/3) * Math.PI * a**3;
+            const W = rho_s * V * G;
+            const FB = rho_f * V * G;
+            const vt = 2 * a**2 * G * (rho_s - rho_f) / (9 * eta);
+            const FD = W - FB;
+            const Re = 2 * rho_f * a * vt / eta;
+            const dist = rand(0.1, 0.2);
+            const t = dist / vt;
+            const vt2 = 1.5**2 * vt;
+            const Re2 = 1.5**3 * Re;
+            return {
+                text: `Sphere radius $${round(a*1e6,1)}\\ \\mu\\mathrm m$, density $${round(rho_s,0)}$, settling in liquid $\\rho=${round(rho_f,0)}$, $\\eta=${round(eta*1000,2)}\\ \\mathrm{mPa\\,s}$. Find (a) weight, (b) buoyancy, (c) terminal speed, (d) drag, (e) Re, (f) time for $${round(dist*100,1)}\\ \\mathrm{cm}$, (g) speed for radius ×1.5, (h) Re for radius ×1.5.`,
+                answers: [
+                    { label: 'Weight (N)', value: W, tol: 0.04 },
+                    { label: 'Buoyancy (N)', value: FB, tol: 0.04 },
+                    { label: 'Terminal speed (m/s)', value: vt, tol: 0.04 },
+                    { label: 'Drag (N)', value: FD, tol: 0.04 },
+                    { label: 'Reynolds number', value: Re, tol: 0.05 },
+                    { label: 'Time (s)', value: t, tol: 0.04 },
+                    { label: 'Speed ×1.5 (m/s)', value: vt2, tol: 0.04 },
+                    { label: 'Re ×1.5', value: Re2, tol: 0.05 }
+                ],
+                solution: `$W=${fmt(W)}\\ \\mathrm N$, $F_B=${fmt(FB)}\\ \\mathrm N$<br>$v_t=${fmt(vt)}\\ \\mathrm{m/s}$, $F_D=${fmt(FD)}\\ \\mathrm N$<br>$\\mathrm{Re}=${fmt(Re)}$, $t=${fmt(t)}\\ \\mathrm s$<br>$v_t'=${fmt(vt2)}\\ \\mathrm{m/s}$, $\\mathrm{Re}'=${fmt(Re2)}$`
+            };
+        }
+    ];
+
+    // ---- Set 14: Quadratic drag ----
+    const set14Gens = [
+        () => {
+            const m = rand(55, 100);
+            const V = rand(0.05, 0.095);
+            const Ap = rand(0.5, 0.85);
+            const Cd = rand(0.9, 1.2);
+            const rho = rand(1.1, 1.25);
+            const FB = rho * V * G;
+            const Weff = m * G - FB;
+            const vt = Math.sqrt(2 * Weff / (Cd * rho * Ap));
+            const FD = Weff;
+            const P = FD * vt;
+            const vTarget = rand(25, 35);
+            const Anew = 2 * Weff / (Cd * rho * vTarget**2);
+            const rho2 = 0.6 * rho;
+            const FB2 = rho2 * V * G;
+            const Weff2 = m * G - FB2;
+            const vt2 = Math.sqrt(2 * Weff2 / (Cd * rho2 * Ap));
+            return {
+                text: `A falling body: mass $${round(m,0)}\\ \\mathrm{kg}$, volume $${round(V,3)}\\ \\mathrm{m^3}$, area $${round(Ap,2)}\\ \\mathrm{m^2}$, Cd=$${round(Cd,2)}$, air density $${round(rho,2)}\\ \\mathrm{kg/m^3}$. Find (a) terminal speed (m/s), (b) drag at terminal (N), (c) drag dissipation rate (W), (d) area for terminal speed $${round(vTarget,0)}\\ \\mathrm{m/s}$ (m²), (e) terminal speed if density drops to 0.600× (m/s).`,
+                answers: [
+                    { label: 'Terminal speed (m/s)', value: vt, tol: 0.04 },
+                    { label: 'Drag (N)', value: FD, tol: 0.04 },
+                    { label: 'Dissipation (W)', value: P, tol: 0.04 },
+                    { label: 'New area (m²)', value: Anew, tol: 0.04 },
+                    { label: 'Speed at 0.6ρ (m/s)', value: vt2, tol: 0.04 }
+                ],
+                solution: `$F_B=${fmt(FB)}\\ \\mathrm N$, $W_{eff}=mg-F_B=${fmt(Weff)}\\ \\mathrm N$<br>$v_t=\\sqrt{2W_{eff}/(C_D\\rho A_p)}=${fmt(vt)}\\ \\mathrm{m/s}$<br>$F_{D,t}=W_{eff}=${fmt(FD)}\\ \\mathrm N$<br>$\\mathcal P=F_{D,t}v_t=${fmt(P)}\\ \\mathrm W$<br>$A_{target}=2W_{eff}/(C_D\\rho v_{target}^2)=${fmt(Anew)}\\ \\mathrm{m^2}$<br>$\\rho'=0.6\\rho$, $F_B'=${fmt(FB2)}\\ \\mathrm N$, $v_t'=${fmt(vt2)}\\ \\mathrm{m/s}$`
+            };
+        },
+        () => {
+            const m = rand(60, 110);
+            const V = rand(0.05, 0.1);
+            const Ap = rand(0.55, 0.9);
+            const Cd = rand(0.9, 1.25);
+            const rho = rand(1.1, 1.3);
+            const FB = rho * V * G;
+            const Weff = m * G - FB;
+            const vt = Math.sqrt(2 * Weff / (Cd * rho * Ap));
+            const FD = Weff;
+            const P = FD * vt;
+            const vTarget = rand(25, 35);
+            const Anew = 2 * Weff / (Cd * rho * vTarget**2);
+            const rho2 = 0.6 * rho;
+            const FB2 = rho2 * V * G;
+            const Weff2 = m * G - FB2;
+            const vt2 = Math.sqrt(2 * Weff2 / (Cd * rho2 * Ap));
+            return {
+                text: `A falling body: mass $${round(m,0)}\\ \\mathrm{kg}$, volume $${round(V,3)}\\ \\mathrm{m^3}$, area $${round(Ap,2)}\\ \\mathrm{m^2}$, Cd=$${round(Cd,2)}$, air density $${round(rho,2)}\\ \\mathrm{kg/m^3}$. Find (a) terminal speed, (b) drag at terminal, (c) dissipation rate, (d) area for $${round(vTarget,0)}\\ \\mathrm{m/s}$, (e) terminal speed at 0.6× density.`,
+                answers: [
+                    { label: 'Terminal speed (m/s)', value: vt, tol: 0.04 },
+                    { label: 'Drag (N)', value: FD, tol: 0.04 },
+                    { label: 'Dissipation (W)', value: P, tol: 0.04 },
+                    { label: 'New area (m²)', value: Anew, tol: 0.04 },
+                    { label: 'Speed at 0.6ρ (m/s)', value: vt2, tol: 0.04 }
+                ],
+                solution: `$v_t=${fmt(vt)}\\ \\mathrm{m/s}$, $F_D=${fmt(FD)}\\ \\mathrm N$, $\\mathcal P=${fmt(P)}\\ \\mathrm W$<br>$A_{target}=${fmt(Anew)}\\ \\mathrm{m^2}$, $v_t'=${fmt(vt2)}\\ \\mathrm{m/s}$`
+            };
+        }
+    ];
+
+    // ---- Set 15: Diffusion RMS ----
+    const set15Gens = [
+        () => {
+            const D = rand(3e-10, 2e-9);
+            const t = rand(20, 70); // s
+            const xTarget = rand(2, 8); // mm
+            const factor = rand(1.5, 3);
+            const xrms = Math.sqrt(2 * D * t);
+            const rrms = Math.sqrt(6 * D * t);
+            const L = xTarget / 1000;
+            const tChar = L**2 / (2 * D);
+            const tNew = tChar / factor;
+            const tMin = 10 * 60;
+            const Dreq = L**2 / (2 * tMin);
+            return {
+                text: `A molecule has diffusion coefficient $${D.toExponential(3)}\\ \\mathrm{m^2/s}$. Find (a) 1-D RMS displacement after $${t}\\ \\mathrm s$ (mm), (b) 3-D RMS displacement after $${t}\\ \\mathrm s$ (mm), (c) characteristic time for 1-D RMS displacement $${xTarget}\\ \\mathrm{mm}$ (s), (d) new time if D increases by factor $${round(factor,2)}$ (s), (e) D needed for that RMS distance in 10.0 min (m²/s).`,
+                answers: [
+                    { label: '1-D RMS (mm)', value: xrms*1000, tol: 0.04 },
+                    { label: '3-D RMS (mm)', value: rrms*1000, tol: 0.04 },
+                    { label: 'Characteristic time (s)', value: tChar, tol: 0.04 },
+                    { label: 'New time (s)', value: tNew, tol: 0.04 },
+                    { label: 'D required (m²/s)', value: Dreq, tol: 0.04 }
+                ],
+                solution: `$x_{rms}=\\sqrt{2Dt}=${fmt(xrms*1000)}\\ \\mathrm{mm}$<br>$r_{rms}=\\sqrt{6Dt}=${fmt(rrms*1000)}\\ \\mathrm{mm}$<br>$t=L^2/(2D)=${fmt(tChar)}\\ \\mathrm s$<br>$t'=t/\\text{factor}=${fmt(tNew)}\\ \\mathrm s$<br>$D_{req}=L^2/(2\\times600)=${fmt(Dreq)}\\ \\mathrm{m^2/s}$`
+            };
+        },
+        () => {
+            const D = rand(4e-10, 2.5e-9);
+            const t = rand(15, 80);
+            const xTarget = rand(2, 9);
+            const factor = rand(1.4, 2.8);
+            const xrms = Math.sqrt(2 * D * t);
+            const rrms = Math.sqrt(6 * D * t);
+            const L = xTarget / 1000;
+            const tChar = L**2 / (2 * D);
+            const tNew = tChar / factor;
+            const tMin = 10 * 60;
+            const Dreq = L**2 / (2 * tMin);
+            return {
+                text: `A molecule has D=$${D.toExponential(3)}\\ \\mathrm{m^2/s}$. Find (a) 1-D RMS after $${t}\\ \\mathrm s$ (mm), (b) 3-D RMS after $${t}\\ \\mathrm s$ (mm), (c) characteristic time for $${xTarget}\\ \\mathrm{mm}$ 1-D RMS (s), (d) new time if D ×$${round(factor,2)}$ (s), (e) D needed for that distance in 10 min (m²/s).`,
+                answers: [
+                    { label: '1-D RMS (mm)', value: xrms*1000, tol: 0.04 },
+                    { label: '3-D RMS (mm)', value: rrms*1000, tol: 0.04 },
+                    { label: 'Characteristic time (s)', value: tChar, tol: 0.04 },
+                    { label: 'New time (s)', value: tNew, tol: 0.04 },
+                    { label: 'D required (m²/s)', value: Dreq, tol: 0.04 }
+                ],
+                solution: `$x_{rms}=${fmt(xrms*1000)}\\ \\mathrm{mm}$, $r_{rms}=${fmt(rrms*1000)}\\ \\mathrm{mm}$<br>$t_{char}=${fmt(tChar)}\\ \\mathrm s$, $t'=${fmt(tNew)}\\ \\mathrm s$<br>$D_{req}=${fmt(Dreq)}\\ \\mathrm{m^2/s}$`
+            };
+        }
+    ];
+
+    // ---- Set 16: Steady diffusion flux ----
+    const set16Gens = [
+        () => {
+            const D = rand(8e-10, 2.5e-9);
+            const A = rand(1.5, 4) / 10000; // m²
+            const L = rand(12, 25) * 1e-6;
+            const cUp = rand(0.3, 0.8);
+            const cDown = 0;
+            const J = D * (cUp - cDown) / L;
+            const nDot = A * J;
+            const tMin = rand(3, 6);
+            const n = nDot * tMin * 60;
+            const L2 = L / 2;
+            const D2 = D / 3;
+            const Jseries = (cUp - cDown) / (L/D + L2/D2);
+            const cInt = cUp - Jseries * L / D;
+            return {
+                text: `A planar barrier: D=$${D.toExponential(3)}\\ \\mathrm{m^2/s}$, area $${round(A*10000,1)}\\ \\mathrm{cm^2}$, thickness $${round(L*1e6,0)}\\ \\mu\\mathrm m$. Upstream concentration $${round(cUp,2)}\\ \\mathrm{mol/m^3}$, downstream zero. Find (a) flux (mol/m²/s), (b) total molar rate (mol/s), (c) amount in $${tMin}\\ \\mathrm{min}$ (mol). Add a second barrier (L/2, D/3): (d) new flux (mol/m²/s), (e) interface concentration (mol/m³).`,
+                answers: [
+                    { label: 'Flux (mol/m²/s)', value: J, tol: 0.04 },
+                    { label: 'Molar rate (mol/s)', value: nDot, tol: 0.04 },
+                    { label: 'Amount (mol)', value: n, tol: 0.04 },
+                    { label: 'New flux (mol/m²/s)', value: Jseries, tol: 0.04 },
+                    { label: 'Interface concentration (mol/m³)', value: cInt, tol: 0.04 }
+                ],
+                solution: `$J=D\\Delta c/L=${fmt(J)}\\ \\mathrm{mol\\,m^{-2}\\,s^{-1}}$<br>$\\dot n=AJ=${fmt(nDot)}\\ \\mathrm{mol/s}$<br>$n=\\dot n(${tMin}\\times60)=${fmt(n)}\\ \\mathrm{mol}$<br>$J_{series}=\\Delta c/(L/D+(L/2)/(D/3))=${fmt(Jseries)}$<br>$c_{int}=c_{up}-J_{series}L/D=${fmt(cInt)}\\ \\mathrm{mol/m^3}$`
+            };
+        },
+        () => {
+            const D = rand(1e-9, 3e-9);
+            const A = rand(2, 5) / 10000;
+            const L = rand(10, 30) * 1e-6;
+            const cUp = rand(0.4, 0.9);
+            const cDown = 0;
+            const J = D * (cUp - cDown) / L;
+            const nDot = A * J;
+            const tMin = rand(3, 7);
+            const n = nDot * tMin * 60;
+            const L2 = L / 2;
+            const D2 = D / 2;
+            const Jseries = (cUp - cDown) / (L/D + L2/D2);
+            const cInt = cUp - Jseries * L / D;
+            return {
+                text: `A barrier: D=$${D.toExponential(3)}\\ \\mathrm{m^2/s}$, area $${round(A*10000,1)}\\ \\mathrm{cm^2}$, thickness $${round(L*1e6,0)}\\ \\mu\\mathrm m$. Upstream $${round(cUp,2)}\\ \\mathrm{mol/m^3}$, downstream zero. Find (a) flux, (b) molar rate, (c) amount in $${tMin}\\ \\mathrm{min}$. Add second barrier (L/2, D/2): (d) new flux, (e) interface concentration.`,
+                answers: [
+                    { label: 'Flux (mol/m²/s)', value: J, tol: 0.04 },
+                    { label: 'Molar rate (mol/s)', value: nDot, tol: 0.04 },
+                    { label: 'Amount (mol)', value: n, tol: 0.04 },
+                    { label: 'New flux (mol/m²/s)', value: Jseries, tol: 0.04 },
+                    { label: 'Interface concentration (mol/m³)', value: cInt, tol: 0.04 }
+                ],
+                solution: `$J=${fmt(J)}$, $\\dot n=${fmt(nDot)}$, $n=${fmt(n)}$<br>$J_{series}=${fmt(Jseries)}$, $c_{int}=${fmt(cInt)}$`
+            };
+        }
+    ];
+
+    // ---- Set 17: Osmotic back-pressure ----
+    const set17Gens = [
+        () => {
+            const dPi = rand(120, 300) * 1e3; // Pa
+            const rho = rand(1000, 1030);
+            const h0 = rand(5, 14); // m
+            const dPapp = rand(180, 380) * 1e3;
+            const A = rand(15, 35) / 10000; // m²
+            const Lp = rand(1e-12, 3e-12);
+            const dPh = rho * G * h0;
+            const heq = dPi / (rho * G);
+            const dPextra = dPi - dPh;
+            const Qrev = Lp * A * (dPapp - dPi);
+            const V30 = Qrev * 30 * 60;
+            const Preverse = dPapp * Qrev;
+            return {
+                text: `Two solutions separated by a water-permeable membrane. Osmotic pressure difference $${round(dPi/1000,0)}\\ \\mathrm{kPa}$. Liquid density $${round(rho,0)}\\ \\mathrm{kg/m^3}$. Concentrated side initially $${round(h0,1)}\\ \\mathrm m$ higher. Find (a) hydrostatic opposing pressure (Pa), (b) equilibrium height difference (m), (c) additional pressure to stop osmosis at initial height (Pa). For a reverse-osmosis run at equal levels: applied pressure $${round(dPapp/1000,0)}\\ \\mathrm{kPa}$, area $${round(A*10000,1)}\\ \\mathrm{cm^2}$, permeability $${Lp.toExponential(3)}\\ \\mathrm{m/(Pa\\,s)}$. Find (d) reverse flow (m³/s), (e) volume in 30 min (m³), (f) hydraulic input power (W).`,
+                answers: [
+                    { label: 'Hydrostatic pressure (Pa)', value: dPh, tol: 0.03 },
+                    { label: 'Equilibrium height (m)', value: heq, tol: 0.03 },
+                    { label: 'Additional pressure (Pa)', value: dPextra, tol: 0.03 },
+                    { label: 'Reverse flow (m³/s)', value: Qrev, tol: 0.04 },
+                    { label: 'Volume in 30 min (m³)', value: V30, tol: 0.04 },
+                    { label: 'Hydraulic power (W)', value: Preverse, tol: 0.04 }
+                ],
+                solution: `$\\Delta P_h=\\rho g h_0=${fmt(dPh)}\\ \\mathrm{Pa}$<br>$h_{eq}=\\Delta\\Pi/(\\rho g)=${fmt(heq)}\\ \\mathrm m$<br>$\\Delta P_{extra}=\\Delta\\Pi-\\Delta P_h=${fmt(dPextra)}\\ \\mathrm{Pa}$<br>$Q_{rev}=L_pA(\\Delta P-\\Delta\\Pi)=${fmt(Qrev)}\\ \\mathrm{m^3/s}$<br>$V=Q_{rev}(30\\times60)=${fmt(V30)}\\ \\mathrm{m^3}$<br>$\\mathcal P=\\Delta P Q_{rev}=${fmt(Preverse)}\\ \\mathrm W$`
+            };
+        },
+        () => {
+            const dPi = rand(150, 280) * 1e3;
+            const rho = rand(1000, 1040);
+            const h0 = rand(6, 12);
+            const dPapp = rand(200, 350) * 1e3;
+            const A = rand(18, 32) / 10000;
+            const Lp = rand(1.2e-12, 2.8e-12);
+            const dPh = rho * G * h0;
+            const heq = dPi / (rho * G);
+            const dPextra = dPi - dPh;
+            const Qrev = Lp * A * (dPapp - dPi);
+            const V30 = Qrev * 30 * 60;
+            const Preverse = dPapp * Qrev;
+            return {
+                text: `Osmotic pressure difference $${round(dPi/1000,0)}\\ \\mathrm{kPa}$, density $${round(rho,0)}\\ \\mathrm{kg/m^3}$, initial height difference $${round(h0,1)}\\ \\mathrm m$. Find (a) hydrostatic pressure, (b) equilibrium height, (c) additional pressure to stop osmosis. Reverse osmosis: $\\Delta P=${round(dPapp/1000,0)}\\ \\mathrm{kPa}$, area $${round(A*10000,1)}\\ \\mathrm{cm^2}$, $L_p=${Lp.toExponential(3)}$. Find (d) reverse flow, (e) volume in 30 min, (f) input power.`,
+                answers: [
+                    { label: 'Hydrostatic pressure (Pa)', value: dPh, tol: 0.03 },
+                    { label: 'Equilibrium height (m)', value: heq, tol: 0.03 },
+                    { label: 'Additional pressure (Pa)', value: dPextra, tol: 0.03 },
+                    { label: 'Reverse flow (m³/s)', value: Qrev, tol: 0.04 },
+                    { label: 'Volume in 30 min (m³)', value: V30, tol: 0.04 },
+                    { label: 'Hydraulic power (W)', value: Preverse, tol: 0.04 }
+                ],
+                solution: `$\\Delta P_h=${fmt(dPh)}\\ \\mathrm{Pa}$, $h_{eq}=${fmt(heq)}\\ \\mathrm m$, $\\Delta P_{extra}=${fmt(dPextra)}\\ \\mathrm{Pa}$<br>$Q_{rev}=${fmt(Qrev)}\\ \\mathrm{m^3/s}$, $V=${fmt(V30)}\\ \\mathrm{m^3}$, $\\mathcal P=${fmt(Preverse)}\\ \\mathrm W$`
+            };
+        }
+    ];
+
+    // ---- Set 18: Integrated infusion ----
+    const set18Gens = [
+        () => {
+            const a = rand(0.10, 0.22) / 1000; // m
+            const L = rand(0.015, 0.04); // m
+            const QmL = rand(0.5, 2.5); // mL/min
+            const rho = rand(1000, 1030);
+            const eta = rand(0.8, 1.3) / 1000;
+            const Pvein = rand(6, 14) * MMHG; // Pa
+            const Q = QmL * 1e-6 / 60;
+            const Rf = 8 * eta * L / (Math.PI * a**4);
+            const dPn = Rf * Q;
+            const Pin = Pvein + dPn;
+            const h = Pin / (rho * G);
+            const vbar = Q / (Math.PI * a**2);
+            const Re = 2 * rho * vbar * a / eta;
+            const dh = 0.100;
+            const hNew = h - dh;
+            const dPNew = rho * G * hNew - Pvein;
+            const Qnew = dPNew / Rf;
+            const h0 = Pvein / (rho * G);
+            return {
+                text: `A collapsible infusion bag delivers solution through a needle of radius $${round(a*1000,3)}\\ \\mathrm{mm}$, length $${round(L*100,2)}\\ \\mathrm{cm}$, at $${round(QmL,2)}\\ \\mathrm{mL/min}$. Density $${round(rho,0)}\\ \\mathrm{kg/m^3}$, viscosity $${round(eta*1000,2)}\\ \\mathrm{mPa\\,s}$, vein gauge pressure $${round(Pvein/MMHG,1)}\\ \\mathrm{mmHg}$. Find (a) bag height above entry (m), (b) mean needle speed (m/s), (c) Reynolds number. Lower surface by 0.100 m: (d) new signed flow (mL/min), (e) direction (1=forward,0=reverse), (f) zero-flow height (m).`,
+                answers: [
+                    { label: 'Bag height (m)', value: h, tol: 0.04 },
+                    { label: 'Mean speed (m/s)', value: vbar, tol: 0.03 },
+                    { label: 'Reynolds number', value: Re, tol: 0.04 },
+                    { label: 'New flow (mL/min)', value: Qnew*1e6*60, tol: 0.05 },
+                    { label: 'Direction (1=fwd,0=rev)', value: Qnew > 0 ? 1 : 0, tol: 0 },
+                    { label: 'Zero-flow height (m)', value: h0, tol: 0.04 }
+                ],
+                solution: `$R_f=8\\eta L/(\\pi a^4)=${fmt(Rf)}\\ \\mathrm{Pa\\,s/m^3}$<br>$\\Delta P_n=R_fQ=${fmt(dPn)}\\ \\mathrm{Pa}$<br>$P_{in}=P_{vein}+\\Delta P_n=${fmt(Pin)}\\ \\mathrm{Pa}$<br>$h=P_{in}/(\\rho g)=${fmt(h)}\\ \\mathrm m$<br>$\\bar v=Q/(\\pi a^2)=${fmt(vbar)}\\ \\mathrm{m/s}$, $\\mathrm{Re}=2\\rho\\bar va/\\eta=${fmt(Re)}$<br>$h'=h-0.100=${fmt(hNew)}\\ \\mathrm m$, $\\Delta P'=\\rho gh'-P_{vein}=${fmt(dPNew)}\\ \\mathrm{Pa}$<br>$Q'=\\Delta P'/R_f=${fmt(Qnew*1e6*60)}\\ \\mathrm{mL/min}$<br>$h_0=P_{vein}/(\\rho g)=${fmt(h0)}\\ \\mathrm m$`
+            };
+        },
+        () => {
+            const a = rand(0.12, 0.25) / 1000;
+            const L = rand(0.02, 0.045);
+            const QmL = rand(0.6, 3.0);
+            const rho = rand(1000, 1030);
+            const eta = rand(0.9, 1.4) / 1000;
+            const Pvein = rand(7, 15) * MMHG;
+            const Q = QmL * 1e-6 / 60;
+            const Rf = 8 * eta * L / (Math.PI * a**4);
+            const dPn = Rf * Q;
+            const Pin = Pvein + dPn;
+            const h = Pin / (rho * G);
+            const vbar = Q / (Math.PI * a**2);
+            const Re = 2 * rho * vbar * a / eta;
+            const dh = 0.100;
+            const hNew = h - dh;
+            const dPNew = rho * G * hNew - Pvein;
+            const Qnew = dPNew / Rf;
+            const h0 = Pvein / (rho * G);
+            return {
+                text: `Infusion bag through needle: radius $${round(a*1000,3)}\\ \\mathrm{mm}$, length $${round(L*100,2)}\\ \\mathrm{cm}$, flow $${round(QmL,2)}\\ \\mathrm{mL/min}$. $\\rho=${round(rho,0)}$, $\\eta=${round(eta*1000,2)}\\ \\mathrm{mPa\\,s}$, vein gauge $${round(Pvein/MMHG,1)}\\ \\mathrm{mmHg}$. Find (a) bag height, (b) mean speed, (c) Re. Lower surface by 0.100 m: (d) new flow (mL/min), (e) direction (1=fwd,0=rev), (f) zero-flow height.`,
+                answers: [
+                    { label: 'Bag height (m)', value: h, tol: 0.04 },
+                    { label: 'Mean speed (m/s)', value: vbar, tol: 0.03 },
+                    { label: 'Reynolds number', value: Re, tol: 0.04 },
+                    { label: 'New flow (mL/min)', value: Qnew*1e6*60, tol: 0.05 },
+                    { label: 'Direction (1=fwd,0=rev)', value: Qnew > 0 ? 1 : 0, tol: 0 },
+                    { label: 'Zero-flow height (m)', value: h0, tol: 0.04 }
+                ],
+                solution: `$R_f=${fmt(Rf)}$, $\\Delta P_n=${fmt(dPn)}\\ \\mathrm{Pa}$<br>$P_{in}=${fmt(Pin)}\\ \\mathrm{Pa}$, $h=${fmt(h)}\\ \\mathrm m$<br>$\\bar v=${fmt(vbar)}\\ \\mathrm{m/s}$, $\\mathrm{Re}=${fmt(Re)}$<br>$h'=${fmt(hNew)}\\ \\mathrm m$, $\\Delta P'=${fmt(dPNew)}\\ \\mathrm{Pa}$<br>$Q'=${fmt(Qnew*1e6*60)}\\ \\mathrm{mL/min}$, $h_0=${fmt(h0)}\\ \\mathrm m$`
+            };
+        }
+    ];
+
+    // ==================== SET DEFINITIONS ====================
+    const SETS = [
+        { id: 1, name: 'Flow rate', gens: set01Gens },
+        { id: 2, name: 'Nozzle', gens: set02Gens },
+        { id: 3, name: 'Branch flow', gens: set03Gens },
+        { id: 4, name: 'Bernoulli', gens: set04Gens },
+        { id: 5, name: 'Pitot', gens: set05Gens },
+        { id: 6, name: 'Torricelli', gens: set06Gens },
+        { id: 7, name: 'Pump', gens: set07Gens },
+        { id: 8, name: 'Plate shear', gens: set08Gens },
+        { id: 9, name: 'Poiseuille', gens: set09Gens },
+        { id: 10, name: 'Radius sensitivity', gens: set10Gens },
+        { id: 11, name: 'Networks', gens: set11Gens },
+        { id: 12, name: 'Reynolds design', gens: set12Gens },
+        { id: 13, name: 'Stokes', gens: set13Gens },
+        { id: 14, name: 'Quadratic drag', gens: set14Gens },
+        { id: 15, name: 'Diffusion', gens: set15Gens },
+        { id: 16, name: 'Membrane flux', gens: set16Gens },
+        { id: 17, name: 'Osmosis', gens: set17Gens },
+        { id: 18, name: 'Infusion', gens: set18Gens }
+    ];
+
+    // ==================== APP STATE ====================
+    let currentSet = 'mix';
+    let gameMode = null;
+    let gameQuestions = [];
+    let gameIndex = 0;
+    let gameScore = 0;
+    let gameActive = false;
+    let answered = false;
+    let lastScore = null;
+    let highScore = 0;
+    let streak = 0;
+    let problem = null;
+
+    // ==================== PERSISTENCE ====================
+    function loadStats() {
+        try {
+            const s = localStorage.getItem('fluidDynStats');
+            if (s) {
+                const o = JSON.parse(s);
+                highScore = o.highScore ?? 0;
+                lastScore = o.lastScore ?? null;
+                streak = o.streak ?? 0;
+            }
+        } catch (e) {}
+    }
+    function saveStats() {
+        try {
+            localStorage.setItem('fluidDynStats', JSON.stringify({ highScore, lastScore, streak }));
+        } catch (e) {}
+    }
+
+    // ==================== UI ELEMENTS ====================
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const lastScoreDisplay = document.getElementById('lastScoreDisplay');
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
+    const streakDisplay = document.getElementById('streakDisplay');
+    const progressFill = document.getElementById('progressFill');
+    const problemContainer = document.getElementById('problemContainer');
+    const formulaRef = document.getElementById('formulaRef');
+    const themeToggle = document.getElementById('themeToggle');
+    const resetBtn = document.getElementById('resetBtn');
+    const formulaBtn = document.getElementById('formulaBtn');
+    const setButtonsContainer = document.getElementById('setButtons');
+    const game5Btn = document.getElementById('game5Btn');
+    const game10Btn = document.getElementById('game10Btn');
+    const game15Btn = document.getElementById('game15Btn');
+
+    // ==================== UI UPDATES ====================
+    function updateStatsUI() {
+        scoreDisplay.textContent = gameScore;
+        lastScoreDisplay.textContent = lastScore !== null ? lastScore : '—';
+        highScoreDisplay.textContent = highScore;
+        streakDisplay.textContent = streak;
+    }
+
+    function setActiveButton() {
+        document.querySelectorAll('#setButtons .btn').forEach(b => {
+            b.classList.toggle('active', currentSet === b.dataset.set && !gameActive);
+        });
+        game5Btn.classList.toggle('active', gameActive && gameMode === 5);
+        game10Btn.classList.toggle('active', gameActive && gameMode === 10);
+        game15Btn.classList.toggle('active', gameActive && gameMode === 15);
+    }
+
+    function updateProgress() {
+        if (!gameActive) { progressFill.style.width = '0%'; return; }
+        const total = gameQuestions.length;
+        const pct = total ? (gameIndex / total) * 100 : 0;
+        progressFill.style.width = pct + '%';
+    }
+
+    // ==================== GENERATION ====================
+    function generateGame(n) {
+        gameActive = true;
+        gameMode = n;
+        gameQuestions = [];
+        gameIndex = 0;
+        gameScore = 0;
+        const pool = [];
+        SETS.forEach(s => {
+            s.gens.forEach((_, gi) => pool.push({ setId: s.id, genIdx: gi }));
+        });
+        shuffle(pool);
+        const chosen = pool.slice(0, Math.min(n, pool.length));
+        gameQuestions = chosen.map(c => {
+            const s = SETS.find(x => x.id === c.setId);
+            return { setId: c.setId, genIdx: c.genIdx, instance: s.gens[c.genIdx]() };
+        });
+        answered = false;
+        updateStatsUI();
+        setActiveButton();
+        updateProgress();
+        showProblem();
+    }
+
+    function generateSingle() {
+        gameActive = false;
+        gameMode = null;
+        gameQuestions = [];
+        gameIndex = 0;
+        gameScore = 0;
+        answered = false;
+        if (currentSet === 'mix') {
+            const s = SETS[randInt(0, SETS.length - 1)];
+            const gi = randInt(0, s.gens.length - 1);
+            problem = { setId: s.id, genIdx: gi, instance: s.gens[gi]() };
+        } else {
+            const s = SETS.find(x => x.id === currentSet);
+            const gi = randInt(0, s.gens.length - 1);
+            problem = { setId: s.id, genIdx: gi, instance: s.gens[gi]() };
+        }
+        updateStatsUI();
+        setActiveButton();
+        updateProgress();
+        renderProblem(problem.instance);
+    }
+
+    function showProblem() {
+        if (!gameActive) { generateSingle(); return; }
+        if (gameIndex >= gameQuestions.length) {
+            lastScore = gameScore;
+            if (gameScore > highScore) highScore = gameScore;
+            saveStats();
+            updateStatsUI();
+            problemContainer.innerHTML = `
+                <div class="card" style="text-align:center;">
+                    <h2>🏁 Game Over</h2>
+                    <p style="font-size:1.2rem;margin:12px 0;">Score: <strong>${gameScore}/${gameQuestions.length}</strong></p>
+                    <p style="color:var(--subtext);">High score: ${highScore}</p>
+                    <button class="btn btn-primary" style="margin-top:16px;" onclick="resetAll()">Play Again</button>
+                </div>
+            `;
+            gameActive = false;
+            setActiveButton();
+            updateProgress();
+            return;
+        }
+        answered = false;
+        const q = gameQuestions[gameIndex];
+        renderProblem(q.instance);
+        updateProgress();
+    }
+
+    // ==================== RENDERING ====================
+    function renderProblem(inst) {
+        problemContainer.innerHTML = '';
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const textDiv = document.createElement('div');
+        textDiv.className = 'problem-text';
+        textDiv.innerHTML = inst.text;
+        card.appendChild(textDiv);
+
+        if (gameActive) {
+            const badge = document.createElement('span');
+            badge.className = 'game-badge';
+            badge.textContent = `Q ${gameIndex+1}/${gameQuestions.length}`;
+            card.insertBefore(badge, textDiv);
+        }
+
+        const ansDiv = document.createElement('div');
+        ansDiv.className = 'answer-area';
+        inst.answers.forEach((a, i) => {
+            const row = document.createElement('div');
+            row.className = 'answer-row';
+            const label = document.createElement('label');
+            label.textContent = a.label;
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.step = 'any';
+            input.placeholder = 'Enter value';
+            input.id = 'ans' + i;
+            row.appendChild(label);
+            row.appendChild(input);
+            ansDiv.appendChild(row);
+        });
+        card.appendChild(ansDiv);
+
+        const btnRow = document.createElement('div');
+        btnRow.style.display = 'flex';
+        btnRow.style.gap = '8px';
+        btnRow.style.marginTop = '12px';
+        btnRow.style.flexWrap = 'wrap';
+
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'btn btn-primary';
+        submitBtn.textContent = 'Submit';
+        submitBtn.id = 'submitBtn';
+        submitBtn.onclick = () => submitAnswer(inst);
+
+        const showSolBtn = document.createElement('button');
+        showSolBtn.className = 'btn';
+        showSolBtn.textContent = 'Show Solution';
+        showSolBtn.id = 'showSolBtn';
+        showSolBtn.disabled = true;
+        showSolBtn.onclick = () => {
+            document.getElementById('solutionBox').classList.add('show');
+            showSolBtn.disabled = true;
+        };
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'btn';
+        nextBtn.textContent = gameActive ? 'Next ▶' : 'New Problem';
+        nextBtn.id = 'nextBtn';
+        nextBtn.style.display = 'none';
+        nextBtn.onclick = () => {
+            if (gameActive) { gameIndex++; showProblem(); }
+            else { generateSingle(); }
+        };
+
+        btnRow.appendChild(submitBtn);
+        btnRow.appendChild(showSolBtn);
+        btnRow.appendChild(nextBtn);
+        card.appendChild(btnRow);
+
+        const feedback = document.createElement('div');
+        feedback.id = 'feedback';
+        feedback.className = 'feedback';
+        card.appendChild(feedback);
+
+        const solDiv = document.createElement('div');
+        solDiv.id = 'solutionBox';
+        solDiv.className = 'solution';
+        solDiv.innerHTML = '<h4>Worked Solution</h4>' + inst.solution;
+        card.appendChild(solDiv);
+
+        problemContainer.appendChild(card);
+        typeset(card);
+    }
+
+    function submitAnswer(inst) {
+        if (answered) return;
+        const inputs = inst.answers.map((_, i) => document.getElementById('ans' + i));
+        const vals = inputs.map(inp => inp.value.trim() === '' ? NaN : parseFloat(inp.value));
+        if (vals.some(v => isNaN(v))) {
+            document.getElementById('feedback').textContent = '⚠️ Please fill in all fields.';
+            document.getElementById('feedback').className = 'feedback incorrect';
+            return;
+        }
+        answered = true;
+        let correct = 0;
+        inst.answers.forEach((a, i) => {
+            const tol = Math.abs(a.value) * (a.tol || 0.03) + 1e-15;
+            const diff = Math.abs(vals[i] - a.value);
+            if (diff <= tol) correct++;
+        });
+        const allCorrect = correct === inst.answers.length;
+        const fb = document.getElementById('feedback');
+        if (allCorrect) {
+            fb.textContent = '✅ All correct!';
+            fb.className = 'feedback correct';
+            gameScore++;
+            streak++;
+            if (!gameActive) { lastScore = 1; if (1 > highScore) highScore = 1; }
+        } else {
+            fb.textContent = `❌ ${correct}/${inst.answers.length} correct. Check solution.`;
+            fb.className = 'feedback incorrect';
+            streak = 0;
+            if (!gameActive) { lastScore = 0; }
+        }
+        inputs.forEach(inp => inp.disabled = true);
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('showSolBtn').disabled = false;
+        document.getElementById('nextBtn').style.display = 'inline-flex';
+        updateStatsUI();
+        saveStats();
+    }
+
+    // ==================== PUBLIC ====================
+    window.resetAll = function() {
+        gameActive = false;
+        gameMode = null;
+        gameQuestions = [];
+        gameIndex = 0;
+        gameScore = 0;
+        currentSet = 'mix';
+        streak = 0;
+        updateStatsUI();
+        setActiveButton();
+        formulaRef.classList.remove('show');
+        generateSingle();
+    };
+
+    // ==================== EVENT LISTENERS ====================
+    function buildSetButtons() {
+        setButtonsContainer.innerHTML = '';
+        const mixBtn = document.createElement('button');
+        mixBtn.className = 'btn active';
+        mixBtn.dataset.set = 'mix';
+        mixBtn.textContent = '🎲 All';
+        mixBtn.onclick = () => { currentSet = 'mix'; gameActive = false; gameMode = null; streak = 0; updateStatsUI(); setActiveButton(); generateSingle(); };
+        setButtonsContainer.appendChild(mixBtn);
+        SETS.forEach(s => {
+            const b = document.createElement('button');
+            b.className = 'btn';
+            b.dataset.set = s.id;
+            b.textContent = s.name;
+            b.onclick = () => { currentSet = s.id; gameActive = false; gameMode = null; streak = 0; updateStatsUI(); setActiveButton(); generateSingle(); };
+            setButtonsContainer.appendChild(b);
+        });
+    }
+
+    game5Btn.onclick = () => generateGame(5);
+    game10Btn.onclick = () => generateGame(10);
+    game15Btn.onclick = () => generateGame(15);
+    resetBtn.onclick = () => resetAll();
+    formulaBtn.onclick = () => formulaRef.classList.toggle('show');
+
+    themeToggle.onclick = () => {
+        document.body.classList.toggle('light');
+        const isLight = document.body.classList.contains('light');
+        themeToggle.textContent = isLight ? '☀️ Light' : '🌙 Dark';
+        localStorage.setItem('fluidDynTheme', isLight ? 'light' : 'dark');
+    };
+    if (localStorage.getItem('fluidDynTheme') === 'light') {
+        document.body.classList.add('light');
+        themeToggle.textContent = '☀️ Light';
+    }
+
+    // Calculator
+    document.getElementById('fab').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="8" y="5.5" width="8" height="4" rx="1"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/></svg>';
+    let lastInput = null;
+    document.addEventListener('focusin', (e) => {
+        if (e.target && e.target.tagName === 'INPUT' && /^ans\d+$/.test(e.target.id)) lastInput = e.target;
+    });
+/* ---------- expression engine (no eval) ---------- */
+function tokenize(s) {
+  const out = []; let i = 0;
+  while (i < s.length) {
+    const rest = s.slice(i); let m;
+    if (/^\s/.test(rest)) { i++; continue; }
+    if ((m = /^(\d+\.?\d*|\.\d+)(E[+-]?\d+)?/.exec(rest))) { out.push({ t: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue; }
+    if ((m = /^(asin|acos|atan|sin|cos|tan|ln|log|sqrt|pi|ans|e)/.exec(rest))) {
+      const w = m[1]; out.push({ t: (w === 'pi' || w === 'e' || w === 'ans') ? 'const' : 'fn', v: w }); i += w.length; continue;
+    }
+    if ('+-*/^()'.includes(rest[0])) { out.push({ t: 'op', v: rest[0] }); i++; continue; }
+    throw new Error('Syntax error');
+  }
+  return out;
+}
+function evaluate(str, opts) {
+  const tk = tokenize(str); let p = 0;
+  const peek = () => tk[p], nxt = () => tk[p++];
+  const isOp = (t, v) => t && t.t === 'op' && t.v === v;
+  const starts = (t) => t && (t.t === 'num' || t.t === 'const' || t.t === 'fn' || isOp(t, '('));
+  const toRad = (x) => (opts.deg ? x * Math.PI / 180 : x);
+  const fromRad = (x) => (opts.deg ? x * 180 / Math.PI : x);
+  const F = {
+    sin: (x) => Math.sin(toRad(x)), cos: (x) => Math.cos(toRad(x)), tan: (x) => Math.tan(toRad(x)),
+    asin: (x) => fromRad(Math.asin(x)), acos: (x) => fromRad(Math.acos(x)), atan: (x) => fromRad(Math.atan(x)),
+    ln: Math.log, log: Math.log10, sqrt: Math.sqrt,
+  };
+  function expr() {
+    let v = term();
+    while (isOp(peek(), '+') || isOp(peek(), '-')) { const o = nxt().v; const r = term(); v = o === '+' ? v + r : v - r; }
+    return v;
+  }
+  function term() {
+    let v = unary();
+    for (;;) {
+      const t = peek();
+      if (isOp(t, '*') || isOp(t, '/')) { nxt(); const r = unary(); v = t.v === '*' ? v * r : v / r; }
+      else if (starts(t)) v *= unary();
+      else return v;
+    }
+  }
+  function unary() {
+    if (isOp(peek(), '-')) { nxt(); return -unary(); }
+    if (isOp(peek(), '+')) { nxt(); return unary(); }
+    return power();
+  }
+  function power() {
+    const b = primary();
+    if (isOp(peek(), '^')) { nxt(); return Math.pow(b, unary()); }
+    return b;
+  }
+  function primary() {
+    const t = nxt();
+    if (!t) throw new Error('Incomplete');
+    if (t.t === 'num') return t.v;
+    if (t.t === 'const') return t.v === 'pi' ? Math.PI : t.v === 'e' ? Math.E : opts.ans;
+    if (t.t === 'fn') {
+      if (!isOp(peek(), '(')) throw new Error('Use ( after ' + t.v);
+      nxt(); const a = expr(); if (isOp(peek(), ')')) nxt();
+      return F[t.v](a);
+    }
+    if (isOp(t, '(')) { const v = expr(); if (isOp(peek(), ')')) nxt(); return v; }
+    throw new Error('Syntax error');
+  }
+  const v = expr();
+  if (p < tk.length) throw new Error('Syntax error');
+  if (!isFinite(v)) throw new Error('Math error');
+  return v;
+}
+function calcFmt(x) {
+  if (x === 0) return '0';
+  const a = Math.abs(x);
+  if (a >= 1e10 || a < 1e-6) return x.toExponential(6).replace(/\.?0+e/, 'e').replace('e+', 'e');
+  return String(Number(x.toPrecision(10)));
+}
+const pretty = (s) => s.replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−').replace(/pi/g, 'π').replace(/sqrt\(/g, '√(').replace(/asin\(/g, 'sin⁻¹(').replace(/acos\(/g, 'cos⁻¹(').replace(/atan\(/g, 'tan⁻¹(');
+
+/* ---------- UI ---------- */
+window.initCalculator = function (getLastInput) {
+  const st = { expr: '', deg: true, inv: false, ans: 0, done: false, err: '' };
+  const panel = document.getElementById('calc'), fab = document.getElementById('fab');
+  const K = (label, act, cls, extra) => ({ label, act, cls: cls || '', extra: extra || '' });
+  const rows = () => [
+    [K('2nd', 'inv', st.inv ? 'on fn' : 'fn'), K(st.deg ? 'DEG' : 'RAD', 'deg', 'fn'), K('(', '('), K(')', ')'), K('⌫', 'back', 'clr')],
+    [K(st.inv ? 'sin⁻¹' : 'sin', st.inv ? 'asin(' : 'sin(', 'fn'), K(st.inv ? 'cos⁻¹' : 'cos', st.inv ? 'acos(' : 'cos(', 'fn'), K(st.inv ? 'tan⁻¹' : 'tan', st.inv ? 'atan(' : 'tan(', 'fn'), K(st.inv ? 'eˣ' : 'ln', st.inv ? 'e^(' : 'ln(', 'fn'), K(st.inv ? '10ˣ' : 'log', st.inv ? '10^(' : 'log(', 'fn')],
+    [K('√', 'sqrt(', 'fn'), K('x²', '^2', 'fn'), K('xʸ', '^', 'fn'), K('π', 'pi', 'fn'), K('e', 'e', 'fn')],
+    [K('7', '7'), K('8', '8'), K('9', '9'), K('÷', '/', 'op'), K('C', 'clear', 'clr')],
+    [K('4', '4'), K('5', '5'), K('6', '6'), K('×', '*', 'op'), K('Ans', 'ans', 'fn')],
+    [K('1', '1'), K('2', '2'), K('3', '3'), K('−', '-', 'op'), K('EE', 'E', 'fn')],
+    [K('0', '0'), K('.', '.'), K('+', '+', 'op'), K('=', '=', 'eq', 'grid-column:span 2')],
+  ];
+  panel.innerHTML = `
+    <div class="calc-head" id="calcHead"><span class="grip"><span class="dots" aria-hidden="true">⠿</span>Calculator</span>
+      <button type="button" id="calcClose" aria-label="Close calculator">&times;</button></div>
+    <div class="disp"><div class="expr"><span id="cExpr"></span></div><div class="res" id="cRes">0</div>
+      <div class="meta"><span id="cMode"></span><span>drag the header to move</span></div></div>
+    <div class="keys" id="cKeys"></div>
+    <div class="calc-foot"><button type="button" class="btn teal" id="cUse">Use result in answer box</button></div>`;
+  const $ = (s) => panel.querySelector(s);
+
+  function preview() {
+    if (!st.expr.trim()) return { txt: '' };
+    try { return { txt: calcFmt(evaluate(st.expr, st)) }; } catch (e) { return { txt: '' }; }
+  }
+  function paint() {
+    const keys = $('#cKeys'), flat = rows().flat();
+    keys.innerHTML = flat.map((k, i) => `<button type="button" data-i="${i}" class="${k.cls}" style="${k.extra}">${k.label}</button>`).join('');
+    keys.onclick = (e) => { const b = e.target.closest('button'); if (b) press(flat[Number(b.dataset.i)].act); };
+    keys.onmousedown = (e) => e.preventDefault();
+    $('#cExpr').textContent = st.done ? pretty(st.shown) + ' =' : pretty(st.expr);
+    const r = $('#cRes');
+    if (st.err) r.textContent = st.err;
+    else if (st.done && !st.expr) r.textContent = calcFmt(st.ans);
+    else r.textContent = preview().txt || '0';
+    r.classList.toggle('err', !!st.err);
+    $('#cMode').textContent = (st.deg ? 'degrees' : 'radians') + (st.ans ? '   ans = ' + calcFmt(st.ans) : '');
+  }
+  function append(s) {
+    if (st.done) {
+      st.done = false;
+      st.expr = (/^[+\-*/^]/.test(s) ? 'ans' : '') + s;   // operators continue from the last answer
+      return;
+    }
+    st.expr += s;
+  }
+  function press(a) {
+    st.err = '';
+    if (a === 'inv') st.inv = !st.inv;
+    else if (a === 'deg') st.deg = !st.deg;
+    else if (a === 'clear') { st.expr = ''; st.done = false; }
+    else if (a === 'back') {
+      if (st.done) { st.done = false; st.expr = ''; }
+      else st.expr = st.expr.replace(/(asin\(|acos\(|atan\(|sqrt\(|sin\(|cos\(|tan\(|log\(|ln\(|ans|pi|.)$/, '');
+    } else if (a === '=') {
+      if (st.expr.trim()) {
+        try { st.ans = evaluate(st.expr, st); st.shown = st.expr; st.expr = ''; st.done = true; }
+        catch (e) { st.err = e.message; }
+      }
+    } else append(a);
+    paint();
+  }
+
+  /* open/close */
+  function setOpen(o) {
+    panel.hidden = !o; fab.setAttribute('aria-expanded', String(o));
+    fab.setAttribute('aria-label', o ? 'Close calculator' : 'Open calculator');
+    if (o) paint();
+  }
+  fab.onclick = () => setOpen(panel.hidden);
+  $('#calcClose').onclick = () => setOpen(false);
+  fab.setAttribute('aria-controls', 'calc'); setOpen(false);
+
+  /* insert result into the last-focused answer box */
+  $('#cUse').onclick = () => {
+    const inp = getLastInput && getLastInput();
+    let v = st.done ? st.ans : (() => { try { return evaluate(st.expr || '0', st); } catch (e) { return NaN; } })();
+    if (!isFinite(v) || !inp || !document.contains(inp) || inp.disabled) {
+      $('#cUse').textContent = inp && !inp.disabled ? 'Nothing to insert yet' : 'Tap an answer box first';
+      setTimeout(() => { $('#cUse').textContent = 'Use result in answer box'; }, 1400); return;
+    }
+    inp.value = String(Number(v.toPrecision(6)));
+    $('#cUse').textContent = 'Inserted';
+    setTimeout(() => { $('#cUse').textContent = 'Use result in answer box'; }, 1000);
+  };
+
+  /* keyboard (only when focus is not in a form field) */
+  document.addEventListener('keydown', (e) => {
+    if (panel.hidden || /^(INPUT|SELECT|TEXTAREA)$/.test((e.target.tagName || ''))) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key;
+    if (/^[0-9.]$/.test(k) || '+-*/^()'.includes(k)) { press(k); e.preventDefault(); }
+    else if (k === 'Enter' || k === '=') { press('='); e.preventDefault(); }
+    else if (k === 'Backspace') { press('back'); e.preventDefault(); }
+    else if (k === 'Escape') { setOpen(false); }
+    else if (k === 'p') press('pi'); else if (k === 'e') press('e');
+  });
+
+  /* drag by header (mouse, touch, pen) */
+  const head = $('#calcHead'); let drag = null;
+  head.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return;
+    const r = panel.getBoundingClientRect();
+    drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+    panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px'; panel.style.right = 'auto'; panel.style.bottom = 'auto';
+    head.setPointerCapture(e.pointerId);
+  });
+  head.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const x = Math.min(Math.max(4, e.clientX - drag.dx), window.innerWidth - w - 4);
+    const y = Math.min(Math.max(4, e.clientY - drag.dy), window.innerHeight - h - 4);
+    panel.style.left = x + 'px'; panel.style.top = y + 'px';
+  });
+  const end = () => { drag = null; };
+  head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
+  window.addEventListener('resize', () => {
+    if (panel.style.left) {
+      const r = panel.getBoundingClientRect();
+      panel.style.left = Math.min(Math.max(4, r.left), Math.max(4, window.innerWidth - r.width - 4)) + 'px';
+      panel.style.top = Math.min(Math.max(4, r.top), Math.max(4, window.innerHeight - r.height - 4)) + 'px';
+    }
+  });
+};
+
+    window.initCalculator(() => lastInput);
+
+    // ==================== INIT ====================
+    loadStats();
+    buildSetButtons();
+    updateStatsUI();
+    setActiveButton();
+    generateSingle();
+</script>
+</body>
+</html>
