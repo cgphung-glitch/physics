@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)http://127.0.0.1:4176/physics/atwood-machine.html -->
-<html lang="en" data-theme="dark" style="--tb: 57px;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!-- saved from url=(0105)file:///C:/Users/cphung/OneDrive%20-%20methodistu/Documents/GitHub/mu-chemtools/atwood-machine/index.html -->
+<html lang="en" data-theme="light" style="--tb: 57px;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#06110d">
+<meta name="theme-color" content="#005A36">
 <meta name="description" content="Atwood's machine: two masses over a pulley, timed with a photogate. Fit velocity vs time to get the acceleration, then relate it to the mass difference and the total mass.">
 <title>Atwood's Machine Lab · Photogate</title>
 <script>
@@ -117,7 +117,7 @@
 
   /* ---------- layout ---------- */
   main {
-    max-width: 1040px; margin: 0 auto; padding: 12px;
+    margin: 0 auto; padding: 12px;
     padding-bottom: calc(28px + env(safe-area-inset-bottom));
     display: flex; flex-direction: column; gap: 12px;
   }
@@ -378,6 +378,22 @@
     .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
     .slider { height: 30px; }
   }
+  /* ---------- desktop: rig left, controls right, full window width ---------- */
+  @media (min-width: 900px) {
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      align-items: start;
+    }
+    .stage { grid-column: 1; grid-row: 1; position: static; }
+    main > .card, main > footer.foot { grid-column: 1 / -1; }
+    main > .card.proc { grid-column: 1; grid-row: 2; }
+    main > .cols {
+      grid-column: 2; grid-row: 1 / span 2;
+      display: grid; grid-template-columns: 1fr; gap: 14px;
+    }
+    svg#board { width: min(100%, calc((100dvh - 250px) * 1.25)); max-height: none; margin: 0 auto; }
+  }
   @media (prefers-reduced-motion: reduce) {
     .switch::after { transition: none; }
     .toast { transition: none; }
@@ -399,7 +415,7 @@
     </div>
   </div>
   <div class="top-actions">
-    <button id="themeBtn" class="icon-btn" type="button" title="Switch to light theme" aria-label="Switch theme" fdprocessedid="uepac">
+    <button id="themeBtn" class="icon-btn" type="button" title="Switch to dark theme" aria-label="Switch theme">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
         <circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"></path>
       </svg>
@@ -413,14 +429,14 @@
     <svg id="board" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Two masses hanging from a string over a pulley, with a photogate on the pulley, a ruler showing the descent, and the floor below"><defs><marker id="mTens" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-tens"><path d="M0 0 L10 5 L0 10 z"></path></marker><marker id="mWt" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-wt"><path d="M0 0 L10 5 L0 10 z"></path></marker><marker id="mMot" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-mot"><path d="M0 0 L10 5 L0 10 z"></path></marker></defs><line x1="40" y1="760" x2="990" y2="760" class="floor"></line><line x1="60" y1="762" x2="44" y2="784" class="hatch"></line><line x1="94" y1="762" x2="78" y2="784" class="hatch"></line><line x1="128" y1="762" x2="112" y2="784" class="hatch"></line><line x1="162" y1="762" x2="146" y2="784" class="hatch"></line><line x1="196" y1="762" x2="180" y2="784" class="hatch"></line><line x1="230" y1="762" x2="214" y2="784" class="hatch"></line><line x1="264" y1="762" x2="248" y2="784" class="hatch"></line><line x1="298" y1="762" x2="282" y2="784" class="hatch"></line><line x1="332" y1="762" x2="316" y2="784" class="hatch"></line><line x1="366" y1="762" x2="350" y2="784" class="hatch"></line><line x1="400" y1="762" x2="384" y2="784" class="hatch"></line><line x1="434" y1="762" x2="418" y2="784" class="hatch"></line><line x1="468" y1="762" x2="452" y2="784" class="hatch"></line><line x1="502" y1="762" x2="486" y2="784" class="hatch"></line><line x1="536" y1="762" x2="520" y2="784" class="hatch"></line><line x1="570" y1="762" x2="554" y2="784" class="hatch"></line><line x1="604" y1="762" x2="588" y2="784" class="hatch"></line><line x1="638" y1="762" x2="622" y2="784" class="hatch"></line><line x1="672" y1="762" x2="656" y2="784" class="hatch"></line><line x1="706" y1="762" x2="690" y2="784" class="hatch"></line><line x1="740" y1="762" x2="724" y2="784" class="hatch"></line><line x1="774" y1="762" x2="758" y2="784" class="hatch"></line><line x1="808" y1="762" x2="792" y2="784" class="hatch"></line><line x1="842" y1="762" x2="826" y2="784" class="hatch"></line><line x1="876" y1="762" x2="860" y2="784" class="hatch"></line><line x1="910" y1="762" x2="894" y2="784" class="hatch"></line><line x1="944" y1="762" x2="928" y2="784" class="hatch"></line><line x1="978" y1="762" x2="962" y2="784" class="hatch"></line><text x="252" y="744" class="dnote">floor · 60 cm below the start</text><line x1="190" y1="556" x2="860" y2="556" class="dim"></line><text x="190" y="546" class="dnote">the masses start even with each other</text><line x1="900" y1="556" x2="900" y2="760" class="axis"></line><line x1="900" y1="556" x2="880" y2="556" class="dim"></line><text x="874" y="563" class="rltick">0</text><line x1="900" y1="573" x2="888" y2="573" class="dim"></line><line x1="900" y1="590" x2="880" y2="590" class="dim"></line><text x="874" y="597" class="rltick">10</text><line x1="900" y1="607" x2="888" y2="607" class="dim"></line><line x1="900" y1="624" x2="880" y2="624" class="dim"></line><text x="874" y="631" class="rltick">20</text><line x1="900" y1="641" x2="888" y2="641" class="dim"></line><line x1="900" y1="658" x2="880" y2="658" class="dim"></line><text x="874" y="665" class="rltick">30</text><line x1="900" y1="675" x2="888" y2="675" class="dim"></line><line x1="900" y1="692" x2="880" y2="692" class="dim-hot"></line><text x="874" y="699" class="rltick">40</text><line x1="900" y1="709" x2="888" y2="709" class="dim"></line><line x1="900" y1="726" x2="880" y2="726" class="dim"></line><text x="874" y="733" class="rltick">50</text><line x1="900" y1="743" x2="888" y2="743" class="dim"></line><line x1="900" y1="760" x2="880" y2="760" class="dim"></line><text x="874" y="767" class="rltick">60</text><text x="874" y="542" class="rltick" text-anchor="end">descent (cm)</text><text x="908" y="699" class="rltick hot">≥ 40</text><text x="908" y="722" class="rltick hot">cm</text><line x1="190" y1="709" x2="900" y2="709" class="dim-hot"></line><text x="196" y="699" class="dnote solid">caught after 45 cm</text><rect x="40" y="730" width="200" height="30" rx="8" class="base"></rect><line x1="110" y1="152" x2="110" y2="734" class="rod"></line><circle cx="110" cy="734" r="13" class="knob"></circle><line x1="110" y1="152" x2="454" y2="152" class="bar"></line><circle cx="150" cy="152" r="11" class="knob"></circle><circle cx="480" cy="152" r="62" class="groove"></circle><circle cx="480" cy="152" r="49" class="disc"></circle><g transform="rotate(0.000 480 152)"><line x1="495" y1="152" x2="527" y2="152" class="spoke"></line><line x1="492.1352549156242" y1="160.8167787843871" x2="518.0237987356226" y2="179.62590685774623" class="spoke"></line><line x1="484.6352549156242" y1="166.2658477444273" x2="494.5237987356225" y2="196.69965626587222" class="spoke"></line><line x1="475.3647450843758" y1="166.2658477444273" x2="465.4762012643775" y2="196.69965626587222" class="spoke"></line><line x1="467.8647450843758" y1="160.8167787843871" x2="441.9762012643775" y2="179.62590685774626" class="spoke"></line><line x1="465" y1="152" x2="433" y2="152" class="spoke"></line><line x1="467.8647450843758" y1="143.18322121561292" x2="441.97620126437744" y2="124.37409314225377" class="spoke"></line><line x1="475.3647450843758" y1="137.7341522555727" x2="465.47620126437744" y2="107.30034373412778" class="spoke"></line><line x1="484.6352549156242" y1="137.7341522555727" x2="494.5237987356225" y2="107.30034373412778" class="spoke"></line><line x1="492.1352549156242" y1="143.1832212156129" x2="518.0237987356226" y2="124.37409314225376" class="spoke"></line></g><circle cx="480" cy="152" r="14" class="hub"></circle><circle cx="480" cy="152" r="5" class="knob"></circle><line x1="418" y1="152" x2="418" y2="464" class="str"></line><line x1="542" y1="152" x2="542" y2="464" class="str"></line><rect x="434" y="34" width="92" height="32" rx="9" class="gate-body"></rect><line x1="462" y1="66" x2="462" y2="100" class="gate-prong"></line><line x1="498" y1="66" x2="498" y2="100" class="gate-prong"></line><path d="M526 50 C 630 12, 560 30, 600 70" class="gate-cable"></path><text x="990" y="64" class="gate-lbl" text-anchor="end">photogate</text><text x="990" y="90" class="gate-lbl" text-anchor="end">10-spoke groove</text><text x="400" y="56" class="gate-lbl" text-anchor="end">Ultra pulley</text><rect x="381" y="464" width="74" height="10" rx="5" class="plate"></rect><rect x="388" y="474" width="60" height="82" rx="7" class="blocks"></rect><line x1="392" y1="494.5" x2="444" y2="494.5" class="seam"></line><line x1="392" y1="515" x2="444" y2="515" class="seam"></line><line x1="392" y1="535.5" x2="444" y2="535.5" class="seam"></line><circle cx="418" cy="469" r="4" class="knob"></circle><text x="358" y="499" class="blbl" text-anchor="end">m₁</text><text x="358" y="531" class="blbl2" text-anchor="end">100 g</text><line x1="326" y1="480" x2="326" y2="376" class="arrow tens" marker-end="url(#mTens)"></line><line x1="358" y1="480" x2="358" y2="584" class="arrow wt" marker-end="url(#mWt)"></line><text x="338" y="486" class="dnote" text-anchor="end">0.98 N</text><text x="370" y="590" class="dnote" text-anchor="end">0.98 N</text><rect x="505" y="464" width="74" height="10" rx="5" class="plate"></rect><rect x="512" y="474" width="60" height="82" rx="7" class="blocks"></rect><line x1="516" y1="494.5" x2="568" y2="494.5" class="seam"></line><line x1="516" y1="515" x2="568" y2="515" class="seam"></line><line x1="516" y1="535.5" x2="568" y2="535.5" class="seam"></line><circle cx="542" cy="469" r="4" class="knob"></circle><text x="602" y="499" class="blbl" text-anchor="start">m₂</text><text x="602" y="531" class="blbl2" text-anchor="start">100 g</text><line x1="634" y1="480" x2="634" y2="376" class="arrow tens" marker-end="url(#mTens)"></line><line x1="602" y1="480" x2="602" y2="584" class="arrow wt" marker-end="url(#mWt)"></line><text x="622" y="486" class="dnote" text-anchor="start">0.98 N</text><text x="590" y="590" class="dnote" text-anchor="start">0.98 N</text><text x="480" y="236" class="vval sm">v =</text><text x="480" y="268" class="vval">0.00</text><text x="480" y="292" class="vval sm">m/s</text><text x="480" y="330" class="vval sm">balanced</text></svg>
     <div class="metrics" id="metrics"><div class="metric"><div class="k">predicted a</div><div class="v">0.000<span class="u"> m/s²</span></div></div><div class="metric"><div class="k">fitted a</div><div class="v">—<span class="u"> m/s²</span></div></div><div class="metric"><div class="k">tension T</div><div class="v">—<span class="u"> N</span></div></div></div>
     <div class="run-bar">
-      <button class="btn-run" id="runBtn" type="button" fdprocessedid="qvc0d">Release the masses</button>
-      <button class="pill" id="recBtn" type="button" aria-pressed="false" fdprocessedid="m9o3ul">Record trial</button>
-      <button class="pill" id="modelBtn" type="button" aria-pressed="false" fdprocessedid="th17lh">Ideal</button>
+      <button class="btn-run" id="runBtn" type="button">Release the masses</button>
+      <button class="pill" id="recBtn" type="button" aria-pressed="false">Record trial</button>
+      <button class="pill" id="modelBtn" type="button" aria-pressed="false">Ideal</button>
     </div>
     <p class="sr-only" id="liveStatus" aria-live="polite"></p>
   </section>
 
-  <section class="card" aria-label="Procedure">
+  <section class="card proc" aria-label="Procedure">
     <h2>Procedure <span class="qn-badge" id="partTag">Part I</span></h2>
     <h3 class="case-title" id="procTitle">Constant total mass — 200 g, moved across</h3>
     <ol class="steps" id="procSteps"><li class="">Hang <b>100 g on m₂</b> and <b>100 g on m₁</b> — 200 g in total.</li><li class="">Start data collection, then release the smaller mass and catch it before it lands.</li><li class="">Fit a straight line to velocity vs time: its <b>slope is the acceleration</b>. Record trial 1.</li><li class=""><b>Move 5 g from m₂ to m₁</b>. The mass difference changes; the total stays 200 g.</li><li class="">Repeat until you have at least five mass combinations.</li></ol>
@@ -431,30 +447,30 @@
   <div class="cols">
     <section class="card" aria-label="Masses on the string">
       <h2>Masses on the string</h2>
-      <div class="pills" id="planPills"><button class="pill" type="button" data-part="part1" aria-pressed="true" fdprocessedid="pka2ut">Part I · constant total</button><button class="pill" type="button" data-part="part2" aria-pressed="false" fdprocessedid="iw1eu">Part II · constant difference</button><button class="pill" type="button" data-part="free" aria-pressed="false" fdprocessedid="a8dkzh">Free</button></div>
+      <div class="pills" id="planPills"><button class="pill" type="button" data-part="part1" aria-pressed="true">Part I · constant total</button><button class="pill" type="button" data-part="part2" aria-pressed="false">Part II · constant difference</button><button class="pill" type="button" data-part="free" aria-pressed="false">Free</button></div>
       <div class="row between" style="margin-top:8px">
-        <span class="dots" id="trialDots"><button class="dot on" type="button" data-ti="0" title="Trial 1" fdprocessedid="cppysl">1</button><button class="dot " type="button" data-ti="1" title="Trial 2" fdprocessedid="hqc5rv">2</button><button class="dot " type="button" data-ti="2" title="Trial 3" fdprocessedid="5rjs4m">3</button><button class="dot " type="button" data-ti="3" title="Trial 4" fdprocessedid="c4f5pm">4</button><button class="dot " type="button" data-ti="4" title="Trial 5" fdprocessedid="rx4krs">5</button></span>
-        <button class="pill sm" id="nextTrial" type="button" fdprocessedid="4s8r3p">Move 5 g from m₂ to m₁ →</button>
+        <span class="dots" id="trialDots"><button class="dot on" type="button" data-ti="0" title="Trial 1">1</button><button class="dot " type="button" data-ti="1" title="Trial 2">2</button><button class="dot " type="button" data-ti="2" title="Trial 3">3</button><button class="dot " type="button" data-ti="3" title="Trial 4">4</button><button class="dot " type="button" data-ti="4" title="Trial 5">5</button></span>
+        <button class="pill sm" id="nextTrial" type="button">Move 5 g from m₂ to m₁ →</button>
       </div>
       <div class="grid2" style="margin-top:10px">
         <div>
           <label class="f" for="m1In">m<sub>1</sub> · left side (g)</label>
-          <input type="number" id="m1In" min="1" max="2000" step="5" inputmode="decimal" autocomplete="off" fdprocessedid="ibjb27">
+          <input type="number" id="m1In" min="1" max="2000" step="5" inputmode="decimal" autocomplete="off">
         </div>
         <div>
           <label class="f" for="m2In">m<sub>2</sub> · right side (g)</label>
-          <input type="number" id="m2In" min="1" max="2000" step="5" inputmode="decimal" autocomplete="off" fdprocessedid="500yot">
+          <input type="number" id="m2In" min="1" max="2000" step="5" inputmode="decimal" autocomplete="off">
         </div>
       </div>
       <p class="note" id="massNote">Guided trial 1 of 5 · Move 5 g from m₂ to m₁.</p>
       <div class="grid2" style="margin-top:10px">
         <div>
           <label class="f" for="travelIn">Travel before it is caught (cm)</label>
-          <input type="number" id="travelIn" min="40" max="60" step="5" inputmode="decimal" autocomplete="off" fdprocessedid="tf6ji5">
+          <input type="number" id="travelIn" min="40" max="60" step="5" inputmode="decimal" autocomplete="off">
         </div>
         <div>
           <label class="f" for="gIn">g (m/s<sup>2</sup>)</label>
-          <input type="number" id="gIn" min="1" max="30" step="0.01" inputmode="decimal" autocomplete="off" fdprocessedid="as3c3j">
+          <input type="number" id="gIn" min="1" max="30" step="0.01" inputmode="decimal" autocomplete="off">
         </div>
       </div>
     </section>
@@ -462,8 +478,8 @@
     <section class="card" aria-label="Model">
       <h2>Model</h2>
       <div class="pills">
-        <button class="pill" id="pillIdeal" type="button" aria-pressed="true" fdprocessedid="5d92a">Ideal · light pulley</button>
-        <button class="pill" id="pillReal" type="button" aria-pressed="false" fdprocessedid="kxajxq">Realistic · pulley inertia + friction</button>
+        <button class="pill" id="pillIdeal" type="button" aria-pressed="true">Ideal · light pulley</button>
+        <button class="pill" id="pillReal" type="button" aria-pressed="false">Realistic · pulley inertia + friction</button>
       </div>
       <div id="realOnly" style="margin-top: 10px; opacity: 0.5;">
         <label class="f" for="mpRange">Pulley rotational inertia <span style="color:var(--ink-2)">(equivalent mass <span id="mpOut">10</span> g)</span></label>
@@ -473,11 +489,11 @@
       </div>
       <div class="switch-row" style="margin-top:6px">
         Show force arrows on the masses
-        <button class="switch" id="swForces" role="switch" aria-checked="true" aria-label="Show force arrows on the masses" fdprocessedid="kdxka"></button>
+        <button class="switch" id="swForces" role="switch" aria-checked="true" aria-label="Show force arrows on the masses"></button>
       </div>
       <div class="switch-row">
         Show the free-body diagrams
-        <button class="switch" id="swFbd" role="switch" aria-checked="true" aria-label="Show the free-body diagrams" fdprocessedid="bnyri"></button>
+        <button class="switch" id="swFbd" role="switch" aria-checked="true" aria-label="Show the free-body diagrams"></button>
       </div>
       <p class="note">
         The file calls the pulley <i>light</i>. Nothing in the lab is perfectly light: the pulley has to be
@@ -499,7 +515,7 @@
     <div id="tables"><div class="data-scroll" style="margin-bottom:12px"><b style="font-size:13px">Part I · Constant total mass — 200 g, moved across</b><table><thead><tr><th>Trial</th><th>m₁ (kg)</th><th>m₂ (kg)</th><th>a (m/s²)</th><th>m_diff, m₁–m₂ (kg)</th><th>m_T (kg)</th></tr></thead><tbody><tr class="now"><td>1</td><td class="miss">0.100</td><td class="miss">0.100</td><td class="miss">—</td><td class="miss">0.000</td><td class="miss">0.200</td></tr><tr><td>2</td><td class="miss">0.105</td><td class="miss">0.095</td><td class="miss">—</td><td class="miss">0.010</td><td class="miss">0.200</td></tr><tr><td>3</td><td class="miss">0.110</td><td class="miss">0.090</td><td class="miss">—</td><td class="miss">0.020</td><td class="miss">0.200</td></tr><tr><td>4</td><td class="miss">0.115</td><td class="miss">0.085</td><td class="miss">—</td><td class="miss">0.030</td><td class="miss">0.200</td></tr><tr><td>5</td><td class="miss">0.120</td><td class="miss">0.080</td><td class="miss">—</td><td class="miss">0.040</td><td class="miss">0.200</td></tr></tbody></table></div><div class="data-scroll" style="margin-bottom:12px"><b style="font-size:13px">Part II · Constant mass difference — 10 g, added to both sides</b><table><thead><tr><th>Trial</th><th>m₁ (kg)</th><th>m₂ (kg)</th><th>a (m/s²)</th><th>m_diff, m₁–m₂ (kg)</th><th>m_T (kg)</th></tr></thead><tbody><tr><td>1</td><td class="miss">0.100</td><td class="miss">0.100</td><td class="miss">—</td><td class="miss">0.000</td><td class="miss">0.200</td></tr><tr><td>2</td><td class="miss">0.105</td><td class="miss">0.095</td><td class="miss">—</td><td class="miss">0.010</td><td class="miss">0.200</td></tr><tr><td>3</td><td class="miss">0.110</td><td class="miss">0.090</td><td class="miss">—</td><td class="miss">0.020</td><td class="miss">0.200</td></tr><tr><td>4</td><td class="miss">0.115</td><td class="miss">0.085</td><td class="miss">—</td><td class="miss">0.030</td><td class="miss">0.200</td></tr><tr><td>5</td><td class="miss">0.120</td><td class="miss">0.080</td><td class="miss">—</td><td class="miss">0.040</td><td class="miss">0.200</td></tr></tbody></table></div></div>
     <div class="row between" style="margin-top:10px">
       <span class="readout" id="recCount">0 of 10 trials recorded</span>
-      <button class="pill sm" id="clearAll" type="button" fdprocessedid="nae39d">Clear all trials</button>
+      <button class="pill sm" id="clearAll" type="button">Clear all trials</button>
     </div>
     <p class="note" id="tableNote">Grey values are the masses the file's procedure calls for — move them across, then record. Fill both parts to at least five trials each, as the file asks.</p>
   </section>
@@ -522,7 +538,7 @@
 
   <section class="card" aria-label="Extensions">
     <h2>Extensions <span class="qn-badge">from the file</span></h2>
-    <div id="ext"><details class="grp" open=""><summary>Newton's second law on each mass <span class="qn-badge">extension 1</span></summary><div class="body"><svg id="fbd" viewBox="0 0 700 300" style="width:100%;height:auto" role="img" aria-label="Free-body diagrams of the two masses"><defs><marker id="fT" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-tens"><path d="M0 0 L10 5 L0 10 z"></path></marker><marker id="fW" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-wt"><path d="M0 0 L10 5 L0 10 z"></path></marker><marker id="fM" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-mot"><path d="M0 0 L10 5 L0 10 z"></path></marker></defs><rect x="134" y="108" width="92" height="62" rx="8" class="plate"></rect><text x="180" y="147" class="blbl" text-anchor="middle">m₁</text><line x1="180" y1="170" x2="180" y2="266" class="arrow wt" marker-end="url(#fW)"></line><text x="180" y="290" class="blbl2" text-anchor="middle">m₁g = 0.98 N</text><line x1="180" y1="108" x2="180" y2="12" class="arrow tens" marker-end="url(#fT)"></line><text x="180" y="2" class="blbl2" text-anchor="middle">T = 0.98 N</text><rect x="474" y="108" width="92" height="62" rx="8" class="plate"></rect><text x="520" y="147" class="blbl" text-anchor="middle">m₂</text><line x1="520" y1="170" x2="520" y2="266" class="arrow wt" marker-end="url(#fW)"></line><text x="520" y="290" class="blbl2" text-anchor="middle">m₂g = 0.98 N</text><line x1="520" y1="108" x2="520" y2="12" class="arrow tens" marker-end="url(#fT)"></line><text x="520" y="2" class="blbl2" text-anchor="middle">T = 0.98 N</text><text x="180" y="88" class="blbl2" text-anchor="middle">m₁ = 100 g</text><text x="520" y="88" class="blbl2" text-anchor="middle">m₂ = 100 g</text><text x="350" y="70" class="blbl2" text-anchor="middle">no acceleration</text></svg><div class="eq">m₂: &nbsp;m g − T = m a &nbsp;&nbsp;·&nbsp;&nbsp; m₁: &nbsp;T − m g = m a</div><div class="eq">add them → (m₂ − m₁) g = (m₁ + m₂) a &nbsp;→&nbsp; <b>a = Δm g / m_T</b> = 0.000 m/s²</div><p>Because the string is light and cannot stretch, both masses share one acceleration and the tension is the same on both sides — the two equations above only differ in which way the weight pulls. Solving them for T also gives <b>T = 2 m₁ m₂ g / m_T</b> = 0.980 N, which is <em>less</em> than the heavier weight and <em>more</em> than the lighter one. Comparing this with the result of step 5 of the analysis: it is the same expression, so the graph and the free-body diagram agree.</p></div></details><details class="grp"><summary>Expected vs measured, run by run <span class="qn-badge">extension 2</span></summary><div class="body"><p>Record a few trials and each one is compared here with a = Δm g/m_T.</p></div></details><details class="grp"><summary>An unknown mass on the left <span class="qn-badge">extension 3</span></summary><div class="body"><p>Hang an unknown mass on the left and measure the acceleration with the photogate. The same equation rearranged gives the mass — this is how the unknown is found without a balance.</p><div class="switch-row">Put an unknown mass on the left (m₁)<button class="switch" id="swUnknown" role="switch" aria-checked="false" aria-label="Unknown mass on the left" fdprocessedid="3av65t"></button></div></div></details><details class="grp"><summary>The tension in the string <span class="qn-badge">extension 4</span></summary><div class="body"><p>With equal masses (or a machine held by friction) there is no single value for the tension — the string is not carrying an accelerating pair. Set unequal masses to see it.</p></div></details><details class="grp"><summary>The force the pulley feels <span class="qn-badge">extension 5</span></summary><div class="body"><p>Set unequal masses and the upward force on the pulley is 2T, which is less than the two weights added together.</p></div></details></div>
+    <div id="ext"><details class="grp" open=""><summary>Newton's second law on each mass <span class="qn-badge">extension 1</span></summary><div class="body"><svg id="fbd" viewBox="0 0 700 300" style="width:100%;height:auto" role="img" aria-label="Free-body diagrams of the two masses"><defs><marker id="fT" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-tens"><path d="M0 0 L10 5 L0 10 z"></path></marker><marker id="fW" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-wt"><path d="M0 0 L10 5 L0 10 z"></path></marker><marker id="fM" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-mot"><path d="M0 0 L10 5 L0 10 z"></path></marker></defs><rect x="134" y="108" width="92" height="62" rx="8" class="plate"></rect><text x="180" y="147" class="blbl" text-anchor="middle">m₁</text><line x1="180" y1="170" x2="180" y2="266" class="arrow wt" marker-end="url(#fW)"></line><text x="180" y="290" class="blbl2" text-anchor="middle">m₁g = 0.98 N</text><line x1="180" y1="108" x2="180" y2="12" class="arrow tens" marker-end="url(#fT)"></line><text x="180" y="2" class="blbl2" text-anchor="middle">T = 0.98 N</text><rect x="474" y="108" width="92" height="62" rx="8" class="plate"></rect><text x="520" y="147" class="blbl" text-anchor="middle">m₂</text><line x1="520" y1="170" x2="520" y2="266" class="arrow wt" marker-end="url(#fW)"></line><text x="520" y="290" class="blbl2" text-anchor="middle">m₂g = 0.98 N</text><line x1="520" y1="108" x2="520" y2="12" class="arrow tens" marker-end="url(#fT)"></line><text x="520" y="2" class="blbl2" text-anchor="middle">T = 0.98 N</text><text x="180" y="88" class="blbl2" text-anchor="middle">m₁ = 100 g</text><text x="520" y="88" class="blbl2" text-anchor="middle">m₂ = 100 g</text><text x="350" y="70" class="blbl2" text-anchor="middle">no acceleration</text></svg><div class="eq">m₂: &nbsp;m g − T = m a &nbsp;&nbsp;·&nbsp;&nbsp; m₁: &nbsp;T − m g = m a</div><div class="eq">add them → (m₂ − m₁) g = (m₁ + m₂) a &nbsp;→&nbsp; <b>a = Δm g / m_T</b> = 0.000 m/s²</div><p>Because the string is light and cannot stretch, both masses share one acceleration and the tension is the same on both sides — the two equations above only differ in which way the weight pulls. Solving them for T also gives <b>T = 2 m₁ m₂ g / m_T</b> = 0.980 N, which is <em>less</em> than the heavier weight and <em>more</em> than the lighter one. Comparing this with the result of step 5 of the analysis: it is the same expression, so the graph and the free-body diagram agree.</p></div></details><details class="grp"><summary>Expected vs measured, run by run <span class="qn-badge">extension 2</span></summary><div class="body"><p>Record a few trials and each one is compared here with a = Δm g/m_T.</p></div></details><details class="grp"><summary>An unknown mass on the left <span class="qn-badge">extension 3</span></summary><div class="body"><p>Hang an unknown mass on the left and measure the acceleration with the photogate. The same equation rearranged gives the mass — this is how the unknown is found without a balance.</p><div class="switch-row">Put an unknown mass on the left (m₁)<button class="switch" id="swUnknown" role="switch" aria-checked="false" aria-label="Unknown mass on the left"></button></div></div></details><details class="grp"><summary>The tension in the string <span class="qn-badge">extension 4</span></summary><div class="body"><p>With equal masses (or a machine held by friction) there is no single value for the tension — the string is not carrying an accelerating pair. Set unequal masses to see it.</p></div></details><details class="grp"><summary>The force the pulley feels <span class="qn-badge">extension 5</span></summary><div class="body"><p>Set unequal masses and the upward force on the pulley is 2T, which is less than the two weights added together.</p></div></details></div>
   </section>
 
   <footer class="foot" id="foot"><b>How this models the file's lab.</b> The pulley's drawn size is exaggerated so it reads on screen, but its rotation follows a real 2.54 cm radius, so the photogate's 10 spoke events per turn come out at the right rate. The photogate samples every 1.60 cm of string and a least-squares line through those points gives the acceleration, as the LabQuest curve fit does. The travel is capped at 60 cm because the masses must be able to move at least 40 cm before the falling one strikes the floor. The string is treated as light and the machine as starting from rest, so the ideal fitted slope is exactly Δm g/m_T; switch on Realistic for the pulley's inertia and bearing friction. The unknown-mass box uses m₁ = m₂(g − a)/(g + a) with the ideal machine, so in Realistic mode it comes out a little off, just as it would in the lab.</footer>
@@ -787,7 +803,9 @@
     var dt = Math.min(0.05, (now - run.last) / 1000);
     run.last = now;
     run.t = Math.min(run.tEnd, run.t + dt);
-    run.x = 0.5 * run.a * run.t * run.t;
+    run.x = 0.5 * run.a * run.t * run.t * 100;   // cm of string through the pulley:
+                                                  // the drawing (lift = x * PPC) and the
+                                                  // pulley angle (x / 100 / R_PHYS) are in cm
     run.v = run.a * run.t;
 
     var all = spokeSamples(run.a, run.travel);
@@ -810,6 +828,7 @@
 
   function finishRun() {
     var a = run.a, dir = run.dir, travel = run.travel, model = state.model;
+    var xEnd = run.x;                 // cm travelled when the falling mass is caught
     var vEnd = Math.sqrt(2 * a * effTravelM());
     var samples = spokeSamples(a, travel);
     var fit = fitLine(samples);
@@ -822,6 +841,7 @@
       samples: samples,
       fit: fit,
       travel: travel,
+      xCm: xEnd,
       model: model,
       dir: dir,
       ideal: predA(),
@@ -855,7 +875,8 @@
     marker(defs, 'mWt', 'marker-wt');
     marker(defs, 'mMot', 'marker-mot');
 
-    var x = run ? run.x : 0;
+    // while running, the live travel; afterwards the caught pose, held until the next step
+    var x = run ? run.x : (state.last && isNum(state.last.xCm) ? state.last.xCm : 0);
     var v = run ? run.v : (state.last && state.last.v ? 0 : 0);
     var dir = run ? run.dir : (state.last ? state.last.dir : dirSide());
     var falls1 = dir === 'm1';
@@ -924,14 +945,12 @@
     }
     var g1 = sideGeom(state.m1, state.unknown);
     var g2 = sideGeom(state.m2, false);
-    var lowTop = (falls1 ? BOT0 : highBottom) - g1.total;
-    var highTop = (falls1 ? highBottom : BOT0) - g2.total;
-    // which side's stack top belongs to m1
-    var top1 = falls1 ? lowTop : highTop;
-    var top2 = falls1 ? highTop : lowTop;
+    // each mass rides up or down with the string: the falling side's bottom is lowY,
+    // the rising side's is highBottom, and both are BOT0 when nothing moves
     var bot1 = falls1 ? lowY : highBottom;
     var bot2 = falls1 ? highBottom : lowY;
-    if (dir === 'none') { top1 = BOT0 - g1.total; top2 = BOT0 - g2.total; bot1 = BOT0; bot2 = BOT0; }
+    var top1 = bot1 - g1.total;
+    var top2 = bot2 - g2.total;
 
     function drawString(x, yTop) {
       el('line', { x1: x, y1: PUL.y, x2: x, y2: yTop, class: 'str' }, svg);
@@ -1862,4 +1881,4 @@
 </script>
 
 
-<span id="PING_CONTENT_MB_MAIN" style="display: none;"></span><span id="PING_CONTENT_PUSH_NOTIFICATION" style="display: none;"></span><span id="PING_IFRAME_FORM_DETECTION" style="display: none;"></span></body></html>
+</body></html>
