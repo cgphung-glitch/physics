@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!-- saved from url=(0050)http://127.0.0.1:4173/physics/circuit-diagram.html -->
-<html lang="en" data-theme="dark"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="en" data-theme="light"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#09140f">
+<meta name="theme-color" content="#005A36">
 <meta name="description" content="Draw a circuit, set the battery voltage and resistance, and read the voltmeter and ammeter live.">
 <title>Circuit Lab · Draw &amp; Measure</title>
 <script>
@@ -362,6 +362,32 @@
   }
   .size-reset:hover { border-color: var(--accent); color: var(--accent); }
 
+  /* ---------- export popover (in the header) ---------- */
+  .export-wrap { position: relative; }
+  .export-pop {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 50;
+    width: 244px;
+    max-width: calc(100vw - 28px);
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 13px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    box-shadow: var(--shadow-strong);
+  }
+  .export-pop[hidden] { display: none; }
+  .export-pop .btn { width: 100%; }
+  .export-note {
+    margin: 0;
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+
   .board-wrap { padding: 4px 8px 0; }
   #board {
     display: block;
@@ -579,6 +605,24 @@
     color: var(--muted);
   }
 
+  .field-text { gap: 8px; }
+  .text-input {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    padding: 9px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 700;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .text-input:focus { border-color: var(--accent); }
+  .text-input::placeholder { color: var(--muted); font-weight: 600; }
+
   input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
@@ -765,6 +809,16 @@
     stroke-linejoin: round;
     pointer-events: none;
   }
+  .designator {
+    fill: var(--ink-2);
+    font-size: 17px;
+    font-weight: 700;
+    paint-order: stroke;
+    stroke: var(--board);
+    stroke-width: 6px;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
   .draft { stroke: var(--accent); stroke-width: 4.4; stroke-dasharray: 8 7; stroke-linecap: round; fill: none; }
   .draft-dot { fill: var(--accent); stroke: var(--board); stroke-width: 3; }
   .draft-ring { fill: none; stroke: var(--accent); stroke-width: 2; opacity: 0.6; }
@@ -859,7 +913,23 @@
     </div>
   </div>
   <div class="top-actions">
-    <button class="icon-btn theme-btn" id="themeBtn" type="button" aria-label="Switch to light mode" title="Switch to light mode">
+    <div class="export-wrap">
+      <button class="icon-btn" id="exportBtn" type="button" aria-label="Export drawing" title="Export drawing" aria-haspopup="true" aria-expanded="false" aria-controls="exportPop" fdprocessedid="kn01gh">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3.5v10.5"></path><path d="m7.6 10 4.4 4.4 4.4-4.4"></path><path d="M4 16.5V20h16v-3.5"></path>
+        </svg>
+      </button>
+      <div class="export-pop" id="exportPop" role="group" aria-label="Export drawing" hidden="">
+        <div class="size-head">
+          <span>Export</span>
+          <span class="size-note">SVG · PNG</span>
+        </div>
+        <button class="btn primary" id="exportSvgBtn" type="button">Save as SVG (vector)</button>
+        <button class="btn" id="exportPngBtn" type="button">Save as PNG (image)</button>
+        <p class="export-note">Parts, wires, labels and the current theme are included. Meter readings appear in Simulation mode.</p>
+      </div>
+    </div>
+    <button class="icon-btn theme-btn" id="themeBtn" type="button" aria-label="Switch to dark mode" title="Switch to dark mode" fdprocessedid="0bjq56">
       <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
       </svg>
@@ -876,30 +946,30 @@
     <div class="board-bar">
       <div class="status">
         <span class="live-dot" id="liveDot" aria-hidden="true"></span>
-        <span class="text" id="statusText" aria-live="polite">Add a part to get started</span>
+        <span class="text" id="statusText" aria-live="polite">Voltmeter selected</span>
       </div>
       <div class="board-actions">
-        <button class="icon-btn" id="sizeBtn" type="button" aria-label="Board size, 12 by 14 dots" title="Board size: 12 × 14 dots" aria-haspopup="true" aria-expanded="false" aria-controls="sizePop">
+        <button class="icon-btn" id="sizeBtn" type="button" aria-label="Board size, 12 by 14 dots" title="Board size: 12 × 14 dots" aria-haspopup="true" aria-expanded="false" aria-controls="sizePop" fdprocessedid="og4bp">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M9 3v18M15 3v18M3 9h18M3 15h18"></path>
           </svg>
         </button>
-        <button class="icon-btn" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z)">
+        <button class="icon-btn" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z)" fdprocessedid="xkw538">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M9.5 14.5 4 9l5.5-5.5"></path><path d="M4 9h9.5a6 6 0 0 1 0 12H8"></path>
           </svg>
         </button>
-        <button class="icon-btn" id="rotateBtn" type="button" aria-label="Rotate selected part" title="Rotate selected part (R)" disabled="">
+        <button class="icon-btn" id="rotateBtn" type="button" aria-label="Rotate selected part" title="Rotate selected part (R)" fdprocessedid="bk7db">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M20 12a8 8 0 1 1-2.6-5.9"></path><path d="M20 3.5V9h-5.5"></path>
           </svg>
         </button>
-        <button class="icon-btn" id="clearBtn" type="button" aria-label="Clear the board" title="Clear the board">
+        <button class="icon-btn" id="clearBtn" type="button" aria-label="Clear the board" title="Clear the board" fdprocessedid="mk51v">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="8.5"></circle><path d="m8.6 8.6 6.8 6.8M15.4 8.6l-6.8 6.8"></path>
           </svg>
         </button>
-        <button class="icon-btn danger" id="deleteBtn" type="button" aria-label="Delete selected part" title="Delete selected part (Del)" disabled="">
+        <button class="icon-btn danger" id="deleteBtn" type="button" aria-label="Delete selected part" title="Delete selected part (Del)" fdprocessedid="kuuvk">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M4 7h16M9.5 7V4.8h5V7M18 7l-.9 13H6.9L6 7"></path><path d="M10 11v5.5M14 11v5.5"></path>
           </svg>
@@ -909,12 +979,12 @@
 
     <div class="mode-bar">
       <div class="seg mode-seg" role="group" aria-label="Mode">
-        <button type="button" data-mode-tab="draw" aria-pressed="true">Drawing</button>
-        <button type="button" data-mode-tab="sim" aria-pressed="false">Simulation</button>
+        <button type="button" data-mode-tab="draw" aria-pressed="true" fdprocessedid="1tj8mp">Drawing</button>
+        <button type="button" data-mode-tab="sim" aria-pressed="false" fdprocessedid="9mss4">Simulation</button>
       </div>
       <div class="seg model-seg" id="modelSeg" role="group" aria-label="Simulation model" hidden="">
-        <button type="button" data-realism="ideal" aria-pressed="true">Ideal</button>
-        <button type="button" data-realism="realistic" aria-pressed="false">Realistic</button>
+        <button type="button" data-realism="ideal" aria-pressed="false" fdprocessedid="02bkl6">Ideal</button>
+        <button type="button" data-realism="realistic" aria-pressed="true" fdprocessedid="r7tgdn">Realistic</button>
       </div>
       <span class="mode-hint" id="modeHint">Readings off</span>
     </div>
@@ -922,7 +992,7 @@
     <div class="board-wrap">
       <svg id="board" role="group" aria-label="Circuit board. Select a part and tap the board to place it." preserveAspectRatio="xMidYMid meet" data-tool="select" viewBox="-59.400000000000006 -59.400000000000006 646.8 734.8" style="max-width: 584px; cursor: default;">
         <g id="gridLayer" aria-hidden="true"><circle class="grid-dot" cx="0" cy="0" r="2.6"></circle><circle class="grid-dot" cx="44" cy="0" r="2.6"></circle><circle class="grid-dot" cx="88" cy="0" r="2.6"></circle><circle class="grid-dot" cx="132" cy="0" r="2.6"></circle><circle class="grid-dot" cx="176" cy="0" r="2.6"></circle><circle class="grid-dot" cx="220" cy="0" r="2.6"></circle><circle class="grid-dot" cx="264" cy="0" r="2.6"></circle><circle class="grid-dot" cx="308" cy="0" r="2.6"></circle><circle class="grid-dot" cx="352" cy="0" r="2.6"></circle><circle class="grid-dot" cx="396" cy="0" r="2.6"></circle><circle class="grid-dot" cx="440" cy="0" r="2.6"></circle><circle class="grid-dot" cx="484" cy="0" r="2.6"></circle><circle class="grid-dot" cx="528" cy="0" r="2.6"></circle><circle class="grid-dot" cx="0" cy="44" r="2.6"></circle><circle class="grid-dot" cx="44" cy="44" r="2.6"></circle><circle class="grid-dot" cx="88" cy="44" r="2.6"></circle><circle class="grid-dot" cx="132" cy="44" r="2.6"></circle><circle class="grid-dot" cx="176" cy="44" r="2.6"></circle><circle class="grid-dot" cx="220" cy="44" r="2.6"></circle><circle class="grid-dot" cx="264" cy="44" r="2.6"></circle><circle class="grid-dot" cx="308" cy="44" r="2.6"></circle><circle class="grid-dot" cx="352" cy="44" r="2.6"></circle><circle class="grid-dot" cx="396" cy="44" r="2.6"></circle><circle class="grid-dot" cx="440" cy="44" r="2.6"></circle><circle class="grid-dot" cx="484" cy="44" r="2.6"></circle><circle class="grid-dot" cx="528" cy="44" r="2.6"></circle><circle class="grid-dot" cx="0" cy="88" r="2.6"></circle><circle class="grid-dot" cx="44" cy="88" r="2.6"></circle><circle class="grid-dot" cx="88" cy="88" r="2.6"></circle><circle class="grid-dot" cx="132" cy="88" r="2.6"></circle><circle class="grid-dot" cx="176" cy="88" r="2.6"></circle><circle class="grid-dot" cx="220" cy="88" r="2.6"></circle><circle class="grid-dot" cx="264" cy="88" r="2.6"></circle><circle class="grid-dot" cx="308" cy="88" r="2.6"></circle><circle class="grid-dot" cx="352" cy="88" r="2.6"></circle><circle class="grid-dot" cx="396" cy="88" r="2.6"></circle><circle class="grid-dot" cx="440" cy="88" r="2.6"></circle><circle class="grid-dot" cx="484" cy="88" r="2.6"></circle><circle class="grid-dot" cx="528" cy="88" r="2.6"></circle><circle class="grid-dot" cx="0" cy="132" r="2.6"></circle><circle class="grid-dot" cx="44" cy="132" r="2.6"></circle><circle class="grid-dot" cx="88" cy="132" r="2.6"></circle><circle class="grid-dot" cx="132" cy="132" r="2.6"></circle><circle class="grid-dot" cx="176" cy="132" r="2.6"></circle><circle class="grid-dot" cx="220" cy="132" r="2.6"></circle><circle class="grid-dot" cx="264" cy="132" r="2.6"></circle><circle class="grid-dot" cx="308" cy="132" r="2.6"></circle><circle class="grid-dot" cx="352" cy="132" r="2.6"></circle><circle class="grid-dot" cx="396" cy="132" r="2.6"></circle><circle class="grid-dot" cx="440" cy="132" r="2.6"></circle><circle class="grid-dot" cx="484" cy="132" r="2.6"></circle><circle class="grid-dot" cx="528" cy="132" r="2.6"></circle><circle class="grid-dot" cx="0" cy="176" r="2.6"></circle><circle class="grid-dot" cx="44" cy="176" r="2.6"></circle><circle class="grid-dot" cx="88" cy="176" r="2.6"></circle><circle class="grid-dot" cx="132" cy="176" r="2.6"></circle><circle class="grid-dot" cx="176" cy="176" r="2.6"></circle><circle class="grid-dot" cx="220" cy="176" r="2.6"></circle><circle class="grid-dot" cx="264" cy="176" r="2.6"></circle><circle class="grid-dot" cx="308" cy="176" r="2.6"></circle><circle class="grid-dot" cx="352" cy="176" r="2.6"></circle><circle class="grid-dot" cx="396" cy="176" r="2.6"></circle><circle class="grid-dot" cx="440" cy="176" r="2.6"></circle><circle class="grid-dot" cx="484" cy="176" r="2.6"></circle><circle class="grid-dot" cx="528" cy="176" r="2.6"></circle><circle class="grid-dot" cx="0" cy="220" r="2.6"></circle><circle class="grid-dot" cx="44" cy="220" r="2.6"></circle><circle class="grid-dot" cx="88" cy="220" r="2.6"></circle><circle class="grid-dot" cx="132" cy="220" r="2.6"></circle><circle class="grid-dot" cx="176" cy="220" r="2.6"></circle><circle class="grid-dot" cx="220" cy="220" r="2.6"></circle><circle class="grid-dot" cx="264" cy="220" r="2.6"></circle><circle class="grid-dot" cx="308" cy="220" r="2.6"></circle><circle class="grid-dot" cx="352" cy="220" r="2.6"></circle><circle class="grid-dot" cx="396" cy="220" r="2.6"></circle><circle class="grid-dot" cx="440" cy="220" r="2.6"></circle><circle class="grid-dot" cx="484" cy="220" r="2.6"></circle><circle class="grid-dot" cx="528" cy="220" r="2.6"></circle><circle class="grid-dot" cx="0" cy="264" r="2.6"></circle><circle class="grid-dot" cx="44" cy="264" r="2.6"></circle><circle class="grid-dot" cx="88" cy="264" r="2.6"></circle><circle class="grid-dot" cx="132" cy="264" r="2.6"></circle><circle class="grid-dot" cx="176" cy="264" r="2.6"></circle><circle class="grid-dot" cx="220" cy="264" r="2.6"></circle><circle class="grid-dot" cx="264" cy="264" r="2.6"></circle><circle class="grid-dot" cx="308" cy="264" r="2.6"></circle><circle class="grid-dot" cx="352" cy="264" r="2.6"></circle><circle class="grid-dot" cx="396" cy="264" r="2.6"></circle><circle class="grid-dot" cx="440" cy="264" r="2.6"></circle><circle class="grid-dot" cx="484" cy="264" r="2.6"></circle><circle class="grid-dot" cx="528" cy="264" r="2.6"></circle><circle class="grid-dot" cx="0" cy="308" r="2.6"></circle><circle class="grid-dot" cx="44" cy="308" r="2.6"></circle><circle class="grid-dot" cx="88" cy="308" r="2.6"></circle><circle class="grid-dot" cx="132" cy="308" r="2.6"></circle><circle class="grid-dot" cx="176" cy="308" r="2.6"></circle><circle class="grid-dot" cx="220" cy="308" r="2.6"></circle><circle class="grid-dot" cx="264" cy="308" r="2.6"></circle><circle class="grid-dot" cx="308" cy="308" r="2.6"></circle><circle class="grid-dot" cx="352" cy="308" r="2.6"></circle><circle class="grid-dot" cx="396" cy="308" r="2.6"></circle><circle class="grid-dot" cx="440" cy="308" r="2.6"></circle><circle class="grid-dot" cx="484" cy="308" r="2.6"></circle><circle class="grid-dot" cx="528" cy="308" r="2.6"></circle><circle class="grid-dot" cx="0" cy="352" r="2.6"></circle><circle class="grid-dot" cx="44" cy="352" r="2.6"></circle><circle class="grid-dot" cx="88" cy="352" r="2.6"></circle><circle class="grid-dot" cx="132" cy="352" r="2.6"></circle><circle class="grid-dot" cx="176" cy="352" r="2.6"></circle><circle class="grid-dot" cx="220" cy="352" r="2.6"></circle><circle class="grid-dot" cx="264" cy="352" r="2.6"></circle><circle class="grid-dot" cx="308" cy="352" r="2.6"></circle><circle class="grid-dot" cx="352" cy="352" r="2.6"></circle><circle class="grid-dot" cx="396" cy="352" r="2.6"></circle><circle class="grid-dot" cx="440" cy="352" r="2.6"></circle><circle class="grid-dot" cx="484" cy="352" r="2.6"></circle><circle class="grid-dot" cx="528" cy="352" r="2.6"></circle><circle class="grid-dot" cx="0" cy="396" r="2.6"></circle><circle class="grid-dot" cx="44" cy="396" r="2.6"></circle><circle class="grid-dot" cx="88" cy="396" r="2.6"></circle><circle class="grid-dot" cx="132" cy="396" r="2.6"></circle><circle class="grid-dot" cx="176" cy="396" r="2.6"></circle><circle class="grid-dot" cx="220" cy="396" r="2.6"></circle><circle class="grid-dot" cx="264" cy="396" r="2.6"></circle><circle class="grid-dot" cx="308" cy="396" r="2.6"></circle><circle class="grid-dot" cx="352" cy="396" r="2.6"></circle><circle class="grid-dot" cx="396" cy="396" r="2.6"></circle><circle class="grid-dot" cx="440" cy="396" r="2.6"></circle><circle class="grid-dot" cx="484" cy="396" r="2.6"></circle><circle class="grid-dot" cx="528" cy="396" r="2.6"></circle><circle class="grid-dot" cx="0" cy="440" r="2.6"></circle><circle class="grid-dot" cx="44" cy="440" r="2.6"></circle><circle class="grid-dot" cx="88" cy="440" r="2.6"></circle><circle class="grid-dot" cx="132" cy="440" r="2.6"></circle><circle class="grid-dot" cx="176" cy="440" r="2.6"></circle><circle class="grid-dot" cx="220" cy="440" r="2.6"></circle><circle class="grid-dot" cx="264" cy="440" r="2.6"></circle><circle class="grid-dot" cx="308" cy="440" r="2.6"></circle><circle class="grid-dot" cx="352" cy="440" r="2.6"></circle><circle class="grid-dot" cx="396" cy="440" r="2.6"></circle><circle class="grid-dot" cx="440" cy="440" r="2.6"></circle><circle class="grid-dot" cx="484" cy="440" r="2.6"></circle><circle class="grid-dot" cx="528" cy="440" r="2.6"></circle><circle class="grid-dot" cx="0" cy="484" r="2.6"></circle><circle class="grid-dot" cx="44" cy="484" r="2.6"></circle><circle class="grid-dot" cx="88" cy="484" r="2.6"></circle><circle class="grid-dot" cx="132" cy="484" r="2.6"></circle><circle class="grid-dot" cx="176" cy="484" r="2.6"></circle><circle class="grid-dot" cx="220" cy="484" r="2.6"></circle><circle class="grid-dot" cx="264" cy="484" r="2.6"></circle><circle class="grid-dot" cx="308" cy="484" r="2.6"></circle><circle class="grid-dot" cx="352" cy="484" r="2.6"></circle><circle class="grid-dot" cx="396" cy="484" r="2.6"></circle><circle class="grid-dot" cx="440" cy="484" r="2.6"></circle><circle class="grid-dot" cx="484" cy="484" r="2.6"></circle><circle class="grid-dot" cx="528" cy="484" r="2.6"></circle><circle class="grid-dot" cx="0" cy="528" r="2.6"></circle><circle class="grid-dot" cx="44" cy="528" r="2.6"></circle><circle class="grid-dot" cx="88" cy="528" r="2.6"></circle><circle class="grid-dot" cx="132" cy="528" r="2.6"></circle><circle class="grid-dot" cx="176" cy="528" r="2.6"></circle><circle class="grid-dot" cx="220" cy="528" r="2.6"></circle><circle class="grid-dot" cx="264" cy="528" r="2.6"></circle><circle class="grid-dot" cx="308" cy="528" r="2.6"></circle><circle class="grid-dot" cx="352" cy="528" r="2.6"></circle><circle class="grid-dot" cx="396" cy="528" r="2.6"></circle><circle class="grid-dot" cx="440" cy="528" r="2.6"></circle><circle class="grid-dot" cx="484" cy="528" r="2.6"></circle><circle class="grid-dot" cx="528" cy="528" r="2.6"></circle><circle class="grid-dot" cx="0" cy="572" r="2.6"></circle><circle class="grid-dot" cx="44" cy="572" r="2.6"></circle><circle class="grid-dot" cx="88" cy="572" r="2.6"></circle><circle class="grid-dot" cx="132" cy="572" r="2.6"></circle><circle class="grid-dot" cx="176" cy="572" r="2.6"></circle><circle class="grid-dot" cx="220" cy="572" r="2.6"></circle><circle class="grid-dot" cx="264" cy="572" r="2.6"></circle><circle class="grid-dot" cx="308" cy="572" r="2.6"></circle><circle class="grid-dot" cx="352" cy="572" r="2.6"></circle><circle class="grid-dot" cx="396" cy="572" r="2.6"></circle><circle class="grid-dot" cx="440" cy="572" r="2.6"></circle><circle class="grid-dot" cx="484" cy="572" r="2.6"></circle><circle class="grid-dot" cx="528" cy="572" r="2.6"></circle><circle class="grid-dot" cx="0" cy="616" r="2.6"></circle><circle class="grid-dot" cx="44" cy="616" r="2.6"></circle><circle class="grid-dot" cx="88" cy="616" r="2.6"></circle><circle class="grid-dot" cx="132" cy="616" r="2.6"></circle><circle class="grid-dot" cx="176" cy="616" r="2.6"></circle><circle class="grid-dot" cx="220" cy="616" r="2.6"></circle><circle class="grid-dot" cx="264" cy="616" r="2.6"></circle><circle class="grid-dot" cx="308" cy="616" r="2.6"></circle><circle class="grid-dot" cx="352" cy="616" r="2.6"></circle><circle class="grid-dot" cx="396" cy="616" r="2.6"></circle><circle class="grid-dot" cx="440" cy="616" r="2.6"></circle><circle class="grid-dot" cx="484" cy="616" r="2.6"></circle><circle class="grid-dot" cx="528" cy="616" r="2.6"></circle></g>
-        <g id="sceneLayer"></g>
+        <g id="sceneLayer"><g class="wire" data-id="pd0x4zb3"><line class="wire-line" x1="88" y1="264" x2="88" y2="132"></line></g><g class="wire" data-id="pvum8qqs"><line class="wire-line" x1="88" y1="132" x2="220" y2="132"></line></g><g class="wire" data-id="prhqft4p"><line class="wire-line" x1="308" y1="132" x2="440" y2="132"></line></g><g class="wire" data-id="pde8hw25"><line class="wire-line" x1="440" y1="132" x2="440" y2="264"></line></g><g class="wire" data-id="pwya2v6g"><line class="wire-line" x1="440" y1="352" x2="440" y2="484"></line></g><g class="wire" data-id="pi8b6wqk"><line class="wire-line" x1="440" y1="484" x2="308" y2="484"></line></g><g class="wire" data-id="pdx8o8bn"><line class="wire-line" x1="220" y1="484" x2="88" y2="484"></line></g><g class="wire" data-id="p3tbwl40"><line class="wire-line" x1="88" y1="484" x2="88" y2="352"></line></g><g class="wire" data-id="phg9dtvj"><line class="wire-line" x1="220" y1="308" x2="220" y2="132"></line></g><g class="wire" data-id="p3zfui5j"><line class="wire-line" x1="308" y1="308" x2="308" y2="132"></line></g><g class="part" data-id="pc9qu6zr"><g transform="translate(88 308) rotate(270)"><path class="lead" d="M-44 0H-10"></path><path class="lead" d="M10 0H44"></path><path class="plate-short" d="M-10 -13V13"></path><path class="plate-long" d="M10 -24V24"></path><path class="pol" d="M20 -21v9M15.5 -16.5h9"></path></g><text class="val" x="121" y="314" text-anchor="start">9 V</text><text class="designator" x="121" y="292" text-anchor="start">E1</text></g><g class="part" data-id="p3trt7t6"><g transform="translate(264 132) rotate(0)"><path class="lead" d="M-44 0H-27"></path><path class="body" d="M-27 0l7-15 13 30 13-30 13 30 7-15"></path><path class="lead" d="M27 0H44"></path></g><text class="val" x="264" y="171" text-anchor="middle">100 Ω</text><text class="designator" x="264" y="101" text-anchor="middle">R1</text></g><g class="part" data-id="p3jqpv56"><g transform="translate(264 484) rotate(0)"><path class="lead" d="M-44 0H-24"></path><path class="lead" d="M24 0H44"></path><path class="body" d="M-24 0L24 0"></path><circle class="node" cx="-24" cy="0" r="3.4"></circle><circle class="node" cx="24" cy="0" r="3.4"></circle></g><text class="designator" x="264" y="453" text-anchor="middle">S1</text></g><g class="part" data-id="p30pebqp"><g transform="translate(440 308) rotate(90)"><path class="lead" d="M-44 0H-23"></path><path class="lead" d="M23 0H44"></path><circle class="meter-face" cx="0" cy="0" r="23"></circle><text class="meter-letter" x="0" y="0" transform="rotate(-90)" text-anchor="middle" dominant-baseline="central">A</text></g><text class="designator" x="407" y="292" text-anchor="end">A1</text></g><g class="part is-selected" data-id="ps57dwry"><rect class="halo" x="215.6" y="275" width="96.80000000000001" height="66" rx="14"></rect><g transform="translate(264 308) rotate(0)"><path class="lead" d="M-44 0H-23"></path><path class="lead" d="M23 0H44"></path><circle class="meter-face" cx="0" cy="0" r="23"></circle><text class="meter-letter" x="0" y="0" transform="rotate(0)" text-anchor="middle" dominant-baseline="central">V</text></g><text class="designator" x="264" y="277" text-anchor="middle">V1</text></g></g>
         <g id="draftLayer" aria-hidden="true"></g>
       </svg>
     </div>
@@ -963,20 +1033,20 @@
         <span>Parts</span>
         <span>Tap, then tap the board</span>
       </div>
-      <div class="palette" id="palette" role="toolbar" aria-label="Choose a part"><button class="part-btn active" type="button" data-tool="select" aria-pressed="true" title="Tap a part to move it or change its values." aria-label="Select: Tap a part to move it or change its values."><svg class="p-icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M12 5l14 17-7.4.9 3.9 7.4-3.9 2-3.9-7.6L12 30z" fill="currentColor" opacity=".92"></path></svg><span>Select</span></button><button class="part-btn" type="button" data-tool="wire" aria-pressed="false" title="Tap two dots, or drag from one dot to another." aria-label="Wire: Tap two dots, or drag from one dot to another."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="body" d="M-40 0H40"></path><circle class="node" cx="-40" cy="0" r="3.2"></circle><circle class="node" cx="40" cy="0" r="3.2"></circle></svg><span>Wire</span></button><button class="part-btn" type="button" data-tool="battery" aria-pressed="false" title="Tap the board to place a voltage source." aria-label="Battery: Tap the board to place a voltage source."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-10"></path><path class="lead" d="M10 0H44"></path><path class="plate-short" d="M-10 -13V13"></path><path class="plate-long" d="M10 -24V24"></path><path class="pol" d="M20 -21v9M15.5 -16.5h9"></path></svg><span>Battery</span></button><button class="part-btn" type="button" data-tool="resistor" aria-pressed="false" title="Tap the board to place a resistor." aria-label="Resistor: Tap the board to place a resistor."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-27"></path><path class="body" d="M-27 0l7-15 13 30 13-30 13 30 7-15"></path><path class="lead" d="M27 0H44"></path></svg><span>Resistor</span></button><button class="part-btn" type="button" data-tool="capacitor" aria-pressed="false" title="Tap the board to place a capacitor." aria-label="Capacitor: Tap the board to place a capacitor."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-8"></path><path class="lead" d="M8 0H44"></path><path class="body" d="M-8 -20V20"></path><path class="body" d="M8 -20V20"></path></svg><span>Capacitor</span></button><button class="part-btn" type="button" data-tool="inductor" aria-pressed="false" title="Tap the board to place an inductor." aria-label="Inductor: Tap the board to place an inductor."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-26"></path><path class="lead" d="M26 0H44"></path><path class="body" d="M-26 0a8.67 8.67 0 0 1 17.34 0 8.67 8.67 0 0 1 17.34 0 8.67 8.67 0 0 1 17.32 0"></path></svg><span>Inductor</span></button><button class="part-btn" type="button" data-tool="switch" aria-pressed="false" title="Tap the board to place a switch." aria-label="Switch: Tap the board to place a switch."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-24"></path><path class="lead" d="M24 0H44"></path><path class="body" d="M-24 0L24 0"></path><circle class="node" cx="-24" cy="0" r="3.4"></circle><circle class="node" cx="24" cy="0" r="3.4"></circle></svg><span>Switch</span></button><button class="part-btn" type="button" data-tool="voltmeter" aria-pressed="false" title="Place a voltmeter across the points to measure." aria-label="Voltmeter: Place a voltmeter across the points to measure."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-23"></path><path class="lead" d="M23 0H44"></path><circle class="meter-face" cx="0" cy="0" r="23"></circle><text class="meter-letter" x="0" y="0" transform="rotate(0)" text-anchor="middle" dominant-baseline="central">V</text></svg><span>Voltmeter</span></button><button class="part-btn" type="button" data-tool="ammeter" aria-pressed="false" title="Place an ammeter in series to measure current." aria-label="Ammeter: Place an ammeter in series to measure current."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-23"></path><path class="lead" d="M23 0H44"></path><circle class="meter-face" cx="0" cy="0" r="23"></circle><text class="meter-letter" x="0" y="0" transform="rotate(0)" text-anchor="middle" dominant-baseline="central">A</text></svg><span>Ammeter</span></button><button class="part-btn" type="button" data-tool="arrow" aria-pressed="false" title="Place an arrow to mark the current direction." aria-label="Arrow: Place an arrow to mark the current direction." hidden=""><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="arrow" d="M-40 0H28"></path><path class="arrow" d="M28 -14L44 0 28 14"></path></svg><span>Arrow</span></button></div>
+      <div class="palette" id="palette" role="toolbar" aria-label="Choose a part"><button class="part-btn active" type="button" data-tool="select" aria-pressed="true" title="Tap a part to move it or change its values." aria-label="Select: Tap a part to move it or change its values." fdprocessedid="g594ur"><svg class="p-icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M12 5l14 17-7.4.9 3.9 7.4-3.9 2-3.9-7.6L12 30z" fill="currentColor" opacity=".92"></path></svg><span>Select</span></button><button class="part-btn" type="button" data-tool="wire" aria-pressed="false" title="Tap two dots, or drag from one dot to another." aria-label="Wire: Tap two dots, or drag from one dot to another." fdprocessedid="r1ulxf"><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="body" d="M-40 0H40"></path><circle class="node" cx="-40" cy="0" r="3.2"></circle><circle class="node" cx="40" cy="0" r="3.2"></circle></svg><span>Wire</span></button><button class="part-btn" type="button" data-tool="battery" aria-pressed="false" title="Tap the board to place a voltage source." aria-label="Battery: Tap the board to place a voltage source." fdprocessedid="p6f77s"><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-10"></path><path class="lead" d="M10 0H44"></path><path class="plate-short" d="M-10 -13V13"></path><path class="plate-long" d="M10 -24V24"></path><path class="pol" d="M20 -21v9M15.5 -16.5h9"></path></svg><span>Battery</span></button><button class="part-btn" type="button" data-tool="resistor" aria-pressed="false" title="Tap the board to place a resistor." aria-label="Resistor: Tap the board to place a resistor." fdprocessedid="o3i01"><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-27"></path><path class="body" d="M-27 0l7-15 13 30 13-30 13 30 7-15"></path><path class="lead" d="M27 0H44"></path></svg><span>Resistor</span></button><button class="part-btn" type="button" data-tool="capacitor" aria-pressed="false" title="Tap the board to place a capacitor." aria-label="Capacitor: Tap the board to place a capacitor." fdprocessedid="0pya9c"><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-8"></path><path class="lead" d="M8 0H44"></path><path class="body" d="M-8 -20V20"></path><path class="body" d="M8 -20V20"></path></svg><span>Capacitor</span></button><button class="part-btn" type="button" data-tool="inductor" aria-pressed="false" title="Tap the board to place an inductor." aria-label="Inductor: Tap the board to place an inductor." fdprocessedid="cih3ck"><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-26"></path><path class="lead" d="M26 0H44"></path><path class="body" d="M-26 0a8.67 8.67 0 0 1 17.34 0 8.67 8.67 0 0 1 17.34 0 8.67 8.67 0 0 1 17.32 0"></path></svg><span>Inductor</span></button><button class="part-btn" type="button" data-tool="switch" aria-pressed="false" title="Tap the board to place a switch." aria-label="Switch: Tap the board to place a switch." fdprocessedid="wnp2p"><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-24"></path><path class="lead" d="M24 0H44"></path><path class="body" d="M-24 0L24 0"></path><circle class="node" cx="-24" cy="0" r="3.4"></circle><circle class="node" cx="24" cy="0" r="3.4"></circle></svg><span>Switch</span></button><button class="part-btn" type="button" data-tool="voltmeter" aria-pressed="false" title="Place a voltmeter across the points to measure." aria-label="Voltmeter: Place a voltmeter across the points to measure." fdprocessedid="jwtetp"><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-23"></path><path class="lead" d="M23 0H44"></path><circle class="meter-face" cx="0" cy="0" r="23"></circle><text class="meter-letter" x="0" y="0" transform="rotate(0)" text-anchor="middle" dominant-baseline="central">V</text></svg><span>Voltmeter</span></button><button class="part-btn" type="button" data-tool="ammeter" aria-pressed="false" title="Place an ammeter in series to measure current." aria-label="Ammeter: Place an ammeter in series to measure current." fdprocessedid="aqod97"><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-23"></path><path class="lead" d="M23 0H44"></path><circle class="meter-face" cx="0" cy="0" r="23"></circle><text class="meter-letter" x="0" y="0" transform="rotate(0)" text-anchor="middle" dominant-baseline="central">A</text></svg><span>Ammeter</span></button><button class="part-btn" type="button" data-tool="arrow" aria-pressed="false" title="Place an arrow to mark the current direction." aria-label="Arrow: Place an arrow to mark the current direction." fdprocessedid="1c9tfm" hidden=""><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="arrow" d="M-40 0H28"></path><path class="arrow" d="M28 -14L44 0 28 14"></path></svg><span>Arrow</span></button></div>
     </section>
 
     <section class="panel" aria-label="Inspector">
       <div class="panel-title">
         <span>Inspector</span>
-        <span id="inspectorHint">Values &amp; readings</span>
+        <span id="inspectorHint">VOLTMETER</span>
       </div>
-      <div class="inspector" id="inspector"><div class="empty-state"><p class="hint">Tap a part on the board to edit it. Use the palette to add parts, and tap two dots to draw a wire.</p><p class="hint">The voltmeter reads potential difference and the ammeter reads current. In Simulation mode the values are solved from the wiring; Realistic adds 1–2% internal resistance to every part.</p><div class="btn-row"><button class="btn primary" id="exampleBtn" type="button">Load an example</button><button class="btn" id="startBtn" type="button">Start blank</button></div></div></div>
+      <div class="inspector" id="inspector"><div id="liveReading"></div><p class="hint">Drawing mode hides meter readings and current arrows. Switch to Simulation once the wiring is ready.</p><div class="field field-text"><label for="labelInput">Label</label><input class="text-input" id="labelInput" type="text" maxlength="24" autocomplete="off" spellcheck="false" value="V1" placeholder="No label" aria-label="Element label" fdprocessedid="tgsa3n"></div><p class="hint">Connect the voltmeter across the two points you want to measure. A real meter has a 1 MΩ input, so it draws a tiny current.</p><div class="btn-row"><button class="btn" id="rotateInline" type="button" fdprocessedid="8p6ec4">Rotate 90°</button><button class="btn danger" id="deleteInline" type="button" fdprocessedid="qoksna">Delete</button></div></div>
     </section>
   </aside>
 </main>
 
-<div class="toast" id="toast" role="status" aria-live="polite">Board cleared</div>
+<div class="toast" id="toast" role="status" aria-live="polite">SVG saved — check your downloads</div>
 
 <noscript>
   <p style="padding:16px;font-family:sans-serif">This circuit tool needs JavaScript enabled.</p>
@@ -1051,6 +1121,7 @@
   };
 
   let drag = null;
+  let exporting = false;   // while exporting, the scene renders without the selection halo
   let history = [];
   let solution = emptySolution();
   let clearArmed = false;
@@ -1095,6 +1166,8 @@
     colsOut: document.getElementById('colsOut'),
     rowsOut: document.getElementById('rowsOut'),
     themeBtn: document.getElementById('themeBtn'),
+    exportBtn: document.getElementById('exportBtn'),
+    exportPop: document.getElementById('exportPop'),
     toast: document.getElementById('toast')
   };
 
@@ -1158,8 +1231,54 @@
     return abs.toExponential(1) + ' ' + unit;
   }
 
+  /* Text typed by the user goes into SVG markup, so escape it. */
+  function esc(text) {
+    return String(text).replace(/[&<>"']/g, function (ch) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+  }
+
+  /* Reference designators for the element labels. */
+  const DESIGNATOR = {
+    battery: 'E', resistor: 'R', capacitor: 'C', inductor: 'L',
+    switch: 'S', voltmeter: 'V', ammeter: 'A', arrow: 'I', wire: 'W'
+  };
+  const LABEL_MAX = 24;
+
+  function nextDesignator(type, items) {
+    const prefix = DESIGNATOR[type] || 'X';
+    const list = items || state.items;
+    const pattern = new RegExp('^' + prefix + '(\\d+)$');
+    let highest = 0;
+    for (const item of list) {
+      const found = pattern.exec(String(item.label || '').trim());
+      if (found) highest = Math.max(highest, Number(found[1]));
+    }
+    return prefix + (highest + 1);
+  }
+
+  function cleanLabel(text) {
+    return String(text == null ? '' : text).replace(/\s+/g, ' ').trim().slice(0, LABEL_MAX);
+  }
+
+  /* Boards saved before labels existed get default designators once; after
+     that an empty label stays empty on purpose. */
+  function addMissingLabels(items) {
+    const taken = new Set();
+    for (const item of items) {
+      const label = cleanLabel(item.label);
+      if (label) taken.add(label);
+    }
+    for (const item of items) {
+      if (item.type === 'wire' || cleanLabel(item.label)) continue;
+      const known = Array.from(taken).map(function (label) { return { label: label }; });
+      item.label = nextDesignator(item.type, known);
+      taken.add(item.label);
+    }
+  }
+
   function createItem(type, x, y, rot) {
-    const base = { id: uid(), type: type, x: x, y: y, rot: rot || 0 };
+    const base = { id: uid(), type: type, x: x, y: y, rot: rot || 0, label: nextDesignator(type) };
     if (type === 'battery') return Object.assign(base, { mode: 'voltage', volts: 9, amps: 1 });
     if (type === 'resistor') return Object.assign(base, { ohms: 100 });
     if (type === 'switch') return Object.assign(base, { closed: true });
@@ -1365,8 +1484,16 @@
 
   function setSizePanel(open) {
     if (!els.sizePop || !els.sizeBtn) return;
+    if (open) setExportPanel(false);
     els.sizePop.hidden = !open;
     els.sizeBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  function setExportPanel(open) {
+    if (!els.exportPop || !els.exportBtn) return;
+    if (open && els.sizePop && !els.sizePop.hidden) setSizePanel(false);
+    els.exportPop.hidden = !open;
+    els.exportBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
 
   // Meters only show numbers in Simulation mode, and only once the circuit
@@ -1409,11 +1536,26 @@
     };
   }
 
+  /* The user's own label sits opposite the value, nudged inward near the edges
+     so a long name is not clipped by the board. */
+  function designatorPlacement(item) {
+    const cx = item.x * G;
+    const cy = item.y * G;
+    const right = COLS * G;
+    if (rotOf(item) % 2 === 1) {
+      if (cx > right - 110) return { x: cx - 33, y: cy - 16, anchor: 'end' };
+      return { x: cx + 33, y: cy - 16, anchor: 'start' };
+    }
+    if (cx < 90) return { x: cx - 34, y: cy - 31, anchor: 'start' };
+    if (cx > right - 90) return { x: cx + 34, y: cy - 31, anchor: 'end' };
+    return { x: cx, y: cy - 31, anchor: 'middle' };
+  }
+
   function partSVG(item) {
     const deg = rotOf(item) * 90;
     const cx = item.x * G;
     const cy = item.y * G;
-    const selected = item.id === state.selected;
+    const selected = item.id === state.selected && !exporting;
     let out = '<g class="part' + (selected ? ' is-selected' : '') + '" data-id="' + item.id + '">';
 
     if (selected) {
@@ -1434,16 +1576,31 @@
         '" text-anchor="' + pos.anchor + '">' + label.text + '</text>';
     }
 
+    if (item.label) {
+      const dp = designatorPlacement(item);
+      out += '<text class="designator" x="' + dp.x + '" y="' + dp.y +
+        '" text-anchor="' + dp.anchor + '">' + esc(item.label) + '</text>';
+    }
+
     out += '</g>';
     return out;
   }
 
   function wireSVG(item) {
-    const selected = item.id === state.selected;
-    return '<g class="wire' + (selected ? ' is-selected' : '') + '" data-id="' + item.id + '">' +
+    const selected = item.id === state.selected && !exporting;
+    let out = '<g class="wire' + (selected ? ' is-selected' : '') + '" data-id="' + item.id + '">' +
       '<line class="wire-line" x1="' + (item.x1 * G) + '" y1="' + (item.y1 * G) +
-      '" x2="' + (item.x2 * G) + '" y2="' + (item.y2 * G) + '"/>' +
-      '</g>';
+      '" x2="' + (item.x2 * G) + '" y2="' + (item.y2 * G) + '"/>';
+    if (item.label) {
+      const horizontal = item.y1 === item.y2;
+      const mx = ((item.x1 + item.x2) / 2) * G;
+      const my = ((item.y1 + item.y2) / 2) * G;
+      out += '<text class="designator" x="' + (horizontal ? mx : mx + 12) + '" y="' +
+        (horizontal ? my - 12 : my + 5) + '" text-anchor="' +
+        (horizontal ? 'middle' : 'start') + '">' + esc(item.label) + '</text>';
+    }
+    out += '</g>';
+    return out;
   }
 
   function renderScene() {
@@ -1692,6 +1849,11 @@
         : 'No reading — check the circuit for a short across a source.') + '</p>';
     }
 
+    html += '<div class="field field-text"><label for="labelInput">Label</label>' +
+      '<input class="text-input" id="labelInput" type="text" maxlength="' + LABEL_MAX + '" ' +
+      'autocomplete="off" spellcheck="false" value="' + esc(item.label || '') + '" ' +
+      'placeholder="No label" aria-label="Element label"></div>';
+
     if (item.type === 'battery') {
       const isCurrent = item.mode === 'current';
       html += '<div class="seg" role="group" aria-label="Source type">' +
@@ -1797,6 +1959,27 @@
   }
 
   function bindInspector(item) {
+    const labelInput = document.getElementById('labelInput');
+    if (labelInput) {
+      const commitLabel = function (trim) {
+        const next = cleanLabel(trim ? labelInput.value : labelInput.value.slice(0, LABEL_MAX));
+        if (trim) labelInput.value = next;
+        if (next === item.label) return;
+        item.label = next;
+        renderScene();
+        save();
+      };
+      labelInput.addEventListener('focus', function () { pushHistory(); });
+      labelInput.addEventListener('input', function () { commitLabel(false); });
+      labelInput.addEventListener('blur', function () { commitLabel(true); });
+      labelInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          labelInput.blur();
+        }
+      });
+    }
+
     els.inspector.querySelectorAll('[data-mode]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         item.mode = btn.dataset.mode;
@@ -2524,7 +2707,8 @@
         type: candidate.type,
         x: Number(candidate.x),
         y: Number(candidate.y),
-        rot: Number(candidate.rot)
+        rot: Number(candidate.rot),
+        label: typeof candidate.label === 'string' ? cleanLabel(candidate.label) : ''
       };
       item.rot = ((Math.round(item.rot) || 0) % 4 + 4) % 4;
 
@@ -2565,7 +2749,7 @@
   function save() {
     try {
       localStorage.setItem(STORE_KEY, JSON.stringify({
-        v: 3,
+        v: 4,
         cols: COLS,
         rows: ROWS,
         mode: state.mode,
@@ -2600,7 +2784,142 @@
     state.mode = parsed.mode === 'draw' ? 'draw' : 'sim';
     state.realism = parsed.realism === 'realistic' ? 'realistic' : 'ideal';
     state.items = sanitizeItems(parsed.items);
+    if (Number(parsed.v) < 4) addMissingLabels(state.items);
     return true;
+  }
+
+  /* ============================================================
+     Export
+     ============================================================ */
+
+  function themeColor(name, fallback) {
+    try {
+      const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return value || fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  /* Build a standalone SVG of the scene, with the theme's colours baked in so
+     the file looks the same outside this page. */
+  function exportSvgMarkup() {
+    exporting = true;
+    renderScene();
+    const scene = els.sceneLayer.innerHTML;
+    exporting = false;
+    renderScene();
+
+    const c = {
+      board: themeColor('--board', '#fbfdfb'),
+      line: themeColor('--line', '#d8e4dd'),
+      ink: themeColor('--ink', '#0c2a20'),
+      ink2: themeColor('--ink-2', '#174536'),
+      muted: themeColor('--muted', '#5f7d72'),
+      accent: themeColor('--accent', '#007a4a'),
+      wire: themeColor('--wire', '#143c2d'),
+      panel: themeColor('--panel', '#ffffff')
+    };
+    const pad = PAD * G;
+    const w = COLS * G + pad * 2;
+    const h = ROWS * G + pad * 2;
+    const style = [
+      'text{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}',
+      '.wire-line{stroke:' + c.wire + ';stroke-width:4.2;stroke-linecap:round;fill:none}',
+      '.lead{stroke:' + c.ink + ';stroke-width:3.4;fill:none;stroke-linecap:round}',
+      '.body{stroke:' + c.ink + ';stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}',
+      '.plate-short{stroke:' + c.ink + ';stroke-width:6.5;fill:none;stroke-linecap:round}',
+      '.plate-long{stroke:' + c.ink + ';stroke-width:3;fill:none;stroke-linecap:round}',
+      '.pol{stroke:' + c.accent + ';stroke-width:2.6;fill:none;stroke-linecap:round}',
+      '.node{fill:' + c.ink + '}',
+      '.meter-face{fill:' + c.panel + ';stroke:' + c.ink + ';stroke-width:3.2}',
+      '.meter-letter{fill:' + c.ink + ';font-size:25px;font-weight:800}',
+      '.arrow{stroke:' + c.accent + ';stroke-width:4.6;fill:none;stroke-linecap:round;stroke-linejoin:round}',
+      '.val{fill:' + c.muted + ';font-size:20px;font-weight:700;paint-order:stroke;stroke:' + c.board + ';stroke-width:7px;stroke-linejoin:round}',
+      '.reading{fill:' + c.accent + ';font-size:23px;font-weight:800;paint-order:stroke;stroke:' + c.board + ';stroke-width:7px;stroke-linejoin:round}',
+      '.designator{fill:' + c.ink2 + ';font-size:17px;font-weight:700;paint-order:stroke;stroke:' + c.board + ';stroke-width:6px;stroke-linejoin:round}'
+    ].join('');
+
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + Math.round(w) +
+      '" height="' + Math.round(h) + '" viewBox="' + (-pad) + ' ' + (-pad) + ' ' + w + ' ' + h + '">' +
+      '<style>' + style + '</style>' +
+      '<rect x="' + (-pad + 1) + '" y="' + (-pad + 1) + '" width="' + (w - 2) + '" height="' + (h - 2) +
+      '" rx="16" fill="' + c.board + '" stroke="' + c.line + '" stroke-width="2"/>' +
+      scene + '</svg>';
+
+    return { svg: svg, width: w, height: h, board: c.board };
+  }
+
+  function exportFilename(extension) {
+    const now = new Date();
+    const part = function (n) { return String(n).padStart(2, '0'); };
+    return 'circuit-' + now.getFullYear() + part(now.getMonth() + 1) + part(now.getDate()) +
+      '-' + part(now.getHours()) + part(now.getMinutes()) + '.' + extension;
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+  }
+
+  function exportSvgFile() {
+    if (!state.items.length) {
+      showToast('Draw something before exporting');
+      return;
+    }
+    const built = exportSvgMarkup();
+    downloadBlob(new Blob([built.svg], { type: 'image/svg+xml;charset=utf-8' }), exportFilename('svg'));
+    showToast('SVG saved — check your downloads');
+  }
+
+  function exportPngFile() {
+    if (!state.items.length) {
+      showToast('Draw something before exporting');
+      return;
+    }
+    const built = exportSvgMarkup();
+    const blob = new Blob([built.svg], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const image = new Image();
+    const scale = 3; // print-friendly pixels
+
+    image.onload = function () {
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(built.width * scale);
+      canvas.height = Math.round(built.height * scale);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        showToast('PNG export is not available — try SVG');
+        return;
+      }
+      ctx.fillStyle = built.board;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(function (png) {
+        if (!png) {
+          showToast('Could not build the PNG — try SVG');
+          return;
+        }
+        downloadBlob(png, exportFilename('png'));
+        showToast('PNG saved — check your downloads');
+      }, 'image/png');
+    };
+
+    image.onerror = function () {
+      URL.revokeObjectURL(url);
+      showToast('Could not render the image — try SVG');
+    };
+
+    image.src = url;
   }
 
   /* ============================================================
@@ -2620,12 +2939,12 @@
       items.push({ id: uid(), type: 'wire', x1: x1, y1: y1, x2: x2, y2: y2 });
     }
 
-    add('battery', 2, 7, 3, { volts: 9, mode: 'voltage' });
-    add('resistor', 6, 3, 0, { ohms: 100 });
-    add('switch', 6, 11, 0, { closed: true });
-    add('ammeter', 10, 7, 1);
-    add('voltmeter', 6, 7, 0);
-    add('arrow', 8, 2, 0);
+    add('battery', 2, 7, 3, { volts: 9, mode: 'voltage', label: 'E1' });
+    add('resistor', 6, 3, 0, { ohms: 100, label: 'R1' });
+    add('switch', 6, 11, 0, { closed: true, label: 'S1' });
+    add('ammeter', 10, 7, 1, { label: 'A1' });
+    add('voltmeter', 6, 7, 0, { label: 'V1' });
+    add('arrow', 8, 2, 0, { label: 'I' });
 
     wire(2, 6, 2, 3);
     wire(2, 3, 5, 3);
@@ -2737,6 +3056,25 @@
       });
     }
 
+    if (els.exportBtn) {
+      els.exportBtn.addEventListener('click', function (event) {
+        event.stopPropagation();
+        setExportPanel(els.exportPop.hidden);
+      });
+      els.exportPop.addEventListener('click', function (event) {
+        const btn = event.target.closest('button');
+        if (!btn) return;
+        setExportPanel(false);
+        if (btn.id === 'exportPngBtn') exportPngFile();
+        else if (btn.id === 'exportSvgBtn') exportSvgFile();
+      });
+      document.addEventListener('pointerdown', function (event) {
+        if (els.exportPop.hidden) return;
+        if (els.exportPop.contains(event.target) || els.exportBtn.contains(event.target)) return;
+        setExportPanel(false);
+      });
+    }
+
     els.undoBtn.addEventListener('click', undo);
     els.rotateBtn.addEventListener('click', rotateSelected);
     els.deleteBtn.addEventListener('click', deleteSelected);
@@ -2780,6 +3118,11 @@
         return;
       }
       if (event.key === 'Escape') {
+        if (els.exportPop && !els.exportPop.hidden) {
+          setExportPanel(false);
+          els.exportBtn.focus({ preventScroll: true });
+          return;
+        }
         if (els.sizePop && !els.sizePop.hidden) {
           setSizePanel(false);
           els.sizeBtn.focus({ preventScroll: true });
@@ -2823,4 +3166,4 @@
 </script>
 
 
-<span id="PING_CONTENT_MB_MAIN" style="display: none;"></span><span id="PING_CONTENT_PUSH_NOTIFICATION" style="display: none;"></span></body></html>
+<span id="PING_CONTENT_MB_MAIN" style="display: none;"></span><span id="PING_CONTENT_PUSH_NOTIFICATION" style="display: none;"></span><span id="PING_IFRAME_FORM_DETECTION" style="display: none;"></span></body></html>
