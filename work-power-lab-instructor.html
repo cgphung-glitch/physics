@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<!-- saved from url=(0033)http://127.0.0.1:4178/work-power/ -->
+<html lang="en" data-theme="dark" style="--tb: 57px;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#06110d">
+<meta name="description" content="Cart on an incline pulled by a hanging weight: time three trials for three masses, then work out force, work, power, kinetic and potential energy.">
+<title>Work &amp; Power Lab · Cart on an Incline</title>
+<script>
+  // Set the theme before first paint to avoid a flash.
+  (function () {
+    var theme = 'light';
+    try {
+      theme = localStorage.getItem('workpower-lab-theme') ||
+        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    } catch (e) { /* storage can be unavailable */ }
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --bg: #edf3ef;
+    --panel: #ffffff;
+    --panel-2: #f5faf7;
+    --ink: #0c2a20;
+    --ink-2: #174536;
+    --muted: #5f7d72;
+    --line: #d8e4dd;
+    --accent: #007a4a;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(0, 122, 74, 0.10);
+    --readout-border: rgba(0, 122, 74, 0.24);
+    --gold: #a97a00;
+    --gold-soft: rgba(198, 146, 0, 0.14);
+    --danger: #b3261e;
+    --danger-soft: rgba(179, 38, 30, 0.10);
+    --wood-fill: #f2e4c6;
+    --wood-edge: #c8b184;
+    --metal: #6b7280;
+    --metal-2: #9aa3ad;
+    --bar-bg: rgba(255, 255, 255, 0.88);
+    --shadow: 0 12px 34px rgba(8, 40, 28, 0.09);
+    --radius: 16px;
+    color-scheme: light;
+  }
+
+  html[data-theme="dark"] {
+    --bg: #06110d;
+    --panel: #0d1a15;
+    --panel-2: #12221b;
+    --ink: #e7f3ed;
+    --ink-2: #c9e2d7;
+    --muted: #86a79a;
+    --line: #1e342b;
+    --accent: #49e0a1;
+    --accent-ink: #002b1d;
+    --accent-soft: rgba(73, 224, 161, 0.13);
+    --readout-border: rgba(73, 224, 161, 0.26);
+    --gold: #ffc72c;
+    --gold-soft: rgba(255, 199, 44, 0.13);
+    --danger: #ff6f66;
+    --danger-soft: rgba(255, 111, 102, 0.14);
+    --wood-fill: #2b2419;
+    --wood-edge: #4d4331;
+    --metal: #7b8794;
+    --metal-2: #586471;
+    --bar-bg: rgba(8, 19, 14, 0.86);
+    --shadow: 0 14px 38px rgba(0, 0, 0, 0.40);
+    color-scheme: dark;
+  }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    min-height: 100dvh;
+    background: var(--bg);
+    background-image:
+      radial-gradient(900px 500px at 85% -10%, var(--accent-soft), transparent 70%),
+      radial-gradient(700px 400px at -10% 110%, var(--gold-soft), transparent 70%);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button, input, select { font-family: inherit; }
+  h1, h2, h3 { font-weight: 650; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 12px;
+    padding-top: calc(8px + env(safe-area-inset-top));
+    background: var(--bar-bg);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+  .brand-mark {
+    width: 36px; height: 36px; flex: 0 0 auto;
+    display: grid; place-items: center;
+    border-radius: 11px;
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .brand-mark svg { width: 22px; height: 22px; }
+
+  .brand-text { min-width: 0; }
+  .brand-text h1 {
+    margin: 0; font-size: 15px; line-height: 1.15;
+    letter-spacing: -0.01em; white-space: nowrap;
+  }
+  .brand-text p {
+    margin: 2px 0 0; font-size: 11.5px; color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .top-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+
+  .icon-btn {
+    width: 40px; height: 40px;
+    display: grid; place-items: center;
+    border-radius: 11px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .icon-btn svg { width: 20px; height: 20px; }
+  .icon-btn:active { transform: scale(0.96); }
+
+  /* ---------- layout ---------- */
+  main {
+    padding: 12px;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Incline & cart, Hanger & weights and Model & timing: stacked on a phone,
+     side by side on a tablet, and down the right-hand column on a desktop. */
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+
+  .stage {
+    position: sticky;
+    top: var(--tb, 58px);
+    z-index: 20;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 8px 10px 10px;
+  }
+
+  .chips {
+    display: flex; align-items: center; gap: 6px;
+    padding: 2px 0 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+
+  .chip {
+    font-size: 12px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--ink-2);
+    white-space: nowrap;
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .chip b { font-weight: 650; }
+  .chip.ok { background: var(--accent-soft); border-color: var(--readout-border); color: var(--accent); }
+  .chip.warn { background: var(--gold-soft); border-color: var(--gold); color: var(--gold); }
+  .chip.bad { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+
+  .metrics { display: flex; gap: 6px; padding: 6px 0 0; }
+  .metric {
+    flex: 1 1 0; min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: var(--panel-2);
+    padding: 6px 8px;
+  }
+  .metric .k {
+    font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase;
+    color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .metric .v {
+    font-size: 17px; font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .metric .v .u { font-size: 11px; color: var(--muted); font-weight: 500; margin-left: 2px; }
+
+  .run-bar { display: flex; gap: 8px; align-items: stretch; padding-top: 8px; }
+
+  .btn-run {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 15px;
+    font-weight: 650;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .btn-run:active { transform: scale(0.985); }
+  .btn-run.stop { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .btn-run.armed {
+    background: var(--panel-2); border-color: var(--line); color: var(--muted); cursor: default;
+  }
+  .btn-run.armed:active { transform: none; }
+
+  svg#board {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 46dvh;
+    touch-action: pan-y;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* board paints */
+  .brd { stroke: var(--wood-fill); stroke-width: 16; stroke-linecap: butt; }
+  .brd-edge { stroke: var(--wood-edge); stroke-width: 17; stroke-linecap: butt; }
+  .tick { stroke: var(--wood-edge); stroke-width: 2; }
+  .post { fill: var(--metal); stroke: var(--metal-2); stroke-width: 1.5; }
+  .post-soft { fill: var(--metal-2); }
+  .pulley { fill: var(--metal-2); stroke: var(--metal); stroke-width: 2.5; }
+  .pulley-hub { fill: var(--panel); stroke: var(--metal); stroke-width: 2; }
+  .cart-body { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2.6; }
+  .cart-deck { stroke: var(--accent); stroke-width: 2; }
+  .wheel { fill: var(--metal); stroke: var(--metal-2); stroke-width: 1.6; }
+  .str { fill: none; stroke: var(--ink-2); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+  .str-acc { fill: none; stroke: var(--accent); stroke-width: 3; }
+  .hang-rod { stroke: var(--metal); stroke-width: 3; }
+  .hang-plate { fill: var(--metal-2); stroke: var(--metal); stroke-width: 1.6; }
+  .hang-block { fill: var(--gold-soft); stroke: var(--gold); stroke-width: 2.2; }
+  .dim { stroke: var(--muted); stroke-width: 1.6; stroke-dasharray: 7 5; }
+  .dim-solid { stroke: var(--muted); stroke-width: 1.6; }
+  .dim-text { fill: var(--ink-2); font-size: 21px; font-weight: 650; text-anchor: middle; }
+  .dim-text.small { font-size: 17px; font-weight: 500; fill: var(--muted); }
+  .mark { stroke: var(--gold); stroke-width: 3.4; }
+  .mark-flag { fill: var(--gold); }
+  .mark-text { fill: var(--gold); font-size: 19px; font-weight: 650; text-anchor: middle; }
+  .run-zone { stroke: var(--accent); stroke-width: 4; opacity: 0.5; }
+  .arrow { stroke-width: 3.2; stroke-linecap: round; }
+  .arrow.pull { stroke: var(--accent); }
+  .arrow.grav { stroke: var(--gold); }
+  .arrow.fric { stroke: var(--danger); }
+  .fl { font-size: 19px; font-weight: 600; text-anchor: middle; }
+  .fl.pull { fill: var(--accent); }
+  .fl.grav { fill: var(--gold); }
+  .fl.fric { fill: var(--danger); }
+  .body-note { fill: var(--muted); font-size: 17px; text-anchor: middle; }
+  .hit-mark { fill: transparent; cursor: ew-resize; }
+
+  /* On a phone the whole board is only ~330 px wide, so scale the labels up
+     or they fall below a readable size. */
+  svg#board.compact .dim-text { font-size: 38px; }
+  svg#board.compact .dim-text.small { font-size: 32px; }
+  svg#board.compact .mark-text { font-size: 36px; }
+  svg#board.compact .fl { font-size: 36px; }
+  svg#board.compact .body-note { font-size: 36px; }
+
+  /* ---------- cards ---------- */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 12px;
+  }
+  .card > h2 {
+    margin: 0 0 10px;
+    font-size: 11.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+
+  /* the post-lab analysis starts collapsed; the button in its header opens it */
+  #analysisWrap[hidden] { display: none; }
+  .pill[aria-expanded="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  h3.case-title { font-size: 15px; margin: 0 0 6px; }
+
+  ol.steps {
+    margin: 0 0 10px;
+    padding-left: 20px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+  ol.steps li { margin: 0 0 4px; }
+  ol.steps b { color: var(--ink); }
+  ol.steps li.done { color: var(--muted); }
+  ol.steps li.done .done-mark { color: var(--accent); font-weight: 700; }
+
+  .note {
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--muted);
+    margin: 8px 0 0;
+  }
+  .note.err { color: var(--danger); }
+  .note.good { color: var(--accent); }
+
+  .live {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--muted);
+    background: var(--panel-2);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.45;
+    margin: 0 0 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .live.ok { border-left-color: var(--accent); }
+  .live.warn { border-left-color: var(--gold); }
+
+  /* ---------- controls ---------- */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+  label.f { display: block; font-size: 12px; color: var(--muted); margin: 0 0 3px; }
+
+  input[type="number"] {
+    width: 100%;
+    padding: 9px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--ink);
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+  }
+  input[type="number"]:focus-visible,
+  button:focus-visible,
+  .pill:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill {
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--ink-2);
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+  }
+  .pill[aria-pressed="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+  .pill:active { transform: scale(0.97); }
+  .pill.sm { font-size: 12.5px; padding: 7px 10px; }
+  .pill.wide { width: 100%; }
+  .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .row.between { justify-content: space-between; }
+  .spacer { flex: 1 1 auto; }
+
+  .slider { width: 100%; height: 34px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; }
+  .slider:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+  .slider::-webkit-slider-runnable-track {
+    height: 8px; border-radius: 999px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 28px; height: 28px; margin-top: -11px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--panel);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  }
+  .slider::-moz-range-track {
+    height: 8px; border-radius: 999px;
+    background: var(--panel-2); border: 1px solid var(--line);
+  }
+  .slider::-moz-range-thumb {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--accent); border: 3px solid var(--panel);
+  }
+  .slider:disabled { opacity: 0.4; }
+
+  .readout {
+    font-variant-numeric: tabular-nums;
+    font-size: 15px;
+    font-weight: 650;
+  }
+  .readout .u { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+  .group-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 2px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .group-row:last-child { border-bottom: 0; }
+  .group-pick {
+    flex: 1 1 auto; min-width: 0;
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 6px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .group-pick[aria-pressed="true"] { border-color: var(--readout-border); background: var(--accent-soft); }
+  .group-pick .tag { font-size: 13.5px; font-weight: 650; width: 52px; flex: 0 0 auto; }
+  .group-pick .vals { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .dots { display: inline-flex; gap: 4px; }
+  .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--panel-2);
+  }
+  .dot.on { background: var(--accent); border-color: var(--accent); }
+
+  .data-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 6px 4px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; font-size: 11.5px; }
+  tr.total td { font-weight: 650; color: var(--ink); }
+  td.miss { color: var(--muted); }
+
+  .rec-list { display: grid; gap: 4px; margin: 0 0 12px; }
+  .rec-list .rec {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    font-size: 13px; border-bottom: 1px dashed var(--line); padding-bottom: 3px;
+  }
+  .rec-list .rec:last-child { border-bottom: 0; }
+  .rec-list .rk { color: var(--ink-2); }
+  .rec-list .rv { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+
+  details.grp { margin-top: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); }
+  details.grp > summary {
+    cursor: pointer;
+    font-size: 13.5px;
+    font-weight: 650;
+    padding: 10px 12px;
+    color: var(--ink);
+    list-style: none;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+  }
+  details.grp > summary::-webkit-details-marker { display: none; }
+  details.grp > summary .st { font-weight: 500; color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  details.grp[open] > summary { border-bottom: 1px solid var(--line); }
+  details.grp > .body { padding: 10px 12px 12px; background: var(--panel); border-radius: 0 0 12px 12px; }
+
+  .qrow {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+    padding: 6px 0; border-bottom: 1px dashed var(--line);
+  }
+  .qrow:last-child { border-bottom: 0; }
+  .qn { min-width: 0; }
+  .qn .qt { display: block; font-size: 13px; color: var(--ink-2); }
+  .qn .qt .qn-badge { font-size: 10.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 5px; margin-left: 5px; }
+  .qn .qf { display: block; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .qv { font-size: 13.5px; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .qv .u { font-size: 11px; color: var(--muted); font-weight: 500; margin-left: 2px; }
+
+  .switch-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 7px 0;
+    font-size: 13.5px;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .switch-row:last-child { border-bottom: 0; }
+  .switch {
+    position: relative; width: 46px; height: 26px; flex: 0 0 auto;
+    border-radius: 999px; border: 1px solid var(--line);
+    background: var(--panel-2); cursor: pointer; padding: 0;
+  }
+  .switch::before { content: ""; position: absolute; inset: -10px -7px; }
+  .switch::after {
+    content: ""; position: absolute; top: 2px; left: 2px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--muted);
+    transition: transform 0.16s ease, background 0.16s ease;
+  }
+  .switch[aria-checked="true"] { background: var(--accent-soft); border-color: var(--readout-border); }
+  .switch[aria-checked="true"]::after { transform: translateX(20px); background: var(--accent); }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    transform: translateX(-50%) translateY(6px);
+    max-width: min(92vw, 480px);
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.35;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 60;
+  }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  footer.foot {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    padding: 2px 4px 0;
+  }
+  footer.foot b { color: var(--ink-2); }
+
+  @media (max-width: 560px) {
+    .pill { padding: 10px 13px; }
+    .pill.sm { padding: 9px 11px; font-size: 13px; }
+    .metric .v { font-size: 16px; }
+    input[type="number"] { font-size: 16px; padding: 10px; }
+  }
+
+  @media (min-width: 720px) {
+    main { padding: 16px; gap: 14px; }
+    .brand-text h1 { font-size: 17px; }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    .cols > .card.model { grid-column: 1 / -1; }
+    .slider { height: 30px; }
+  }
+
+  /* Desktop / laptop: the board with its procedure under it in the left
+     column, the incline, hanger and model panels down the right, and the
+     record sheet and analysis across the full width below. */
+  @media (min-width: 900px) {
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      align-items: start;
+    }
+    main > .stage {
+      grid-column: 1;
+      grid-row: 1;
+      position: static;
+    }
+    main > .card.proc { grid-column: 1; grid-row: 2; }
+    main > .cols {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    main > .card:not(.proc),
+    main > footer { grid-column: 1 / -1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .switch::after { transition: none; }
+    .toast { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 19 19 5"></path><path d="M5 19v-6"></path><path d="M8.5 15.5h8v-3.5"></path><path d="M4 20h16"></path>
+      </svg>
+    </span>
+    <div class="brand-text">
+      <h1>Work &amp; Power Lab</h1>
+      <p>Cart up an incline · W = F d · P = W/t</p>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button id="themeBtn" class="icon-btn" type="button" title="Switch to light theme" aria-label="Switch theme" fdprocessedid="k8h4f">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"></path>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="stage" aria-label="Incline and cart">
+    <div class="chips" id="chips"><span class="chip ok"><b>Mass 3 · t = 0.786 s</b></span><span class="chip">Realistic · μ = 0.020</span><span class="chip">d = 100.0 cm</span><span class="chip">h = 25.00 cm</span><span class="chip ok">needs ≥ 134.7 g on the hanger</span><span class="chip">Mass 3 · 450 g · 3/3 trials</span></div>
+    <svg id="board" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Cart on an incline, pulled up by a string over a pulley to a hanging weight"><defs><marker id="m-pull" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0,0 L8,4 L0,8 z" class="pull"></path></marker><marker id="m-grav" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0,0 L8,4 L0,8 z" class="grav"></path></marker><marker id="m-fric" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0,0 L8,4 L0,8 z" class="fric"></path></marker></defs><rect x="54" y="500" width="92" height="14" rx="3" class="post-soft"></rect><rect x="28" y="514" width="144" height="16" rx="4" class="post"></rect><rect x="805.8668357794093" y="310" width="20" height="256" class="post"></rect><rect x="773.8668357794093" y="566" width="84" height="16" rx="4" class="post"></rect><g transform="translate(100,500) rotate(-14.478)"><line x1="0" y1="0" x2="760" y2="0" class="brd-edge"></line><line x1="0" y1="0" x2="760" y2="0" class="brd"></line><line x1="0" y1="-2" x2="0" y2="-16" class="tick"></line><line x1="63.33333333333333" y1="-2" x2="63.33333333333333" y2="-16" class="tick"></line><line x1="126.66666666666666" y1="-2" x2="126.66666666666666" y2="-16" class="tick"></line><line x1="190" y1="-2" x2="190" y2="-16" class="tick"></line><line x1="253.33333333333331" y1="-2" x2="253.33333333333331" y2="-16" class="tick"></line><line x1="316.66666666666663" y1="-2" x2="316.66666666666663" y2="-16" class="tick"></line><line x1="380" y1="-2" x2="380" y2="-16" class="tick"></line><line x1="443.3333333333333" y1="-2" x2="443.3333333333333" y2="-16" class="tick"></line><line x1="506.66666666666663" y1="-2" x2="506.66666666666663" y2="-16" class="tick"></line><line x1="570" y1="-2" x2="570" y2="-16" class="tick"></line><line x1="633.3333333333333" y1="-2" x2="633.3333333333333" y2="-16" class="tick"></line><line x1="696.6666666666666" y1="-2" x2="696.6666666666666" y2="-16" class="tick"></line><line x1="760" y1="-2" x2="760" y2="-16" class="tick"></line><line x1="46" y1="-3" x2="679.3333333333333" y2="-3" class="run-zone"></line><line x1="46" y1="6" x2="46" y2="-22" class="mark"></line><text x="46" y="-58" class="mark-text" transform="rotate(14.478 46 -58)">start</text><line x1="679.3333333333333" y1="6" x2="679.3333333333333" y2="-40" class="mark"></line><text x="679.3333333333333" y="-52" class="mark-text" transform="rotate(14.478 679.3333333333333 -52)">stop timing</text><line x1="46" y1="34" x2="679.3333333333333" y2="34" class="dim"></line><line x1="46" y1="24" x2="46" y2="44" class="dim-solid"></line><line x1="679.3333333333333" y1="24" x2="679.3333333333333" y2="44" class="dim-solid"></line><text x="362.66666666666663" y="62" class="dim-text" transform="rotate(14.478 362.66666666666663 62)">d = 100.0 cm</text><g class="cart" transform="translate(679.33,0)"><rect x="-46" y="-42" width="92" height="38" rx="7" class="cart-body"></rect><line x1="-40" y1="-30" x2="40" y2="-30" class="cart-deck"></line><line x1="46" y1="-34" x2="56" y2="-34" class="str-acc"></line><circle cx="-30" cy="-9" r="9" class="wheel"></circle><circle cx="30" cy="-9" r="9" class="wheel"></circle><circle cx="-30" cy="-9" r="3" class="pulley-hub"></circle><circle cx="30" cy="-9" r="3" class="pulley-hub"></circle><g class="forces" style="display: none;"><line x1="20" y1="-100" x2="104" y2="-100" class="arrow pull" marker-end="url(#m-pull)"></line><text x="112" y="-109" class="fl pull" text-anchor="start">pull F = 4.41 N</text><line x1="20" y1="-154" x2="-19.200000000000003" y2="-154" class="arrow grav" marker-end="url(#m-grav)"></line><text x="112" y="-163" class="fl grav" text-anchor="start">m g sinθ = 1.23 N</text><line x1="20" y1="-208" x2="0" y2="-208" class="arrow fric" marker-end="url(#m-fric)"></line><text x="112" y="-217" class="fl fric" text-anchor="start">f = 0.095 N</text></g></g></g><line x1="100" y1="500" x2="250" y2="500" class="dim"></line><polyline points="220.0,500.0 219.9,496.2 219.8,492.4 219.5,488.6 219.0,484.9 218.5,481.1 217.9,477.4 217.1,473.7 216.2,470.0" class="dim"></polyline><line x1="144.5393084813853" y1="488.5" x2="791.7616716308929" y2="488.5" class="dim"></line><line x1="783.7616716308929" y1="488.5" x2="783.7616716308929" y2="330.1666666666667" class="dim"></line><line x1="778.7616716308929" y1="488.5" x2="788.7616716308929" y2="488.5" class="dim-solid"></line><line x1="778.7616716308929" y1="330.1666666666667" x2="788.7616716308929" y2="330.1666666666667" class="dim-solid"></line><text x="795.7616716308929" y="415.33333333333337" class="dim-text" text-anchor="start">h = 25.00 cm</text><rect x="839.8668357794093" y="296" width="12" height="26" class="post-soft"></rect><circle cx="851.8668357794093" cy="298" r="19" class="pulley"></circle><circle cx="851.8668357794093" cy="298" r="6" class="pulley-hub"></circle><polyline points="801.5,283.7 838.2,303.2 832.9,296.0 851.9,279.0 870.9,296.0 870.9,448.0" class="str"></polyline><g class="hanger" transform="translate(0,150.00)"><line x1="870.8668357794093" y1="298" x2="870.8668357794093" y2="328" class="hang-rod"></line><rect x="832.8668357794093" y="328" width="76" height="11" rx="3" class="hang-plate"></rect><rect x="840.8668357794093" y="342" width="60" height="22" rx="3" class="hang-block"></rect><rect x="840.8668357794093" y="368" width="60" height="22" rx="3" class="hang-block"></rect><rect x="840.8668357794093" y="394" width="60" height="22" rx="3" class="hang-block"></rect><rect x="840.8668357794093" y="420" width="60" height="22" rx="3" class="hang-block"></rect><text x="880.8668357794093" y="464" class="body-note">450 g</text></g></svg>
+    <div class="metrics" id="metrics"><div class="metric"><div class="k">Time</div><div class="v">0.786<span class="u">s</span></div></div><div class="metric"><div class="k">Position</div><div class="v">100.0<span class="u">cm</span></div></div><div class="metric"><div class="k">Speed</div><div class="v">2.56<span class="u">m/s</span></div></div><div class="metric"><div class="k">Model a</div><div class="v">3.253<span class="u">m/s²</span></div></div></div>
+    <div class="run-bar">
+      <button class="btn-run" id="runBtn" type="button" fdprocessedid="oehyfp">Mass 3 has 3 trials — pick another mass</button>
+      <button class="pill sm" id="timingBtn" type="button" aria-pressed="false" fdprocessedid="8xg0jj">Photo-gate</button>
+      <button class="pill sm" id="modelBtn" type="button" aria-pressed="true" fdprocessedid="uxpb6">Realistic</button>
+    </div>
+    <p class="sr-only" id="liveStatus" aria-live="polite">Recorded Mass 3 trial 3: t = 0.786 s. That mass has its three trials — pick the next mass.</p>
+  </section>
+
+  <section class="card proc" aria-label="Procedure">
+    <h2>Procedure · moving up the incline</h2>
+    <h3 class="case-title">Pull the cart up the board with a hanging weight</h3>
+    <ol class="steps" id="procSteps"><li class="done">Set the board on the stand with the pulley at the raised end, and record the <b>mass of the hanger</b>. <span class="done-mark" aria-hidden="true">✓</span></li><li class="done">Tie the string from the cart, over the pulley, to the hanger with its slotted weights. <span class="done-mark" aria-hidden="true">✓</span></li><li class="done">Add weights until the cart just starts to move — that is the weight that beats friction and the cart's own slope pull. <span class="done-mark" aria-hidden="true">✓</span></li><li class="done">Hold the cart at the bottom and <b>mark the start</b> at its back wheels. <span class="done-mark" aria-hidden="true">✓</span></li><li class="done">Mark the stopping position and <b>measure the distance traveled d</b>. <span class="done-mark" aria-hidden="true">✓</span></li><li class="done">Release the cart and time its travel up the board — <b>three trials for this mass</b>. <span class="done-mark" aria-hidden="true">✓</span></li><li class="done">Repeat for the other two masses, three trials each — <b>nine trials in all</b>. <span class="done-mark" aria-hidden="true">✓</span></li><li class="done">Record the <b>height the cart rises h</b> and the <b>mass of the cart</b> for the conservative-work part. <span class="done-mark" aria-hidden="true">✓</span></li><li class="done">Work out v<sub>avg</sub>, a, v<sub>f</sub>, F, W, P, ΔPE and ΔKE below, then decide whether the system is conservative. <span class="done-mark" aria-hidden="true">✓</span></li></ol>
+    <div class="live ok" id="procLive">Recorded Mass 3 trial 3: t = 0.786 s. That mass has its three trials — pick the next mass.</div>
+    <p class="note">
+      Held still, the cart is held by friction; it only breaks free once the hanging weight beats
+      <b>m<sub>cart</sub> g sinθ + f</b>. Add weight until it moves, then time the run.
+    </p>
+  </section>
+
+  <div class="cols">
+    <section class="card" aria-label="Incline and cart">
+      <h2>Incline &amp; cart</h2>
+      <div class="grid2">
+        <div>
+          <label class="f" for="boardLen">Board length L (cm)</label>
+          <input type="number" id="boardLen" min="20" max="200" step="1" inputmode="decimal" autocomplete="off" fdprocessedid="ox662p">
+        </div>
+        <div>
+          <label class="f" for="boardH">Raised end height H (cm)</label>
+          <input type="number" id="boardH" min="2" max="100" step="0.5" inputmode="decimal" autocomplete="off" fdprocessedid="ubt6jo">
+        </div>
+        <div>
+          <label class="f" for="travel">Distance traveled d (cm)</label>
+          <input type="number" id="travel" min="5" max="200" step="1" inputmode="decimal" autocomplete="off" fdprocessedid="087f5b">
+        </div>
+        <div>
+          <label class="f" for="cartMass">Mass of the cart (g)</label>
+          <input type="number" id="cartMass" min="50" max="5000" step="1" inputmode="decimal" autocomplete="off" fdprocessedid="hwctl9">
+        </div>
+      </div>
+      <p class="note">
+        The angle is set by the board: <b>sinθ = H/L</b> = <span id="angleOut">0.250</span>, so
+        θ = <span id="thetaOut">14.5</span>°. The rise the cart makes is
+        <b>h = d sinθ</b> = <span id="riseOut">25.00</span> cm. Drag the
+        <span style="color:var(--gold)">●</span> stop mark on the board to change d.
+      </p>
+    </section>
+
+    <section class="card" aria-label="Hanger and weights">
+      <h2>Hanger &amp; weights</h2>
+      <div id="groupList"><div class="group-row"><button class="group-pick" type="button" data-group="0" aria-pressed="false" fdprocessedid="r67no"><span class="tag">Mass 1</span><span class="vals">200 g added · 250 g total</span><span class="spacer"></span><span class="dots" aria-hidden="true"><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span></span></button><button class="pill sm" type="button" data-clear="0" aria-label="Clear Mass 1 trials" fdprocessedid="ikz0e">↺</button></div><div class="group-row"><button class="group-pick" type="button" data-group="1" aria-pressed="false" fdprocessedid="tyjikq"><span class="tag">Mass 2</span><span class="vals">300 g added · 350 g total</span><span class="spacer"></span><span class="dots" aria-hidden="true"><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span></span></button><button class="pill sm" type="button" data-clear="1" aria-label="Clear Mass 2 trials" fdprocessedid="l6dl3u">↺</button></div><div class="group-row"><button class="group-pick" type="button" data-group="2" aria-pressed="true" fdprocessedid="gxxq0v"><span class="tag">Mass 3</span><span class="vals">400 g added · 450 g total</span><span class="spacer"></span><span class="dots" aria-hidden="true"><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span></span></button><button class="pill sm" type="button" data-clear="2" aria-label="Clear Mass 3 trials" fdprocessedid="bsmnlo">↺</button></div></div>
+      <div class="grid2" style="margin-top:10px">
+        <div>
+          <label class="f" for="hangerMass">Mass of the hanger (g)</label>
+          <input type="number" id="hangerMass" min="0" max="1000" step="1" inputmode="decimal" autocomplete="off" fdprocessedid="r3dknw">
+        </div>
+        <div>
+          <label class="f" for="addedMass">Mass added to this hanger (g)</label>
+          <input type="number" id="addedMass" min="0" max="3000" step="5" inputmode="decimal" autocomplete="off" fdprocessedid="g4ayrk">
+        </div>
+      </div>
+      <div class="row between" style="margin-top:8px">
+        <span class="readout">Total mass <span id="totalOut">450</span> <span class="u">g = <span id="totalKgOut">0.450</span> kg</span></span>
+        <button class="pill sm" id="runHere" type="button" fdprocessedid="bdv8aw">Run this mass</button>
+      </div>
+      <p class="note good" id="rollNote">This hanger breaks the cart free: 450 g ≥ the 134.7 g it takes to beat the slope pull and rolling resistance.</p>
+      <p class="note">Total mass = mass of hanger + mass added, and the worksheet takes the pull on the cart to be its weight, <b>F = m<sub>total</sub> g</b>.</p>
+    </section>
+
+    <section class="card model" aria-label="Model &amp; timing">
+      <h2>Model &amp; timing</h2>
+      <div class="pills">
+        <button class="pill" id="pillIdeal" type="button" aria-pressed="false" fdprocessedid="xzmzxi">Ideal (frictionless)</button>
+        <button class="pill" id="pillReal" type="button" aria-pressed="true" fdprocessedid="1run0h">Realistic (rolling resistance)</button>
+      </div>
+      <div style="margin-top:10px">
+        <label class="f" for="muRange">Rolling resistance μ <span id="muOut" style="color:var(--ink-2)">0.020</span></label>
+        <input type="range" class="slider" id="muRange" min="0" max="0.1" step="0.005" value="0.02">
+      </div>
+      <div class="pills" style="margin-top:4px">
+        <button class="pill" id="pillGate" type="button" aria-pressed="true" fdprocessedid="6jld93">Timing: photo-gate</button>
+        <button class="pill" id="pillWatch" type="button" aria-pressed="false" fdprocessedid="6wbzfe">Timing: stopwatch (tap Stop)</button>
+      </div>
+      <div class="grid2" style="margin-top:10px">
+        <div>
+          <label class="f" for="grav">Gravity g (m/s²)</label>
+          <input type="number" id="grav" min="1" max="30" step="0.01" inputmode="decimal" autocomplete="off" fdprocessedid="q60kq6">
+        </div>
+        <div>
+          <label class="f">Roll threshold</label>
+          <div class="readout"><span id="minMassOut">134.7</span> <span class="u">g on the hanger</span></div>
+        </div>
+      </div>
+      <div style="margin-top:8px">
+        <div class="switch-row">
+          <span>Show the force arrows on the cart</span>
+          <button class="switch" id="swForces" role="switch" aria-checked="false" aria-label="Show force arrows" fdprocessedid="i0i1pc"></button>
+        </div>
+      </div>
+      <p class="note">
+        <b>Ideal</b> treats the wheels as frictionless, so the pulling weight's work lands entirely in
+        kinetic and potential energy. <b>Realistic</b> adds rolling resistance f = μ m<sub>cart</sub> g cosθ
+        to the wheels, so part of the work goes into non-conservative work f d. Both models include the
+        cart's weight along the slope, which is why the cart still needs weight on the hanger to climb.
+      </p>
+    </section>
+  </div>
+
+  <section class="card" aria-label="Record sheet">
+    <h2>
+      <span>Record sheet · part A</span>
+      <button class="pill sm" id="clearAll" type="button" fdprocessedid="df5anu">Clear all trials</button>
+    </h2>
+    <div class="rec-list" id="recList"><div class="rec"><span class="rk">Mass of the hanger</span><span class="rv">50.0 g = 0.050 kg</span></div><div class="rec"><span class="rk">Distance traveled d</span><span class="rv">100.0 cm = 1.000 m</span></div><div class="rec"><span class="rk">Height of the incline h</span><span class="rv">25.00 cm = 0.2500 m</span></div><div class="rec"><span class="rk">Mass of the cart</span><span class="rv">500.0 g = 0.500 kg</span></div><div class="rec"><span class="rk">Angle of the board</span><span class="rv">sinθ = 0.250 → θ = 14.5°</span></div></div>
+    <div class="data-scroll" id="tableWrap"><table><tbody><tr><th>Mass</th><th>Mass added (g)</th><th>Total mass (g)</th><th>Trial 1 (s)</th><th>Trial 2 (s)</th><th>Trial 3 (s)</th><th>Average (s)</th></tr><tr><td>Mass 1</td><td>200</td><td>250</td><td class="">1.146</td><td class="">1.153</td><td class="">1.148</td><td>1.149</td></tr><tr><td>Mass 2</td><td>300</td><td>350</td><td class="">0.902</td><td class="">0.900</td><td class="">0.898</td><td>0.900</td></tr><tr><td>Mass 3</td><td>400</td><td>450</td><td class="">0.782</td><td class="">0.783</td><td class="">0.786</td><td>0.784</td></tr></tbody></table></div>
+    <p class="note" id="tableNote">9 of 9 trials recorded. Photo-gate readings carry about ±0.5 % of measurement scatter, so repeated trials of one mass come out close but not identical; the stopwatch adds your reaction time on top of that.</p>
+  </section>
+
+  <section class="card" aria-label="Post-lab analysis">
+    <h2>
+      <span>Post-lab analysis</span>
+      <button class="pill sm" id="analysisBtn" type="button" aria-expanded="false" aria-controls="analysisWrap" fdprocessedid="92h2zd">Show analysis</button>
+    </h2>
+    <div id="analysisWrap" hidden=""><details class="grp"><summary>Mass 1 · 200 g added<span class="st">t<sub>avg</sub> = 1.149 s · W = 2.450 J · P = 2.132 W · 3/3 trials</span></summary><div class="body"><div class="live warn">W is larger than ΔKE + ΔPE by 0.0888 J, which is exactly the work done against rolling resistance, f d = 0.0949 J. That is the non-conservative work, so the system is non-conservative.</div><div class="qrow"><div class="qn"><span class="qt">Average time t<sub>avg</sub></span><span class="qf">(t<sub>1</sub> + t<sub>2</sub> + t<sub>3</sub>) / n = (1.146 + 1.153 + 1.148) / 3</span></div><div class="qv">1.149<span class="u">s</span></div></div><div class="qrow"><div class="qn"><span class="qt">Average velocity of the cart<span class="qn-badge">Q1</span></span><span class="qf">v<sub>avg</sub> = d / t<sub>avg</sub> = 1.000 / 1.149</span></div><div class="qv">0.870<span class="u">m/s</span></div></div><div class="qrow"><div class="qn"><span class="qt">Average acceleration of the cart<span class="qn-badge">Q2</span></span><span class="qf">a = 2d / t<sub>avg</sub>² = 2 × 1.000 / 1.149²</span></div><div class="qv">1.515<span class="u">m/s²</span></div></div><div class="qrow"><div class="qn"><span class="qt">Final velocity of the cart<span class="qn-badge">Q3</span></span><span class="qf">v<sub>f</sub> = 2d / t<sub>avg</sub> = 2 × 1.000 / 1.149</span></div><div class="qv">1.741<span class="u">m/s</span></div></div><div class="qrow"><div class="qn"><span class="qt">Force pulling the cart<span class="qn-badge">Q4</span></span><span class="qf">F = m<sub>total</sub> g = 0.750 × 9.80</span></div><div class="qv">2.450<span class="u">N</span></div></div><div class="qrow"><div class="qn"><span class="qt">Work done by that force<span class="qn-badge">Q5</span></span><span class="qf">W = F d = 2.450 × 1.000</span></div><div class="qv">2.450<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Power produced<span class="qn-badge">Q6</span></span><span class="qf">P = W / t<sub>avg</sub> = 2.450 / 1.149</span></div><div class="qv">2.132<span class="u">W</span></div></div><div class="qrow"><div class="qn"><span class="qt">Conservative work (change in PE)<span class="qn-badge">Q7</span></span><span class="qf">W<sub>cons</sub> = m<sub>cart</sub> g h = 0.500 × 9.80 × 0.2500</span></div><div class="qv">1.225<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Kinetic energy change of the cart<span class="qn-badge">Q8</span></span><span class="qf">ΔKE = ½ m<sub>cart</sub> v<sub>f</sub>² = ½ × 0.500 × 1.741²</span></div><div class="qv">0.757<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Cart’s kinetic + potential energy</span><span class="qf">ΔKE + ΔPE = 0.757 + 1.225</span></div><div class="qv">1.982<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Work not accounted for yet<span class="qn-badge">Q9</span></span><span class="qf">W − (ΔKE + ΔPE) = 2.450 − 1.982</span></div><div class="qv">0.468<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Same, including the hanger’s KE</span><span class="qf">W − (ΔKE + ΔPE + KE<sub>hanger</sub>) = 2.450 − 2.361</span></div><div class="qv">0.0888<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Work against rolling resistance</span><span class="qf">f d = μ m<sub>cart</sub> g cosθ · d = 0.0949 × 1.000</span></div><div class="qv">0.0949<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Hanger’s kinetic energy</span><span class="qf">½ m<sub>hanger</sub> v<sub>f</sub>² = ½ × 0.250 × 1.741²</span></div><div class="qv">0.379<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Measured time vs the crossing time</span><span class="qf">t<sub>avg</sub> − t<sub>cross</sub> = 1.149 − 1.152</span></div><div class="qv">0.000<span class="u">s</span></div></div><p class="note">Mass 1 hangs 250 g = 0.250 kg, so F = m g = 2.450 N. The cart travels d = 1.000 m and rises h = 0.2500 m. The model says it accelerates at 1.507 m/s² and crosses the stop mark at 1.152 s, reaching 1.736 m/s.</p></div></details><details class="grp"><summary>Mass 2 · 300 g added<span class="st">t<sub>avg</sub> = 0.900 s · W = 3.430 J · P = 3.811 W · 3/3 trials</span></summary><div class="body"><div class="live warn">W is larger than ΔKE + ΔPE by 0.106 J, which is exactly the work done against rolling resistance, f d = 0.0949 J. That is the non-conservative work, so the system is non-conservative.</div><div class="qrow"><div class="qn"><span class="qt">Average time t<sub>avg</sub></span><span class="qf">(t<sub>1</sub> + t<sub>2</sub> + t<sub>3</sub>) / n = (0.902 + 0.900 + 0.898) / 3</span></div><div class="qv">0.900<span class="u">s</span></div></div><div class="qrow"><div class="qn"><span class="qt">Average velocity of the cart<span class="qn-badge">Q1</span></span><span class="qf">v<sub>avg</sub> = d / t<sub>avg</sub> = 1.000 / 0.900</span></div><div class="qv">1.111<span class="u">m/s</span></div></div><div class="qrow"><div class="qn"><span class="qt">Average acceleration of the cart<span class="qn-badge">Q2</span></span><span class="qf">a = 2d / t<sub>avg</sub>² = 2 × 1.000 / 0.900²</span></div><div class="qv">2.469<span class="u">m/s²</span></div></div><div class="qrow"><div class="qn"><span class="qt">Final velocity of the cart<span class="qn-badge">Q3</span></span><span class="qf">v<sub>f</sub> = 2d / t<sub>avg</sub> = 2 × 1.000 / 0.900</span></div><div class="qv">2.222<span class="u">m/s</span></div></div><div class="qrow"><div class="qn"><span class="qt">Force pulling the cart<span class="qn-badge">Q4</span></span><span class="qf">F = m<sub>total</sub> g = 0.850 × 9.80</span></div><div class="qv">3.430<span class="u">N</span></div></div><div class="qrow"><div class="qn"><span class="qt">Work done by that force<span class="qn-badge">Q5</span></span><span class="qf">W = F d = 3.430 × 1.000</span></div><div class="qv">3.430<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Power produced<span class="qn-badge">Q6</span></span><span class="qf">P = W / t<sub>avg</sub> = 3.430 / 0.900</span></div><div class="qv">3.811<span class="u">W</span></div></div><div class="qrow"><div class="qn"><span class="qt">Conservative work (change in PE)<span class="qn-badge">Q7</span></span><span class="qf">W<sub>cons</sub> = m<sub>cart</sub> g h = 0.500 × 9.80 × 0.2500</span></div><div class="qv">1.225<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Kinetic energy change of the cart<span class="qn-badge">Q8</span></span><span class="qf">ΔKE = ½ m<sub>cart</sub> v<sub>f</sub>² = ½ × 0.500 × 2.222²</span></div><div class="qv">1.235<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Cart’s kinetic + potential energy</span><span class="qf">ΔKE + ΔPE = 1.235 + 1.225</span></div><div class="qv">2.460<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Work not accounted for yet<span class="qn-badge">Q9</span></span><span class="qf">W − (ΔKE + ΔPE) = 3.430 − 2.460</span></div><div class="qv">0.970<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Same, including the hanger’s KE</span><span class="qf">W − (ΔKE + ΔPE + KE<sub>hanger</sub>) = 3.430 − 3.324</span></div><div class="qv">0.106<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Work against rolling resistance</span><span class="qf">f d = μ m<sub>cart</sub> g cosθ · d = 0.0949 × 1.000</span></div><div class="qv">0.0949<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Hanger’s kinetic energy</span><span class="qf">½ m<sub>hanger</sub> v<sub>f</sub>² = ½ × 0.350 × 2.222²</span></div><div class="qv">0.864<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Measured time vs the crossing time</span><span class="qf">t<sub>avg</sub> − t<sub>cross</sub> = 0.900 − 0.898</span></div><div class="qv">0.000<span class="u">s</span></div></div><p class="note">Mass 2 hangs 350 g = 0.350 kg, so F = m g = 3.430 N. The cart travels d = 1.000 m and rises h = 0.2500 m. The model says it accelerates at 2.482 m/s² and crosses the stop mark at 0.898 s, reaching 2.228 m/s.</p></div></details><details class="grp" open=""><summary>Mass 3 · 400 g added<span class="st">t<sub>avg</sub> = 0.784 s · W = 4.410 J · P = 5.627 W · 3/3 trials</span></summary><div class="body"><div class="live warn">W is larger than ΔKE + ΔPE by 0.0912 J, which is exactly the work done against rolling resistance, f d = 0.0949 J. That is the non-conservative work, so the system is non-conservative.</div><div class="qrow"><div class="qn"><span class="qt">Average time t<sub>avg</sub></span><span class="qf">(t<sub>1</sub> + t<sub>2</sub> + t<sub>3</sub>) / n = (0.782 + 0.783 + 0.786) / 3</span></div><div class="qv">0.784<span class="u">s</span></div></div><div class="qrow"><div class="qn"><span class="qt">Average velocity of the cart<span class="qn-badge">Q1</span></span><span class="qf">v<sub>avg</sub> = d / t<sub>avg</sub> = 1.000 / 0.784</span></div><div class="qv">1.276<span class="u">m/s</span></div></div><div class="qrow"><div class="qn"><span class="qt">Average acceleration of the cart<span class="qn-badge">Q2</span></span><span class="qf">a = 2d / t<sub>avg</sub>² = 2 × 1.000 / 0.784²</span></div><div class="qv">3.257<span class="u">m/s²</span></div></div><div class="qrow"><div class="qn"><span class="qt">Final velocity of the cart<span class="qn-badge">Q3</span></span><span class="qf">v<sub>f</sub> = 2d / t<sub>avg</sub> = 2 × 1.000 / 0.784</span></div><div class="qv">2.552<span class="u">m/s</span></div></div><div class="qrow"><div class="qn"><span class="qt">Force pulling the cart<span class="qn-badge">Q4</span></span><span class="qf">F = m<sub>total</sub> g = 0.950 × 9.80</span></div><div class="qv">4.410<span class="u">N</span></div></div><div class="qrow"><div class="qn"><span class="qt">Work done by that force<span class="qn-badge">Q5</span></span><span class="qf">W = F d = 4.410 × 1.000</span></div><div class="qv">4.410<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Power produced<span class="qn-badge">Q6</span></span><span class="qf">P = W / t<sub>avg</sub> = 4.410 / 0.784</span></div><div class="qv">5.627<span class="u">W</span></div></div><div class="qrow"><div class="qn"><span class="qt">Conservative work (change in PE)<span class="qn-badge">Q7</span></span><span class="qf">W<sub>cons</sub> = m<sub>cart</sub> g h = 0.500 × 9.80 × 0.2500</span></div><div class="qv">1.225<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Kinetic energy change of the cart<span class="qn-badge">Q8</span></span><span class="qf">ΔKE = ½ m<sub>cart</sub> v<sub>f</sub>² = ½ × 0.500 × 2.552²</span></div><div class="qv">1.628<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Cart’s kinetic + potential energy</span><span class="qf">ΔKE + ΔPE = 1.628 + 1.225</span></div><div class="qv">2.853<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Work not accounted for yet<span class="qn-badge">Q9</span></span><span class="qf">W − (ΔKE + ΔPE) = 4.410 − 2.853</span></div><div class="qv">1.557<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Same, including the hanger’s KE</span><span class="qf">W − (ΔKE + ΔPE + KE<sub>hanger</sub>) = 4.410 − 4.319</span></div><div class="qv">0.0912<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Work against rolling resistance</span><span class="qf">f d = μ m<sub>cart</sub> g cosθ · d = 0.0949 × 1.000</span></div><div class="qv">0.0949<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Hanger’s kinetic energy</span><span class="qf">½ m<sub>hanger</sub> v<sub>f</sub>² = ½ × 0.450 × 2.552²</span></div><div class="qv">1.465<span class="u">J</span></div></div><div class="qrow"><div class="qn"><span class="qt">Measured time vs the crossing time</span><span class="qf">t<sub>avg</sub> − t<sub>cross</sub> = 0.784 − 0.784</span></div><div class="qv">0.000<span class="u">s</span></div></div><p class="note">Mass 3 hangs 450 g = 0.450 kg, so F = m g = 4.410 N. The cart travels d = 1.000 m and rises h = 0.2500 m. The model says it accelerates at 3.253 m/s² and crosses the stop mark at 0.784 s, reaching 2.551 m/s.</p></div></details></div>
+  </section>
+
+  <footer class="foot">
+    <b>Model.</b> The cart is timed from the start mark at the bottom to the stop mark a distance
+    <b>d</b> up the board, so its kinematics are v<sub>avg</sub> = d/t, a = 2d/t² and
+    v<sub>f</sub> = 2d/t. The worksheet takes the force pulling the cart to be the hanging weight,
+    <b>F = m<sub>total</sub> g</b>, giving <b>W = F d</b> and <b>P = W/t</b>; the cart's own weight along the
+    slope means a real cart needs enough hanging weight to break free. Conservative work is the cart's
+    change in potential energy, <b>W<sub>cons</sub> = ΔPE = m<sub>cart</sub> g h</b>, and the kinetic
+    energy change is <b>ΔKE = ½ m v<sub>f</sub>²</b>. Two simplifications are worth
+    knowing: a real string pulls with T = m<sub>hanger</sub>(g − a), a little less than the hanging
+    weight, and the hanging assembly speeds up too, so its kinetic energy belongs in any energy
+    balance that is meant to close. Every timed reading, photo-gate or stopwatch, carries about
+    ±0.5 % of measurement scatter, so repeated trials of one mass come out close but not identical,
+    and the energy balance closes to within a tolerance rather than to zero.
+  </footer>
+</main>
+
+<div class="toast" id="toast" role="status">Mass 3 · trial 3 recorded: 0.786 s</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================
+     Constants & small helpers
+     ============================================================ */
+
+  var STORE_KEY = 'workpower-lab-v1';
+  var THEME_KEY = 'workpower-lab-theme';
+
+  var VIEW = { w: 1000, h: 640 };
+  var ORIG = { x: 100, y: 500 };   // low end of the board, on its resting block
+  var LPX = 760;                   // board length in view units
+  var CART0 = 46;                  // local px of the cart centre at the start mark
+  var DROP_PX = 1.5;               // px the hanger drops per cm of cart travel (schematic)
+  var TICK_STEPS = [5, 10, 20, 25, 50];
+  var TOL_REL = 0.01;              // 1 % of W counts as a closed energy balance
+  var JITTER = 0.005;              // ±0.5 % of scatter on every timed reading
+
+  var SVGNS = 'http://www.w3.org/2000/svg';
+
+  function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+  function round1(v) { return Math.round(v * 10) / 10; }
+  function round3(v) { return Math.round(v * 1000) / 1000; }
+  // No clock is perfect, and a hand-timed stop is worse: every reading carries
+  // a little measurement scatter, here ±0.5 % of the time it reports.
+  function reading(t) {
+    return t * (1 + (Math.random() * 2 - 1) * JITTER);
+  }
+  function isNum(v) { return typeof v === 'number' && isFinite(v); }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+    });
+  }
+
+  // Fixed decimals, one extra digit for small values so a 0.05 J difference is visible.
+  function eng(v, dp) {
+    if (!isNum(v)) return '—';
+    dp = dp == null ? 3 : dp;
+    if (v !== 0 && Math.abs(v) < 0.1) dp += 1;
+    return v.toFixed(dp);
+  }
+
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(SVGNS, tag);
+    if (attrs) for (var k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  /* ============================================================
+     State
+     ============================================================ */
+
+  var state = {
+    boardLen: 120,        // cm
+    boardH: 30,           // cm, height of the raised end
+    travel: 50,           // cm the cart travels
+    cartMass: 500,        // g
+    hangerMass: 50,       // g
+    g: 9.8,
+    mu: 0.02,
+    model: 'ideal',       // 'ideal' | 'realistic'
+    timing: 'gate',       // 'gate' | 'watch'
+    showForces: false,    // the force arrows start hidden; the switch turns them on
+    showAnalysis: false,  // the post-lab analysis starts collapsed
+    group: 0,             // selected mass group index
+    groups: [
+      { added: 200, trials: [null, null, null] },
+      { added: 300, trials: [null, null, null] },
+      { added: 400, trials: [null, null, null] }
+    ]
+  };
+
+  var run = null;         // live run: {gi, slot, kind, t, x, v, phase, t0, raf}
+  var refs = {};          // board element handles
+  var G = {};             // geometry for the current board
+
+  /* ============================================================
+     Physics
+     ============================================================ */
+
+  function sinTheta() { return clamp(state.boardH / state.boardLen, 0.02, 0.5); }
+  function cosTheta() { var s = sinTheta(); return Math.sqrt(1 - s * s); }
+  function totalG(gi) { return state.hangerMass + state.groups[gi].added; }
+  function muEff() { return state.model === 'realistic' ? state.mu : 0; }
+
+  function phys(gi) {
+    var sin = sinTheta(), cos = cosTheta();
+    var g = state.g;
+    var mc = state.cartMass / 1000;
+    var mh = totalG(gi) / 1000;
+    var mu = muEff();
+    var f = mu * mc * g * cos;           // rolling resistance (N)
+    var grav = mc * g * sin;             // cart's weight along the slope (N)
+    var pull = mh * g;                   // worksheet: force pulling the cart (N)
+    var net = pull - grav - f;
+    var a = net / (mc + mh);             // cart and hanger share the acceleration
+    var d = state.travel / 100;
+    var lm = state.boardLen / 100;
+    var tCross = a > 0 ? Math.sqrt(2 * d / a) : Infinity;
+    var minG = mc * (sin + mu * cos) * 1000;
+    return {
+      sin: sin, cos: cos, g: g, mc: mc, mh: mh, mTot: mc + mh, mu: mu,
+      f: f, grav: grav, pull: pull, net: net, a: a,
+      d: d, lm: lm, h: d * sin,
+      tCross: tCross, vF: a > 0 ? Math.sqrt(2 * a * d) : 0, tEnd: a > 0 ? Math.sqrt(2 * a * lm) : Infinity,
+      minG: minG, moves: net > 1e-9
+    };
+  }
+
+  function freeSlot(gi) {
+    var tr = state.groups[gi].trials;
+    for (var i = 0; i < tr.length; i++) if (!tr[i]) return i;
+    return -1;
+  }
+
+  function trialsDone(gi) {
+    var tr = state.groups[gi].trials, n = 0;
+    for (var i = 0; i < tr.length; i++) if (tr[i]) n++;
+    return n;
+  }
+
+  function totalDone() {
+    var n = 0;
+    for (var i = 0; i < state.groups.length; i++) n += trialsDone(i);
+    return n;
+  }
+
+  function avgTrial(gi) {
+    var tr = state.groups[gi].trials, sum = 0, n = 0;
+    for (var i = 0; i < tr.length; i++) if (tr[i]) { sum += tr[i].t; n++; }
+    return n ? sum / n : null;
+  }
+
+  function analyze(gi) {
+    var t = avgTrial(gi);
+    if (t == null || t <= 0) return null;
+    var p = phys(gi);
+    var vAvg = p.d / t;
+    var aKin = 2 * p.d / (t * t);
+    var vF = 2 * p.d / t;
+    var F = p.pull, W = F * p.d, P = W / t;
+    var PE = p.mc * p.g * p.h;
+    var KEc = 0.5 * p.mc * vF * vF;
+    var KEh = 0.5 * p.mh * vF * vF;
+    var leftoverCart = W - (KEc + PE);
+    var leftoverAll = W - (KEc + KEh + PE);
+    var fd = p.f * p.d;
+    var tol = Math.max(0.005, TOL_REL * Math.abs(W));
+    return {
+      p: p, t: t, n: trialsDone(gi), vAvg: vAvg, aKin: aKin, vF: vF, F: F, W: W, P: P,
+      PE: PE, KEc: KEc, KEh: KEh, sumCart: KEc + PE, sumAll: KEc + KEh + PE,
+      leftoverCart: leftoverCart, leftoverAll: leftoverAll, fd: fd, tol: tol,
+      timingErr: t - p.tCross
+    };
+  }
+
+  /* ============================================================
+     Geometry
+     ============================================================ */
+
+  function geom() {
+    var sin = sinTheta(), cos = cosTheta();
+    G = {
+      sin: sin, cos: cos, deg: Math.atan2(sin, cos) * 180 / Math.PI,
+      ppc: LPX / state.boardLen,
+      top: { x: ORIG.x + LPX * cos, y: ORIG.y - LPX * sin },
+      pulley: { x: ORIG.x + LPX * cos + 16, y: ORIG.y - LPX * sin - 12 }
+    };
+    G.markD = CART0 + state.travel * G.ppc;
+  }
+
+  // local board coordinates -> view units (matches the rotate() on the board group)
+  function loc2world(lx, ly) {
+    return { x: ORIG.x + lx * G.cos + ly * G.sin, y: ORIG.y - lx * G.sin + ly * G.cos };
+  }
+
+  function tickStep() {
+    for (var i = 0; i < TICK_STEPS.length; i++) {
+      if (state.boardLen / TICK_STEPS[i] <= 12) return TICK_STEPS[i];
+    }
+    return 100;
+  }
+
+  /* ============================================================
+     Board
+     ============================================================ */
+
+  function arrow(g, x1, y1, x2, y2, cls, marker) {
+    el('line', { x1: x1, y1: y1, x2: x2, y2: y2, class: 'arrow ' + cls, 'marker-end': 'url(#' + marker + ')' }, g);
+  }
+
+  function buildBoard() {
+    geom();
+    var svg = document.getElementById('board');
+    svg.textContent = '';
+
+    var defs = el('defs', null, svg);
+    [['m-pull', 'pull'], ['m-grav', 'grav'], ['m-fric', 'fric']].forEach(function (spec) {
+      var m = el('marker', {
+        id: spec[0], viewBox: '0 0 8 8', refX: 7, refY: 4,
+        markerWidth: 4.2, markerHeight: 4.2, orient: 'auto'
+      }, defs);
+      el('path', { d: 'M0,0 L8,4 L0,8 z', class: spec[1] }, m);
+    });
+
+    var rot = 'translate(' + ORIG.x + ',' + ORIG.y + ') rotate(' + (-G.deg).toFixed(3) + ')';
+
+    /* ---- ground blocks that the board rests on ---- */
+    el('rect', { x: ORIG.x - 46, y: ORIG.y, width: 92, height: 14, rx: 3, class: 'post-soft' }, svg);
+    el('rect', { x: ORIG.x - 72, y: ORIG.y + 14, width: 144, height: 16, rx: 4, class: 'post' }, svg);
+
+    /* ---- stand under the raised end ---- */
+    var top = G.top;
+    el('rect', { x: top.x - 30, y: top.y, width: 20, height: 566 - top.y, class: 'post' }, svg);
+    el('rect', { x: top.x - 62, y: 566, width: 84, height: 16, rx: 4, class: 'post' }, svg);
+
+    /* ---- board, ticks, marks: everything on the board axis ---- */
+    var b = el('g', { transform: rot }, svg);
+
+    el('line', { x1: 0, y1: 0, x2: LPX, y2: 0, class: 'brd-edge' }, b);
+    el('line', { x1: 0, y1: 0, x2: LPX, y2: 0, class: 'brd' }, b);
+
+    var step = tickStep();
+    for (var s = 0; s <= state.boardLen + 0.001; s += step) {
+      var tx = s * G.ppc;
+      el('line', { x1: tx, y1: -2, x2: tx, y2: -16, class: 'tick' }, b);
+    }
+
+    // travelled span highlighted on the surface
+    el('line', { x1: CART0, y1: -3, x2: G.markD, y2: -3, class: 'run-zone' }, b);
+
+    // start mark
+    el('line', { x1: CART0, y1: 6, x2: CART0, y2: -22, class: 'mark' }, b);
+    var startLbl = el('text', { x: CART0, y: -58, class: 'mark-text', transform: 'rotate(' + G.deg.toFixed(3) + ' ' + CART0 + ' -58)' }, b);
+    startLbl.textContent = 'start';
+
+    // stop mark (draggable)
+    el('line', { x1: G.markD, y1: 6, x2: G.markD, y2: -40, class: 'mark' }, b);
+    var stopLbl = el('text', { x: G.markD, y: -52, class: 'mark-text', transform: 'rotate(' + G.deg.toFixed(3) + ' ' + G.markD + ' -52)' }, b);
+    stopLbl.textContent = 'stop timing';
+
+    // distance dimension under the board
+    el('line', { x1: CART0, y1: 34, x2: G.markD, y2: 34, class: 'dim' }, b);
+    el('line', { x1: CART0, y1: 24, x2: CART0, y2: 44, class: 'dim-solid' }, b);
+    el('line', { x1: G.markD, y1: 24, x2: G.markD, y2: 44, class: 'dim-solid' }, b);
+    var dMid = (CART0 + G.markD) / 2;
+    var dLbl = el('text', { x: dMid, y: 62, class: 'dim-text', transform: 'rotate(' + G.deg.toFixed(3) + ' ' + dMid + ' 62)' }, b);
+    dLbl.textContent = 'd = ' + round1(state.travel).toFixed(1) + ' cm';
+
+    // angle at the low end: horizontal reference, arc, and an upright label above the board
+    var R = 120;
+    el('line', { x1: ORIG.x, y1: ORIG.y, x2: ORIG.x + R * 1.25, y2: ORIG.y, class: 'dim' }, svg);
+    var arc = [];
+    for (var ai = 0; ai <= 8; ai++) {
+      var ang = G.deg * ai / 8 * Math.PI / 180;
+      arc.push((ORIG.x + R * Math.cos(ang)).toFixed(1) + ',' + (ORIG.y - R * Math.sin(ang)).toFixed(1));
+    }
+    el('polyline', { points: arc.join(' '), class: 'dim' }, svg);
+
+    /* ---- rise dimension: from the start level up to the stop mark ---- */
+    var pStart = loc2world(CART0, 0), pStop = loc2world(G.markD, 0);
+    var riseX = pStop.x + 26;
+    el('line', { x1: pStart.x, y1: pStart.y, x2: riseX + 8, y2: pStart.y, class: 'dim' }, svg);
+    el('line', { x1: riseX, y1: pStart.y, x2: riseX, y2: pStop.y, class: 'dim' }, svg);
+    el('line', { x1: riseX - 5, y1: pStart.y, x2: riseX + 5, y2: pStart.y, class: 'dim-solid' }, svg);
+    el('line', { x1: riseX - 5, y1: pStop.y, x2: riseX + 5, y2: pStop.y, class: 'dim-solid' }, svg);
+    var riseLbl = el('text', { x: riseX + 12, y: (pStart.y + pStop.y) / 2 + 6, class: 'dim-text', 'text-anchor': 'start' }, svg);
+    riseLbl.textContent = 'h = ' + (state.travel * sinTheta()).toFixed(2) + ' cm';
+
+    /* ---- pulley ---- */
+    el('rect', { x: G.pulley.x - 12, y: G.pulley.y - 2, width: 12, height: 26, class: 'post-soft' }, svg);
+    el('circle', { cx: G.pulley.x, cy: G.pulley.y, r: 19, class: 'pulley' }, svg);
+    el('circle', { cx: G.pulley.x, cy: G.pulley.y, r: 6, class: 'pulley-hub' }, svg);
+
+    /* ---- string (repainted while the cart moves) ---- */
+    refs.str = el('polyline', { points: '', class: 'str' }, svg);
+
+    /* ---- hanger (translated down while the run proceeds) ---- */
+    var hx = G.pulley.x + 19;
+    var hg = el('g', { class: 'hanger' }, svg);
+    el('line', { x1: hx, y1: G.pulley.y, x2: hx, y2: G.pulley.y + 30, class: 'hang-rod' }, hg);
+    el('rect', { x: hx - 38, y: G.pulley.y + 30, width: 76, height: 11, rx: 3, class: 'hang-plate' }, hg);
+    var blocks = clamp(Math.round(totalG(state.group) / 100), 1, 4);
+    for (var bi = 0; bi < blocks; bi++) {
+      el('rect', {
+        x: hx - 30, y: G.pulley.y + 44 + bi * 26, width: 60, height: 22, rx: 3,
+        class: 'hang-block'
+      }, hg);
+    }
+    var massLbl = el('text', { x: hx + 10, y: G.pulley.y + 52 + blocks * 26 + 10, class: 'body-note' }, hg);
+    massLbl.textContent = totalG(state.group) + ' g';
+    refs.hang = hg;
+
+    /* ---- cart and the force arrows: board-local units, so parent them to the board group ---- */
+    var cg = el('g', { class: 'cart', transform: 'translate(' + CART0 + ',0)' }, b);
+    el('rect', { x: -46, y: -42, width: 92, height: 38, rx: 7, class: 'cart-body' }, cg);
+    el('line', { x1: -40, y1: -30, x2: 40, y2: -30, class: 'cart-deck' }, cg);
+    el('line', { x1: 46, y1: -34, x2: 56, y2: -34, class: 'str-acc' }, cg);
+    el('circle', { cx: -30, cy: -9, r: 9, class: 'wheel' }, cg);
+    el('circle', { cx: 30, cy: -9, r: 9, class: 'wheel' }, cg);
+    el('circle', { cx: -30, cy: -9, r: 3, class: 'pulley-hub' }, cg);
+    el('circle', { cx: 30, cy: -9, r: 3, class: 'pulley-hub' }, cg);
+
+    // force arrows, stacked clear of the cart with their labels kept on the right
+    // (the left half of the board is too narrow for them once the labels are scaled up)
+    var fr = el('g', { class: 'forces' }, cg);
+    var p = phys(state.group);
+    var X0 = 20, LBL = 112, k = 32;
+    function flen(v) { return clamp(v * k, 20, 84); }
+    var rows = [
+      { cls: 'pull', y: -100, dir: 1, v: p.pull, txt: 'pull F = ' + eng(p.pull, 2) + ' N', mk: 'm-pull' },
+      { cls: 'grav', y: -154, dir: -1, v: p.grav, txt: 'm g sin\u03B8 = ' + eng(p.grav, 2) + ' N', mk: 'm-grav' },
+      { cls: 'fric', y: -208, dir: -1, v: p.f, txt: 'f = ' + eng(p.f, 2) + ' N', mk: 'm-fric' }
+    ];
+    rows.forEach(function (r) {
+      if (r.v <= 0) return;
+      var L = X0 + flen(r.v) * r.dir;
+      arrow(fr, X0, r.y, L, r.y, r.cls, r.mk);
+      var t = el('text', { x: LBL, y: r.y - 9, class: 'fl ' + r.cls, 'text-anchor': 'start' }, fr);
+      t.textContent = r.txt;
+    });
+    fr.style.display = state.showForces ? '' : 'none';
+    refs.cartG = cg;
+
+    paint(run ? run.x * 100 : 0);
+  }
+
+  function paint(cmx) {
+    if (!refs.cartG) return;
+    var cm = cmx == null ? 0 : cmx;
+    var localX = CART0 + cm * G.ppc;
+    refs.cartG.setAttribute('transform', 'translate(' + localX.toFixed(2) + ',0)');
+
+    var front = loc2world(localX + 54, -34);
+    var endTop = loc2world(LPX + 4, -6);
+    var pl = { x: G.pulley.x - 19, y: G.pulley.y - 2 };
+    var pt = { x: G.pulley.x, y: G.pulley.y - 19 };
+    var pr = { x: G.pulley.x + 19, y: G.pulley.y - 2 };
+    var drop = cm * DROP_PX;
+    var hangTop = { x: G.pulley.x + 19, y: G.pulley.y + drop };
+    var pts = [front, endTop, pl, pt, pr, hangTop].map(function (q) {
+      return q.x.toFixed(1) + ',' + q.y.toFixed(1);
+    }).join(' ');
+    refs.str.setAttribute('points', pts);
+    refs.hang.setAttribute('transform', 'translate(0,' + drop.toFixed(2) + ')');
+  }
+
+  /* ============================================================
+     Run control
+     ============================================================ */
+
+  function tick(now) {
+    if (!run || run.phase !== 'run') return;
+    var p = phys(run.gi);
+    var t = (now - run.t0) / 1000;
+    var x = p.a > 0 ? Math.min(0.5 * p.a * t * t, p.lm) : 0;
+    run.t = t; run.x = x; run.v = p.a * t;
+
+    if (run.kind === 'gate' && x >= p.d) {
+      finishRun(Math.sqrt(2 * p.d / p.a), p.d);
+      return;
+    }
+    if (x >= p.lm && run.kind === 'watch') { voidRun(); return; }
+
+    paint(x * 100);
+    renderMetrics();
+    run.raf = requestAnimationFrame(tick);
+  }
+
+  function startRun() {
+    var gi = state.group;
+    var p = phys(gi);
+    if (!p.moves) {
+      toast('The cart will not move — add weight to the hanger (it needs \u2265 ' +
+        round1(p.minG) + ' g in total)');
+      var inp = document.getElementById('addedMass');
+      if (inp) inp.focus();
+      render();
+      return;
+    }
+    var slot = freeSlot(gi);
+    if (slot < 0) {
+      var open = -1;
+      for (var i = 0; i < state.groups.length; i++) {
+        if (freeSlot(i) >= 0) { open = i; break; }
+      }
+      if (open < 0) { toast('All nine trials are recorded — clear a row to run again'); return; }
+      state.group = gi = open;
+      slot = freeSlot(gi);
+      toast('Mass ' + (gi + 1) + ' still needs trials — selected it for you');
+    }
+
+    run = { gi: gi, slot: slot, kind: state.timing, t: 0, x: 0, v: 0, phase: 'run', t0: performance.now(), raf: 0 };
+    paint(0);
+    renderChips();
+    renderRunBar();
+    renderMetrics();
+    renderProcedure();
+    run.raf = requestAnimationFrame(tick);
+  }
+
+  function finishRun(t, posCm) {
+    if (!run) return;
+    var p = phys(run.gi);
+    var rec = { t: round3(reading(t)), trueT: round3(p.tCross), kind: run.kind };
+    state.groups[run.gi].trials[run.slot] = rec;
+    run.phase = 'done';
+    run.t = rec.t;
+    run.x = clamp(posCm == null ? p.d : posCm, 0, p.lm);
+    run.v = p.a * rec.t;
+    if (run.raf) cancelAnimationFrame(run.raf);
+    paint(run.x * 100);
+    render();
+    toast('Mass ' + (run.gi + 1) + ' \u00B7 trial ' + (run.slot + 1) + ' recorded: ' + rec.t.toFixed(3) + ' s');
+  }
+
+  function voidRun() {
+    if (!run) return;
+    var p = phys(run.gi);
+    run.phase = 'void';
+    run.x = p.lm;
+    run.v = p.a * run.t;
+    if (run.raf) cancelAnimationFrame(run.raf);
+    paint(state.boardLen);
+    render();
+    toast('Too slow — the cart reached the end of the board. Try again, or switch to Photo-gate.');
+  }
+
+  function pressStop() {
+    if (!run || run.phase !== 'run' || run.kind !== 'watch') return;
+    var p = phys(run.gi);
+    var t = (performance.now() - run.t0) / 1000;
+    var x = p.a > 0 ? Math.min(0.5 * p.a * t * t, p.lm) : 0;
+    finishRun(t, x);
+  }
+
+  /* ============================================================
+     Renderers
+     ============================================================ */
+
+  function runBtnState() {
+    var btn = document.getElementById('runBtn');
+    btn.classList.remove('stop', 'armed');
+    if (run && run.phase === 'run' && run.kind === 'gate') {
+      btn.classList.add('armed');
+      btn.disabled = true;
+      btn.textContent = 'Timing the run\u2026';
+      return;
+    }
+    btn.disabled = false;
+    if (run && run.phase === 'run' && run.kind === 'watch') {
+      btn.classList.add('stop');
+      btn.textContent = 'Stop \u2014 passed the mark!';
+      return;
+    }
+    var gi = state.group;
+    var slot = freeSlot(gi);
+    btn.textContent = slot >= 0
+      ? 'Release the cart (Mass ' + (gi + 1) + ' \u00B7 trial ' + (slot + 1) + ')'
+      : 'Mass ' + (gi + 1) + ' has 3 trials \u2014 pick another mass';
+  }
+
+  function renderRunBar() {
+    runBtnState();
+    var tb = document.getElementById('timingBtn');
+    tb.textContent = state.timing === 'gate' ? 'Photo-gate' : 'Stopwatch';
+    tb.setAttribute('aria-pressed', String(state.timing === 'watch'));
+    var mb = document.getElementById('modelBtn');
+    mb.textContent = state.model === 'ideal' ? 'Ideal' : 'Realistic';
+    mb.setAttribute('aria-pressed', String(state.model === 'realistic'));
+  }
+
+  function renderMetrics() {
+    var t = run ? run.t : 0;
+    var x = run ? run.x * 100 : 0;
+    var v = run ? run.v : 0;
+    var p = phys(state.group);
+    var cells = [
+      { k: 'Time', v: t.toFixed(3), u: 's' },
+      { k: 'Position', v: x.toFixed(1), u: 'cm' },
+      { k: 'Speed', v: Math.abs(v).toFixed(2), u: 'm/s' },
+      { k: 'Model a', v: (p.moves ? p.a : 0).toFixed(3), u: 'm/s\u00B2' }
+    ];
+    document.getElementById('metrics').innerHTML = cells.map(function (c) {
+      return '<div class="metric"><div class="k">' + c.k + '</div><div class="v">' +
+        c.v + '<span class="u">' + c.u + '</span></div></div>';
+    }).join('');
+  }
+
+  function renderChips() {
+    var p = phys(state.group);
+    var out = [];
+    if (run && run.phase === 'run') {
+      out.push('<span class="chip ok"><b>' + (run.kind === 'gate' ? 'Running \u00B7 photo-gate' : 'Running \u00B7 press Stop') + '</b></span>');
+    } else if (run && run.phase === 'void') {
+      out.push('<span class="chip bad"><b>Missed the timing</b></span>');
+    } else if (run && run.phase === 'done') {
+      out.push('<span class="chip ok"><b>Mass ' + (run.gi + 1) + ' \u00B7 t = ' + run.t.toFixed(3) + ' s</b></span>');
+    } else {
+      out.push('<span class="chip"><b>Ready</b> \u00B7 set the rig, then release</span>');
+    }
+    out.push('<span class="chip">' + (state.model === 'ideal' ? 'Ideal (no friction)' : 'Realistic \u00B7 \u03BC = ' + state.mu.toFixed(3)) + '</span>');
+    out.push('<span class="chip">d = ' + round1(state.travel).toFixed(1) + ' cm</span>');
+    out.push('<span class="chip">h = ' + (state.travel * sinTheta()).toFixed(2) + ' cm</span>');
+    out.push('<span class="chip ' + (totalG(state.group) >= p.minG ? 'ok' : 'warn') + '">needs \u2265 ' +
+      round1(p.minG) + ' g on the hanger</span>');
+    out.push('<span class="chip">Mass ' + (state.group + 1) + ' \u00B7 ' + totalG(state.group) + ' g \u00B7 ' + trialsDone(state.group) + '/3 trials</span>');
+    document.getElementById('chips').innerHTML = out.join('');
+  }
+
+  var STEP_DEFS = [
+    { txt: 'Set the board on the stand with the pulley at the raised end, and record the <b>mass of the hanger</b>.', done: function () { return true; } },
+    { txt: 'Tie the string from the cart, over the pulley, to the hanger with its slotted weights.', done: function () { return true; } },
+    { txt: 'Add weights until the cart just starts to move — that is the weight that beats friction and the cart\'s own slope pull.', done: function () { return totalG(state.group) >= phys(state.group).minG; } },
+    { txt: 'Hold the cart at the bottom and <b>mark the start</b> at its back wheels.', done: function () { return true; } },
+    { txt: 'Mark the stopping position and <b>measure the distance traveled d</b>.', done: function () { return true; } },
+    { txt: 'Release the cart and time its travel up the board \u2014 <b>three trials for this mass</b>.', done: function () { return trialsDone(state.group) === 3; } },
+    { txt: 'Repeat for the other two masses, three trials each \u2014 <b>nine trials in all</b>.', done: function () { return totalDone() === 9; } },
+    { txt: 'Record the <b>height the cart rises h</b> and the <b>mass of the cart</b> for the conservative-work part.', done: function () { return totalDone() > 0; } },
+    { txt: 'Work out v<sub>avg</sub>, a, v<sub>f</sub>, F, W, P, \u0394PE and \u0394KE below, then decide whether the system is conservative.', done: function () { return totalDone() === 9; } }
+  ];
+
+  function renderProcedure() {
+    var ol = document.getElementById('procSteps');
+    ol.innerHTML = STEP_DEFS.map(function (s, i) {
+      var done = s.done();
+      return '<li class="' + (done ? 'done' : '') + '">' + s.txt +
+        (done ? ' <span class="done-mark" aria-hidden="true">\u2713</span>' : '') + '</li>';
+    }).join('');
+
+    var gi = state.group;
+    var p = phys(gi);
+    var live = document.getElementById('procLive');
+    var cls = 'live';
+    var msg;
+    if (run && run.phase === 'run') {
+      msg = run.kind === 'gate'
+        ? 'Running \u2014 the photo-gate reads the crossing time to about ±0.5 %, stopping the clock the moment the cart reaches the stop mark at ' +
+          round1(state.travel).toFixed(1) + ' cm.'
+        : '<b>Press Stop</b> as the cart passes the stop mark at ' + round1(state.travel).toFixed(1) +
+          ' cm. Your reaction is part of the reading, so the trials will scatter.';
+      cls += ' ok';
+    } else if (run && run.phase === 'void') {
+      msg = 'The cart ran off the end of the board before you pressed Stop, so that trial was not recorded. Press Release to try again, or switch the timing to Photo-gate, whose reading does not depend on your reaction.';
+      cls += ' warn';
+    } else if (run && run.phase === 'done') {
+      msg = 'Recorded Mass ' + (run.gi + 1) + ' trial ' + (run.slot + 1) + ': t = ' + run.t.toFixed(3) +
+        ' s. ' + (trialsDone(run.gi) === 3 ? 'That mass has its three trials — pick the next mass.'
+          : 'Run that trial again if you want a better reading.');
+      cls += ' ok';
+    } else if (!p.moves) {
+      msg = 'With <b>Mass ' + (gi + 1) + '</b> hanging (' + totalG(gi) + ' g total) the cart stays put: the pull ' +
+        eng(p.pull, 2) + ' N cannot beat the cart\'s slope pull ' + eng(p.grav, 2) +
+        (p.f > 0 ? ' plus rolling resistance ' + eng(p.f, 2) : '') + ' N. Add at least ' +
+        round1(p.minG - totalG(gi)) + ' g more, and the cart will break free.';
+      cls += ' warn';
+    } else {
+      msg = 'Mass ' + (gi + 1) + ': ' + totalG(gi) + ' g on the hanger pulls with ' + eng(p.pull, 2) +
+        ' N, minus the cart\'s slope pull ' + eng(p.grav, 2) + ' N' +
+        (p.f > 0 ? ' and rolling resistance ' + eng(p.f, 2) + ' N' : '') +
+        ', so the cart should accelerate at ' + eng(p.a, 3) + ' m/s\u00B2 and cross the stop mark at ' +
+        eng(p.tCross, 3) + ' s.';
+      cls += ' ok';
+    }
+    live.className = cls;
+    live.innerHTML = msg;
+    document.getElementById('liveStatus').textContent = msg.replace(/<[^>]+>/g, '');
+    var done = totalDone();
+    document.getElementById('tableNote').innerHTML = done + ' of 9 trials recorded. ' +
+      (state.timing === 'gate'
+        ? 'Photo-gate readings carry about ±0.5 % of measurement scatter, so repeated trials of one mass come out close but not identical; the stopwatch adds your reaction time on top of that.'
+        : 'Stopwatch readings include your reaction time, so they usually run a little late — the analysis shows by how much.');
+  }
+
+  function renderGroups() {
+    var wrap = document.getElementById('groupList');
+    wrap.innerHTML = state.groups.map(function (g, i) {
+      var tr = g.trials;
+      var dots = tr.map(function (t) { return '<span class="dot' + (t ? ' on' : '') + '"></span>'; }).join('');
+      return '<div class="group-row">' +
+        '<button class="group-pick" type="button" data-group="' + i + '" aria-pressed="' + (i === state.group) + '">' +
+          '<span class="tag">Mass ' + (i + 1) + '</span>' +
+          '<span class="vals">' + g.added + ' g added \u00B7 ' + totalG(i) + ' g total</span>' +
+          '<span class="spacer"></span>' +
+          '<span class="dots" aria-hidden="true">' + dots + '</span>' +
+        '</button>' +
+        '<button class="pill sm" type="button" data-clear="' + i + '" aria-label="Clear Mass ' + (i + 1) + ' trials">\u21BA</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  function syncInputs() {
+    var p = phys(state.group);
+    document.getElementById('boardLen').value = round1(state.boardLen);
+    document.getElementById('boardH').value = round1(state.boardH);
+    document.getElementById('travel').value = round1(state.travel);
+    document.getElementById('cartMass').value = round1(state.cartMass);
+    document.getElementById('hangerMass').value = round1(state.hangerMass);
+    document.getElementById('addedMass').value = round1(state.groups[state.group].added);
+    document.getElementById('grav').value = state.g;
+    document.getElementById('muRange').value = state.mu;
+    document.getElementById('muRange').disabled = state.model !== 'realistic';
+    document.getElementById('muOut').textContent = state.mu.toFixed(3);
+    document.getElementById('angleOut').textContent = p.sin.toFixed(3);
+    document.getElementById('thetaOut').textContent = (Math.atan2(p.sin, p.cos) * 180 / Math.PI).toFixed(1);
+    document.getElementById('riseOut').textContent = (state.travel * p.sin).toFixed(2);
+    document.getElementById('totalOut').textContent = totalG(state.group);
+    document.getElementById('totalKgOut').textContent = (totalG(state.group) / 1000).toFixed(3);
+    document.getElementById('minMassOut').textContent = round1(p.minG);
+
+    var note = document.getElementById('rollNote');
+    var need = totalG(state.group) >= p.minG;
+    note.className = 'note' + (need ? ' good' : ' err');
+    note.innerHTML = need
+      ? 'This hanger breaks the cart free: ' + totalG(state.group) + ' g \u2265 the ' + round1(p.minG) +
+        ' g it takes to beat the slope pull' + (p.mu > 0 ? ' and rolling resistance' : '') + '.'
+      : 'Not enough yet \u2014 the cart needs \u2265 ' + round1(p.minG) + ' g (hanger + added) to start moving. Add ' +
+        round1(Math.max(0, p.minG - totalG(state.group))) + ' g more.';
+
+    var setPill = function (id, on) { document.getElementById(id).setAttribute('aria-pressed', String(on)); };
+    setPill('pillIdeal', state.model === 'ideal');
+    setPill('pillReal', state.model === 'realistic');
+    setPill('pillGate', state.timing === 'gate');
+    setPill('pillWatch', state.timing === 'watch');
+    document.getElementById('swForces').setAttribute('aria-checked', String(state.showForces));
+
+    var aw = document.getElementById('analysisWrap');
+    var ab = document.getElementById('analysisBtn');
+    aw.hidden = !state.showAnalysis;
+    ab.setAttribute('aria-expanded', String(state.showAnalysis));
+    ab.textContent = state.showAnalysis ? 'Hide analysis' : 'Show analysis';
+  }
+
+  function renderRecord() {
+    var p = phys(state.group);
+    var rows = [
+      ['Mass of the hanger', round1(state.hangerMass).toFixed(1) + ' g = ' + (state.hangerMass / 1000).toFixed(3) + ' kg'],
+      ['Distance traveled d', round1(state.travel).toFixed(1) + ' cm = ' + (state.travel / 100).toFixed(3) + ' m'],
+      ['Height of the incline h', (state.travel * sinTheta()).toFixed(2) + ' cm = ' + (state.travel * sinTheta() / 100).toFixed(4) + ' m'],
+      ['Mass of the cart', round1(state.cartMass).toFixed(1) + ' g = ' + (state.cartMass / 1000).toFixed(3) + ' kg'],
+      ['Angle of the board', 'sin\u03B8 = ' + p.sin.toFixed(3) + ' \u2192 \u03B8 = ' + (Math.atan2(p.sin, p.cos) * 180 / Math.PI).toFixed(1) + '\u00B0']
+    ];
+    document.getElementById('recList').innerHTML = rows.map(function (r) {
+      return '<div class="rec"><span class="rk">' + r[0] + '</span><span class="rv">' + r[1] + '</span></div>';
+    }).join('');
+
+    var head = '<tr><th>Mass</th><th>Mass added (g)</th><th>Total mass (g)</th>' +
+      '<th>Trial 1 (s)</th><th>Trial 2 (s)</th><th>Trial 3 (s)</th><th>Average (s)</th></tr>';
+    var body = state.groups.map(function (g, i) {
+      var cells = g.trials.map(function (t) {
+        return '<td class="' + (t ? '' : 'miss') + '">' + (t ? t.t.toFixed(3) : '—') + '</td>';
+      }).join('');
+      var avg = avgTrial(i);
+      return '<tr><td>Mass ' + (i + 1) + '</td><td>' + g.added + '</td><td>' + totalG(i) + '</td>' +
+        cells + '<td>' + (avg == null ? '—' : avg.toFixed(3)) + '</td></tr>';
+    }).join('');
+    document.getElementById('tableWrap').innerHTML = '<table>' + head + body + '</table>';
+  }
+
+  function verdictText(a) {
+    if (Math.abs(a.leftoverAll) <= a.tol) {
+      return 'The energy balance closes: W = \u0394KE + \u0394PE, to within the ±0.5 % scatter of the timing, so no non-conservative work is needed \u2014 with the Ideal model the system is conservative.';
+    }
+    if (a.fd > 0 && Math.abs(a.leftoverAll - a.fd) <= a.tol) {
+      return 'W is larger than \u0394KE + \u0394PE by ' + eng(a.leftoverAll) + ' J, which is exactly the work done against rolling resistance, f d = ' +
+        eng(a.fd) + ' J. That is the non-conservative work, so the system is non-conservative.';
+    }
+    var timing = a.leftoverAll - a.fd;
+    return 'The leftover ' + eng(a.leftoverAll) + ' J is bigger than rolling resistance alone (f d = ' + eng(a.fd) +
+      ' J). The remaining \u2248 ' + eng(timing) + ' J is a timing effect: your measured times run ' +
+      (a.timingErr >= 0 ? '+' : '') + eng(a.timingErr) + ' s from the crossing time of ' + eng(a.p.tCross) +
+      ' s, and v<sub>f</sub> = 2d/t<sub>avg</sub> then comes out too ' + (a.timingErr > 0 ? 'small' : 'large') +
+      ', which takes kinetic energy out of the balance.';
+  }
+
+  function qrow(name, badge, formula, sub, val, unit, cls) {
+    return '<div class="qrow">' +
+      '<div class="qn"><span class="qt">' + name +
+        (badge ? '<span class="qn-badge">' + badge + '</span>' : '') + '</span>' +
+        '<span class="qf">' + formula + (sub ? ' = ' + sub : '') + '</span></div>' +
+      '<div class="qv' + (cls ? ' ' + cls : '') + '">' + val +
+        (unit ? '<span class="u">' + unit + '</span>' : '') + '</div>' +
+    '</div>';
+  }
+
+  function renderAnalysis() {
+    var wrap = document.getElementById('analysisWrap');
+    var blocks = [];
+    var any = false;
+
+
+    state.groups.forEach(function (g, i) {
+      var a = analyze(i);
+      if (!a) {
+        blocks.push('<details class="grp"><summary>Mass ' + (i + 1) + ' \u00B7 ' + g.added +
+          ' g added<span class="st">waiting for trials</span></summary>' +
+          '<div class="body"><p class="note">Record at least one trial for this mass and its calculations appear here.</p></div></details>');
+        return;
+      }
+      any = true;
+      var p = a.p;
+      var spread = g.trials.filter(Boolean).map(function (t) { return t.t.toFixed(3); }).join(' + ');
+      var rows = '';
+      rows += qrow('Average time t<sub>avg</sub>', '', '(t<sub>1</sub> + t<sub>2</sub> + t<sub>3</sub>) / n',
+        (a.n > 1 ? '(' + spread + ')' : spread) + ' / ' + a.n, eng(a.t, 3), 's');
+      rows += qrow('Average velocity of the cart', 'Q1', 'v<sub>avg</sub> = d / t<sub>avg</sub>',
+        eng(p.d, 3) + ' / ' + eng(a.t, 3), eng(a.vAvg, 3), 'm/s');
+      rows += qrow('Average acceleration of the cart', 'Q2', 'a = 2d / t<sub>avg</sub>&sup2;',
+        '2 \u00D7 ' + eng(p.d, 3) + ' / ' + eng(a.t, 3) + '\u00B2', eng(a.aKin, 3), 'm/s\u00B2');
+      rows += qrow('Final velocity of the cart', 'Q3', 'v<sub>f</sub> = 2d / t<sub>avg</sub>',
+        '2 \u00D7 ' + eng(p.d, 3) + ' / ' + eng(a.t, 3), eng(a.vF, 3), 'm/s');
+      rows += qrow('Force pulling the cart', 'Q4', 'F = m<sub>total</sub> g',
+        eng(p.mTot, 3) + ' \u00D7 ' + eng(p.g, 2), eng(a.F, 3), 'N');
+      rows += qrow('Work done by that force', 'Q5', 'W = F d',
+        eng(a.F, 3) + ' \u00D7 ' + eng(p.d, 3), eng(a.W, 3), 'J');
+      rows += qrow('Power produced', 'Q6', 'P = W / t<sub>avg</sub>',
+        eng(a.W, 3) + ' / ' + eng(a.t, 3), eng(a.P, 3), 'W');
+      rows += qrow('Conservative work (change in PE)', 'Q7', 'W<sub>cons</sub> = m<sub>cart</sub> g h',
+        eng(p.mc, 3) + ' \u00D7 ' + eng(p.g, 2) + ' \u00D7 ' + eng(p.h, 4), eng(a.PE, 3), 'J');
+      rows += qrow('Kinetic energy change of the cart', 'Q8', '\u0394KE = \u00BD m<sub>cart</sub> v<sub>f</sub>&sup2;',
+        '\u00BD \u00D7 ' + eng(p.mc, 3) + ' \u00D7 ' + eng(a.vF, 3) + '\u00B2', eng(a.KEc, 3), 'J');
+      rows += qrow('Cart\u2019s kinetic + potential energy', '', '\u0394KE + \u0394PE',
+        eng(a.KEc, 3) + ' + ' + eng(a.PE, 3), eng(a.sumCart, 3), 'J');
+      rows += qrow('Work not accounted for yet', 'Q9', 'W \u2212 (\u0394KE + \u0394PE)',
+        eng(a.W, 3) + ' \u2212 ' + eng(a.sumCart, 3), eng(a.leftoverCart), 'J');
+      rows += qrow('Same, including the hanger\u2019s KE', '',
+        'W \u2212 (\u0394KE + \u0394PE + KE<sub>hanger</sub>)',
+        eng(a.W, 3) + ' \u2212 ' + eng(a.sumAll, 3), eng(a.leftoverAll), 'J');
+      if (p.mu > 0) {
+        rows += qrow('Work against rolling resistance', '',
+          'f d = \u03BC m<sub>cart</sub> g cos\u03B8 \u00B7 d', eng(p.f, 3) + ' \u00D7 ' + eng(p.d, 3), eng(a.fd), 'J');
+      }
+      rows += qrow('Hanger\u2019s kinetic energy', '', '\u00BD m<sub>hanger</sub> v<sub>f</sub>&sup2;',
+        '\u00BD \u00D7 ' + eng(p.mh, 3) + ' \u00D7 ' + eng(a.vF, 3) + '\u00B2', eng(a.KEh, 3), 'J');
+      rows += qrow('Measured time vs the crossing time', '',
+        't<sub>avg</sub> \u2212 t<sub>cross</sub>', eng(a.t, 3) + ' \u2212 ' + eng(p.tCross, 3),
+        (Math.abs(a.timingErr) < 0.005 ? '0.000' : (a.timingErr > 0 ? '+' : '') + eng(a.timingErr, 3)), 's');
+
+      var cls = Math.abs(a.leftoverAll) <= a.tol ? 'live ok' : 'live warn';
+      blocks.push('<details class="grp"' + (i === state.group ? ' open' : '') + '>' +
+        '<summary>Mass ' + (i + 1) + ' \u00B7 ' + g.added + ' g added' +
+          '<span class="st">t<sub>avg</sub> = ' + eng(a.t, 3) + ' s \u00B7 W = ' + eng(a.W, 3) + ' J \u00B7 P = ' + eng(a.P, 3) +
+            ' W \u00B7 ' + a.n + '/3 trials</span>' +
+        '</summary>' +
+        '<div class="body">' +
+          '<div class="' + cls + '">' + verdictText(a) + '</div>' +
+          rows +
+          '<p class="note">Mass ' + (i + 1) + ' hangs ' + totalG(i) + ' g = ' + eng(p.mh, 3) +
+            ' kg, so F = m g = ' + eng(p.pull, 3) + ' N. The cart travels d = ' + eng(p.d, 3) +
+            ' m and rises h = ' + eng(p.h, 4) + ' m. The model says it accelerates at ' + eng(p.a, 3) +
+            ' m/s\u00B2 and crosses the stop mark at ' + eng(p.tCross, 3) + ' s, reaching ' +
+            eng(p.vF, 3) + ' m/s.</p>' +
+        '</div></details>');
+    });
+
+    wrap.innerHTML = any ? blocks.join('') :
+      '<p class="note">No trials yet. Set the rig above, press <b>Release the cart</b>, and the calculations for each mass appear here \u2014 average velocity, acceleration, final velocity, force, work, power, potential and kinetic energy, and whether the system is conservative.</p>';
+  }
+
+  function render() {
+    buildBoard();
+    renderChips();
+    renderMetrics();
+    renderRunBar();
+    renderProcedure();
+    renderGroups();
+    syncInputs();
+    renderRecord();
+    renderAnalysis();
+    save();
+  }
+
+  /* ============================================================
+     Storage
+     ============================================================ */
+
+  function save() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        v: 2,
+        boardLen: state.boardLen,
+        boardH: state.boardH,
+        travel: state.travel,
+        cartMass: state.cartMass,
+        hangerMass: state.hangerMass,
+        g: state.g,
+        mu: state.mu,
+        model: state.model,
+        timing: state.timing,
+        showForces: state.showForces,
+        showAnalysis: state.showAnalysis,
+        group: state.group,
+        groups: state.groups
+      }));
+    } catch (e) { /* storage can be unavailable */ }
+  }
+
+  function sanitizeGroups(raw) {
+    var out = [];
+    for (var i = 0; i < 3; i++) {
+      var g = (raw && raw[i]) ? raw[i] : {};
+      var trials = [];
+      for (var k = 0; k < 3; k++) {
+        var t = (g.trials && g.trials[k]) ? g.trials[k] : null;
+        if (t && isNum(Number(t.t)) && Number(t.t) > 0) {
+          trials.push({
+            t: round3(clamp(Number(t.t), 0.001, 600)),
+            trueT: isNum(Number(t.trueT)) ? round3(Number(t.trueT)) : null,
+            kind: t.kind === 'watch' ? 'watch' : 'gate'
+          });
+        } else {
+          trials.push(null);
+        }
+      }
+      out.push({ added: clamp(Number(g.added), 0, 3000) || 0, trials: trials });
+    }
+    return out;
+  }
+
+  function loadState() {
+    var raw = null;
+    try { raw = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { raw = null; }
+    if (!raw || typeof raw !== 'object') return false;
+
+    state.boardLen = clamp(Number(raw.boardLen) || 120, 20, 200);
+    state.boardH = clamp(Number(raw.boardH) || 30, 2, state.boardLen / 2);
+    state.travel = clamp(Number(raw.travel) || 50, 5, state.boardLen);
+    state.cartMass = clamp(Number(raw.cartMass) || 500, 50, 5000);
+    state.hangerMass = clamp(Number(raw.hangerMass) || 0, 0, 1000);
+    state.g = clamp(Number(raw.g) || 9.8, 1, 30);
+    state.mu = clamp(Number(raw.mu) || 0, 0, 0.1);
+    state.model = raw.model === 'realistic' ? 'realistic' : 'ideal';
+    state.timing = raw.timing === 'watch' ? 'watch' : 'gate';
+    // Saves from v1 stored the old arrows-on default; from v2 they start off, so
+    // a state saved before this change falls back to the new default.
+    state.showForces = Number(raw.v) >= 2 && raw.showForces === true;
+    state.showAnalysis = raw.showAnalysis === true;
+    state.groups = sanitizeGroups(raw.groups);
+    state.group = clamp(Math.round(Number(raw.group) || 0), 0, 2);
+    return true;
+  }
+
+  /* ============================================================
+     Pointer: drag the stop mark
+     ============================================================ */
+
+  var drag = null;
+
+  function userPoint(ev) {
+    var svg = document.getElementById('board');
+    var pt = svg.createSVGPoint();
+    pt.x = ev.clientX;
+    pt.y = ev.clientY;
+    var m = svg.getScreenCTM();
+    if (!m) return null;
+    return pt.matrixTransform(m.inverse());
+  }
+
+  // pointer -> board-local view units (x along the slope, y up from the surface)
+  function localAt(u) {
+    var dx = u.x - ORIG.x, dy = u.y - ORIG.y;
+    return {
+      lx: dx * G.cos - dy * G.sin,
+      ly: dx * G.sin + dy * G.cos
+    };
+  }
+
+  function onDown(ev) {
+    if (ev.button != null && ev.button !== 0) return;
+    if (run && run.phase === 'run') return;
+    var u = userPoint(ev);
+    if (!u) return;
+    var lp = localAt(u);
+    // only the stop mark's handle answers a drag
+    if (Math.abs(lp.lx - G.markD) > 34 || lp.ly < -74 || lp.ly > 30) return;
+    ev.preventDefault();
+    drag = { grab: state.travel - (lp.lx - CART0) / G.ppc };
+    document.getElementById('board').style.cursor = 'ew-resize';
+  }
+
+  function onMove(ev) {
+    if (!drag) return;
+    var u = userPoint(ev);
+    if (!u) return;
+    ev.preventDefault();
+    var lp = localAt(u);
+    var cm = clamp(round1((lp.lx - CART0) / G.ppc + drag.grab), 5, state.boardLen);
+    if (cm !== state.travel) {
+      state.travel = cm;
+      run = null;
+      render();
+    }
+  }
+
+  function onUp() {
+    if (!drag) return;
+    drag = null;
+    document.getElementById('board').style.cursor = '';
+  }
+
+  /* ============================================================
+     Toast & theme
+     ============================================================ */
+
+  var toastTimer = null;
+  function toast(msg) {
+    var el2 = document.getElementById('toast');
+    el2.textContent = msg;
+    el2.classList.add('on');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el2.classList.remove('on'); }, 2600);
+  }
+
+  function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* ignore */ }
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#06110d' : '#005A36');
+    document.getElementById('themeBtn').setAttribute('title',
+      theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+
+  /* ============================================================
+     Init
+     ============================================================ */
+
+  function measureTopbar() {
+    var bar = document.querySelector('.topbar');
+    if (!bar) return;
+    document.documentElement.style.setProperty('--tb', bar.offsetHeight + 'px');
+  }
+
+  function syncCompact() {
+    var svg = document.getElementById('board');
+    if (!svg) return;
+    var compact = (svg.getBoundingClientRect().width || window.innerWidth) < 620;
+    if (compact !== svg.classList.contains('compact')) {
+      svg.classList.toggle('compact', compact);
+    }
+  }
+
+  function numInput(id, fn) {
+    var inp = document.getElementById(id);
+    inp.addEventListener('change', function () {
+      var v = parseFloat(inp.value);
+      if (!isFinite(v)) { syncInputs(); return; }
+      fn(v);
+      run = null;
+      render();
+    });
+  }
+
+  function setModel(m) {
+    state.model = m;
+    render();
+  }
+
+  function setTiming(t) {
+    state.timing = t;
+    render();
+  }
+
+  function init() {
+    setTheme(document.documentElement.getAttribute('data-theme') || 'light');
+    measureTopbar();
+    loadState();
+
+    document.getElementById('themeBtn').addEventListener('click', function () {
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      setTheme(next);
+    });
+
+    // main run control
+    document.getElementById('runBtn').addEventListener('click', function () {
+      if (run && run.phase === 'run') {
+        if (run.kind === 'watch') pressStop();
+        return;
+      }
+      startRun();
+    });
+
+    document.getElementById('runHere').addEventListener('click', function () {
+      if (run && run.phase === 'run') return;
+      startRun();
+    });
+
+    document.getElementById('timingBtn').addEventListener('click', function () {
+      setTiming(state.timing === 'gate' ? 'watch' : 'gate');
+    });
+    document.getElementById('modelBtn').addEventListener('click', function () {
+      setModel(state.model === 'ideal' ? 'realistic' : 'ideal');
+    });
+    document.getElementById('pillGate').addEventListener('click', function () { setTiming('gate'); });
+    document.getElementById('pillWatch').addEventListener('click', function () { setTiming('watch'); });
+    document.getElementById('pillIdeal').addEventListener('click', function () { setModel('ideal'); });
+    document.getElementById('pillReal').addEventListener('click', function () { setModel('realistic'); });
+    document.getElementById('swForces').addEventListener('click', function () {
+      state.showForces = !state.showForces;
+      render();
+    });
+
+    document.getElementById('analysisBtn').addEventListener('click', function () {
+      state.showAnalysis = !state.showAnalysis;
+      render();
+    });
+
+    document.getElementById('muRange').addEventListener('input', function () {
+      state.mu = clamp(parseFloat(this.value) || 0, 0, 0.1);
+      if (state.model !== 'realistic') state.model = 'realistic';
+      run = null;
+      render();
+    });
+
+    numInput('boardLen', function (v) {
+      state.boardLen = clamp(v, 20, 200);
+      state.boardH = clamp(state.boardH, 2, state.boardLen / 2);
+      state.travel = clamp(state.travel, 5, state.boardLen);
+    });
+    numInput('boardH', function (v) {
+      state.boardH = clamp(v, 2, state.boardLen / 2);
+    });
+    numInput('travel', function (v) {
+      state.travel = clamp(v, 5, state.boardLen);
+    });
+    numInput('cartMass', function (v) { state.cartMass = clamp(v, 50, 5000); });
+    numInput('hangerMass', function (v) { state.hangerMass = clamp(v, 0, 1000); });
+    numInput('addedMass', function (v) {
+      state.groups[state.group].added = clamp(v, 0, 3000);
+    });
+    numInput('grav', function (v) { state.g = clamp(v, 1, 30); });
+
+    // group selection & row clearing (delegated)
+    document.getElementById('groupList').addEventListener('click', function (ev) {
+      var pick = ev.target.closest ? ev.target.closest('[data-group]') : null;
+      if (pick) {
+        state.group = clamp(parseInt(pick.getAttribute('data-group'), 10) || 0, 0, 2);
+        run = null;
+        render();
+        return;
+      }
+      var clr = ev.target.closest ? ev.target.closest('[data-clear]') : null;
+      if (clr) {
+        var gi = clamp(parseInt(clr.getAttribute('data-clear'), 10) || 0, 0, 2);
+        state.groups[gi].trials = [null, null, null];
+        run = null;
+        render();
+        toast('Mass ' + (gi + 1) + ' trials cleared');
+      }
+    });
+
+    document.getElementById('clearAll').addEventListener('click', function () {
+      state.groups.forEach(function (g) { g.trials = [null, null, null]; });
+      run = null;
+      render();
+      toast('All nine trials cleared');
+    });
+
+    var board = document.getElementById('board');
+    board.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove, { passive: false });
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    board.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+    render();
+    syncCompact();
+    var resizeTimer = null;
+    window.addEventListener('resize', function () {
+      measureTopbar();
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(syncCompact, 120);
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+
+
+<span id="PING_CONTENT_MB_MAIN" style="display: none;"></span><span id="PING_CONTENT_PUSH_NOTIFICATION" style="display: none;"></span><span id="PING_IFRAME_FORM_DETECTION" style="display: none;"></span></body></html>

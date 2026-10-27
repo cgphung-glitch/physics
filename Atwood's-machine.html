@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<!-- saved from url=(0049)http://127.0.0.1:4176/physics/atwood-machine.html -->
+<html lang="en" data-theme="dark" style="--tb: 57px;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#06110d">
+<meta name="description" content="Atwood's machine: two masses over a pulley, timed with a photogate. Fit velocity vs time to get the acceleration, then relate it to the mass difference and the total mass.">
+<title>Atwood's Machine Lab · Photogate</title>
+<script>
+  (function () {
+    var theme = 'light';
+    try {
+      theme = localStorage.getItem('atwood-lab-theme') ||
+        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    } catch (e) { /* storage can be unavailable */ }
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --bg: #edf3ef;
+    --panel: #ffffff;
+    --panel-2: #f5faf7;
+    --ink: #0c2a20;
+    --ink-2: #174536;
+    --muted: #5f7d72;
+    --line: #d8e4dd;
+    --accent: #007a4a;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(0, 122, 74, 0.10);
+    --readout-border: rgba(0, 122, 74, 0.24);
+    --gold: #a97a00;
+    --gold-soft: rgba(198, 146, 0, 0.14);
+    --danger: #b3261e;
+    --danger-soft: rgba(179, 38, 30, 0.10);
+    --metal: #6b7280;
+    --metal-2: #9aa3ad;
+    --bar-bg: rgba(255, 255, 255, 0.88);
+    --shadow: 0 12px 34px rgba(8, 40, 28, 0.09);
+    --radius: 16px;
+    color-scheme: light;
+  }
+
+  html[data-theme="dark"] {
+    --bg: #06110d;
+    --panel: #0d1a15;
+    --panel-2: #12221b;
+    --ink: #e7f3ed;
+    --ink-2: #c9e2d7;
+    --muted: #86a79a;
+    --line: #1e342b;
+    --accent: #49e0a1;
+    --accent-ink: #002b1d;
+    --accent-soft: rgba(73, 224, 161, 0.13);
+    --readout-border: rgba(73, 224, 161, 0.26);
+    --gold: #ffc72c;
+    --gold-soft: rgba(255, 199, 44, 0.13);
+    --danger: #ff6f66;
+    --danger-soft: rgba(255, 111, 102, 0.14);
+    --metal: #7b8794;
+    --metal-2: #586471;
+    --bar-bg: rgba(8, 19, 14, 0.86);
+    --shadow: 0 14px 38px rgba(0, 0, 0, 0.40);
+    color-scheme: dark;
+  }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    min-height: 100dvh;
+    background: var(--bg);
+    background-image:
+      radial-gradient(900px 500px at 85% -10%, var(--accent-soft), transparent 70%),
+      radial-gradient(700px 400px at -10% 110%, var(--gold-soft), transparent 70%);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button, input, select { font-family: inherit; }
+  h1, h2, h3 { font-weight: 650; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 8px 12px;
+    padding-top: calc(8px + env(safe-area-inset-top));
+    background: var(--bar-bg);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brand-mark {
+    width: 36px; height: 36px; flex: 0 0 auto;
+    display: grid; place-items: center;
+    border-radius: 11px;
+    background: var(--accent); color: var(--accent-ink);
+  }
+  .brand-mark svg { width: 22px; height: 22px; }
+  .brand-text { min-width: 0; }
+  .brand-text h1 { margin: 0; font-size: 15px; line-height: 1.15; letter-spacing: -0.01em; white-space: nowrap; }
+  .brand-text p { margin: 2px 0 0; font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .top-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+  .icon-btn {
+    width: 40px; height: 40px; display: grid; place-items: center;
+    border-radius: 11px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--ink); cursor: pointer;
+  }
+  .icon-btn svg { width: 20px; height: 20px; }
+  .icon-btn:active { transform: scale(0.96); }
+
+  /* ---------- layout ---------- */
+  main {
+    max-width: 1040px; margin: 0 auto; padding: 12px;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .stage {
+    position: sticky; top: var(--tb, 58px); z-index: 20;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 8px 10px 10px;
+  }
+
+  .chips {
+    display: flex; align-items: center; gap: 6px; padding: 2px 0 6px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    font-size: 12px; padding: 4px 9px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2);
+    white-space: nowrap; flex: 0 0 auto; font-variant-numeric: tabular-nums;
+  }
+  .chip b { font-weight: 650; }
+  .chip.ok { background: var(--accent-soft); border-color: var(--readout-border); color: var(--accent); }
+  .chip.warn { background: var(--gold-soft); border-color: var(--gold); color: var(--gold); }
+  .chip.bad { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+
+  .metrics { display: flex; gap: 6px; padding: 6px 0 0; }
+  .metric { flex: 1 1 0; min-width: 0; border: 1px solid var(--line); border-radius: 11px; background: var(--panel-2); padding: 6px 8px; }
+  .metric .k { font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .metric .v { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .metric .v .u { font-size: 11px; color: var(--muted); font-weight: 500; margin-left: 2px; }
+
+  .run-bar { display: flex; gap: 8px; align-items: stretch; padding-top: 8px; flex-wrap: wrap; }
+  .btn-run {
+    flex: 1 1 140px; min-width: 0; font-size: 15px; font-weight: 650;
+    padding: 12px 14px; border-radius: 12px; border: 1px solid var(--accent);
+    background: var(--accent); color: var(--accent-ink); cursor: pointer;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .btn-run:active { transform: scale(0.985); }
+  .btn-run.armed { background: var(--panel-2); border-color: var(--line); color: var(--muted); cursor: default; }
+  .btn-run.armed:active { transform: none; }
+
+  svg#board {
+    display: block; width: 100%; height: auto; max-height: 52dvh;
+    touch-action: pan-y; -webkit-user-select: none; user-select: none;
+  }
+
+  /* board paints */
+  .floor { stroke: var(--ink-2); stroke-width: 3; }
+  .hatch { stroke: var(--muted); stroke-width: 2.4; opacity: 0.55; }
+  .base { fill: var(--metal-2); stroke: var(--metal); stroke-width: 2; }
+  .rod { stroke: var(--metal); stroke-width: 12; stroke-linecap: round; }
+  .bar { stroke: var(--metal); stroke-width: 11; stroke-linecap: round; }
+  .knob { fill: var(--metal); stroke: var(--metal-2); stroke-width: 1.5; }
+  .groove { fill: none; stroke: var(--metal-2); stroke-width: 13; }
+  .disc { fill: var(--metal); opacity: 0.18; }
+  .spoke { stroke: var(--metal); stroke-width: 3; }
+  .hub { fill: var(--panel); stroke: var(--metal); stroke-width: 2.6; }
+  .gate-body { fill: var(--metal-2); stroke: var(--metal); stroke-width: 2; }
+  .gate-prong { stroke: var(--metal); stroke-width: 8; stroke-linecap: round; }
+  .gate-cable { fill: none; stroke: var(--muted); stroke-width: 3; stroke-dasharray: 8 6; }
+  .gate-lbl { fill: var(--muted); font-size: 19px; font-weight: 600; }
+  .pulse { fill: var(--accent); }
+  .str { fill: none; stroke: var(--ink-2); stroke-width: 4; stroke-linecap: round; }
+  .plate { fill: var(--panel); stroke: var(--accent); stroke-width: 2.6; }
+  .blocks { fill: var(--gold-soft); stroke: var(--gold); stroke-width: 2.4; }
+  .blocks.hidden { fill: var(--accent-soft); stroke: var(--accent); stroke-dasharray: 9 7; }
+  .seam { stroke: var(--gold); stroke-width: 1.4; opacity: 0.5; }
+  .seam.hidden { stroke: var(--accent); }
+  .blbl { fill: var(--ink); font-size: 26px; font-weight: 650; }
+  .blbl2 { fill: var(--ink-2); font-size: 22px; font-weight: 600; }
+  .dnote { fill: var(--muted); font-size: 19px; }
+  .dnote.solid { fill: var(--ink-2); font-weight: 600; }
+  .rltick { fill: var(--muted); font-size: 18px; }
+  .rltick.hot { fill: var(--gold); font-weight: 650; }
+  .vval { fill: var(--ink); font-size: 25px; font-weight: 650; text-anchor: middle; }
+  .vval.sm { fill: var(--muted); font-size: 20px; font-weight: 500; }
+  .dim { stroke: var(--muted); stroke-width: 1.8; stroke-dasharray: 8 6; }
+  .dim-hot { stroke: var(--gold); stroke-width: 2.4; stroke-dasharray: 9 6; }
+  .arrow { stroke-width: 3.4; stroke-linecap: round; }
+  .arrow.tens { stroke: var(--accent); }
+  .arrow.wt { stroke: var(--gold); }
+  .arrow.mot { stroke: var(--accent); }
+  .marker-tens path { fill: var(--accent); }
+  .marker-wt path { fill: var(--gold); }
+  .marker-mot path { fill: var(--accent); }
+
+  svg.compact .blbl { font-size: 44px; }
+  svg.compact .blbl2 { font-size: 38px; }
+  svg.compact .dnote { font-size: 33px; }
+  svg.compact .rltick { font-size: 28px; }
+  svg.compact .vval { font-size: 42px; }
+  svg.compact .vval.sm { font-size: 34px; }
+  svg.compact .gate-lbl { font-size: 24px; }
+
+  /* charts */
+  .grid { stroke: var(--line); stroke-width: 1.4; }
+  .axis { stroke: var(--muted); stroke-width: 2; }
+  .ax { fill: var(--muted); font-size: 17px; }
+  .axT { fill: var(--ink-2); font-size: 19px; font-weight: 650; }
+  .cap { fill: var(--muted); font-size: 20px; }
+  .pt { fill: var(--accent); }
+  .fitline { stroke: var(--accent); stroke-width: 3.4; }
+  .curve { stroke: var(--gold); stroke-width: 3.4; stroke-dasharray: 11 7; }
+  svg.compact .ax { font-size: 40px; }
+  svg.compact .axT { font-size: 42px; }
+  svg.compact .cap { font-size: 40px; }
+
+  /* ---------- cards ---------- */
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px; }
+  .card > h2 {
+    margin: 0 0 10px; font-size: 11.5px; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--muted); display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  h3.case-title { font-size: 15px; margin: 0 0 6px; }
+
+  ol.steps { margin: 0 0 10px; padding-left: 20px; font-size: 13.5px; line-height: 1.45; color: var(--ink-2); }
+  ol.steps li { margin: 0 0 4px; }
+  ol.steps b { color: var(--ink); }
+  ol.steps li.done { color: var(--muted); }
+  ol.steps li.done .done-mark { color: var(--accent); font-weight: 700; }
+
+  .note { font-size: 12.5px; line-height: 1.45; color: var(--muted); margin: 8px 0 0; }
+  .note.err { color: var(--danger); }
+  .note.good { color: var(--accent); }
+
+  .live {
+    border: 1px solid var(--line); border-left: 3px solid var(--muted); background: var(--panel-2);
+    border-radius: 10px; padding: 8px 10px; font-size: 13px; line-height: 1.45;
+    margin: 0 0 10px; font-variant-numeric: tabular-nums;
+  }
+  .live.ok { border-left-color: var(--accent); }
+  .live.warn { border-left-color: var(--gold); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  label.f { display: block; font-size: 12px; color: var(--muted); margin: 0 0 3px; }
+
+  input[type="number"] {
+    width: 100%; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--panel-2); color: var(--ink); font-size: 15px; font-variant-numeric: tabular-nums;
+  }
+  input[type="number"]:disabled { opacity: 0.5; }
+  input[type="number"]:focus-visible, button:focus-visible, .pill:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px;
+  }
+
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill {
+    font-size: 13px; padding: 8px 12px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink-2);
+    cursor: pointer; font-variant-numeric: tabular-nums;
+  }
+  .pill[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .pill:active { transform: scale(0.97); }
+  .pill.sm { font-size: 12.5px; padding: 7px 10px; }
+  .pill.wide { width: 100%; }
+  .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .row.between { justify-content: space-between; }
+  .spacer { flex: 1 1 auto; }
+
+  .slider { width: 100%; height: 34px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; }
+  .slider:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+  .slider::-webkit-slider-runnable-track { height: 8px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 28px; height: 28px; margin-top: -11px;
+    border-radius: 50%; background: var(--accent); border: 3px solid var(--panel);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  }
+  .slider::-moz-range-track { height: 8px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); }
+  .slider::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); border: 3px solid var(--panel); }
+
+  .readout { font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 650; }
+  .readout .u { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+  .dots { display: inline-flex; gap: 5px; }
+  .dot {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--panel-2);
+    color: var(--muted); font-size: 11.5px; font-weight: 650;
+    display: grid; place-items: center; cursor: pointer; padding: 0;
+  }
+  .dot.on { border-color: var(--accent); color: var(--accent); }
+  .dot.full { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+  .data-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 6px 4px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; font-size: 11.5px; }
+  td.miss { color: var(--muted); }
+  tr.now td { background: var(--accent-soft); }
+
+  details.grp { margin-top: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); }
+  details.grp > summary {
+    cursor: pointer; font-size: 13.5px; font-weight: 650; padding: 10px 12px; color: var(--ink);
+    list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+  }
+  details.grp > summary::-webkit-details-marker { display: none; }
+  details.grp > summary .qn-badge { font-size: 10.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 6px; font-weight: 500; }
+  details.grp[open] > summary { border-bottom: 1px solid var(--line); }
+  details.grp > .body { padding: 10px 12px 12px; background: var(--panel); border-radius: 0 0 12px 12px; }
+  details.grp .body p { font-size: 13px; line-height: 1.5; color: var(--ink-2); margin: 0 0 8px; }
+  details.grp .body p:last-child { margin-bottom: 0; }
+  details.grp .body b { color: var(--ink); }
+
+  .eq {
+    font-variant-numeric: tabular-nums; font-size: 13.5px; line-height: 1.6; color: var(--ink);
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 8px 10px; margin: 0 0 8px; overflow-x: auto; white-space: nowrap;
+  }
+  .eq .u { color: var(--muted); font-size: 12px; }
+
+  .switch-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 7px 0; font-size: 13.5px; color: var(--ink-2); border-bottom: 1px solid var(--line);
+  }
+  .switch-row:last-child { border-bottom: 0; }
+  .switch {
+    position: relative; width: 46px; height: 26px; flex: 0 0 auto;
+    border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); cursor: pointer; padding: 0;
+  }
+  .switch::before { content: ""; position: absolute; inset: -10px -7px; }
+  .switch::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+    border-radius: 50%; background: var(--muted); transition: transform 0.16s ease, background 0.16s ease;
+  }
+  .switch[aria-checked="true"] { background: var(--accent-soft); border-color: var(--readout-border); }
+  .switch[aria-checked="true"]::after { transform: translateX(20px); background: var(--accent); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom));
+    transform: translateX(-50%) translateY(6px); max-width: min(92vw, 480px);
+    background: var(--ink); color: var(--bg); padding: 10px 14px; border-radius: 12px;
+    font-size: 13px; line-height: 1.35; text-align: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.18s ease, transform 0.18s ease; z-index: 60;
+  }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  footer.foot { font-size: 12px; color: var(--muted); line-height: 1.5; padding: 2px 4px 0; }
+  footer.foot b { color: var(--ink-2); }
+
+  @media (max-width: 560px) {
+    .pill { padding: 10px 13px; }
+    .pill.sm { padding: 9px 11px; font-size: 13px; }
+    .metric .v { font-size: 16px; }
+    input[type="number"] { font-size: 16px; padding: 10px; }
+  }
+  @media (min-width: 720px) {
+    main { padding: 16px; gap: 14px; }
+    .brand-text h1 { font-size: 17px; }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    .slider { height: 30px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .switch::after { transition: none; }
+    .toast { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="6" r="3.2"></circle><path d="M8.8 6H4v6"></path><path d="M15.2 6H20v7"></path><path d="M4 12h2.5v4H4z"></path><path d="M17.5 13H20v5h-2.5z"></path>
+      </svg>
+    </span>
+    <div class="brand-text">
+      <h1>Atwood's Machine Lab</h1>
+      <p>Two masses over a pulley · photogate timing · a = Δm g / m<sub>T</sub></p>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button id="themeBtn" class="icon-btn" type="button" title="Switch to light theme" aria-label="Switch theme" fdprocessedid="uepac">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"></path>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="stage" aria-label="Atwood's machine">
+    <div class="chips" id="chips"><span class="chip ">m₁ = <b>100 g</b></span><span class="chip ">m₂ = <b>100 g</b></span><span class="chip warn">Δm = <b>0 g</b></span><span class="chip ">m_T = <b>200 g</b></span><span class="chip ">predict a = <b>0.000</b> m/s²</span></div>
+    <svg id="board" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Two masses hanging from a string over a pulley, with a photogate on the pulley, a ruler showing the descent, and the floor below"><defs><marker id="mTens" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-tens"><path d="M0 0 L10 5 L0 10 z"></path></marker><marker id="mWt" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-wt"><path d="M0 0 L10 5 L0 10 z"></path></marker><marker id="mMot" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-mot"><path d="M0 0 L10 5 L0 10 z"></path></marker></defs><line x1="40" y1="760" x2="990" y2="760" class="floor"></line><line x1="60" y1="762" x2="44" y2="784" class="hatch"></line><line x1="94" y1="762" x2="78" y2="784" class="hatch"></line><line x1="128" y1="762" x2="112" y2="784" class="hatch"></line><line x1="162" y1="762" x2="146" y2="784" class="hatch"></line><line x1="196" y1="762" x2="180" y2="784" class="hatch"></line><line x1="230" y1="762" x2="214" y2="784" class="hatch"></line><line x1="264" y1="762" x2="248" y2="784" class="hatch"></line><line x1="298" y1="762" x2="282" y2="784" class="hatch"></line><line x1="332" y1="762" x2="316" y2="784" class="hatch"></line><line x1="366" y1="762" x2="350" y2="784" class="hatch"></line><line x1="400" y1="762" x2="384" y2="784" class="hatch"></line><line x1="434" y1="762" x2="418" y2="784" class="hatch"></line><line x1="468" y1="762" x2="452" y2="784" class="hatch"></line><line x1="502" y1="762" x2="486" y2="784" class="hatch"></line><line x1="536" y1="762" x2="520" y2="784" class="hatch"></line><line x1="570" y1="762" x2="554" y2="784" class="hatch"></line><line x1="604" y1="762" x2="588" y2="784" class="hatch"></line><line x1="638" y1="762" x2="622" y2="784" class="hatch"></line><line x1="672" y1="762" x2="656" y2="784" class="hatch"></line><line x1="706" y1="762" x2="690" y2="784" class="hatch"></line><line x1="740" y1="762" x2="724" y2="784" class="hatch"></line><line x1="774" y1="762" x2="758" y2="784" class="hatch"></line><line x1="808" y1="762" x2="792" y2="784" class="hatch"></line><line x1="842" y1="762" x2="826" y2="784" class="hatch"></line><line x1="876" y1="762" x2="860" y2="784" class="hatch"></line><line x1="910" y1="762" x2="894" y2="784" class="hatch"></line><line x1="944" y1="762" x2="928" y2="784" class="hatch"></line><line x1="978" y1="762" x2="962" y2="784" class="hatch"></line><text x="252" y="744" class="dnote">floor · 60 cm below the start</text><line x1="190" y1="556" x2="860" y2="556" class="dim"></line><text x="190" y="546" class="dnote">the masses start even with each other</text><line x1="900" y1="556" x2="900" y2="760" class="axis"></line><line x1="900" y1="556" x2="880" y2="556" class="dim"></line><text x="874" y="563" class="rltick">0</text><line x1="900" y1="573" x2="888" y2="573" class="dim"></line><line x1="900" y1="590" x2="880" y2="590" class="dim"></line><text x="874" y="597" class="rltick">10</text><line x1="900" y1="607" x2="888" y2="607" class="dim"></line><line x1="900" y1="624" x2="880" y2="624" class="dim"></line><text x="874" y="631" class="rltick">20</text><line x1="900" y1="641" x2="888" y2="641" class="dim"></line><line x1="900" y1="658" x2="880" y2="658" class="dim"></line><text x="874" y="665" class="rltick">30</text><line x1="900" y1="675" x2="888" y2="675" class="dim"></line><line x1="900" y1="692" x2="880" y2="692" class="dim-hot"></line><text x="874" y="699" class="rltick">40</text><line x1="900" y1="709" x2="888" y2="709" class="dim"></line><line x1="900" y1="726" x2="880" y2="726" class="dim"></line><text x="874" y="733" class="rltick">50</text><line x1="900" y1="743" x2="888" y2="743" class="dim"></line><line x1="900" y1="760" x2="880" y2="760" class="dim"></line><text x="874" y="767" class="rltick">60</text><text x="874" y="542" class="rltick" text-anchor="end">descent (cm)</text><text x="908" y="699" class="rltick hot">≥ 40</text><text x="908" y="722" class="rltick hot">cm</text><line x1="190" y1="709" x2="900" y2="709" class="dim-hot"></line><text x="196" y="699" class="dnote solid">caught after 45 cm</text><rect x="40" y="730" width="200" height="30" rx="8" class="base"></rect><line x1="110" y1="152" x2="110" y2="734" class="rod"></line><circle cx="110" cy="734" r="13" class="knob"></circle><line x1="110" y1="152" x2="454" y2="152" class="bar"></line><circle cx="150" cy="152" r="11" class="knob"></circle><circle cx="480" cy="152" r="62" class="groove"></circle><circle cx="480" cy="152" r="49" class="disc"></circle><g transform="rotate(0.000 480 152)"><line x1="495" y1="152" x2="527" y2="152" class="spoke"></line><line x1="492.1352549156242" y1="160.8167787843871" x2="518.0237987356226" y2="179.62590685774623" class="spoke"></line><line x1="484.6352549156242" y1="166.2658477444273" x2="494.5237987356225" y2="196.69965626587222" class="spoke"></line><line x1="475.3647450843758" y1="166.2658477444273" x2="465.4762012643775" y2="196.69965626587222" class="spoke"></line><line x1="467.8647450843758" y1="160.8167787843871" x2="441.9762012643775" y2="179.62590685774626" class="spoke"></line><line x1="465" y1="152" x2="433" y2="152" class="spoke"></line><line x1="467.8647450843758" y1="143.18322121561292" x2="441.97620126437744" y2="124.37409314225377" class="spoke"></line><line x1="475.3647450843758" y1="137.7341522555727" x2="465.47620126437744" y2="107.30034373412778" class="spoke"></line><line x1="484.6352549156242" y1="137.7341522555727" x2="494.5237987356225" y2="107.30034373412778" class="spoke"></line><line x1="492.1352549156242" y1="143.1832212156129" x2="518.0237987356226" y2="124.37409314225376" class="spoke"></line></g><circle cx="480" cy="152" r="14" class="hub"></circle><circle cx="480" cy="152" r="5" class="knob"></circle><line x1="418" y1="152" x2="418" y2="464" class="str"></line><line x1="542" y1="152" x2="542" y2="464" class="str"></line><rect x="434" y="34" width="92" height="32" rx="9" class="gate-body"></rect><line x1="462" y1="66" x2="462" y2="100" class="gate-prong"></line><line x1="498" y1="66" x2="498" y2="100" class="gate-prong"></line><path d="M526 50 C 630 12, 560 30, 600 70" class="gate-cable"></path><text x="990" y="64" class="gate-lbl" text-anchor="end">photogate</text><text x="990" y="90" class="gate-lbl" text-anchor="end">10-spoke groove</text><text x="400" y="56" class="gate-lbl" text-anchor="end">Ultra pulley</text><rect x="381" y="464" width="74" height="10" rx="5" class="plate"></rect><rect x="388" y="474" width="60" height="82" rx="7" class="blocks"></rect><line x1="392" y1="494.5" x2="444" y2="494.5" class="seam"></line><line x1="392" y1="515" x2="444" y2="515" class="seam"></line><line x1="392" y1="535.5" x2="444" y2="535.5" class="seam"></line><circle cx="418" cy="469" r="4" class="knob"></circle><text x="358" y="499" class="blbl" text-anchor="end">m₁</text><text x="358" y="531" class="blbl2" text-anchor="end">100 g</text><line x1="326" y1="480" x2="326" y2="376" class="arrow tens" marker-end="url(#mTens)"></line><line x1="358" y1="480" x2="358" y2="584" class="arrow wt" marker-end="url(#mWt)"></line><text x="338" y="486" class="dnote" text-anchor="end">0.98 N</text><text x="370" y="590" class="dnote" text-anchor="end">0.98 N</text><rect x="505" y="464" width="74" height="10" rx="5" class="plate"></rect><rect x="512" y="474" width="60" height="82" rx="7" class="blocks"></rect><line x1="516" y1="494.5" x2="568" y2="494.5" class="seam"></line><line x1="516" y1="515" x2="568" y2="515" class="seam"></line><line x1="516" y1="535.5" x2="568" y2="535.5" class="seam"></line><circle cx="542" cy="469" r="4" class="knob"></circle><text x="602" y="499" class="blbl" text-anchor="start">m₂</text><text x="602" y="531" class="blbl2" text-anchor="start">100 g</text><line x1="634" y1="480" x2="634" y2="376" class="arrow tens" marker-end="url(#mTens)"></line><line x1="602" y1="480" x2="602" y2="584" class="arrow wt" marker-end="url(#mWt)"></line><text x="622" y="486" class="dnote" text-anchor="start">0.98 N</text><text x="590" y="590" class="dnote" text-anchor="start">0.98 N</text><text x="480" y="236" class="vval sm">v =</text><text x="480" y="268" class="vval">0.00</text><text x="480" y="292" class="vval sm">m/s</text><text x="480" y="330" class="vval sm">balanced</text></svg>
+    <div class="metrics" id="metrics"><div class="metric"><div class="k">predicted a</div><div class="v">0.000<span class="u"> m/s²</span></div></div><div class="metric"><div class="k">fitted a</div><div class="v">—<span class="u"> m/s²</span></div></div><div class="metric"><div class="k">tension T</div><div class="v">—<span class="u"> N</span></div></div></div>
+    <div class="run-bar">
+      <button class="btn-run" id="runBtn" type="button" fdprocessedid="qvc0d">Release the masses</button>
+      <button class="pill" id="recBtn" type="button" aria-pressed="false" fdprocessedid="m9o3ul">Record trial</button>
+      <button class="pill" id="modelBtn" type="button" aria-pressed="false" fdprocessedid="th17lh">Ideal</button>
+    </div>
+    <p class="sr-only" id="liveStatus" aria-live="polite"></p>
+  </section>
+
+  <section class="card" aria-label="Procedure">
+    <h2>Procedure <span class="qn-badge" id="partTag">Part I</span></h2>
+    <h3 class="case-title" id="procTitle">Constant total mass — 200 g, moved across</h3>
+    <ol class="steps" id="procSteps"><li class="">Hang <b>100 g on m₂</b> and <b>100 g on m₁</b> — 200 g in total.</li><li class="">Start data collection, then release the smaller mass and catch it before it lands.</li><li class="">Fit a straight line to velocity vs time: its <b>slope is the acceleration</b>. Record trial 1.</li><li class=""><b>Move 5 g from m₂ to m₁</b>. The mass difference changes; the total stays 200 g.</li><li class="">Repeat until you have at least five mass combinations.</li></ol>
+    <div class="live " id="procLive">m₁ = <b>100 g</b>, m₂ = <b>100 g</b> · Δm = <b>0 g</b> · m_T = <b>200 g</b><br>Predicted a = Δm g/m_T = <b>0.000 m/s²</b></div>
+    <p class="note" id="procNote">Keep m₁ + m₂ = 200 g and move 5 g from m₂ to m₁ each time. The difference changes.</p>
+  </section>
+
+  <div class="cols">
+    <section class="card" aria-label="Masses on the string">
+      <h2>Masses on the string</h2>
+      <div class="pills" id="planPills"><button class="pill" type="button" data-part="part1" aria-pressed="true" fdprocessedid="pka2ut">Part I · constant total</button><button class="pill" type="button" data-part="part2" aria-pressed="false" fdprocessedid="iw1eu">Part II · constant difference</button><button class="pill" type="button" data-part="free" aria-pressed="false" fdprocessedid="a8dkzh">Free</button></div>
+      <div class="row between" style="margin-top:8px">
+        <span class="dots" id="trialDots"><button class="dot on" type="button" data-ti="0" title="Trial 1" fdprocessedid="cppysl">1</button><button class="dot " type="button" data-ti="1" title="Trial 2" fdprocessedid="hqc5rv">2</button><button class="dot " type="button" data-ti="2" title="Trial 3" fdprocessedid="5rjs4m">3</button><button class="dot " type="button" data-ti="3" title="Trial 4" fdprocessedid="c4f5pm">4</button><button class="dot " type="button" data-ti="4" title="Trial 5" fdprocessedid="rx4krs">5</button></span>
+        <button class="pill sm" id="nextTrial" type="button" fdprocessedid="4s8r3p">Move 5 g from m₂ to m₁ →</button>
+      </div>
+      <div class="grid2" style="margin-top:10px">
+        <div>
+          <label class="f" for="m1In">m<sub>1</sub> · left side (g)</label>
+          <input type="number" id="m1In" min="1" max="2000" step="5" inputmode="decimal" autocomplete="off" fdprocessedid="ibjb27">
+        </div>
+        <div>
+          <label class="f" for="m2In">m<sub>2</sub> · right side (g)</label>
+          <input type="number" id="m2In" min="1" max="2000" step="5" inputmode="decimal" autocomplete="off" fdprocessedid="500yot">
+        </div>
+      </div>
+      <p class="note" id="massNote">Guided trial 1 of 5 · Move 5 g from m₂ to m₁.</p>
+      <div class="grid2" style="margin-top:10px">
+        <div>
+          <label class="f" for="travelIn">Travel before it is caught (cm)</label>
+          <input type="number" id="travelIn" min="40" max="60" step="5" inputmode="decimal" autocomplete="off" fdprocessedid="tf6ji5">
+        </div>
+        <div>
+          <label class="f" for="gIn">g (m/s<sup>2</sup>)</label>
+          <input type="number" id="gIn" min="1" max="30" step="0.01" inputmode="decimal" autocomplete="off" fdprocessedid="as3c3j">
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Model">
+      <h2>Model</h2>
+      <div class="pills">
+        <button class="pill" id="pillIdeal" type="button" aria-pressed="true" fdprocessedid="5d92a">Ideal · light pulley</button>
+        <button class="pill" id="pillReal" type="button" aria-pressed="false" fdprocessedid="kxajxq">Realistic · pulley inertia + friction</button>
+      </div>
+      <div id="realOnly" style="margin-top: 10px; opacity: 0.5;">
+        <label class="f" for="mpRange">Pulley rotational inertia <span style="color:var(--ink-2)">(equivalent mass <span id="mpOut">10</span> g)</span></label>
+        <input type="range" class="slider" id="mpRange" min="0" max="40" step="1" value="10">
+        <label class="f" for="frRange">Pulley bearing friction <span style="color:var(--ink-2)"><span id="frOut">0.0025</span> N</span></label>
+        <input type="range" class="slider" id="frRange" min="0" max="0.02" step="0.0005" value="0.0025">
+      </div>
+      <div class="switch-row" style="margin-top:6px">
+        Show force arrows on the masses
+        <button class="switch" id="swForces" role="switch" aria-checked="true" aria-label="Show force arrows on the masses" fdprocessedid="kdxka"></button>
+      </div>
+      <div class="switch-row">
+        Show the free-body diagrams
+        <button class="switch" id="swFbd" role="switch" aria-checked="true" aria-label="Show the free-body diagrams" fdprocessedid="bnyri"></button>
+      </div>
+      <p class="note">
+        The file calls the pulley <i>light</i>. Nothing in the lab is perfectly light: the pulley has to be
+        spun up, and its bearings drag. Realistic mode puts numbers on both, and the fitted acceleration
+        comes out a few percent low — which is the answer to the file's second extension question.
+      </p>
+    </section>
+  </div>
+
+  <section class="card" aria-label="Photogate">
+    <h2>Photogate · velocity vs time</h2>
+    <div class="readout" id="fitOut">—</div>
+    <svg id="chart" viewBox="0 0 900 380" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Velocity versus time graph with the photogate samples and the fitted straight line"><line x1="92" y1="34" x2="92" y2="320" class="grid"></line><text x="92" y="350" class="ax" text-anchor="middle">0.0</text><line x1="346.66666666666663" y1="34" x2="346.66666666666663" y2="320" class="grid"></line><text x="346.66666666666663" y="350" class="ax" text-anchor="middle">0.5</text><line x1="601.3333333333333" y1="34" x2="601.3333333333333" y2="320" class="grid"></line><text x="601.3333333333333" y="350" class="ax" text-anchor="middle">1.0</text><line x1="856" y1="34" x2="856" y2="320" class="grid"></line><text x="856" y="350" class="ax" text-anchor="middle">1.5</text><line x1="92" y1="320" x2="856" y2="320" class="grid"></line><text x="80" y="326" class="ax" text-anchor="end">0.0</text><line x1="92" y1="224.66666666666669" x2="856" y2="224.66666666666669" class="grid"></line><text x="80" y="230.66666666666669" class="ax" text-anchor="end">0.5</text><line x1="92" y1="129.33333333333334" x2="856" y2="129.33333333333334" class="grid"></line><text x="80" y="135.33333333333334" class="ax" text-anchor="end">1.0</text><line x1="92" y1="34" x2="856" y2="34" class="grid"></line><text x="80" y="40" class="ax" text-anchor="end">1.5</text><line x1="92" y1="320" x2="856" y2="320" class="axis"></line><line x1="92" y1="34" x2="92" y2="320" class="axis"></line><text x="852" y="382" class="axT" text-anchor="end">t (s)</text><text x="88" y="20" class="axT" text-anchor="start">v (m/s)</text><text x="474" y="177" class="cap" text-anchor="middle">Release the masses to record velocity vs time</text></svg>
+    <p class="note" id="chartNote">Press Release the masses: the photogate samples the pulley every tenth of a turn, and a straight line through the points gives the acceleration.</p>
+  </section>
+
+  <section class="card" aria-label="Data tables">
+    <h2>Data table <span class="qn-badge">from the file</span></h2>
+    <div id="tables"><div class="data-scroll" style="margin-bottom:12px"><b style="font-size:13px">Part I · Constant total mass — 200 g, moved across</b><table><thead><tr><th>Trial</th><th>m₁ (kg)</th><th>m₂ (kg)</th><th>a (m/s²)</th><th>m_diff, m₁–m₂ (kg)</th><th>m_T (kg)</th></tr></thead><tbody><tr class="now"><td>1</td><td class="miss">0.100</td><td class="miss">0.100</td><td class="miss">—</td><td class="miss">0.000</td><td class="miss">0.200</td></tr><tr><td>2</td><td class="miss">0.105</td><td class="miss">0.095</td><td class="miss">—</td><td class="miss">0.010</td><td class="miss">0.200</td></tr><tr><td>3</td><td class="miss">0.110</td><td class="miss">0.090</td><td class="miss">—</td><td class="miss">0.020</td><td class="miss">0.200</td></tr><tr><td>4</td><td class="miss">0.115</td><td class="miss">0.085</td><td class="miss">—</td><td class="miss">0.030</td><td class="miss">0.200</td></tr><tr><td>5</td><td class="miss">0.120</td><td class="miss">0.080</td><td class="miss">—</td><td class="miss">0.040</td><td class="miss">0.200</td></tr></tbody></table></div><div class="data-scroll" style="margin-bottom:12px"><b style="font-size:13px">Part II · Constant mass difference — 10 g, added to both sides</b><table><thead><tr><th>Trial</th><th>m₁ (kg)</th><th>m₂ (kg)</th><th>a (m/s²)</th><th>m_diff, m₁–m₂ (kg)</th><th>m_T (kg)</th></tr></thead><tbody><tr><td>1</td><td class="miss">0.100</td><td class="miss">0.100</td><td class="miss">—</td><td class="miss">0.000</td><td class="miss">0.200</td></tr><tr><td>2</td><td class="miss">0.105</td><td class="miss">0.095</td><td class="miss">—</td><td class="miss">0.010</td><td class="miss">0.200</td></tr><tr><td>3</td><td class="miss">0.110</td><td class="miss">0.090</td><td class="miss">—</td><td class="miss">0.020</td><td class="miss">0.200</td></tr><tr><td>4</td><td class="miss">0.115</td><td class="miss">0.085</td><td class="miss">—</td><td class="miss">0.030</td><td class="miss">0.200</td></tr><tr><td>5</td><td class="miss">0.120</td><td class="miss">0.080</td><td class="miss">—</td><td class="miss">0.040</td><td class="miss">0.200</td></tr></tbody></table></div></div>
+    <div class="row between" style="margin-top:10px">
+      <span class="readout" id="recCount">0 of 10 trials recorded</span>
+      <button class="pill sm" id="clearAll" type="button" fdprocessedid="nae39d">Clear all trials</button>
+    </div>
+    <p class="note" id="tableNote">Grey values are the masses the file's procedure calls for — move them across, then record. Fill both parts to at least five trials each, as the file asks.</p>
+  </section>
+
+  <section class="card" aria-label="Analysis">
+    <h2>Analysis</h2>
+    <div id="analysis"><p class="note" style="margin-top:0">Step 1 · m_diff = m₁ − m₂ and step 2 · m_T = m₁ + m₂ are in the table above.</p><p class="note">Step 3 · Part I is a straight line through the origin, so <b>a ∝ |m₁ − m₂|</b>.</p><div class="eq">a = g·|Δm| / m_T   <span class="u">· with m_T held at 200 g in Part I, a is proportional to |Δm|</span></div><p class="note">Step 4 · In Part II the difference is fixed, so a·m_T stays put — so <b>a ∝ 1/m_T</b>.</p><div class="eq">Step 5 · a = |Δm|·g / m_T   <span class="u">· the two relationships combined</span></div><p class="note">Record some trials and these lines fill in with your own numbers.</p></div>
+    <div class="cols" style="margin-top:12px">
+      <div>
+        <div class="row between"><b style="font-size:13.5px">Graph 1 · a vs |Δm| (Part I)</b></div>
+        <svg id="g1" viewBox="0 0 460 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Acceleration versus mass difference for Part I"><line x1="62" y1="236" x2="442" y2="236" class="axis"></line><line x1="62" y1="26" x2="62" y2="236" class="axis"></line><line x1="62" y1="26" x2="62" y2="236" class="grid"></line><text x="62" y="266" class="ax" text-anchor="middle">0</text><line x1="188.66666666666666" y1="26" x2="188.66666666666666" y2="236" class="grid"></line><text x="188.66666666666666" y="266" class="ax" text-anchor="middle">20</text><line x1="315.3333333333333" y1="26" x2="315.3333333333333" y2="236" class="grid"></line><text x="315.3333333333333" y="266" class="ax" text-anchor="middle">40</text><line x1="442" y1="26" x2="442" y2="236" class="grid"></line><text x="442" y="266" class="ax" text-anchor="middle">60</text><line x1="62" y1="236" x2="442" y2="236" class="grid"></line><text x="52" y="242" class="ax" text-anchor="end">0.0</text><line x1="62" y1="166" x2="442" y2="166" class="grid"></line><text x="52" y="172" class="ax" text-anchor="end">0.5</text><line x1="62" y1="96" x2="442" y2="96" class="grid"></line><text x="52" y="102" class="ax" text-anchor="end">1.0</text><line x1="62" y1="26" x2="442" y2="26" class="grid"></line><text x="52" y="32" class="ax" text-anchor="end">1.5</text><text x="442" y="294" class="axT" text-anchor="end">|m₁ − m₂| (g)</text><text x="58" y="14" class="axT" text-anchor="start">a (m/s²)</text></svg>
+      </div>
+      <div>
+        <div class="row between"><b style="font-size:13.5px">Graph 2 · a vs m<sub>T</sub> (Part II)</b></div>
+        <svg id="g2" viewBox="0 0 460 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Acceleration versus total mass for Part II"><line x1="62" y1="236" x2="442" y2="236" class="axis"></line><line x1="62" y1="26" x2="62" y2="236" class="axis"></line><line x1="62" y1="26" x2="62" y2="236" class="grid"></line><text x="62" y="266" class="ax" text-anchor="middle">100</text><line x1="125.33333333333333" y1="26" x2="125.33333333333333" y2="236" class="grid"></line><text x="125.33333333333333" y="266" class="ax" text-anchor="middle">120</text><line x1="188.66666666666666" y1="26" x2="188.66666666666666" y2="236" class="grid"></line><text x="188.66666666666666" y="266" class="ax" text-anchor="middle">140</text><line x1="252" y1="26" x2="252" y2="236" class="grid"></line><text x="252" y="266" class="ax" text-anchor="middle">160</text><line x1="315.3333333333333" y1="26" x2="315.3333333333333" y2="236" class="grid"></line><text x="315.3333333333333" y="266" class="ax" text-anchor="middle">180</text><line x1="378.6666666666667" y1="26" x2="378.6666666666667" y2="236" class="grid"></line><text x="378.6666666666667" y="266" class="ax" text-anchor="middle">200</text><line x1="442" y1="26" x2="442" y2="236" class="grid"></line><text x="442" y="266" class="ax" text-anchor="middle">220</text><line x1="62" y1="236" x2="442" y2="236" class="grid"></line><text x="52" y="242" class="ax" text-anchor="end">0.0</text><line x1="62" y1="183.5" x2="442" y2="183.5" class="grid"></line><text x="52" y="189.5" class="ax" text-anchor="end">0.3</text><line x1="62" y1="131" x2="442" y2="131" class="grid"></line><text x="52" y="137" class="ax" text-anchor="end">0.5</text><line x1="62" y1="78.5" x2="442" y2="78.5" class="grid"></line><text x="52" y="84.5" class="ax" text-anchor="end">0.8</text><line x1="62" y1="26" x2="442" y2="26" class="grid"></line><text x="52" y="32" class="ax" text-anchor="end">1.0</text><text x="442" y="294" class="axT" text-anchor="end">m_T (g)</text><text x="58" y="14" class="axT" text-anchor="start">a (m/s²)</text><path d="M62.0 30.2 L71.5 36.2 L81.0 41.8 L90.5 47.2 L100.0 52.3 L109.5 57.0 L119.0 61.6 L128.5 65.9 L138.0 70.0 L147.5 74.0 L157.0 77.7 L166.5 81.3 L176.0 84.7 L185.5 87.9 L195.0 91.1 L204.5 94.1 L214.0 96.9 L223.5 99.7 L233.0 102.4 L242.5 104.9 L252.0 107.4 L261.5 109.7 L271.0 112.0 L280.5 114.2 L290.0 116.3 L299.5 118.4 L309.0 120.4 L318.5 122.3 L328.0 124.2 L337.5 125.9 L347.0 127.7 L356.5 129.4 L366.0 131.0 L375.5 132.6 L385.0 134.1 L394.5 135.6 L404.0 137.1 L413.5 138.5 L423.0 139.8 L432.5 141.2 L442.0 142.5" class="curve"></path></svg>
+      </div>
+    </div>
+    <p class="note" id="graphNote">Graph 1 uses the Part I data (constant total mass), graph 2 the Part II data (constant 10 g difference). The dashed curve in graph 2 is a = |Δm|g/m_T for |Δm| = 10 g.</p>
+  </section>
+
+  <section class="card" aria-label="Extensions">
+    <h2>Extensions <span class="qn-badge">from the file</span></h2>
+    <div id="ext"><details class="grp" open=""><summary>Newton's second law on each mass <span class="qn-badge">extension 1</span></summary><div class="body"><svg id="fbd" viewBox="0 0 700 300" style="width:100%;height:auto" role="img" aria-label="Free-body diagrams of the two masses"><defs><marker id="fT" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-tens"><path d="M0 0 L10 5 L0 10 z"></path></marker><marker id="fW" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-wt"><path d="M0 0 L10 5 L0 10 z"></path></marker><marker id="fM" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse" class="marker-mot"><path d="M0 0 L10 5 L0 10 z"></path></marker></defs><rect x="134" y="108" width="92" height="62" rx="8" class="plate"></rect><text x="180" y="147" class="blbl" text-anchor="middle">m₁</text><line x1="180" y1="170" x2="180" y2="266" class="arrow wt" marker-end="url(#fW)"></line><text x="180" y="290" class="blbl2" text-anchor="middle">m₁g = 0.98 N</text><line x1="180" y1="108" x2="180" y2="12" class="arrow tens" marker-end="url(#fT)"></line><text x="180" y="2" class="blbl2" text-anchor="middle">T = 0.98 N</text><rect x="474" y="108" width="92" height="62" rx="8" class="plate"></rect><text x="520" y="147" class="blbl" text-anchor="middle">m₂</text><line x1="520" y1="170" x2="520" y2="266" class="arrow wt" marker-end="url(#fW)"></line><text x="520" y="290" class="blbl2" text-anchor="middle">m₂g = 0.98 N</text><line x1="520" y1="108" x2="520" y2="12" class="arrow tens" marker-end="url(#fT)"></line><text x="520" y="2" class="blbl2" text-anchor="middle">T = 0.98 N</text><text x="180" y="88" class="blbl2" text-anchor="middle">m₁ = 100 g</text><text x="520" y="88" class="blbl2" text-anchor="middle">m₂ = 100 g</text><text x="350" y="70" class="blbl2" text-anchor="middle">no acceleration</text></svg><div class="eq">m₂: &nbsp;m g − T = m a &nbsp;&nbsp;·&nbsp;&nbsp; m₁: &nbsp;T − m g = m a</div><div class="eq">add them → (m₂ − m₁) g = (m₁ + m₂) a &nbsp;→&nbsp; <b>a = Δm g / m_T</b> = 0.000 m/s²</div><p>Because the string is light and cannot stretch, both masses share one acceleration and the tension is the same on both sides — the two equations above only differ in which way the weight pulls. Solving them for T also gives <b>T = 2 m₁ m₂ g / m_T</b> = 0.980 N, which is <em>less</em> than the heavier weight and <em>more</em> than the lighter one. Comparing this with the result of step 5 of the analysis: it is the same expression, so the graph and the free-body diagram agree.</p></div></details><details class="grp"><summary>Expected vs measured, run by run <span class="qn-badge">extension 2</span></summary><div class="body"><p>Record a few trials and each one is compared here with a = Δm g/m_T.</p></div></details><details class="grp"><summary>An unknown mass on the left <span class="qn-badge">extension 3</span></summary><div class="body"><p>Hang an unknown mass on the left and measure the acceleration with the photogate. The same equation rearranged gives the mass — this is how the unknown is found without a balance.</p><div class="switch-row">Put an unknown mass on the left (m₁)<button class="switch" id="swUnknown" role="switch" aria-checked="false" aria-label="Unknown mass on the left" fdprocessedid="3av65t"></button></div></div></details><details class="grp"><summary>The tension in the string <span class="qn-badge">extension 4</span></summary><div class="body"><p>With equal masses (or a machine held by friction) there is no single value for the tension — the string is not carrying an accelerating pair. Set unequal masses to see it.</p></div></details><details class="grp"><summary>The force the pulley feels <span class="qn-badge">extension 5</span></summary><div class="body"><p>Set unequal masses and the upward force on the pulley is 2T, which is less than the two weights added together.</p></div></details></div>
+  </section>
+
+  <footer class="foot" id="foot"><b>How this models the file's lab.</b> The pulley's drawn size is exaggerated so it reads on screen, but its rotation follows a real 2.54 cm radius, so the photogate's 10 spoke events per turn come out at the right rate. The photogate samples every 1.60 cm of string and a least-squares line through those points gives the acceleration, as the LabQuest curve fit does. The travel is capped at 60 cm because the masses must be able to move at least 40 cm before the falling one strikes the floor. The string is treated as light and the machine as starting from rest, so the ideal fitted slope is exactly Δm g/m_T; switch on Realistic for the pulley's inertia and bearing friction. The unknown-mass box uses m₁ = m₂(g − a)/(g + a) with the ideal machine, so in Realistic mode it comes out a little off, just as it would in the lab.</footer>
+</main>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORE_KEY = 'atwood-lab-v1';
+  var THEME_KEY = 'atwood-lab-theme';
+
+  /* ---- the drawing ---- */
+  var VIEW = { w: 1000, h: 800 };
+  var PUL = { x: 480, y: 152, r: 62 };
+  var STR_L = PUL.x - PUL.r;              // 418
+  var STR_R = PUL.x + PUL.r;              // 542
+  var BOT0 = 556;                         // bottom of both stacks at the start
+  var PPC = 3.4;                          // drawing units per cm
+  var FLOOR_CM = 60;                      // clearance under the masses in the setup
+  var FLOOR_Y = BOT0 + FLOOR_CM * PPC;    // 760
+  var RULER_X = 900;
+  var STACK_W = 60;
+  var PLATE_W = 74;
+  var R_PHYS = 0.0254;                    // the pulley's real radius (1 in groove), m
+  var SPOKES = 10;
+  var ARC_M = 2 * Math.PI * R_PHYS / SPOKES;   // m of string per spoke event
+
+  var SVGNS = 'http://www.w3.org/2000/svg';
+
+  function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+  function round1(v) { return Math.round(v * 10) / 10; }
+  function isNum(v) { return typeof v === 'number' && isFinite(v); }
+  function fmt(v, dp) { return isNum(v) ? v.toFixed(dp == null ? 2 : dp) : '—'; }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(SVGNS, tag);
+    if (attrs) for (var k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(x, y, s, cls, parent, extra) {
+    var t = el('text', { x: x, y: y, class: cls }, parent);
+    if (extra) for (var k in extra) t.setAttribute(k, extra[k]);
+    t.textContent = s;
+    return t;
+  }
+  function clear(node) { while (node && node.firstChild) node.removeChild(node.firstChild); }
+  function marker(defs, id, cls) {
+    var m = el('marker', { id: id, viewBox: '0 0 10 10', refX: 8, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto-start-reverse', class: cls }, defs);
+    el('path', { d: 'M0 0 L10 5 L0 10 z' }, m);
+    return m;
+  }
+  function arrow(parent, x1, y1, x2, y2, cls, mid) {
+    return el('line', { x1: x1, y1: y1, x2: x2, y2: y2, class: 'arrow ' + cls, 'marker-end': 'url(#' + mid + ')' }, parent);
+  }
+
+  /* ============================================================
+     State
+     ============================================================ */
+
+  var PLANS = {
+    part1: {
+      id: 'part1',
+      tag: 'Part I',
+      title: 'Constant total mass — 200 g, moved across',
+      sub: 'Keep m\u2081 + m\u2082 = 200 g and move 5 g from m\u2082 to m\u2081 each time. The difference changes.',
+      trials: [[100, 100], [105, 95], [110, 90], [115, 85], [120, 80]],
+      move: 'Move 5 g from m\u2082 to m\u2081',
+      rel: 'the acceleration grows with the mass difference'
+    },
+    part2: {
+      id: 'part2',
+      tag: 'Part II',
+      title: 'Constant mass difference — 10 g, added to both sides',
+      sub: 'm\u2082 stays 10 g heavier than m\u2081 while both sides get heavier. The total mass changes.',
+      trials: [[50, 60], [60, 70], [70, 80], [80, 90], [90, 100]],
+      move: 'Add 10 g to both sides',
+      rel: 'the acceleration falls as the total mass grows'
+    },
+    free: {
+      id: 'free',
+      tag: 'Free',
+      title: 'Free play',
+      sub: 'Any two masses you like. Runs still record, and they join the expected-vs-measured table.',
+      trials: [],
+      move: 'Set any masses',
+      rel: 'explore the machine'
+    }
+  };
+
+  var state = {
+    m1: 100, m2: 100,
+    travel: 45,
+    g: 9.8,
+    model: 'ideal',
+    mp: 10,
+    fric: 0.0025,
+    part: 'part1',
+    ti: 0,
+    rec: [],
+    last: null,
+    showForces: true,
+    showFbd: true,
+    unknown: false,
+    uTrue: 60,
+    revealed: false
+  };
+
+  var run = null;
+  var uidN = 0;
+  function uid() { uidN = uidN + 1; return 'x' + uidN; }
+
+  /* ============================================================
+     Physics
+     ============================================================ */
+
+  function m1Kg() { return state.m1 / 1000; }
+  function m2Kg() { return state.m2 / 1000; }
+  function mTotKg() { return m1Kg() + m2Kg(); }
+  function dmKg() { return m1Kg() - m2Kg(); }
+  function driveN() { return dmKg() * state.g; }
+  function fricN() { return state.model === 'realistic' ? state.fric : 0; }
+  function mpKg() { return state.model === 'realistic' ? state.mp / 1000 : 0; }
+  function predA() { return Math.abs(driveN()) / mTotKg(); }
+  function accel() {
+    var d = Math.abs(driveN());
+    if (d === 0) return 0;
+    if (d <= fricN()) return 0;
+    return (d - fricN()) / (mTotKg() + mpKg());
+  }
+  function dirSide() { var d = driveN(); return d > 0 ? 'm1' : d < 0 ? 'm2' : 'none'; }
+  function heldByFriction() { return driveN() !== 0 && Math.abs(driveN()) <= fricN(); }
+  function tensionN() {
+    var a = accel();
+    if (!(a > 0)) return NaN;
+    var up = dirSide() === 'm1' ? m2Kg() : m1Kg();
+    return up * (state.g + a);
+  }
+  function tensionIdeal() {
+    return 2 * m1Kg() * m2Kg() * state.g / mTotKg();
+  }
+  function pulleyForceN() {
+    var T = tensionN();
+    return isNum(T) ? 2 * T : NaN;
+  }
+  function effTravelM() { return state.travel / 100; }
+
+  function plan() { return PLANS[state.part]; }
+  function trialMasses(i) {
+    var t = plan().trials;
+    return t[i] ? { m1: t[i][0], m2: t[i][1] } : null;
+  }
+  function applyTrial(i) {
+    var m = trialMasses(i);
+    if (!m) return false;
+    state.m1 = m.m1;
+    state.m2 = m.m2;
+    stopRun();
+    state.last = null;
+    return true;
+  }
+  function rowFor(part, m1, m2) {
+    for (var i = 0; i < state.rec.length; i++) {
+      var r = state.rec[i];
+      if (r.part === part && r.m1 === m1 && r.m2 === m2) return r;
+    }
+    return null;
+  }
+  function rowForTi(part, ti) {
+    for (var i = 0; i < state.rec.length; i++) {
+      var r = state.rec[i];
+      if (r.part === part && r.ti === ti) return r;
+    }
+    return null;
+  }
+  function rowsOf(part) {
+    return state.rec.filter(function (r) { return r.part === part; })
+      .sort(function (a, b) { return a.ti - b.ti; });
+  }
+
+  /* ============================================================
+     The photogate
+     ============================================================ */
+
+  function spokeSamples(a, travelCm) {
+    // the pulley turns as the string moves; a spoke passes the gate every ARC_M of string
+    var out = [], n = 0;
+    if (!(a > 0)) return out;
+    while (true) {
+      n = n + 1;
+      var xM = n * ARC_M;
+      if (xM * 100 > travelCm + 1e-9) break;
+      var t = Math.sqrt(2 * xM / a);
+      out.push({ t: t, v: a * t });
+      if (out.length > 400) break;
+    }
+    return out;
+  }
+
+  function fitLine(pts) {
+    var n = pts.length;
+    if (n < 2) return null;
+    var st = 0, sv = 0, i;
+    for (i = 0; i < n; i++) { st += pts[i].t; sv += pts[i].v; }
+    var mt = st / n, mv = sv / n;
+    var num = 0, den = 0, sy = 0;
+    for (i = 0; i < n; i++) {
+      num += (pts[i].t - mt) * (pts[i].v - mv);
+      den += (pts[i].t - mt) * (pts[i].t - mt);
+      sy += (pts[i].v - mv) * (pts[i].v - mv);
+    }
+    if (!(den > 0)) return null;
+    var slope = num / den;
+    var intercept = mv - slope * mt;
+    var r2 = sy > 0 ? (num * num) / (den * sy) : 1;
+    return { slope: slope, intercept: intercept, r2: r2, n: n, tEnd: pts[n - 1].t };
+  }
+
+  function stopRun() {
+    if (run && run.raf) cancelAnimationFrame(run.raf);
+    run = null;
+  }
+
+  function release() {
+    stopRun();
+    state.revealed = false;
+    var a = accel();
+    var dir = dirSide();
+    if (dir === 'none') {
+      state.last = { a: 0, noMotion: true, m1: state.m1, m2: state.m2, samples: [], fit: null, tEnd: 0, travel: state.travel, model: state.model, dir: dir, ideal: 0 };
+      render();
+      toast('Equal masses: the machine does not accelerate');
+      return;
+    }
+    if (heldByFriction()) {
+      state.last = { a: 0, noMotion: true, held: true, m1: state.m1, m2: state.m2, samples: [], fit: null, tEnd: 0, travel: state.travel, model: state.model, dir: dir, ideal: predA() };
+      render();
+      toast('Held by friction — Δm g is smaller than the bearing friction');
+      return;
+    }
+    var d = effTravelM();
+    run = {
+      a: a, dir: dir, travel: state.travel,
+      t: 0, x: 0, v: 0, tEnd: Math.sqrt(2 * d / a),
+      samples: [], flash: 0, t0: performance.now(), last: performance.now(), drawn: 0
+    };
+    state.last = null;
+    render();
+    run.raf = requestAnimationFrame(tick);
+  }
+
+  function tick() {
+    if (!run) return;
+    var now = performance.now();
+    var dt = Math.min(0.05, (now - run.last) / 1000);
+    run.last = now;
+    run.t = Math.min(run.tEnd, run.t + dt);
+    run.x = 0.5 * run.a * run.t * run.t;
+    run.v = run.a * run.t;
+
+    var all = spokeSamples(run.a, run.travel);
+    var want = 0;
+    for (var i = 0; i < all.length; i++) if (all[i].t <= run.t + 1e-9) want = i + 1;
+    if (want > run.samples.length) {
+      run.samples = all.slice(0, want);
+      run.flash = 1;
+    }
+    if (run.flash > 0) run.flash = Math.max(0, run.flash - dt * 2.6);
+
+    if (run.t >= run.tEnd - 1e-9) { finishRun(); return; }
+
+    if (now - run.drawn >= 34) {
+      run.drawn = now;
+      renderLive();
+    }
+    run.raf = requestAnimationFrame(tick);
+  }
+
+  function finishRun() {
+    var a = run.a, dir = run.dir, travel = run.travel, model = state.model;
+    var vEnd = Math.sqrt(2 * a * effTravelM());
+    var samples = spokeSamples(a, travel);
+    var fit = fitLine(samples);
+    run = null;
+    state.last = {
+      a: fit ? fit.slope : a,
+      steps: a,
+      v: vEnd,
+      tEnd: Math.sqrt(2 * effTravelM() / a),
+      samples: samples,
+      fit: fit,
+      travel: travel,
+      model: model,
+      dir: dir,
+      ideal: predA(),
+      m1: state.m1,
+      m2: state.m2,
+      spoke: samples.length
+    };
+    render();
+    toast('Fitted slope: a = ' + fmt(state.last.a, 3) + ' m/s² — now record the trial');
+  }
+
+  /* ============================================================
+     Board
+     ============================================================ */
+
+  function stackH(m) { return clamp(20 + 0.62 * m, 34, 190); }
+
+  function fitClass() {
+    var svg = document.getElementById('board');
+    if (!svg) return false;
+    return (svg.getBoundingClientRect().width || window.innerWidth) < 560;
+  }
+
+  function buildBoard() {
+    var svg = document.getElementById('board');
+    if (!svg) return;
+    clear(svg);
+    var compact = svg.classList.contains('compact');
+    var defs = el('defs', null, svg);
+    marker(defs, 'mTens', 'marker-tens');
+    marker(defs, 'mWt', 'marker-wt');
+    marker(defs, 'mMot', 'marker-mot');
+
+    var x = run ? run.x : 0;
+    var v = run ? run.v : (state.last && state.last.v ? 0 : 0);
+    var dir = run ? run.dir : (state.last ? state.last.dir : dirSide());
+    var falls1 = dir === 'm1';
+    var lift = (dir === 'm1' || dir === 'm2') ? x * PPC : 0;
+    var lowY = BOT0 + lift;          // the falling side's bottom
+    var highBottom = BOT0 - lift;    // the rising side's bottom
+
+    // ---- floor and hatch ----
+    el('line', { x1: 40, y1: FLOOR_Y, x2: 990, y2: FLOOR_Y, class: 'floor' }, svg);
+    for (var hx = 60; hx < 990; hx += 34) {
+      el('line', { x1: hx, y1: FLOOR_Y + 2, x2: hx - 16, y2: FLOOR_Y + 24, class: 'hatch' }, svg);
+    }
+    txt(252, FLOOR_Y - 16, 'floor · ' + FLOOR_CM + ' cm below the start', 'dnote', svg);
+
+    // ---- start level ----
+    el('line', { x1: 190, y1: BOT0, x2: RULER_X - 40, y2: BOT0, class: 'dim' }, svg);
+    txt(190, BOT0 - 10, 'the masses start even with each other', 'dnote', svg);
+
+    // ---- the ruler ----
+    el('line', { x1: RULER_X, y1: BOT0, x2: RULER_X, y2: FLOOR_Y, class: 'axis' }, svg);
+    for (var cm = 0; cm <= FLOOR_CM; cm += 5) {
+      var ty = BOT0 + cm * PPC;
+      var hot = (cm === 40);
+      el('line', { x1: RULER_X, y1: ty, x2: RULER_X - (cm % 10 === 0 ? 20 : 12), y2: ty, class: hot ? 'dim-hot' : 'dim' }, svg);
+      if (cm % 10 === 0) txt(RULER_X - 26, ty + 7, String(cm), 'rltick', svg);
+    }
+    txt(RULER_X - 26, BOT0 - 14, 'descent (cm)', 'rltick', svg, { 'text-anchor': 'end' });
+    txt(RULER_X + 8, BOT0 + 40 * PPC + 7, '≥ 40', 'rltick hot', svg);
+    txt(RULER_X + 8, BOT0 + 40 * PPC + 30, 'cm', 'rltick hot', svg);
+
+    // ---- catch line ----
+    var catchY = BOT0 + state.travel * PPC;
+    if (state.travel < FLOOR_CM) {
+      el('line', { x1: 190, y1: catchY, x2: RULER_X, y2: catchY, class: 'dim-hot' }, svg);
+      txt(196, catchY - 10, 'caught after ' + state.travel + ' cm', 'dnote solid', svg);
+    }
+
+    // ---- ring stand ----
+    el('rect', { x: 40, y: FLOOR_Y - 30, width: 200, height: 30, rx: 8, class: 'base' }, svg);
+    el('line', { x1: 110, y1: PUL.y, x2: 110, y2: FLOOR_Y - 26, class: 'rod' }, svg);
+    el('circle', { cx: 110, cy: FLOOR_Y - 26, r: 13, class: 'knob' }, svg);
+    el('line', { x1: 110, y1: PUL.y, x2: PUL.x - 26, y2: PUL.y, class: 'bar' }, svg);
+    el('circle', { cx: 150, cy: PUL.y, r: 11, class: 'knob' }, svg);
+
+    // ---- pulley ----
+    var angle = -(x / 100) / R_PHYS * 180 / Math.PI;
+    el('circle', { cx: PUL.x, cy: PUL.y, r: PUL.r, class: 'groove' }, svg);
+    el('circle', { cx: PUL.x, cy: PUL.y, r: PUL.r - 13, class: 'disc' }, svg);
+    var sp = el('g', { transform: 'rotate(' + angle.toFixed(3) + ' ' + PUL.x + ' ' + PUL.y + ')' }, svg);
+    for (var k = 0; k < SPOKES; k++) {
+      var th = (k / SPOKES) * Math.PI * 2;
+      el('line', {
+        x1: PUL.x + Math.cos(th) * 15, y1: PUL.y + Math.sin(th) * 15,
+        x2: PUL.x + Math.cos(th) * (PUL.r - 15), y2: PUL.y + Math.sin(th) * (PUL.r - 15),
+        class: 'spoke'
+      }, sp);
+    }
+    el('circle', { cx: PUL.x, cy: PUL.y, r: 14, class: 'hub' }, svg);
+    el('circle', { cx: PUL.x, cy: PUL.y, r: 5, class: 'knob' }, svg);
+
+    // ---- support and the masses must not collide: strings first, then gate ----
+    var plateTop = 10;
+    function sideGeom(massG, hidden) {
+      var h = stackH(massG);
+      return { h: h, plateH: plateTop, total: plateTop + h };
+    }
+    var g1 = sideGeom(state.m1, state.unknown);
+    var g2 = sideGeom(state.m2, false);
+    var lowTop = (falls1 ? BOT0 : highBottom) - g1.total;
+    var highTop = (falls1 ? highBottom : BOT0) - g2.total;
+    // which side's stack top belongs to m1
+    var top1 = falls1 ? lowTop : highTop;
+    var top2 = falls1 ? highTop : lowTop;
+    var bot1 = falls1 ? lowY : highBottom;
+    var bot2 = falls1 ? highBottom : lowY;
+    if (dir === 'none') { top1 = BOT0 - g1.total; top2 = BOT0 - g2.total; bot1 = BOT0; bot2 = BOT0; }
+
+    function drawString(x, yTop) {
+      el('line', { x1: x, y1: PUL.y, x2: x, y2: yTop, class: 'str' }, svg);
+    }
+    drawString(STR_L, top1);
+    drawString(STR_R, top2);
+
+    // ---- photogate straddling the rim ----
+    el('rect', { x: PUL.x - 46, y: PUL.y - 118, width: 92, height: 32, rx: 9, class: 'gate-body' }, svg);
+    el('line', { x1: PUL.x - 18, y1: PUL.y - 86, x2: PUL.x - 18, y2: PUL.y - 52, class: 'gate-prong' }, svg);
+    el('line', { x1: PUL.x + 18, y1: PUL.y - 86, x2: PUL.x + 18, y2: PUL.y - 52, class: 'gate-prong' }, svg);
+    if (run && run.flash > 0) {
+      el('circle', { cx: PUL.x, cy: PUL.y - PUL.r, r: 7 + 12 * run.flash, class: 'pulse', opacity: 0.25 + 0.75 * run.flash }, svg);
+    }
+    el('path', { d: 'M' + (PUL.x + 46) + ' ' + (PUL.y - 102) + ' C ' + (PUL.x + 150) + ' ' + (PUL.y - 140) + ', 560 30, 600 70', class: 'gate-cable' }, svg);
+    txt(990, 64, 'photogate', 'gate-lbl', svg, { 'text-anchor': 'end' });
+    txt(990, 90, '10-spoke groove', 'gate-lbl', svg, { 'text-anchor': 'end' });
+    txt(PUL.x - 80, PUL.y - 96, 'Ultra pulley', 'gate-lbl', svg, { 'text-anchor': 'end' });
+
+    // ---- the masses ----
+    function drawMass(x, massG, top, bottom, hidden, name, falls) {
+      var plate = el('rect', { x: x - PLATE_W / 2, y: top, width: PLATE_W, height: plateTop, rx: 5, class: 'plate' }, svg);
+      var stackTop = top + plateTop;
+      var h = bottom - stackTop;
+      el('rect', { x: x - STACK_W / 2, y: stackTop, width: STACK_W, height: h, rx: 7, class: 'blocks' + (hidden ? ' hidden' : '') }, svg);
+      var seams = 3;
+      for (var i = 1; i <= seams; i++) {
+        var sy = stackTop + (h * i) / (seams + 1);
+        el('line', { x1: x - STACK_W / 2 + 4, y1: sy, x2: x + STACK_W / 2 - 4, y2: sy, class: 'seam' + (hidden ? ' hidden' : '') }, svg);
+      }
+      el('circle', { cx: x, cy: top + plateTop / 2, r: 4, class: 'knob' }, svg);
+
+      var side = name === 'm1' ? -1 : 1;
+      var lx = x + side * (STACK_W / 2 + 30);
+      var ly = stackTop + h / 2 - 4;
+      var anchor = side < 0 ? 'end' : 'start';
+      txt(lx, ly - 12, name === 'm1' ? 'm₁' : 'm₂', 'blbl', svg, { 'text-anchor': anchor });
+      txt(lx, ly + 20, hidden ? '?' : massG + ' g', 'blbl2', svg, { 'text-anchor': anchor });
+
+      if (!state.showForces || !(massG > 0)) return;
+      var T = isNum(tensionN()) ? tensionN() : massG / 1000 * state.g;
+      var wt = massG / 1000 * state.g;
+      var fmax = Math.max(T, m1Kg() * state.g, m2Kg() * state.g, 1e-6);
+      var k = 104 / fmax;
+      var ax1 = x + side * (STACK_W / 2 + 62);
+      var ax2 = x + side * (STACK_W / 2 + 30);
+      var upY = stackTop + 6;
+      var dnY = stackTop + 6;
+      arrow(svg, ax1, upY, ax1, upY - clamp(T * k, 22, 108), 'tens', 'mTens');
+      arrow(svg, ax2, dnY, ax2, dnY + clamp(wt * k, 22, 108), 'wt', 'mWt');
+      txt(ax1 - side * 12, upY + 6, fmt(T, 2) + ' N', 'dnote', svg, { 'text-anchor': side < 0 ? 'end' : 'start' });
+      txt(ax2 - side * 12, dnY + clamp(wt * k, 22, 108) + 6, fmt(wt, 2) + ' N', 'dnote', svg, { 'text-anchor': side < 0 ? 'end' : 'start' });
+    }
+    drawMass(STR_L, state.m1, top1, bot1, state.unknown && !state.revealed, 'm1', falls1);
+    drawMass(STR_R, state.m2, top2, bot2, false, 'm2', !falls1 && dir !== 'none');
+
+    // ---- motion arrows on the falling and rising sides ----
+    if (run || (state.last && state.last.v)) {
+      var speed = run ? run.v : 0;
+      var L = clamp(speed * 70, 26, 120);
+      if (dir === 'm1' || dir === 'm2') {
+        var xf = dir === 'm1' ? STR_L : STR_R;
+        var xr = dir === 'm1' ? STR_R : STR_L;
+        arrow(svg, xf, bot1 + 26, xf, bot1 + 26 + L, 'mot', 'mMot');
+        arrow(svg, xr, (dir === 'm1' ? top2 : top1) - 26, xr, (dir === 'm1' ? top2 : top1) - 26 - L, 'mot', 'mMot');
+      }
+    }
+
+    // ---- live readout between the strings ----
+    var midX = (STR_L + STR_R) / 2;
+    var live = run ? run.v : (state.last && state.last.v ? 0 : 0);
+    txt(midX, 236, 'v =', 'vval sm', svg);
+    txt(midX, 268, fmt(live, 2), 'vval', svg);
+    txt(midX, 292, 'm/s', 'vval sm', svg);
+    if (dir === 'm1') txt(midX, 330, 'm₁ falls', 'vval sm', svg);
+    else if (dir === 'm2') txt(midX, 330, 'm₂ falls', 'vval sm', svg);
+    else txt(midX, 330, 'balanced', 'vval sm', svg);
+
+    // ---- descent guide ----
+    var gy = (dir === 'm2') ? lowY : (dir === 'm1' ? lowY : BOT0);
+    if (run || (state.last && !state.last.noMotion)) {
+      el('line', { x1: 660, y1: gy, x2: RULER_X, y2: gy, class: 'dim' }, svg);
+      txt(770, gy - 10, fmt(x, 1) + ' cm', 'dnote solid', svg, { 'text-anchor': 'middle' });
+    }
+  }
+
+  /* ============================================================
+     Chips, metrics, tables
+     ============================================================ */
+
+  function renderChips() {
+    var box = document.getElementById('chips');
+    var c = [];
+    function chip(cls, html) { c.push('<span class="chip ' + cls + '">' + html + '</span>'); }
+    chip('', 'm₁ = <b>' + state.m1 + ' g</b>');
+    chip('', 'm₂ = <b>' + state.m2 + ' g</b>');
+    var dm = state.m1 - state.m2;
+    chip(dm === 0 ? 'warn' : 'ok', 'Δm = <b>' + (dm > 0 ? '+' : '') + dm + ' g</b>');
+    chip('', 'm_T = <b>' + (state.m1 + state.m2) + ' g</b>');
+    chip('', 'predict a = <b>' + fmt(predA(), 3) + '</b> m/s²');
+    if (run) {
+      chip('ok', 't = <b>' + fmt(run.t, 2) + ' s</b>');
+      chip('ok', 'v = <b>' + fmt(run.v, 2) + ' m/s</b>');
+      chip('', 'spoke events <b>' + run.samples.length + '</b>');
+    } else if (state.last) {
+      chip('ok', 'fitted a = <b>' + fmt(state.last.a, 3) + '</b> m/s²');
+      if (state.last.noMotion) chip('bad', state.last.held ? 'held by friction' : 'equal masses · no motion');
+      else chip('', state.last.spoke + ' gate samples · ' + fmt(state.last.tEnd, 2) + ' s');
+    }
+    if (heldByFriction()) chip('bad', 'Δm g = ' + fmt(Math.abs(driveN()), 3) + ' N ≤ f = ' + fmt(fricN(), 4) + ' N');
+    box.innerHTML = c.join('');
+  }
+
+  function renderMetrics() {
+    var T = tensionN();
+    var m = '';
+    function box(k, v, u) {
+      m += '<div class="metric"><div class="k">' + k + '</div><div class="v">' + v + '<span class="u">' + (u || '') + '</span></div></div>';
+    }
+    box('predicted a', fmt(predA(), 3), ' m/s²');
+    box('fitted a', state.last ? fmt(state.last.a, 3) : '—', ' m/s²');
+    box('tension T', isNum(T) ? fmt(T, 3) : '—', ' N');
+    document.getElementById('metrics').innerHTML = m;
+  }
+
+  function tableHTML(part, rows, guided) {
+    var out = '<div class="data-scroll" style="margin-bottom:12px"><b style="font-size:13px">' + esc(PLANS[part].tag) + ' · ' + esc(PLANS[part].title) + '</b>';
+    out += '<table><thead><tr><th>Trial</th><th>m₁ (kg)</th><th>m₂ (kg)</th><th>a (m/s²)</th><th>m_diff, m₁–m₂ (kg)</th><th>m_T (kg)</th></tr></thead><tbody>';
+    var n = Math.max(5, rows.length);
+    for (var i = 0; i < n; i++) {
+      var r = rows[i];
+      var g = guided ? trialMasses(i) : null;
+      var cls = (state.part === part && state.ti === i) ? ' class="now"' : '';
+      out += '<tr' + cls + '>';
+      out += '<td>' + (i + 1) + '</td>';
+      if (r) {
+        out += '<td>' + (r.m1 / 1000).toFixed(3) + '</td>';
+        out += '<td>' + (r.m2 / 1000).toFixed(3) + '</td>';
+        out += '<td>' + fmt(r.a, 3) + '</td>';
+        out += '<td>' + ((r.m1 - r.m2) / 1000).toFixed(3) + '</td>';
+        out += '<td>' + ((r.m1 + r.m2) / 1000).toFixed(3) + '</td>';
+      } else if (g) {
+        out += '<td class="miss">' + (g.m1 / 1000).toFixed(3) + '</td>';
+        out += '<td class="miss">' + (g.m2 / 1000).toFixed(3) + '</td>';
+        out += '<td class="miss">—</td>';
+        out += '<td class="miss">' + ((g.m1 - g.m2) / 1000).toFixed(3) + '</td>';
+        out += '<td class="miss">' + ((g.m1 + g.m2) / 1000).toFixed(3) + '</td>';
+      } else {
+        out += '<td class="miss">—</td><td class="miss">—</td><td class="miss">—</td><td class="miss">—</td><td class="miss">—</td>';
+      }
+      out += '</tr>';
+    }
+    out += '</tbody></table></div>';
+    return out;
+  }
+
+  function renderTables() {
+    var host = document.getElementById('tables');
+    var html = tableHTML('part1', rowsOf('part1'), true);
+    html += tableHTML('part2', rowsOf('part2'), true);
+    var free = rowsOf('free');
+    if (free.length) {
+      html += '<div class="data-scroll"><b style="font-size:13px">Free trials</b><table><thead><tr><th>Trial</th><th>m₁ (kg)</th><th>m₂ (kg)</th><th>a (m/s²)</th><th>m_diff (kg)</th><th>m_T (kg)</th></tr></thead><tbody>';
+      for (var i = 0; i < free.length; i++) {
+        var r = free[i];
+        html += '<tr><td>' + (i + 1) + '</td><td>' + (r.m1 / 1000).toFixed(3) + '</td><td>' + (r.m2 / 1000).toFixed(3) + '</td><td>' + fmt(r.a, 3) + '</td><td>' + ((r.m1 - r.m2) / 1000).toFixed(3) + '</td><td>' + ((r.m1 + r.m2) / 1000).toFixed(3) + '</td></tr>';
+      }
+      html += '</tbody></table></div>';
+    }
+    host.innerHTML = html;
+    var n = state.rec.length;
+    document.getElementById('recCount').textContent = n + ' of 10 trials recorded';
+    var note = 'Grey values are the masses the file\'s procedure calls for — move them across, then record. ';
+    if (state.model === 'realistic') note += 'These are all measured in Realistic mode, so they read a little low.';
+    else note += 'Fill both parts to at least five trials each, as the file asks.';
+    document.getElementById('tableNote').textContent = note;
+  }
+
+  /* ============================================================
+     Charts
+     ============================================================ */
+
+  function niceStep(max, n) {
+    if (!(max > 0)) return 1;
+    var raw = max / n;
+    var mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    var norm = raw / mag;
+    var s = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10;
+    return s * mag;
+  }
+  function niceMax(max, n) {
+    if (!(max > 0)) return 1;
+    var step = niceStep(max, n);
+    return Math.ceil(max / step) * step;
+  }
+  function ticks(max, n) {
+    var step = niceStep(max, n), out = [], v = 0;
+    while (v <= max + step * 1e-9) { out.push(v); v += step; }
+    return out;
+  }
+  function tickLabel(v, step) {
+    var dp = step < 1 ? (step < 0.1 ? 2 : 1) : 0;
+    return v.toFixed(dp);
+  }
+
+  function frame(svg, box, xMax, yMax, xLbl, yLbl, nx, ny) {
+    var W = box.r - box.l, H = box.b - box.t;
+    function X(v) { return box.l + (xMax > 0 ? (v / xMax) * W : 0); }
+    function Y(v) { return box.b - (yMax > 0 ? (v / yMax) * H : 0); }
+    var xs = ticks(xMax, nx), ys = ticks(yMax, ny);
+    var sx = niceStep(xMax, nx), sy = niceStep(yMax, ny);
+    xs.forEach(function (t) {
+      el('line', { x1: X(t), y1: box.t, x2: X(t), y2: box.b, class: 'grid' }, svg);
+      txt(X(t), box.b + 30, tickLabel(t, sx), 'ax', svg, { 'text-anchor': 'middle' });
+    });
+    ys.forEach(function (t) {
+      el('line', { x1: box.l, y1: Y(t), x2: box.r, y2: Y(t), class: 'grid' }, svg);
+      txt(box.l - 12, Y(t) + 6, tickLabel(t, sy), 'ax', svg, { 'text-anchor': 'end' });
+    });
+    el('line', { x1: box.l, y1: box.b, x2: box.r, y2: box.b, class: 'axis' }, svg);
+    el('line', { x1: box.l, y1: box.t, x2: box.l, y2: box.b, class: 'axis' }, svg);
+    txt(box.r - 4, box.b + 62, xLbl, 'axT', svg, { 'text-anchor': 'end' });
+    txt(box.l - 4, box.t - 14, yLbl, 'axT', svg, { 'text-anchor': 'start' });
+    return { X: X, Y: Y, box: box };
+  }
+
+  function renderChart() {
+    var svg = document.getElementById('chart');
+    if (!svg) return;
+    clear(svg);
+    var last = state.last;
+    var box = { l: 92, t: 34, r: 856, b: 320 };
+    var tEnd = run ? Math.max(run.tEnd, 0.3) : (last && last.tEnd ? last.tEnd : 1.2);
+    var vEnd = run ? Math.sqrt(2 * run.a * effTravelM()) : (last && last.v ? last.v : 1.2);
+    var xMax = niceMax(tEnd * 1.06, 5);
+    var yMax = niceMax(Math.max(vEnd, 0.05) * 1.1, 5);
+    var F = frame(svg, box, xMax, yMax, 't (s)', 'v (m/s)', 5, 5);
+
+    var pts = run ? run.samples : (last ? last.samples || [] : []);
+    var fit = (last && last.fit) ? last.fit : null;
+
+    if (fit) {
+      var t1 = F.box.r;
+      el('line', {
+        x1: F.X(0), y1: F.Y(fit.intercept),
+        x2: F.X(xMax), y2: F.Y(fit.slope * xMax + fit.intercept),
+        class: 'fitline'
+      }, svg);
+    }
+    for (var i = 0; i < pts.length; i++) {
+      el('circle', { cx: F.X(pts[i].t), cy: F.Y(pts[i].v), r: 4.4, class: 'pt' }, svg);
+    }
+    if (!pts.length) {
+      txt((box.l + box.r) / 2, (box.t + box.b) / 2, 'Release the masses to record velocity vs time', 'cap', svg, { 'text-anchor': 'middle' });
+    }
+
+    var out = document.getElementById('fitOut');
+    var note = document.getElementById('chartNote');
+    if (run) {
+      out.textContent = 'collecting…  t = ' + fmt(run.t, 2) + ' s,  ' + run.samples.length + ' spoke events';
+      note.textContent = 'The photogate counts the pulley\'s spokes: one velocity sample every ' +
+        (ARC_M * 100).toFixed(2) + ' cm of string, about ' + spokeSamples(accel(), state.travel).length + ' samples per run.';
+    } else if (last && last.noMotion) {
+      out.textContent = last.held ? 'no motion — held by friction' : 'no motion — equal masses';
+      note.textContent = last.held
+        ? 'The driving force Δm g is smaller than the bearing friction, so the machine stays put: the photogate records nothing.'
+        : 'With equal masses the net force is zero, so the acceleration is zero and the photogate records nothing. Record it as 0.000 m/s².';
+    } else if (last && last.fit) {
+      out.textContent = 'v = ' + fmt(last.fit.slope, 4) + ' t + ' + fmt(Math.abs(last.fit.intercept) < 5e-5 ? 0 : last.fit.intercept, 4) +
+        '  →  a = ' + fmt(last.fit.slope, 3) + ' m/s²   (r² = ' + fmt(last.fit.r2, 4) + ', ' + last.fit.n + ' samples)';
+      var gap = 100 * (last.fit.slope - last.ideal) / (last.ideal || 1);
+      note.textContent = 'The slope of a velocity–time fit is the acceleration — the file\'s step 7. ' +
+        (Math.abs(gap) < 0.05
+          ? 'This run matches the prediction Δm g/m_T = ' + fmt(last.ideal, 3) + ' m/s² exactly, because the ideal model leaves nothing out.'
+          : 'This run\'s a is ' + fmt(Math.abs(gap), 1) + '% ' + (gap < 0 ? 'below' : 'above') + ' the prediction Δm g/m_T = ' + fmt(last.ideal, 3) + ' m/s².');
+    } else {
+      out.textContent = '—';
+      note.textContent = 'Press Release the masses: the photogate samples the pulley every tenth of a turn, and a straight line through the points gives the acceleration.';
+    }
+  }
+
+  function miniFrame(svg, box, xLo, xHi, yMax, xLbl, yLbl, xTicks) {
+    function X(v) { return box.l + ((v - xLo) / (xHi - xLo)) * (box.r - box.l); }
+    function Y(v) { return box.b - (yMax > 0 ? (v / yMax) * (box.b - box.t) : 0); }
+    el('line', { x1: box.l, y1: box.b, x2: box.r, y2: box.b, class: 'axis' }, svg);
+    el('line', { x1: box.l, y1: box.t, x2: box.l, y2: box.b, class: 'axis' }, svg);
+    for (var i = 0; i < xTicks.length; i++) {
+      var t = xTicks[i];
+      if (t < xLo - 1e-9 || t > xHi + 1e-9) continue;
+      el('line', { x1: X(t), y1: box.t, x2: X(t), y2: box.b, class: 'grid' }, svg);
+      txt(X(t), box.b + 30, String(Math.round(t * 100) / 100), 'ax', svg, { 'text-anchor': 'middle' });
+    }
+    var ys = ticks(yMax, 4);
+    var sy = niceStep(yMax, 4);
+    ys.forEach(function (t) {
+      el('line', { x1: box.l, y1: Y(t), x2: box.r, y2: Y(t), class: 'grid' }, svg);
+      txt(box.l - 10, Y(t) + 6, tickLabel(t, sy), 'ax', svg, { 'text-anchor': 'end' });
+    });
+    txt(box.r, box.b + 58, xLbl, 'axT', svg, { 'text-anchor': 'end' });
+    txt(box.l - 4, box.t - 12, yLbl, 'axT', svg, { 'text-anchor': 'start' });
+    return { X: X, Y: Y, box: box };
+  }
+
+  function renderAnalysis() {
+    var host = document.getElementById('analysis');
+    var p1 = rowsOf('part1'), p2 = rowsOf('part2');
+    var h = '';
+
+    h += '<p class="note" style="margin-top:0">Step 1 · m_diff = m₁ − m₂ and step 2 · m_T = m₁ + m₂ are in the table above.</p>';
+
+    // graph 1
+    var g1 = document.getElementById('g1');
+    var g2 = document.getElementById('g2');
+    clear(g1); clear(g2);
+    var boxA = { l: 62, t: 26, r: 442, b: 236 };
+    var dmMax = 45, aMax = 1;
+    p1.forEach(function (r) {
+      dmMax = Math.max(dmMax, Math.abs(r.m1 - r.m2));
+      aMax = Math.max(aMax, Math.abs(r.a));
+    });
+    var x1Max = niceMax(dmMax * 1.08, 4);
+    var y1Max = niceMax(aMax * 1.12, 4);
+    var F1 = miniFrame(g1, boxA, 0, x1Max, y1Max, '|m₁ − m₂| (g)', 'a (m/s²)', [0, x1Max / 3, 2 * x1Max / 3, x1Max]);
+
+    // graph 2: the total mass never reaches zero, so the axis starts near the data
+    var boxB = { l: 62, t: 26, r: 442, b: 236 };
+    var g2lo = 100, g2hi = 220, y2Max = 1;
+    if (p2.length) {
+      g2lo = Math.min.apply(null, p2.map(function (r) { return r.m1 + r.m2; })) - 20;
+      g2hi = Math.max.apply(null, p2.map(function (r) { return r.m1 + r.m2; })) + 20;
+      y2Max = niceMax(Math.max.apply(null, p2.map(function (r) { return Math.abs(r.a); })) * 1.15, 4);
+    }
+    var x2t = [];
+    for (var xt = Math.ceil(g2lo / 20) * 20; xt <= g2hi; xt += 20) x2t.push(xt);
+    var F2 = miniFrame(g2, boxB, g2lo, g2hi, y2Max, 'm_T (g)', 'a (m/s²)', x2t);
+
+    // part I points and a straight line through the origin
+    var k = 0, sx2 = 0;
+    p1.forEach(function (r) {
+      var dm = Math.abs(r.m1 - r.m2);
+      el('circle', { cx: F1.X(dm), cy: F1.Y(Math.abs(r.a)), r: 6, class: 'pt' }, g1);
+      k += dm * Math.abs(r.a); sx2 += dm * dm;
+    });
+    if (p1.length >= 2 && sx2 > 0) {
+      k = k / sx2;
+      el('line', { x1: F1.X(0), y1: F1.Y(0), x2: F1.X(x1Max), y2: F1.Y(clamp(k * x1Max, 0, y1Max)), class: 'fitline' }, g1);
+    }
+
+    // part II points and the a = |Δm|g/m_T curve
+    var dmConst = p2.length ? Math.abs(p2[0].m1 - p2[0].m2) / 1000 : 0.01;
+    var d = '';
+    for (var i = 0; i <= 40; i++) {
+      var mt = g2lo + (g2hi - g2lo) * i / 40;
+      var av = clamp(dmConst * state.g / (mt / 1000), 0, y2Max);
+      d += (i ? ' L' : 'M') + F2.X(mt).toFixed(1) + ' ' + F2.Y(av).toFixed(1);
+    }
+    el('path', { d: d, class: 'curve' }, g2);
+    p2.forEach(function (r) {
+      el('circle', { cx: F2.X(r.m1 + r.m2), cy: F2.Y(Math.abs(r.a)), r: 6, class: 'pt' }, g2);
+    });
+
+    var ideal = state.g / 1000 / 0.2;
+    h += '<p class="note">Step 3 · Part I is a straight line through the origin, so <b>a ∝ |m₁ − m₂|</b>' +
+      (p1.length >= 2 ? ' — the points give ' + fmt(k, 4) + ' m/s² per gram, against g/m_T = ' + fmt(ideal, 4) : '') + '.</p>';
+    h += '<div class="eq">a = g·|Δm| / m_T   <span class="u">· with m_T held at 200 g in Part I, a is proportional to |Δm|</span></div>';
+    var prod = p2.map(function (r) { return { mt: r.m1 + r.m2, av: Math.abs(r.a) }; });
+    var prods = prod.map(function (o) { return (o.av * o.mt / 1000); });
+    var prodMin = prods.length ? Math.min.apply(null, prods) : NaN;
+    var prodMax = prods.length ? Math.max.apply(null, prods) : NaN;
+    h += '<p class="note">Step 4 · In Part II the difference is fixed, so a·m_T stays put' +
+      (prods.length >= 2 ? ' — between ' + fmt(prodMin, 4) + ' and ' + fmt(prodMax, 4) + ' N, against |Δm|g = ' + fmt(dmConst * state.g, 4) + ' N' : '') +
+      ' — so <b>a ∝ 1/m_T</b>.</p>';
+    h += '<div class="eq">Step 5 · a = |Δm|·g / m_T   <span class="u">· the two relationships combined</span></div>';
+    var allKnown = state.rec.filter(function (r) { return Math.abs(r.m1 - r.m2) > 0; });
+    if (allKnown.length) {
+      var meanLow = 0, nn = 0, worst = 0;
+      allKnown.forEach(function (r) {
+        var pred = Math.abs(r.m1 - r.m2) / 1000 * state.g / ((r.m1 + r.m2) / 1000);
+        meanLow += (r.a - pred) / pred; nn++;
+        if (Math.abs((r.a - pred) / pred) > worst) worst = Math.abs((r.a - pred) / pred);
+      });
+      meanLow = 100 * meanLow / nn;
+      h += '<p class="note ' + (Math.abs(meanLow) < 0.5 ? 'good' : '') + '">Across all ' + nn + ' recorded trials the measured a sits <b>' +
+        (Math.abs(meanLow) < 0.05 ? 'right on' : fmt(Math.abs(meanLow), 1) + '% ' + (meanLow < 0 ? 'below' : 'above')) + '</b> the prediction' +
+        (Math.abs(meanLow) < 0.05 ? ' — the ideal machine exactly.' : (meanLow < 0 ? ' — low, as the extensions explain.' : '.')) + '</p>';
+    } else {
+      h += '<p class="note">Record some trials and these lines fill in with your own numbers.</p>';
+    }
+    host.innerHTML = h;
+    document.getElementById('graphNote').textContent =
+      'Graph 1 uses the Part I data (constant total mass), graph 2 the Part II data (constant 10 g difference). ' +
+      'The dashed curve in graph 2 is a = |Δm|g/m_T for |Δm| = 10 g.';
+  }
+
+  /* ============================================================
+     Plan, procedure
+     ============================================================ */
+
+  function renderPlan() {
+    var box = document.getElementById('planPills');
+    var h = '';
+    ['part1', 'part2', 'free'].forEach(function (id) {
+      h += '<button class="pill" type="button" data-part="' + id + '" aria-pressed="' + (state.part === id) + '">' + esc(PLANS[id].tag) + (id === 'free' ? '' : ' · ' + (id === 'part1' ? 'constant total' : 'constant difference')) + '</button>';
+    });
+    box.innerHTML = h;
+    box.querySelectorAll('[data-part]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state.part = b.getAttribute('data-part');
+        state.ti = 0;
+        state.unknown = false;
+        state.revealed = false;
+        applyTrial(0);
+        render();
+      });
+    });
+
+    var dots = document.getElementById('trialDots');
+    var dh = '';
+    var n = Math.max(5, plan().trials.length);
+    for (var i = 0; i < n; i++) {
+      var filled = !!(rowForTi(state.part, i) || (plan().trials[i] && rowFor(state.part, plan().trials[i][0], plan().trials[i][1])));
+      var cls = filled ? 'full' : (state.ti === i ? 'on' : '');
+      dh += '<button class="dot ' + cls + '" type="button" data-ti="' + i + '" title="Trial ' + (i + 1) + '">' + (i + 1) + '</button>';
+    }
+    dots.innerHTML = dh;
+    dots.querySelectorAll('[data-ti]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var i = parseInt(b.getAttribute('data-ti'), 10);
+        state.ti = i;
+        applyTrial(i);
+        render();
+      });
+    });
+
+    document.getElementById('nextTrial').textContent = plan().move + ' →';
+    document.getElementById('nextTrial').disabled = state.part === 'free' || state.ti >= n - 1;
+    document.getElementById('partTag').textContent = plan().tag;
+  }
+
+  function renderProc() {
+    var P = plan();
+    var steps = [];
+    if (state.part === 'part1') {
+      steps.push('Hang <b>100 g on m₂</b> and <b>100 g on m₁</b> — 200 g in total.');
+      steps.push('Start data collection, then release the smaller mass and catch it before it lands.');
+      steps.push('Fit a straight line to velocity vs time: its <b>slope is the acceleration</b>. Record trial 1.');
+      steps.push('<b>Move 5 g from m₂ to m₁</b>. The mass difference changes; the total stays 200 g.');
+      steps.push('Repeat until you have at least five mass combinations.');
+    } else if (state.part === 'part2') {
+      steps.push('Hang <b>50 g on m₁</b> and <b>60 g on m₂</b> — the same 10 g difference to start.');
+      steps.push('Collect motion data and fit velocity vs time for the acceleration. Record it.');
+      steps.push('<b>Add 10 g to both sides</b>, keeping the 10 g difference, so the total mass grows.');
+      steps.push('Repeat for at least five mass combinations.');
+      steps.push('Watch what happens to a as m_T climbs: it falls.');
+    } else {
+      steps.push('Set any two masses you like.');
+      steps.push('Release, fit velocity vs time, and record the slope.');
+      steps.push('Runs recorded here join the expected-vs-measured table in the extensions.');
+    }
+    var html = '';
+    var doneCount = 0;
+    if (state.part === 'free') doneCount = 0;
+    else {
+      for (var i = 0; i < 5; i++) {
+        var g = trialMasses(i);
+        if (g && rowFor(state.part, g.m1, g.m2)) doneCount++;
+      }
+    }
+    for (var j = 0; j < steps.length; j++) {
+      var done = (state.part !== 'free') && j <= 2 && doneCount >= j + 1;
+      html += '<li class="' + (done ? 'done' : '') + '">' + (done ? '<span class="done-mark">✓</span> ' : '') + steps[j] + '</li>';
+    }
+    document.getElementById('procSteps').innerHTML = html;
+    document.getElementById('procTitle').textContent = P.title;
+
+    var live = document.getElementById('procLive');
+    var t = 'm₁ = <b>' + state.m1 + ' g</b>, m₂ = <b>' + state.m2 + ' g</b> · Δm = <b>' +
+      (state.m1 - state.m2 > 0 ? '+' : '') + (state.m1 - state.m2) + ' g</b> · m_T = <b>' + (state.m1 + state.m2) + ' g</b>';
+    t += '<br>Predicted a = Δm g/m_T = <b>' + fmt(predA(), 3) + ' m/s²</b>';
+    if (run) t += '<br>Running: t = <b>' + fmt(run.t, 2) + ' s</b>, v = <b>' + fmt(run.v, 2) + ' m/s</b>, ' + run.samples.length + ' spoke events.';
+    else if (state.last && state.last.fit) t += '<br>Fitted a = <b>' + fmt(state.last.a, 3) + ' m/s²</b> (' + state.last.fit.n + ' photogate samples).';
+    else if (state.last && state.last.noMotion) t += '<br>' + (state.last.held ? 'Held by friction.' : 'Equal masses: nothing moves.');
+    live.innerHTML = t;
+    live.className = 'live ' + (doneCount >= 5 ? 'ok' : '');
+    document.getElementById('procNote').textContent = P.sub;
+    document.getElementById('massNote').innerHTML = state.part === 'free'
+      ? 'Free play · the guided trials only apply to Parts I and II.'
+      : 'Guided trial ' + (state.ti + 1) + ' of 5 · ' + esc(P.move) + '.';
+  }
+
+  /* ============================================================
+     Extensions
+     ============================================================ */
+
+  function renderExt() {
+    var host = document.getElementById('ext');
+    var a = accel();
+    var T = tensionN();
+    var Ti = tensionIdeal();
+    var falls = dirSide();
+    var heavy = falls === 'm1' ? 'm₁' : 'm₂';
+    var light = falls === 'm1' ? 'm₂' : 'm₁';
+    var mh = (falls === 'm1' ? m1Kg() : m2Kg());
+    var ml = (falls === 'm1' ? m2Kg() : m1Kg());
+    var h = '';
+
+    // 1. FBDs
+    h += '<details class="grp"' + (state.showFbd ? ' open' : '') + '><summary>Newton\'s second law on each mass <span class="qn-badge">extension 1</span></summary><div class="body">';
+    h += '<svg id="fbd" viewBox="0 0 700 300" style="width:100%;height:auto" role="img" aria-label="Free-body diagrams of the two masses"></svg>';
+    h += '<div class="eq">' + heavy + ': &nbsp;m g − T = m a &nbsp;&nbsp;·&nbsp;&nbsp; ' + light + ': &nbsp;T − m g = m a</div>';
+    h += '<div class="eq">add them → (m' + (falls === 'm1' ? '₁' : '₂') + ' − m' + (falls === 'm1' ? '₂' : '₁') + ') g = (m₁ + m₂) a &nbsp;→&nbsp; <b>a = Δm g / m_T</b> = ' + fmt(predA(), 3) + ' m/s²</div>';
+    h += '<p>Because the string is light and cannot stretch, both masses share one acceleration and the tension is the same on both sides — the two equations above only differ in which way the weight pulls. Solving them for T also gives <b>T = 2 m₁ m₂ g / m_T</b> = ' + fmt(Ti, 3) + ' N, which is <em>less</em> than the heavier weight and <em>more</em> than the lighter one. Comparing this with the result of step 5 of the analysis: it is the same expression, so the graph and the free-body diagram agree.</p>';
+    h += '</div></details>';
+
+    // 2. expected vs measured
+    var rows = state.rec.filter(function (r) { return Math.abs(r.m1 - r.m2) > 0; })
+      .slice().sort(function (x, y) { return (x.m1 + x.m2) - (y.m1 + y.m2); });
+    h += '<details class="grp"><summary>Expected vs measured, run by run <span class="qn-badge">extension 2</span></summary><div class="body">';
+    if (!rows.length) {
+      h += '<p>Record a few trials and each one is compared here with a = Δm g/m_T.</p>';
+    } else {
+      h += '<div class="data-scroll"><table><thead><tr><th>m₁ / m₂ (kg)</th><th>Δm (kg)</th><th>m_T (kg)</th><th>predicted a</th><th>measured a</th><th>difference</th><th>model</th></tr></thead><tbody>';
+      var sum = 0, low = 0, exact = 0;
+      rows.forEach(function (r) {
+        var pred = Math.abs(r.m1 - r.m2) / 1000 * state.g / ((r.m1 + r.m2) / 1000);
+        var pc = 100 * (r.a - pred) / pred;
+        var real = r.model === 'realistic';
+        sum += pc;
+        if (pc < -0.05) low += 1;
+        if (Math.abs(pc) < 0.05) exact += 1;
+        h += '<tr><td>' + (r.m1 / 1000).toFixed(3) + ' / ' + (r.m2 / 1000).toFixed(3) + '</td><td>' + ((r.m1 - r.m2) / 1000).toFixed(3) + '</td><td>' + ((r.m1 + r.m2) / 1000).toFixed(3) + '</td><td>' + fmt(pred, 3) + '</td><td>' + fmt(r.a, 3) + '</td><td>' + (pc > 0 ? '+' : '') + fmt(pc, 1) + '%</td><td>' + (real ? 'realistic' : 'ideal') + '</td></tr>';
+      });
+      h += '</tbody></table></div>';
+      var avg = sum / rows.length;
+      if (low === rows.length) {
+        h += '<p>Every one of these ' + rows.length + ' runs came out <b>low</b>, by ' + fmt(Math.abs(avg), 1) + '% on average. That is what a real Atwood machine does: the pulley has to be spun up (its rotational inertia behaves like ' + state.mp + ' g more hanging mass) and its bearings drag (' + fmt(state.fric, 4) + ' N), and both eat into the driving force the masses can supply. That is exactly why the file asks whether your values come out low or high.</p>';
+      } else if (low > 0) {
+        h += '<p>' + low + ' of these ' + rows.length + ' runs came out <b>low</b>' + (low === rows.length ? '' : ', and the rest match the prediction exactly') + '. The low ones are the Realistic runs: the pulley has to be spun up (its rotational inertia behaves like ' + state.mp + ' g more hanging mass) and its bearings drag (' + fmt(state.fric, 4) + ' N), and both eat into the driving force. Re-run an ideal trial in Realistic mode to watch the same masses come out a few percent slow — that is the answer to the file\'s second extension question.</p>';
+      } else {
+        h += '<p>Every one of these ' + rows.length + ' runs matches a = Δm g/m_T exactly, because the ideal model leaves nothing out. Real pulleys are not ideal: switch to Realistic mode and re-run a trial to see the measured value come out a few percent low, which is what the file\'s second extension question is about.</p>';
+      }
+    }
+    h += '</div></details>';
+
+    // 3. unknown mass
+    h += '<details class="grp"' + (state.unknown ? ' open' : '') + '><summary>An unknown mass on the left <span class="qn-badge">extension 3</span></summary><div class="body">';
+    h += '<p>Hang an unknown mass on the left and measure the acceleration with the photogate. The same equation rearranged gives the mass — this is how the unknown is found without a balance.</p>';
+    h += '<div class="switch-row">Put an unknown mass on the left (m₁)<button class="switch" id="swUnknown" role="switch" aria-checked="' + state.unknown + '" aria-label="Unknown mass on the left"></button></div>';
+    if (state.unknown) {
+      h += '<div class="eq">a = (m₂ g − m₁ g)/(m₁ + m₂) &nbsp;→&nbsp; m₁ = m₂ (g − a)/(g + a) <span class="u">(when m₂ is the heavier side)</span></div>';
+      if (state.last && state.last.fit && !state.last.noMotion) {
+        var av = state.last.a;
+        var fallsRight = state.last.dir === 'm2';
+        var mu;
+        if (fallsRight) mu = state.m2 * (state.g - av) / (state.g + av);
+        else mu = state.m2 * (state.g + av) / (state.g - av);
+        h += '<p>Measured a = <b>' + fmt(av, 3) + ' m/s²</b> with m₂ = ' + state.m2 + ' g: solving gives an unknown of <b>' + fmt(mu, 1) + ' g</b>.</p>';
+        if (state.revealed) {
+          var err = 100 * (mu - state.uTrue) / state.uTrue;
+          h += '<p>On the balance the unknown really weighs <b>' + state.uTrue + ' g</b> — ' +
+            (Math.abs(err) < 0.05 ? 'the measurement is spot on' : 'the measurement is off by ' + fmt(Math.abs(err), 1) + '%') +
+            (state.model === 'realistic' ? ', because the formula above ignores the pulley\'s inertia and friction. Re-deriving it with those included would pull the answer back in.' : '.') + '</p>';
+        } else {
+          h += '<p><button class="pill sm" id="revealBtn" type="button">Weigh it on the balance</button></p>';
+        }
+      } else {
+        h += '<p>Release the masses, then solve the equation above using the fitted a.</p>';
+      }
+    }
+    h += '</div></details>';
+
+    // 4. tension
+    h += '<details class="grp"><summary>The tension in the string <span class="qn-badge">extension 4</span></summary><div class="body">';
+    if (isNum(T) && dirSide() !== 'none') {
+      h += '<div class="eq">T = 2 m₁ m₂ g / m_T = ' + fmt(Ti, 3) + ' N</div>';
+      h += '<p>From the heavier side: m g − T = m a gives T = m' + (falls === 'm1' ? '₁' : '₂') + '(g − a) = <b>' + fmt(mh * (state.g - a), 3) + ' N</b>. From the lighter side: T − m g = m a gives T = m' + (falls === 'm1' ? '₂' : '₁') + '(g + a) = <b>' + fmt(ml * (state.g + a), 3) + ' N</b>. They agree, so T is <b>' + fmt(T, 3) + ' N</b> on both sides' + (state.model === 'realistic' ? ' (a small difference here would be taken up by the pulley\'s friction)' : '') + '.</p>';
+      h += '<p>T does <b>not</b> change as the masses move: the acceleration is constant, so the tension is constant too. It only changes if you change the masses — try it above. Note that T is less than the heavier weight (' + fmt(mh * state.g, 3) + ' N) and more than the lighter one (' + fmt(ml * state.g, 3) + ' N), which is why the heavy mass accelerates down and the light one up.</p>';
+    } else {
+      h += '<p>With equal masses (or a machine held by friction) there is no single value for the tension — the string is not carrying an accelerating pair. Set unequal masses to see it.</p>';
+    }
+    h += '</div></details>';
+
+    // 5. pulley force
+    h += '<details class="grp"><summary>The force the pulley feels <span class="qn-badge">extension 5</span></summary><div class="body">';
+    if (isNum(T)) {
+      var F = 2 * T;
+      h += '<div class="eq">F_pulley = T + T = ' + fmt(F, 3) + ' N &nbsp;·&nbsp; total weight = (m₁ + m₂)g = ' + fmt(mTotKg() * state.g, 3) + ' N</div>';
+      h += '<p>Both string runs pull down on the pulley, so the stand pushes up with T + T = <b>' + fmt(F, 3) + ' N</b>. While the machine accelerates that is <b>' + fmt(mTotKg() * state.g - F, 3) + ' N less</b> than the total weight of the two masses, because the tension is pulled below the weights by the acceleration. Algebraically 2T = 4m₁m₂g/m_T against (m₁+m₂)g, and the difference is (m₁ − m₂)²g/m_T — zero only when the masses are equal, which is why the pulley only feels the full weight when nothing accelerates.</p>';
+      h += '<p>A stand or a tension sensor on the pulley therefore reads its lowest value at the moment you let go, and reads the full static weight again once the masses are stopped.</p>';
+    } else {
+      h += '<p>Set unequal masses and the upward force on the pulley is 2T, which is less than the two weights added together.</p>';
+    }
+    h += '</div></details>';
+
+    host.innerHTML = h;
+
+    var sw = document.getElementById('swUnknown');
+    if (sw) {
+      sw.addEventListener('click', function () {
+        state.unknown = !state.unknown;
+        state.revealed = false;
+        if (state.unknown) {
+          state.part = 'free';
+          state.uTrue = Math.round(30 + Math.random() * 60);
+          state.m1 = state.uTrue;
+        }
+        render();
+      });
+    }
+    var rb = document.getElementById('revealBtn');
+    if (rb) rb.addEventListener('click', function () { state.revealed = true; render(); });
+
+    drawFbd();
+  }
+
+  function drawFbd() {
+    var svg = document.getElementById('fbd');
+    if (!svg) return;
+    clear(svg);
+    var defs = el('defs', null, svg);
+    marker(defs, 'fT', 'marker-tens');
+    marker(defs, 'fW', 'marker-wt');
+    marker(defs, 'fM', 'marker-mot');
+    var m1 = state.m1 / 1000, m2 = state.m2 / 1000, g = state.g;
+    var T = tensionIdeal();   // extension 1 is the ideal-string derivation
+    var fmax = Math.max(T, m1 * g, m2 * g, 1e-6);
+    var k = 96 / fmax;
+    var falls = dirSide();
+    var boxW = 92, boxH = 62;
+
+    function box(cx, label, massKg, isFalling) {
+      var top = 108, bot = top + boxH;
+      el('rect', { x: cx - boxW / 2, y: top, width: boxW, height: boxH, rx: 8, class: 'plate' }, svg);
+      txt(cx, top + boxH / 2 + 8, label, 'blbl', svg, { 'text-anchor': 'middle' });
+      var wt = massKg * g;
+      arrow(svg, cx, bot, cx, bot + clamp(wt * k, 20, 100), 'wt', 'fW');
+      txt(cx, bot + clamp(wt * k, 20, 100) + 24, label + 'g = ' + fmt(wt, 2) + ' N', 'blbl2', svg, { 'text-anchor': 'middle' });
+      arrow(svg, cx, top, cx, top - clamp(T * k, 20, 100), 'tens', 'fT');
+      txt(cx, top - clamp(T * k, 20, 100) - 10, 'T = ' + fmt(T, 2) + ' N', 'blbl2', svg, { 'text-anchor': 'middle' });
+      if (falls !== 'none') {
+        var up = isFalling ? 0 : 1;
+        var ax = cx + boxW / 2 + 26;
+        if (up) {
+          arrow(svg, ax, bot, ax, bot - 40, 'mot', 'fM');
+          txt(ax + 8, bot - 46, 'a', 'blbl2', svg, { 'text-anchor': 'start' });
+        } else {
+          arrow(svg, ax, top, ax, top + 40, 'mot', 'fM');
+          txt(ax + 8, top + 60, 'a', 'blbl2', svg, { 'text-anchor': 'start' });
+        }
+      }
+    }
+    // left is m1
+    box(180, 'm₁', m1, falls === 'm1');
+    box(520, 'm₂', m2, falls === 'm2');
+    txt(180, 88, 'm₁ = ' + state.m1 + ' g', 'blbl2', svg, { 'text-anchor': 'middle' });
+    txt(520, 88, 'm₂ = ' + state.m2 + ' g', 'blbl2', svg, { 'text-anchor': 'middle' });
+    txt(350, 70, falls === 'none' ? 'no acceleration' : (falls === 'm1' ? 'm₁ falls, m₂ rises' : 'm₂ falls, m₁ rises'), 'blbl2', svg, { 'text-anchor': 'middle' });
+  }
+
+  /* ============================================================
+     Render
+     ============================================================ */
+
+  function render(opts) {
+    opts = opts || {};
+    buildBoard();
+    renderChips();
+    renderMetrics();
+    if (!opts.live) {
+      renderPlan();
+      renderProc();
+      renderTables();
+      renderAnalysis();
+      renderExt();
+      syncInputs();
+    }
+    renderChart();
+    save();
+  }
+  function renderLive() {
+    buildBoard();
+    renderChips();
+    renderMetrics();
+    renderChart();
+  }
+
+  function syncCompact() {
+    var changed = false;
+    ['board', 'chart'].forEach(function (id) {
+      var s = document.getElementById(id);
+      if (!s) return;
+      var narrow = (s.getBoundingClientRect().width || window.innerWidth) < 560;
+      if (narrow !== s.classList.contains('compact')) {
+        s.classList.toggle('compact', narrow);
+        changed = true;
+      }
+    });
+    if (changed) render({ live: !run });
+  }
+
+  /* ============================================================
+     Storage
+     ============================================================ */
+
+  function save() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        v: 3,
+        m1: state.m1, m2: state.m2, travel: state.travel, g: state.g,
+        model: state.model, mp: state.mp, fric: state.fric,
+        part: state.part, ti: state.ti, rec: state.rec,
+        showForces: state.showForces, showFbd: state.showFbd,
+        unknown: state.unknown, uTrue: state.uTrue, revealed: state.revealed
+      }));
+    } catch (e) { /* storage can be unavailable */ }
+  }
+
+  function loadState() {
+    var raw = null;
+    try { raw = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { raw = null; }
+    if (!raw || typeof raw !== 'object') return false;
+    state.m1 = clamp(Math.round(Number(raw.m1) || 100), 1, 2000);
+    state.m2 = clamp(Math.round(Number(raw.m2) || 100), 1, 2000);
+    state.travel = clamp(Number(raw.travel) || 45, 40, 60);
+    state.g = clamp(Number(raw.g) || 9.8, 1, 30);
+    state.model = raw.model === 'realistic' ? 'realistic' : 'ideal';
+    state.mp = clamp(Number(raw.mp) || 10, 0, 40);
+    state.fric = clamp(Number(raw.fric) || 0.0025, 0, 0.02);
+    state.part = PLANS[raw.part] ? raw.part : 'part1';
+    state.ti = clamp(parseInt(raw.ti, 10) || 0, 0, 20);
+    state.rec = Array.isArray(raw.rec) ? raw.rec.filter(function (r) {
+      return r && PLANS[r.part] && isNum(r.m1) && isNum(r.m2) && isNum(r.a);
+    }).map(function (r) {
+      return { part: r.part, ti: clamp(parseInt(r.ti, 10) || 0, 0, 30), m1: r.m1, m2: r.m2, a: r.a, t: isNum(r.t) ? r.t : null, model: r.model === 'realistic' ? 'realistic' : 'ideal' };
+    }) : [];
+    state.showForces = raw.showForces !== false;
+    state.showFbd = raw.showFbd !== false;
+    state.unknown = !!raw.unknown;
+    state.uTrue = clamp(Math.round(Number(raw.uTrue) || 60), 5, 2000);
+    state.revealed = !!raw.revealed;
+    return true;
+  }
+
+  /* ============================================================
+     Theme, toast, events
+     ============================================================ */
+
+  function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* ignore */ }
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#06110d' : '#005A36');
+    document.getElementById('themeBtn').setAttribute('title', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+
+  var toastTimer = null;
+  function toast(msg) {
+    var el2 = document.getElementById('toast');
+    el2.textContent = msg;
+    el2.classList.add('on');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el2.classList.remove('on'); }, 2600);
+  }
+
+  function syncInputs() {
+    document.getElementById('m1In').value = state.m1;
+    document.getElementById('m1In').disabled = state.unknown;
+    document.getElementById('m2In').value = state.m2;
+    document.getElementById('travelIn').value = state.travel;
+    document.getElementById('gIn').value = state.g;
+    document.getElementById('mpRange').value = state.mp;
+    document.getElementById('mpOut').textContent = state.mp;
+    document.getElementById('frRange').value = state.fric;
+    document.getElementById('frOut').textContent = fmt(state.fric, 4);
+    document.getElementById('realOnly').style.opacity = state.model === 'realistic' ? '1' : '0.5';
+    document.getElementById('pillIdeal').setAttribute('aria-pressed', String(state.model === 'ideal'));
+    document.getElementById('pillReal').setAttribute('aria-pressed', String(state.model === 'realistic'));
+    document.getElementById('swForces').setAttribute('aria-checked', String(state.showForces));
+    document.getElementById('swFbd').setAttribute('aria-checked', String(state.showFbd));
+    document.getElementById('modelBtn').textContent = state.model === 'ideal' ? 'Ideal' : 'Realistic';
+    document.getElementById('modelBtn').setAttribute('aria-pressed', String(state.model === 'realistic'));
+    var rb = document.getElementById('runBtn');
+    rb.textContent = run ? 'Running…' : (state.last ? 'Run the next trial' : 'Release the masses');
+    rb.classList.toggle('armed', !!run);
+    document.getElementById('recBtn').setAttribute('aria-pressed', String(!!state.last));
+  }
+
+  function measureTopbar() {
+    var bar = document.querySelector('.topbar');
+    if (!bar) return;
+    document.documentElement.style.setProperty('--tb', bar.offsetHeight + 'px');
+  }
+
+  function init() {
+    setTheme(document.documentElement.getAttribute('data-theme') || 'light');
+    measureTopbar();
+    if (!loadState()) {
+      var t = trialMasses(0);
+      state.m1 = t.m1; state.m2 = t.m2;
+    }
+
+    document.getElementById('themeBtn').addEventListener('click', function () {
+      setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    document.getElementById('runBtn').addEventListener('click', function () {
+      if (run) return;
+      release();
+      syncInputs();
+    });
+
+    document.getElementById('recBtn').addEventListener('click', function () {
+      if (!state.last) { toast('Release the masses first'); return; }
+      var part = state.part;
+      var existing = rowFor(part, state.m1, state.m2);
+      var row = {
+        part: part, ti: state.ti, m1: state.m1, m2: state.m2,
+        a: state.last.a, t: state.last.tEnd, model: state.model
+      };
+      if (existing) {
+        existing.a = row.a; existing.t = row.t; existing.model = row.model; existing.ti = row.ti;
+      } else {
+        var free = rowForTi(part, state.ti);
+        if (free) { free.a = row.a; free.t = row.t; free.model = row.model; free.m1 = row.m1; free.m2 = row.m2; }
+        else state.rec.push(row);
+      }
+      if (part !== 'free' && state.ti < 4) {
+        state.ti = state.ti + 1;
+        applyTrial(state.ti);
+        state.last = null;
+      }
+      render();
+      toast('Trial recorded: a = ' + fmt(row.a, 3) + ' m/s²');
+    });
+
+    document.getElementById('modelBtn').addEventListener('click', function () {
+      state.model = state.model === 'ideal' ? 'realistic' : 'ideal';
+      state.last = null;
+      render();
+    });
+    document.getElementById('pillIdeal').addEventListener('click', function () {
+      state.model = 'ideal'; state.last = null; render();
+    });
+    document.getElementById('pillReal').addEventListener('click', function () {
+      state.model = 'realistic'; state.last = null; render();
+    });
+
+    function bindSwitch(id, key, after) {
+      document.getElementById(id).addEventListener('click', function () {
+        state[key] = !state[key];
+        if (after) after();
+        render();
+      });
+    }
+    bindSwitch('swForces', 'showForces');
+    bindSwitch('swFbd', 'showFbd');
+
+    document.getElementById('m1In').addEventListener('change', function () {
+      state.m1 = clamp(Math.round(parseFloat(this.value) || 100), 1, 2000);
+      state.part = 'free';
+      state.last = null;
+      render();
+    });
+    document.getElementById('m2In').addEventListener('change', function () {
+      state.m2 = clamp(Math.round(parseFloat(this.value) || 100), 1, 2000);
+      state.part = 'free';
+      state.last = null;
+      render();
+    });
+    document.getElementById('travelIn').addEventListener('change', function () {
+      state.travel = clamp(Math.round(parseFloat(this.value) || 45), 40, 60);
+      state.last = null;
+      render();
+    });
+    document.getElementById('gIn').addEventListener('change', function () {
+      state.g = clamp(parseFloat(this.value) || 9.8, 1, 30);
+      state.last = null;
+      render();
+    });
+    document.getElementById('mpRange').addEventListener('input', function () {
+      state.mp = clamp(parseFloat(this.value) || 0, 0, 40);
+      state.last = null;
+      render();
+    });
+    document.getElementById('frRange').addEventListener('input', function () {
+      state.fric = clamp(parseFloat(this.value) || 0, 0, 0.02);
+      state.last = null;
+      render();
+    });
+    document.getElementById('nextTrial').addEventListener('click', function () {
+      if (state.part === 'free') return;
+      state.unknown = false;
+      state.revealed = false;
+      var i = Math.min(state.ti + 1, 4);
+      state.ti = i;
+      applyTrial(i);
+      render();
+    });
+    document.getElementById('clearAll').addEventListener('click', function () {
+      state.rec = [];
+      state.last = null;
+      render();
+      toast('All trials cleared');
+    });
+
+    document.getElementById('foot').innerHTML =
+      '<b>How this models the file\'s lab.</b> The pulley\'s drawn size is exaggerated so it reads on screen, but its rotation follows a real ' +
+      (R_PHYS * 100).toFixed(2) + ' cm radius, so the photogate\'s ' + SPOKES + ' spoke events per turn come out at the right rate. ' +
+      'The photogate samples every ' + (ARC_M * 100).toFixed(2) + ' cm of string and a least-squares line through those points gives the acceleration, as the LabQuest curve fit does. ' +
+      'The travel is capped at 60 cm because the masses must be able to move at least 40 cm before the falling one strikes the floor. ' +
+      'The string is treated as light and the machine as starting from rest, so the ideal fitted slope is exactly Δm g/m_T; switch on Realistic for the pulley\'s inertia and bearing friction. ' +
+      'The unknown-mass box uses m₁ = m₂(g − a)/(g + a) with the ideal machine, so in Realistic mode it comes out a little off, just as it would in the lab.';
+
+    render();
+    syncInputs();
+    syncCompact();
+    var resizeTimer = null;
+    window.addEventListener('resize', function () {
+      measureTopbar();
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(syncCompact, 120);
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+
+
+<span id="PING_CONTENT_MB_MAIN" style="display: none;"></span><span id="PING_CONTENT_PUSH_NOTIFICATION" style="display: none;"></span><span id="PING_IFRAME_FORM_DETECTION" style="display: none;"></span></body></html>
