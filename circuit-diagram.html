@@ -1,0 +1,2826 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)http://127.0.0.1:4173/physics/circuit-diagram.html -->
+<html lang="en" data-theme="dark"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#09140f">
+<meta name="description" content="Draw a circuit, set the battery voltage and resistance, and read the voltmeter and ammeter live.">
+<title>Circuit Lab · Draw &amp; Measure</title>
+<script>
+  // Set the theme before first paint to avoid a flash.
+  (function () {
+    var theme = 'light';
+    try {
+      theme = localStorage.getItem('circuit-lab-theme') ||
+        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    } catch (e) { /* storage can be unavailable */ }
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --bg: #edf3ef;
+    --panel: #ffffff;
+    --panel-2: #f5faf7;
+    --board: #fbfdfb;
+    --ink: #0c2a20;
+    --ink-2: #174536;
+    --muted: #5f7d72;
+    --line: #d8e4dd;
+    --accent: #007a4a;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(0, 122, 74, 0.10);
+    --readout-border: rgba(0, 122, 74, 0.24);
+    --gold: #a97a00;
+    --gold-soft: rgba(198, 146, 0, 0.14);
+    --danger: #b3261e;
+    --wire: #143c2d;
+    --grid-dot: #b9ccc3;
+    --bar-bg: rgba(255, 255, 255, 0.88);
+    --shadow: 0 12px 34px rgba(8, 40, 28, 0.09);
+    --shadow-strong: 0 18px 50px rgba(8, 40, 28, 0.16);
+    --radius: 16px;
+    color-scheme: light;
+  }
+
+  html[data-theme="dark"] {
+    --bg: #06110d;
+    --panel: #0d1a15;
+    --panel-2: #12221b;
+    --board: #09140f;
+    --ink: #e7f3ed;
+    --ink-2: #c9e2d7;
+    --muted: #86a79a;
+    --line: #1e342b;
+    --accent: #49e0a1;
+    --accent-ink: #002b1d;
+    --accent-soft: rgba(73, 224, 161, 0.13);
+    --readout-border: rgba(73, 224, 161, 0.26);
+    --gold: #ffc72c;
+    --gold-soft: rgba(255, 199, 44, 0.13);
+    --danger: #ff6f66;
+    --wire: #cfebdf;
+    --grid-dot: #25473a;
+    --bar-bg: rgba(8, 19, 14, 0.86);
+    --shadow: 0 14px 38px rgba(0, 0, 0, 0.40);
+    --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+  }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    min-height: 100dvh;
+    background: var(--bg);
+    background-image:
+      radial-gradient(900px 500px at 85% -10%, var(--accent-soft), transparent 70%),
+      radial-gradient(700px 400px at -10% 110%, var(--gold-soft), transparent 70%);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button, input { font-family: inherit; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    padding-top: calc(10px + env(safe-area-inset-top));
+    background: var(--bar-bg);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    box-shadow: 0 4px 14px var(--accent-soft);
+  }
+  .brand-mark svg { width: 22px; height: 22px; }
+
+  .brand-text { min-width: 0; }
+  .brand-text h1 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .brand-text p {
+    margin: 2px 0 0;
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .top-actions { display: flex; align-items: center; gap: 8px; }
+
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border-radius: 11px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    cursor: pointer;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.1s ease;
+  }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .icon-btn:active { transform: scale(0.95); }
+  .icon-btn:disabled { opacity: 0.32; cursor: not-allowed; }
+  .icon-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+  .icon-btn:focus-visible, .btn:focus-visible, .part-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  html[data-theme="light"] .icon-sun { display: none; }
+  html[data-theme="dark"] .icon-moon { display: none; }
+
+  .theme-btn .icon-sun, .theme-btn .icon-moon { grid-area: 1 / 1; }
+
+  /* ---------- layout ---------- */
+  .app {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 12px;
+    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+    display: grid;
+    gap: 12px;
+    align-items: start;
+  }
+
+  .board-card {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .board-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .status .text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .live-dot.warn { background: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+  @media (prefers-reduced-motion: no-preference) {
+    .live-dot { animation: dot-pulse 2.6s ease-in-out infinite; }
+    @keyframes dot-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.45; }
+    }
+  }
+
+  .mode-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .mode-bar .seg {
+    display: flex;
+    flex: 0 0 auto;
+    padding: 2px;
+    gap: 2px;
+  }
+  .mode-bar .seg[hidden] { display: none; }
+  .mode-bar .seg button { padding: 6px 10px; font-size: 11.5px; }
+  .mode-hint {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--muted);
+    text-align: right;
+  }
+  @media (max-width: 560px) {
+    .mode-hint { text-align: left; }
+  }
+
+  .board-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+  .board-actions .icon-btn { width: 34px; height: 34px; border-radius: 9px; background: var(--panel); }
+  .board-actions .icon-btn svg { width: 16px; height: 16px; }
+  .board-actions .icon-btn[aria-expanded="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  /* ---------- board size popover ---------- */
+  .size-pop {
+    position: absolute;
+    top: 54px;
+    right: 8px;
+    z-index: 40;
+    width: 236px;
+    max-width: calc(100vw - 28px);
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 13px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    box-shadow: var(--shadow-strong);
+  }
+  .size-pop[hidden] { display: none; }
+  .size-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 2px;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .size-note {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .size-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+  }
+  .step-btn {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--ink);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .step-btn:hover { background: var(--accent-soft); color: var(--accent); }
+  .step-btn[aria-disabled="true"] { opacity: 0.35; cursor: not-allowed; }
+  .step-btn[aria-disabled="true"]:hover { background: transparent; color: var(--ink); }
+  .step-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .step-value {
+    min-width: 30px;
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 800;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .size-reset {
+    padding: 7px 10px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .size-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+  .board-wrap { padding: 4px 8px 0; }
+  #board {
+    display: block;
+    width: 100%;
+    max-width: 560px;
+    height: auto;
+    margin: 0 auto;
+    border-radius: 12px;
+    background: var(--board);
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    cursor: default;
+  }
+
+  .board-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 14px 10px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .board-foot .kbd {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 10px;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    padding: 1px 5px;
+    background: var(--panel-2);
+  }
+  @media (hover: none) { .board-foot .desk-only { display: none; } }
+
+  /* ---------- panels ---------- */
+  .side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 10px;
+  }
+
+  .panel-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 4px 8px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ---------- palette ---------- */
+  .palette {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    padding: 2px 2px 4px;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+  .palette::-webkit-scrollbar { display: none; }
+
+  .part-btn {
+    flex: 0 0 72px;
+    width: 72px;
+    height: 68px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 2px;
+    border-radius: 13px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--ink-2);
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+  .part-btn:active { transform: scale(0.96); }
+  .part-btn[hidden] { display: none; }
+  .part-btn span {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  .part-btn .p-icon { width: 58px; height: 30px; display: block; }
+  .part-btn[data-tool="select"] .p-icon { width: 24px; height: 24px; }
+  .part-btn.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+
+  .p-icon .lead, .p-icon .body, .p-icon .plate-short, .p-icon .plate-long {
+    stroke: currentColor;
+  }
+  .p-icon .node { fill: currentColor; }
+  .p-icon .meter-face { fill: var(--panel-2); stroke: currentColor; }
+  .p-icon .meter-letter { fill: currentColor; }
+  .p-icon .arrow { stroke: var(--accent); }
+
+  /* ---------- inspector ---------- */
+  .inspector { display: flex; flex-direction: column; gap: 10px; }
+  .inspector h2 {
+    margin: 0;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .inspector h2 .badge {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 5px;
+    padding: 2px 5px;
+  }
+  .inspector .hint {
+    margin: 0;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .inspector .note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    background: var(--panel-2);
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    padding: 9px 10px;
+  }
+  .empty-state { display: flex; flex-direction: column; gap: 10px; }
+
+  .readout {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    border: 1px solid var(--readout-border);
+  }
+  .readout .cap {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .readout .val {
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .readout.muted { background: var(--panel-2); border-color: var(--line); }
+  .readout.muted .val { color: var(--muted); }
+
+  .field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+  }
+  .unit-input {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px 2px 2px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    transition: border-color 0.15s ease;
+  }
+  .unit-input:focus-within { border-color: var(--accent); }
+  .unit-input input {
+    width: 92px;
+    padding: 8px 4px 8px 8px;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: 16px;
+    font-weight: 700;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    outline: none;
+    /* keep iOS from zooming */
+    -webkit-text-size-adjust: 100%;
+  }
+  .unit-input .suffix {
+    min-width: 18px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 24px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 5px;
+    border-radius: 99px;
+    background: var(--line);
+  }
+  input[type="range"]::-moz-range-track {
+    height: 5px;
+    border-radius: 99px;
+    background: var(--line);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    margin-top: -7.5px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--panel);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--panel);
+  }
+  input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 6px; }
+
+  .seg {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    padding: 3px;
+    border-radius: 11px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+  }
+  .seg button {
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 6px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] {
+    background: var(--panel);
+    color: var(--ink);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 13px;
+    border-radius: 11px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--ink);
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn.primary:hover { filter: brightness(1.05); color: var(--accent-ink); }
+  .btn.danger { color: var(--danger); }
+  .btn.danger:hover { border-color: var(--danger); }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-row .btn { flex: 1 1 auto; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: var(--panel-2);
+  }
+  .toggle .label { font-size: 12.5px; font-weight: 700; }
+  .switch-visual {
+    position: relative;
+    width: 48px;
+    height: 28px;
+    flex: 0 0 auto;
+    padding: 0;
+    border-radius: 99px;
+    border: 1px solid var(--line);
+    background: var(--line);
+    cursor: pointer;
+    transition: background-color 0.18s ease;
+  }
+  .switch-visual::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--panel);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+    transition: transform 0.18s ease;
+  }
+  .switch-visual[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
+  .switch-visual[aria-pressed="true"]::after { transform: translateX(20px); }
+
+  .value-line {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .value-line strong { color: var(--ink); font-size: 14px; font-variant-numeric: tabular-nums; }
+
+  /* ---------- SVG scene ---------- */
+  .grid-dot { fill: var(--grid-dot); }
+  .halo {
+    fill: var(--gold-soft);
+    stroke: var(--gold);
+    stroke-width: 2;
+    stroke-dasharray: 7 6;
+    pointer-events: none;
+  }
+  #board[data-tool="select"] .part { cursor: grab; }
+  #board[data-tool="select"] .part.is-selected { cursor: grabbing; }
+  .wire-line {
+    stroke: var(--wire);
+    stroke-width: 4.2;
+    stroke-linecap: round;
+    fill: none;
+  }
+  .wire.is-selected .wire-line {
+    stroke: var(--gold);
+    stroke-width: 5;
+  }
+  .lead { stroke: var(--ink); stroke-width: 3.4; fill: none; stroke-linecap: round; }
+  .body { stroke: var(--ink); stroke-width: 4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .plate-short { stroke: var(--ink); stroke-width: 6.5; fill: none; stroke-linecap: round; }
+  .plate-long { stroke: var(--ink); stroke-width: 3; fill: none; stroke-linecap: round; }
+  .pol { stroke: var(--accent); stroke-width: 2.6; fill: none; stroke-linecap: round; }
+  .node { fill: var(--ink); stroke: none; }
+  .meter-face { fill: var(--panel); stroke: var(--ink); stroke-width: 3.2; }
+  .meter-letter { fill: var(--ink); font-size: 25px; font-weight: 800; }
+  .arrow { stroke: var(--accent); stroke-width: 4.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .val {
+    fill: var(--muted);
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    paint-order: stroke;
+    stroke: var(--board);
+    stroke-width: 7px;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  .reading {
+    fill: var(--accent);
+    font-size: 23px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    paint-order: stroke;
+    stroke: var(--board);
+    stroke-width: 7px;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  .draft { stroke: var(--accent); stroke-width: 4.4; stroke-dasharray: 8 7; stroke-linecap: round; fill: none; }
+  .draft-dot { fill: var(--accent); stroke: var(--board); stroke-width: 3; }
+  .draft-ring { fill: none; stroke: var(--accent); stroke-width: 2; opacity: 0.6; }
+  .tip { fill: var(--gold); }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(102px + env(safe-area-inset-bottom));
+    transform: translate(-50%, 12px);
+    z-index: 60;
+    max-width: min(92vw, 420px);
+    padding: 9px 14px;
+    border-radius: 11px;
+    background: var(--ink);
+    color: var(--panel);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: var(--shadow-strong);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  @media (prefers-reduced-motion: reduce) {
+    .toast { transition: none; }
+    .icon-btn, .part-btn, .btn, .switch-visual, .switch-visual::after { transition: none; }
+  }
+
+  /* Mobile: keep the parts palette within thumb reach. */
+  @media (max-width: 919px) {
+    .palette-panel {
+      position: fixed;
+      left: 10px;
+      right: 10px;
+      bottom: calc(10px + env(safe-area-inset-bottom));
+      z-index: 30;
+      padding: 8px 8px 5px;
+      background: var(--bar-bg);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-strong);
+    }
+    .palette-panel .panel-title { display: none; }
+    .palette { padding: 0; }
+  }
+
+  /* ---------- desktop ---------- */
+  @media (min-width: 920px) {
+    .app {
+      grid-template-columns: minmax(0, 1fr) 336px;
+      padding: 18px;
+      padding-bottom: 24px;
+      gap: 18px;
+    }
+    .side { position: sticky; top: 84px; }
+    .topbar { padding: 12px 22px; }
+    .brand-text h1 { font-size: 18px; }
+    .brand-text p { font-size: 12px; }
+    .palette {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      overflow: visible;
+    }
+    .part-btn { width: auto; height: 60px; flex-direction: row; gap: 6px; padding: 4px 6px; }
+    .part-btn .p-icon { width: 46px; height: 26px; }
+    .part-btn span { font-size: 11px; }
+    .toast { bottom: 26px; }
+    .board-foot { font-size: 11.5px; }
+  }
+
+  @media (min-width: 920px) and (hover: hover) {
+    #board { cursor: default; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"></path>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <h1>Circuit Lab</h1>
+      <p>Draw · set values · read the meters</p>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button class="icon-btn theme-btn" id="themeBtn" type="button" aria-label="Switch to light mode" title="Switch to light mode">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"></circle>
+        <path d="M12 2v2.2M12 19.8V22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2 12h2.2M19.8 12H22M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6"></path>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="app">
+  <section class="board-card" aria-label="Circuit drawing board">
+    <div class="board-bar">
+      <div class="status">
+        <span class="live-dot" id="liveDot" aria-hidden="true"></span>
+        <span class="text" id="statusText" aria-live="polite">Add a part to get started</span>
+      </div>
+      <div class="board-actions">
+        <button class="icon-btn" id="sizeBtn" type="button" aria-label="Board size, 12 by 14 dots" title="Board size: 12 × 14 dots" aria-haspopup="true" aria-expanded="false" aria-controls="sizePop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M9 3v18M15 3v18M3 9h18M3 15h18"></path>
+          </svg>
+        </button>
+        <button class="icon-btn" id="undoBtn" type="button" aria-label="Undo" title="Undo (Ctrl+Z)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9.5 14.5 4 9l5.5-5.5"></path><path d="M4 9h9.5a6 6 0 0 1 0 12H8"></path>
+          </svg>
+        </button>
+        <button class="icon-btn" id="rotateBtn" type="button" aria-label="Rotate selected part" title="Rotate selected part (R)" disabled="">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 12a8 8 0 1 1-2.6-5.9"></path><path d="M20 3.5V9h-5.5"></path>
+          </svg>
+        </button>
+        <button class="icon-btn" id="clearBtn" type="button" aria-label="Clear the board" title="Clear the board">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.5"></circle><path d="m8.6 8.6 6.8 6.8M15.4 8.6l-6.8 6.8"></path>
+          </svg>
+        </button>
+        <button class="icon-btn danger" id="deleteBtn" type="button" aria-label="Delete selected part" title="Delete selected part (Del)" disabled="">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 7h16M9.5 7V4.8h5V7M18 7l-.9 13H6.9L6 7"></path><path d="M10 11v5.5M14 11v5.5"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="mode-bar">
+      <div class="seg mode-seg" role="group" aria-label="Mode">
+        <button type="button" data-mode-tab="draw" aria-pressed="true">Drawing</button>
+        <button type="button" data-mode-tab="sim" aria-pressed="false">Simulation</button>
+      </div>
+      <div class="seg model-seg" id="modelSeg" role="group" aria-label="Simulation model" hidden="">
+        <button type="button" data-realism="ideal" aria-pressed="true">Ideal</button>
+        <button type="button" data-realism="realistic" aria-pressed="false">Realistic</button>
+      </div>
+      <span class="mode-hint" id="modeHint">Readings off</span>
+    </div>
+
+    <div class="board-wrap">
+      <svg id="board" role="group" aria-label="Circuit board. Select a part and tap the board to place it." preserveAspectRatio="xMidYMid meet" data-tool="select" viewBox="-59.400000000000006 -59.400000000000006 646.8 734.8" style="max-width: 584px; cursor: default;">
+        <g id="gridLayer" aria-hidden="true"><circle class="grid-dot" cx="0" cy="0" r="2.6"></circle><circle class="grid-dot" cx="44" cy="0" r="2.6"></circle><circle class="grid-dot" cx="88" cy="0" r="2.6"></circle><circle class="grid-dot" cx="132" cy="0" r="2.6"></circle><circle class="grid-dot" cx="176" cy="0" r="2.6"></circle><circle class="grid-dot" cx="220" cy="0" r="2.6"></circle><circle class="grid-dot" cx="264" cy="0" r="2.6"></circle><circle class="grid-dot" cx="308" cy="0" r="2.6"></circle><circle class="grid-dot" cx="352" cy="0" r="2.6"></circle><circle class="grid-dot" cx="396" cy="0" r="2.6"></circle><circle class="grid-dot" cx="440" cy="0" r="2.6"></circle><circle class="grid-dot" cx="484" cy="0" r="2.6"></circle><circle class="grid-dot" cx="528" cy="0" r="2.6"></circle><circle class="grid-dot" cx="0" cy="44" r="2.6"></circle><circle class="grid-dot" cx="44" cy="44" r="2.6"></circle><circle class="grid-dot" cx="88" cy="44" r="2.6"></circle><circle class="grid-dot" cx="132" cy="44" r="2.6"></circle><circle class="grid-dot" cx="176" cy="44" r="2.6"></circle><circle class="grid-dot" cx="220" cy="44" r="2.6"></circle><circle class="grid-dot" cx="264" cy="44" r="2.6"></circle><circle class="grid-dot" cx="308" cy="44" r="2.6"></circle><circle class="grid-dot" cx="352" cy="44" r="2.6"></circle><circle class="grid-dot" cx="396" cy="44" r="2.6"></circle><circle class="grid-dot" cx="440" cy="44" r="2.6"></circle><circle class="grid-dot" cx="484" cy="44" r="2.6"></circle><circle class="grid-dot" cx="528" cy="44" r="2.6"></circle><circle class="grid-dot" cx="0" cy="88" r="2.6"></circle><circle class="grid-dot" cx="44" cy="88" r="2.6"></circle><circle class="grid-dot" cx="88" cy="88" r="2.6"></circle><circle class="grid-dot" cx="132" cy="88" r="2.6"></circle><circle class="grid-dot" cx="176" cy="88" r="2.6"></circle><circle class="grid-dot" cx="220" cy="88" r="2.6"></circle><circle class="grid-dot" cx="264" cy="88" r="2.6"></circle><circle class="grid-dot" cx="308" cy="88" r="2.6"></circle><circle class="grid-dot" cx="352" cy="88" r="2.6"></circle><circle class="grid-dot" cx="396" cy="88" r="2.6"></circle><circle class="grid-dot" cx="440" cy="88" r="2.6"></circle><circle class="grid-dot" cx="484" cy="88" r="2.6"></circle><circle class="grid-dot" cx="528" cy="88" r="2.6"></circle><circle class="grid-dot" cx="0" cy="132" r="2.6"></circle><circle class="grid-dot" cx="44" cy="132" r="2.6"></circle><circle class="grid-dot" cx="88" cy="132" r="2.6"></circle><circle class="grid-dot" cx="132" cy="132" r="2.6"></circle><circle class="grid-dot" cx="176" cy="132" r="2.6"></circle><circle class="grid-dot" cx="220" cy="132" r="2.6"></circle><circle class="grid-dot" cx="264" cy="132" r="2.6"></circle><circle class="grid-dot" cx="308" cy="132" r="2.6"></circle><circle class="grid-dot" cx="352" cy="132" r="2.6"></circle><circle class="grid-dot" cx="396" cy="132" r="2.6"></circle><circle class="grid-dot" cx="440" cy="132" r="2.6"></circle><circle class="grid-dot" cx="484" cy="132" r="2.6"></circle><circle class="grid-dot" cx="528" cy="132" r="2.6"></circle><circle class="grid-dot" cx="0" cy="176" r="2.6"></circle><circle class="grid-dot" cx="44" cy="176" r="2.6"></circle><circle class="grid-dot" cx="88" cy="176" r="2.6"></circle><circle class="grid-dot" cx="132" cy="176" r="2.6"></circle><circle class="grid-dot" cx="176" cy="176" r="2.6"></circle><circle class="grid-dot" cx="220" cy="176" r="2.6"></circle><circle class="grid-dot" cx="264" cy="176" r="2.6"></circle><circle class="grid-dot" cx="308" cy="176" r="2.6"></circle><circle class="grid-dot" cx="352" cy="176" r="2.6"></circle><circle class="grid-dot" cx="396" cy="176" r="2.6"></circle><circle class="grid-dot" cx="440" cy="176" r="2.6"></circle><circle class="grid-dot" cx="484" cy="176" r="2.6"></circle><circle class="grid-dot" cx="528" cy="176" r="2.6"></circle><circle class="grid-dot" cx="0" cy="220" r="2.6"></circle><circle class="grid-dot" cx="44" cy="220" r="2.6"></circle><circle class="grid-dot" cx="88" cy="220" r="2.6"></circle><circle class="grid-dot" cx="132" cy="220" r="2.6"></circle><circle class="grid-dot" cx="176" cy="220" r="2.6"></circle><circle class="grid-dot" cx="220" cy="220" r="2.6"></circle><circle class="grid-dot" cx="264" cy="220" r="2.6"></circle><circle class="grid-dot" cx="308" cy="220" r="2.6"></circle><circle class="grid-dot" cx="352" cy="220" r="2.6"></circle><circle class="grid-dot" cx="396" cy="220" r="2.6"></circle><circle class="grid-dot" cx="440" cy="220" r="2.6"></circle><circle class="grid-dot" cx="484" cy="220" r="2.6"></circle><circle class="grid-dot" cx="528" cy="220" r="2.6"></circle><circle class="grid-dot" cx="0" cy="264" r="2.6"></circle><circle class="grid-dot" cx="44" cy="264" r="2.6"></circle><circle class="grid-dot" cx="88" cy="264" r="2.6"></circle><circle class="grid-dot" cx="132" cy="264" r="2.6"></circle><circle class="grid-dot" cx="176" cy="264" r="2.6"></circle><circle class="grid-dot" cx="220" cy="264" r="2.6"></circle><circle class="grid-dot" cx="264" cy="264" r="2.6"></circle><circle class="grid-dot" cx="308" cy="264" r="2.6"></circle><circle class="grid-dot" cx="352" cy="264" r="2.6"></circle><circle class="grid-dot" cx="396" cy="264" r="2.6"></circle><circle class="grid-dot" cx="440" cy="264" r="2.6"></circle><circle class="grid-dot" cx="484" cy="264" r="2.6"></circle><circle class="grid-dot" cx="528" cy="264" r="2.6"></circle><circle class="grid-dot" cx="0" cy="308" r="2.6"></circle><circle class="grid-dot" cx="44" cy="308" r="2.6"></circle><circle class="grid-dot" cx="88" cy="308" r="2.6"></circle><circle class="grid-dot" cx="132" cy="308" r="2.6"></circle><circle class="grid-dot" cx="176" cy="308" r="2.6"></circle><circle class="grid-dot" cx="220" cy="308" r="2.6"></circle><circle class="grid-dot" cx="264" cy="308" r="2.6"></circle><circle class="grid-dot" cx="308" cy="308" r="2.6"></circle><circle class="grid-dot" cx="352" cy="308" r="2.6"></circle><circle class="grid-dot" cx="396" cy="308" r="2.6"></circle><circle class="grid-dot" cx="440" cy="308" r="2.6"></circle><circle class="grid-dot" cx="484" cy="308" r="2.6"></circle><circle class="grid-dot" cx="528" cy="308" r="2.6"></circle><circle class="grid-dot" cx="0" cy="352" r="2.6"></circle><circle class="grid-dot" cx="44" cy="352" r="2.6"></circle><circle class="grid-dot" cx="88" cy="352" r="2.6"></circle><circle class="grid-dot" cx="132" cy="352" r="2.6"></circle><circle class="grid-dot" cx="176" cy="352" r="2.6"></circle><circle class="grid-dot" cx="220" cy="352" r="2.6"></circle><circle class="grid-dot" cx="264" cy="352" r="2.6"></circle><circle class="grid-dot" cx="308" cy="352" r="2.6"></circle><circle class="grid-dot" cx="352" cy="352" r="2.6"></circle><circle class="grid-dot" cx="396" cy="352" r="2.6"></circle><circle class="grid-dot" cx="440" cy="352" r="2.6"></circle><circle class="grid-dot" cx="484" cy="352" r="2.6"></circle><circle class="grid-dot" cx="528" cy="352" r="2.6"></circle><circle class="grid-dot" cx="0" cy="396" r="2.6"></circle><circle class="grid-dot" cx="44" cy="396" r="2.6"></circle><circle class="grid-dot" cx="88" cy="396" r="2.6"></circle><circle class="grid-dot" cx="132" cy="396" r="2.6"></circle><circle class="grid-dot" cx="176" cy="396" r="2.6"></circle><circle class="grid-dot" cx="220" cy="396" r="2.6"></circle><circle class="grid-dot" cx="264" cy="396" r="2.6"></circle><circle class="grid-dot" cx="308" cy="396" r="2.6"></circle><circle class="grid-dot" cx="352" cy="396" r="2.6"></circle><circle class="grid-dot" cx="396" cy="396" r="2.6"></circle><circle class="grid-dot" cx="440" cy="396" r="2.6"></circle><circle class="grid-dot" cx="484" cy="396" r="2.6"></circle><circle class="grid-dot" cx="528" cy="396" r="2.6"></circle><circle class="grid-dot" cx="0" cy="440" r="2.6"></circle><circle class="grid-dot" cx="44" cy="440" r="2.6"></circle><circle class="grid-dot" cx="88" cy="440" r="2.6"></circle><circle class="grid-dot" cx="132" cy="440" r="2.6"></circle><circle class="grid-dot" cx="176" cy="440" r="2.6"></circle><circle class="grid-dot" cx="220" cy="440" r="2.6"></circle><circle class="grid-dot" cx="264" cy="440" r="2.6"></circle><circle class="grid-dot" cx="308" cy="440" r="2.6"></circle><circle class="grid-dot" cx="352" cy="440" r="2.6"></circle><circle class="grid-dot" cx="396" cy="440" r="2.6"></circle><circle class="grid-dot" cx="440" cy="440" r="2.6"></circle><circle class="grid-dot" cx="484" cy="440" r="2.6"></circle><circle class="grid-dot" cx="528" cy="440" r="2.6"></circle><circle class="grid-dot" cx="0" cy="484" r="2.6"></circle><circle class="grid-dot" cx="44" cy="484" r="2.6"></circle><circle class="grid-dot" cx="88" cy="484" r="2.6"></circle><circle class="grid-dot" cx="132" cy="484" r="2.6"></circle><circle class="grid-dot" cx="176" cy="484" r="2.6"></circle><circle class="grid-dot" cx="220" cy="484" r="2.6"></circle><circle class="grid-dot" cx="264" cy="484" r="2.6"></circle><circle class="grid-dot" cx="308" cy="484" r="2.6"></circle><circle class="grid-dot" cx="352" cy="484" r="2.6"></circle><circle class="grid-dot" cx="396" cy="484" r="2.6"></circle><circle class="grid-dot" cx="440" cy="484" r="2.6"></circle><circle class="grid-dot" cx="484" cy="484" r="2.6"></circle><circle class="grid-dot" cx="528" cy="484" r="2.6"></circle><circle class="grid-dot" cx="0" cy="528" r="2.6"></circle><circle class="grid-dot" cx="44" cy="528" r="2.6"></circle><circle class="grid-dot" cx="88" cy="528" r="2.6"></circle><circle class="grid-dot" cx="132" cy="528" r="2.6"></circle><circle class="grid-dot" cx="176" cy="528" r="2.6"></circle><circle class="grid-dot" cx="220" cy="528" r="2.6"></circle><circle class="grid-dot" cx="264" cy="528" r="2.6"></circle><circle class="grid-dot" cx="308" cy="528" r="2.6"></circle><circle class="grid-dot" cx="352" cy="528" r="2.6"></circle><circle class="grid-dot" cx="396" cy="528" r="2.6"></circle><circle class="grid-dot" cx="440" cy="528" r="2.6"></circle><circle class="grid-dot" cx="484" cy="528" r="2.6"></circle><circle class="grid-dot" cx="528" cy="528" r="2.6"></circle><circle class="grid-dot" cx="0" cy="572" r="2.6"></circle><circle class="grid-dot" cx="44" cy="572" r="2.6"></circle><circle class="grid-dot" cx="88" cy="572" r="2.6"></circle><circle class="grid-dot" cx="132" cy="572" r="2.6"></circle><circle class="grid-dot" cx="176" cy="572" r="2.6"></circle><circle class="grid-dot" cx="220" cy="572" r="2.6"></circle><circle class="grid-dot" cx="264" cy="572" r="2.6"></circle><circle class="grid-dot" cx="308" cy="572" r="2.6"></circle><circle class="grid-dot" cx="352" cy="572" r="2.6"></circle><circle class="grid-dot" cx="396" cy="572" r="2.6"></circle><circle class="grid-dot" cx="440" cy="572" r="2.6"></circle><circle class="grid-dot" cx="484" cy="572" r="2.6"></circle><circle class="grid-dot" cx="528" cy="572" r="2.6"></circle><circle class="grid-dot" cx="0" cy="616" r="2.6"></circle><circle class="grid-dot" cx="44" cy="616" r="2.6"></circle><circle class="grid-dot" cx="88" cy="616" r="2.6"></circle><circle class="grid-dot" cx="132" cy="616" r="2.6"></circle><circle class="grid-dot" cx="176" cy="616" r="2.6"></circle><circle class="grid-dot" cx="220" cy="616" r="2.6"></circle><circle class="grid-dot" cx="264" cy="616" r="2.6"></circle><circle class="grid-dot" cx="308" cy="616" r="2.6"></circle><circle class="grid-dot" cx="352" cy="616" r="2.6"></circle><circle class="grid-dot" cx="396" cy="616" r="2.6"></circle><circle class="grid-dot" cx="440" cy="616" r="2.6"></circle><circle class="grid-dot" cx="484" cy="616" r="2.6"></circle><circle class="grid-dot" cx="528" cy="616" r="2.6"></circle></g>
+        <g id="sceneLayer"></g>
+        <g id="draftLayer" aria-hidden="true"></g>
+      </svg>
+    </div>
+
+    <div class="board-foot">
+      <span>Parts snap to dots · tap the grid icon to resize</span>
+      <span class="desk-only"><span class="kbd">R</span> rotate · <span class="kbd">Del</span> delete</span>
+    </div>
+
+    <div class="size-pop" id="sizePop" role="group" aria-label="Board size" hidden="">
+      <div class="size-head">
+        <span>Board size</span>
+        <span class="size-note" id="sizeNote" aria-live="polite">12 × 14 dots</span>
+      </div>
+      <div class="size-row">
+        <span>Columns</span>
+        <div class="stepper">
+          <button class="step-btn" type="button" data-size="cols" data-delta="-1" aria-label="One column fewer" aria-disabled="false" title="">−</button>
+          <output class="step-value" id="colsOut">12</output>
+          <button class="step-btn" type="button" data-size="cols" data-delta="1" aria-label="One column more" aria-disabled="false" title="">+</button>
+        </div>
+      </div>
+      <div class="size-row">
+        <span>Rows</span>
+        <div class="stepper">
+          <button class="step-btn" type="button" data-size="rows" data-delta="-1" aria-label="One row fewer" aria-disabled="false" title="">−</button>
+          <output class="step-value" id="rowsOut">14</output>
+          <button class="step-btn" type="button" data-size="rows" data-delta="1" aria-label="One row more" aria-disabled="false" title="">+</button>
+        </div>
+      </div>
+      <button class="size-reset" id="sizeReset" type="button">Reset to 12 × 14</button>
+    </div>
+  </section>
+
+  <aside class="side">
+    <section class="panel palette-panel" aria-label="Parts palette">
+      <div class="panel-title">
+        <span>Parts</span>
+        <span>Tap, then tap the board</span>
+      </div>
+      <div class="palette" id="palette" role="toolbar" aria-label="Choose a part"><button class="part-btn active" type="button" data-tool="select" aria-pressed="true" title="Tap a part to move it or change its values." aria-label="Select: Tap a part to move it or change its values."><svg class="p-icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M12 5l14 17-7.4.9 3.9 7.4-3.9 2-3.9-7.6L12 30z" fill="currentColor" opacity=".92"></path></svg><span>Select</span></button><button class="part-btn" type="button" data-tool="wire" aria-pressed="false" title="Tap two dots, or drag from one dot to another." aria-label="Wire: Tap two dots, or drag from one dot to another."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="body" d="M-40 0H40"></path><circle class="node" cx="-40" cy="0" r="3.2"></circle><circle class="node" cx="40" cy="0" r="3.2"></circle></svg><span>Wire</span></button><button class="part-btn" type="button" data-tool="battery" aria-pressed="false" title="Tap the board to place a voltage source." aria-label="Battery: Tap the board to place a voltage source."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-10"></path><path class="lead" d="M10 0H44"></path><path class="plate-short" d="M-10 -13V13"></path><path class="plate-long" d="M10 -24V24"></path><path class="pol" d="M20 -21v9M15.5 -16.5h9"></path></svg><span>Battery</span></button><button class="part-btn" type="button" data-tool="resistor" aria-pressed="false" title="Tap the board to place a resistor." aria-label="Resistor: Tap the board to place a resistor."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-27"></path><path class="body" d="M-27 0l7-15 13 30 13-30 13 30 7-15"></path><path class="lead" d="M27 0H44"></path></svg><span>Resistor</span></button><button class="part-btn" type="button" data-tool="capacitor" aria-pressed="false" title="Tap the board to place a capacitor." aria-label="Capacitor: Tap the board to place a capacitor."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-8"></path><path class="lead" d="M8 0H44"></path><path class="body" d="M-8 -20V20"></path><path class="body" d="M8 -20V20"></path></svg><span>Capacitor</span></button><button class="part-btn" type="button" data-tool="inductor" aria-pressed="false" title="Tap the board to place an inductor." aria-label="Inductor: Tap the board to place an inductor."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-26"></path><path class="lead" d="M26 0H44"></path><path class="body" d="M-26 0a8.67 8.67 0 0 1 17.34 0 8.67 8.67 0 0 1 17.34 0 8.67 8.67 0 0 1 17.32 0"></path></svg><span>Inductor</span></button><button class="part-btn" type="button" data-tool="switch" aria-pressed="false" title="Tap the board to place a switch." aria-label="Switch: Tap the board to place a switch."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-24"></path><path class="lead" d="M24 0H44"></path><path class="body" d="M-24 0L24 0"></path><circle class="node" cx="-24" cy="0" r="3.4"></circle><circle class="node" cx="24" cy="0" r="3.4"></circle></svg><span>Switch</span></button><button class="part-btn" type="button" data-tool="voltmeter" aria-pressed="false" title="Place a voltmeter across the points to measure." aria-label="Voltmeter: Place a voltmeter across the points to measure."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-23"></path><path class="lead" d="M23 0H44"></path><circle class="meter-face" cx="0" cy="0" r="23"></circle><text class="meter-letter" x="0" y="0" transform="rotate(0)" text-anchor="middle" dominant-baseline="central">V</text></svg><span>Voltmeter</span></button><button class="part-btn" type="button" data-tool="ammeter" aria-pressed="false" title="Place an ammeter in series to measure current." aria-label="Ammeter: Place an ammeter in series to measure current."><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="lead" d="M-44 0H-23"></path><path class="lead" d="M23 0H44"></path><circle class="meter-face" cx="0" cy="0" r="23"></circle><text class="meter-letter" x="0" y="0" transform="rotate(0)" text-anchor="middle" dominant-baseline="central">A</text></svg><span>Ammeter</span></button><button class="part-btn" type="button" data-tool="arrow" aria-pressed="false" title="Place an arrow to mark the current direction." aria-label="Arrow: Place an arrow to mark the current direction." hidden=""><svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true"><path class="arrow" d="M-40 0H28"></path><path class="arrow" d="M28 -14L44 0 28 14"></path></svg><span>Arrow</span></button></div>
+    </section>
+
+    <section class="panel" aria-label="Inspector">
+      <div class="panel-title">
+        <span>Inspector</span>
+        <span id="inspectorHint">Values &amp; readings</span>
+      </div>
+      <div class="inspector" id="inspector"><div class="empty-state"><p class="hint">Tap a part on the board to edit it. Use the palette to add parts, and tap two dots to draw a wire.</p><p class="hint">The voltmeter reads potential difference and the ammeter reads current. In Simulation mode the values are solved from the wiring; Realistic adds 1–2% internal resistance to every part.</p><div class="btn-row"><button class="btn primary" id="exampleBtn" type="button">Load an example</button><button class="btn" id="startBtn" type="button">Start blank</button></div></div></div>
+    </section>
+  </aside>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite">Board cleared</div>
+
+<noscript>
+  <p style="padding:16px;font-family:sans-serif">This circuit tool needs JavaScript enabled.</p>
+</noscript>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================
+     Geometry & data
+     ============================================================ */
+
+  const G = 44;                 // grid pitch in SVG units
+  const PAD = 1.35;             // breathing room around the grid, in dots
+  const DEFAULT_SIZE = { cols: 12, rows: 14 };
+  const SIZE_LIMITS = { cols: [6, 24], rows: [6, 24] };
+  let COLS = DEFAULT_SIZE.cols; // grid points 0..COLS
+  let ROWS = DEFAULT_SIZE.rows;
+
+  const PARTS = [
+    ['select', 'Select'],
+    ['wire', 'Wire'],
+    ['battery', 'Battery'],
+    ['resistor', 'Resistor'],
+    ['capacitor', 'Capacitor'],
+    ['inductor', 'Inductor'],
+    ['switch', 'Switch'],
+    ['voltmeter', 'Voltmeter'],
+    ['ammeter', 'Ammeter'],
+    ['arrow', 'Arrow']
+  ];
+
+  const PART_NAME = Object.fromEntries(PARTS);
+  const DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+
+  const HINTS = {
+    select: 'Tap a part to move it or change its values.',
+    wire: 'Tap two dots, or drag from one dot to another.',
+    battery: 'Tap the board to place a voltage source.',
+    resistor: 'Tap the board to place a resistor.',
+    capacitor: 'Tap the board to place a capacitor.',
+    inductor: 'Tap the board to place an inductor.',
+    switch: 'Tap the board to place a switch.',
+    voltmeter: 'Place a voltmeter across the points to measure.',
+    ammeter: 'Place an ammeter in series to measure current.',
+    arrow: 'Place an arrow to mark the current direction.'
+  };
+
+  const LABEL_HINTS = {
+    wire: 'WIRE',
+    battery: 'SOURCE',
+    resistor: 'RESISTOR',
+    capacitor: 'CAPACITOR',
+    inductor: 'INDUCTOR',
+    switch: 'SWITCH',
+    voltmeter: 'VOLTMETER',
+    ammeter: 'AMMETER',
+    arrow: 'CURRENT ARROW'
+  };
+
+  const STORE_KEY = 'circuit-lab-board-v1';
+  const THEME_KEY = 'circuit-lab-theme';
+
+  const state = {
+    items: [],
+    tool: 'select',
+    selected: null,
+    wireStart: null,
+    mode: 'sim',        // 'draw' | 'sim'
+    realism: 'ideal'    // 'ideal' | 'realistic'
+  };
+
+  let drag = null;
+  let history = [];
+  let solution = emptySolution();
+  let clearArmed = false;
+  let clearTimer = null;
+  let toastTimer = null;
+  let rafPending = false;
+
+  function emptySolution() {
+    return {
+      ok: true,
+      closed: false,
+      volts: new Map(),
+      amps: new Map(),
+      sources: new Map(),
+      resistorAmps: new Map(),
+      resistorR: new Map(),
+      sourceR: new Map(),
+      note: ''
+    };
+  }
+
+  const els = {
+    board: document.getElementById('board'),
+    gridLayer: document.getElementById('gridLayer'),
+    sceneLayer: document.getElementById('sceneLayer'),
+    draftLayer: document.getElementById('draftLayer'),
+    palette: document.getElementById('palette'),
+    inspector: document.getElementById('inspector'),
+    inspectorHint: document.getElementById('inspectorHint'),
+    statusText: document.getElementById('statusText'),
+    liveDot: document.getElementById('liveDot'),
+    undoBtn: document.getElementById('undoBtn'),
+    rotateBtn: document.getElementById('rotateBtn'),
+    clearBtn: document.getElementById('clearBtn'),
+    deleteBtn: document.getElementById('deleteBtn'),
+    modelSeg: document.getElementById('modelSeg'),
+    modeHint: document.getElementById('modeHint'),
+    sizeBtn: document.getElementById('sizeBtn'),
+    sizePop: document.getElementById('sizePop'),
+    sizeReset: document.getElementById('sizeReset'),
+    sizeNote: document.getElementById('sizeNote'),
+    colsOut: document.getElementById('colsOut'),
+    rowsOut: document.getElementById('rowsOut'),
+    themeBtn: document.getElementById('themeBtn'),
+    toast: document.getElementById('toast')
+  };
+
+  /* ============================================================
+     Helpers
+     ============================================================ */
+
+  function uid() {
+    return 'p' + Math.random().toString(36).slice(2, 9);
+  }
+
+  function clamp(v, lo, hi) {
+    return Math.min(hi, Math.max(lo, v));
+  }
+
+  function rotOf(item) {
+    return ((item.rot || 0) % 4 + 4) % 4;
+  }
+
+  function terminals(item) {
+    const d = DIRS[rotOf(item)];
+    return [
+      { x: item.x + d[0], y: item.y + d[1] },
+      { x: item.x - d[0], y: item.y - d[1] }
+    ];
+  }
+
+  function samePoint(a, b) {
+    return a && b && a.x === b.x && a.y === b.y;
+  }
+
+  function isAxisAligned(a, b) {
+    return a.x === b.x || a.y === b.y;
+  }
+
+  /* Compact display for set values and component labels. */
+  function fmtNum(value, unit) {
+    if (!Number.isFinite(value)) return '—';
+    const abs = Math.abs(value);
+    let decimals = abs >= 100 ? 0 : abs >= 10 ? 1 : 2;
+    const text = String(parseFloat(value.toFixed(decimals)));
+    return text + ' ' + unit;
+  }
+
+  /* Engineering notation for measured values. */
+  function fmt(value, unit) {
+    if (value == null || !Number.isFinite(value)) return '— ' + unit;
+    const abs = Math.abs(value);
+    if (abs < 1e-9) return '0 ' + unit;
+    const prefixes = [
+      [1e9, 'G'], [1e6, 'M'], [1e3, 'k'], [1, ''],
+      [1e-3, 'm'], [1e-6, 'µ'], [1e-9, 'n']
+    ];
+    for (const [scale, prefix] of prefixes) {
+      if (abs >= scale) {
+        const v = abs / scale;
+        const decimals = v >= 100 ? 0 : v >= 10 ? 1 : 2;
+        return (value < 0 ? '−' : '') + v.toFixed(decimals) + ' ' + prefix + unit;
+      }
+    }
+    return abs.toExponential(1) + ' ' + unit;
+  }
+
+  function createItem(type, x, y, rot) {
+    const base = { id: uid(), type: type, x: x, y: y, rot: rot || 0 };
+    if (type === 'battery') return Object.assign(base, { mode: 'voltage', volts: 9, amps: 1 });
+    if (type === 'resistor') return Object.assign(base, { ohms: 100 });
+    if (type === 'switch') return Object.assign(base, { closed: true });
+    return base;
+  }
+
+  function clampPlacement(rot, point) {
+    const vertical = rot % 2 === 1;
+    return {
+      x: vertical ? clamp(point.x, 0, COLS) : clamp(point.x, 1, COLS - 1),
+      y: vertical ? clamp(point.y, 1, ROWS - 1) : clamp(point.y, 0, ROWS)
+    };
+  }
+
+  function clampPart(item) {
+    const p = clampPlacement(rotOf(item), item);
+    item.x = p.x;
+    item.y = p.y;
+  }
+
+  function selectedItem() {
+    return state.items.find(function (i) { return i.id === state.selected; }) || null;
+  }
+
+  function showToast(message) {
+    els.toast.textContent = message;
+    els.toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { els.toast.classList.remove('show'); }, 2600);
+  }
+
+  /* ============================================================
+     Symbols
+     ============================================================ */
+
+  function symbolMarkup(item) {
+    const deg = rotOf(item) * 90;
+    switch (item.type) {
+      case 'wire':
+        return '<path class="body" d="M-40 0H40"/>' +
+          '<circle class="node" cx="-40" cy="0" r="3.2"/>' +
+          '<circle class="node" cx="40" cy="0" r="3.2"/>';
+      case 'resistor':
+        return '<path class="lead" d="M-44 0H-27"/>' +
+          '<path class="body" d="M-27 0l7-15 13 30 13-30 13 30 7-15"/>' +
+          '<path class="lead" d="M27 0H44"/>';
+      case 'battery':
+        return '<path class="lead" d="M-44 0H-10"/>' +
+          '<path class="lead" d="M10 0H44"/>' +
+          '<path class="plate-short" d="M-10 -13V13"/>' +
+          '<path class="plate-long" d="M10 -24V24"/>' +
+          '<path class="pol" d="M20 -21v9M15.5 -16.5h9"/>';
+      case 'capacitor':
+        return '<path class="lead" d="M-44 0H-8"/>' +
+          '<path class="lead" d="M8 0H44"/>' +
+          '<path class="body" d="M-8 -20V20"/>' +
+          '<path class="body" d="M8 -20V20"/>';
+      case 'inductor':
+        return '<path class="lead" d="M-44 0H-26"/>' +
+          '<path class="lead" d="M26 0H44"/>' +
+          '<path class="body" d="M-26 0a8.67 8.67 0 0 1 17.34 0 8.67 8.67 0 0 1 17.34 0 8.67 8.67 0 0 1 17.32 0"/>';
+      case 'switch':
+        return '<path class="lead" d="M-44 0H-24"/>' +
+          '<path class="lead" d="M24 0H44"/>' +
+          '<path class="body" d="M-24 0L' + (item.closed ? '24 0' : '13 -27') + '"/>' +
+          '<circle class="node" cx="-24" cy="0" r="3.4"/>' +
+          '<circle class="node" cx="24" cy="0" r="3.4"/>';
+      case 'voltmeter':
+      case 'ammeter': {
+        const letter = item.type === 'voltmeter' ? 'V' : 'A';
+        return '<path class="lead" d="M-44 0H-23"/>' +
+          '<path class="lead" d="M23 0H44"/>' +
+          '<circle class="meter-face" cx="0" cy="0" r="23"/>' +
+          '<text class="meter-letter" x="0" y="0" transform="rotate(' + (-deg) + ')" ' +
+          'text-anchor="middle" dominant-baseline="central">' + letter + '</text>';
+      }
+      case 'arrow':
+        return '<path class="arrow" d="M-40 0H28"/>' +
+          '<path class="arrow" d="M28 -14L44 0 28 14"/>';
+      default:
+        return '';
+    }
+  }
+
+  function paletteIcon(type) {
+    if (type === 'select') {
+      return '<svg class="p-icon" viewBox="0 0 40 40" aria-hidden="true">' +
+        '<path d="M12 5l14 17-7.4.9 3.9 7.4-3.9 2-3.9-7.6L12 30z" fill="currentColor" opacity=".92"/>' +
+        '</svg>';
+    }
+    return '<svg class="p-icon" viewBox="-50 -30 100 60" aria-hidden="true">' +
+      symbolMarkup({ type: type, rot: 0, closed: true }) +
+      '</svg>';
+  }
+
+  /* ============================================================
+     Rendering
+     ============================================================ */
+
+  function renderGrid() {
+    let out = '';
+    for (let y = 0; y <= ROWS; y++) {
+      for (let x = 0; x <= COLS; x++) {
+        out += '<circle class="grid-dot" cx="' + (x * G) + '" cy="' + (y * G) + '" r="2.6"/>';
+      }
+    }
+    els.gridLayer.innerHTML = out;
+  }
+
+  /* ============================================================
+     Board size
+     ============================================================ */
+
+  function boardMaxWidth() {
+    // Keep dots a comfortable size on screen while letting bigger boards breathe.
+    return Math.round(clamp(320 + COLS * 22, 380, 880));
+  }
+
+  function applyBoardSize() {
+    const pad = PAD * G;
+    els.board.setAttribute('viewBox',
+      (-pad) + ' ' + (-pad) + ' ' + (COLS * G + pad * 2) + ' ' + (ROWS * G + pad * 2));
+    els.board.style.maxWidth = boardMaxWidth() + 'px';
+    renderGrid();
+    syncSizeControls();
+  }
+
+  // How far the drawing currently reaches, so shrinking never pushes a part
+  // off the board or collides one with another.
+  function contentExtent() {
+    let cols = 0;
+    let rows = 0;
+    for (const item of state.items) {
+      if (item.type === 'wire') {
+        cols = Math.max(cols, item.x1, item.x2);
+        rows = Math.max(rows, item.y1, item.y2);
+      } else {
+        const t = terminals(item);
+        cols = Math.max(cols, t[0].x, t[1].x);
+        rows = Math.max(rows, t[0].y, t[1].y);
+      }
+    }
+    return { cols: cols, rows: rows };
+  }
+
+  function syncSizeControls() {
+    if (els.colsOut) els.colsOut.textContent = String(COLS);
+    if (els.rowsOut) els.rowsOut.textContent = String(ROWS);
+    if (els.sizeBtn) {
+      els.sizeBtn.title = 'Board size: ' + COLS + ' × ' + ROWS + ' dots';
+      els.sizeBtn.setAttribute('aria-label', 'Board size, ' + COLS + ' by ' + ROWS + ' dots');
+    }
+    if (els.sizeNote) els.sizeNote.textContent = COLS + ' × ' + ROWS + ' dots';
+
+    if (!els.sizePop) return;
+    const extent = contentExtent();
+    els.sizePop.querySelectorAll('[data-size]').forEach(function (btn) {
+      const dim = btn.dataset.size;
+      const value = dim === 'cols' ? COLS : ROWS;
+      const limits = SIZE_LIMITS[dim];
+      const shrinking = Number(btn.dataset.delta) < 0;
+      const atFloor = value <= Math.max(limits[0], extent[dim]);
+      const atCeiling = value >= limits[1];
+      const blocked = shrinking ? atFloor : atCeiling;
+      btn.setAttribute('aria-disabled', blocked ? 'true' : 'false');
+      btn.title = !blocked ? '' : (shrinking ? 'Move parts in from that edge first' : 'The board is at its largest size');
+    });
+  }
+
+  function setBoardSize(nextCols, nextRows, quiet) {
+    const wantedCols = clamp(Math.round(nextCols), SIZE_LIMITS.cols[0], SIZE_LIMITS.cols[1]);
+    const wantedRows = clamp(Math.round(nextRows), SIZE_LIMITS.rows[0], SIZE_LIMITS.rows[1]);
+    const extent = contentExtent();
+    const cols = Math.max(wantedCols, extent.cols, SIZE_LIMITS.cols[0]);
+    const rows = Math.max(wantedRows, extent.rows, SIZE_LIMITS.rows[0]);
+    const limited = cols > wantedCols || rows > wantedRows;
+
+    if (cols === COLS && rows === ROWS) {
+      if (limited) {
+        const edges = [];
+        if (extent.cols > wantedCols) edges.push('column ' + extent.cols);
+        if (extent.rows > wantedRows) edges.push('row ' + extent.rows);
+        showToast(edges.length
+          ? 'Parts reach ' + edges.join(' and ') + ' — move them inward to shrink'
+          : 'The smallest board is ' + SIZE_LIMITS.cols[0] + ' × ' + SIZE_LIMITS.rows[0] + ' dots');
+      } else if (!quiet) {
+        showToast('Board is already ' + COLS + ' × ' + ROWS + ' dots');
+      }
+      return;
+    }
+
+    COLS = cols;
+    ROWS = rows;
+    state.wireStart = null;
+    drag = null;
+    applyBoardSize();
+    renderAll();
+    renderInspector();
+    save();
+
+    if (!quiet) showToast('Board resized to ' + COLS + ' × ' + ROWS + ' dots');
+  }
+
+  function setSizePanel(open) {
+    if (!els.sizePop || !els.sizeBtn) return;
+    els.sizePop.hidden = !open;
+    els.sizeBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  // Meters only show numbers in Simulation mode, and only once the circuit
+  // forms a closed loop that current can flow around.
+  function metersLive() {
+    return state.mode === 'sim' && solution.ok && solution.closed === true;
+  }
+
+  function valueLabel(item) {
+    if (item.type === 'battery') {
+      return item.mode === 'current'
+        ? { text: fmtNum(item.amps, 'A'), cls: 'val' }
+        : { text: fmtNum(item.volts, 'V'), cls: 'val' };
+    }
+    if (item.type === 'resistor') {
+      return { text: fmtNum(item.ohms, 'Ω'), cls: 'val' };
+    }
+    if (item.type === 'voltmeter' || item.type === 'ammeter') {
+      if (!metersLive()) return null;
+      const value = item.type === 'voltmeter'
+        ? fmt(solution.volts.get(item.id), 'V')
+        : fmt(solution.amps.get(item.id), 'A');
+      return { text: value, cls: 'reading' };
+    }
+    return null;
+  }
+
+  function labelPlacement(item) {
+    if (rotOf(item) % 2 === 1) {
+      return {
+        x: item.x * G + 33,
+        y: item.y * G + 6,
+        anchor: 'start'
+      };
+    }
+    return {
+      x: item.x * G,
+      y: item.y * G + 39,
+      anchor: 'middle'
+    };
+  }
+
+  function partSVG(item) {
+    const deg = rotOf(item) * 90;
+    const cx = item.x * G;
+    const cy = item.y * G;
+    const selected = item.id === state.selected;
+    let out = '<g class="part' + (selected ? ' is-selected' : '') + '" data-id="' + item.id + '">';
+
+    if (selected) {
+      const vertical = rotOf(item) % 2 === 1;
+      const w = vertical ? 1.5 * G : 2.2 * G;
+      const h = vertical ? 2.2 * G : 1.5 * G;
+      out += '<rect class="halo" x="' + (cx - w / 2) + '" y="' + (cy - h / 2) +
+        '" width="' + w + '" height="' + h + '" rx="14"/>';
+    }
+
+    out += '<g transform="translate(' + cx + ' ' + cy + ') rotate(' + deg + ')">' +
+      symbolMarkup(item) + '</g>';
+
+    const label = valueLabel(item);
+    if (label) {
+      const pos = labelPlacement(item);
+      out += '<text class="' + label.cls + '" x="' + pos.x + '" y="' + pos.y +
+        '" text-anchor="' + pos.anchor + '">' + label.text + '</text>';
+    }
+
+    out += '</g>';
+    return out;
+  }
+
+  function wireSVG(item) {
+    const selected = item.id === state.selected;
+    return '<g class="wire' + (selected ? ' is-selected' : '') + '" data-id="' + item.id + '">' +
+      '<line class="wire-line" x1="' + (item.x1 * G) + '" y1="' + (item.y1 * G) +
+      '" x2="' + (item.x2 * G) + '" y2="' + (item.y2 * G) + '"/>' +
+      '</g>';
+  }
+
+  function renderScene() {
+    let out = '';
+    for (const item of state.items) {
+      if (item.type === 'wire') out += wireSVG(item);
+    }
+    for (const item of state.items) {
+      if (item.type !== 'wire' && item.type !== 'arrow') out += partSVG(item);
+    }
+    if (state.mode === 'sim') {
+      for (const item of state.items) {
+        if (item.type === 'arrow') out += partSVG(item);
+      }
+    }
+    els.sceneLayer.innerHTML = out;
+  }
+
+  function renderDraft() {
+    let out = '';
+    if (drag && drag.kind === 'wire') {
+      const a = drag.start;
+      const b = drag.end;
+      out += '<line class="draft" x1="' + (a.x * G) + '" y1="' + (a.y * G) +
+        '" x2="' + (b.x * G) + '" y2="' + (b.y * G) + '"/>';
+      out += '<circle class="draft-dot" cx="' + (a.x * G) + '" cy="' + (a.y * G) + '" r="5"/>';
+      if (!samePoint(a, b)) {
+        out += '<circle class="draft-ring" cx="' + (b.x * G) + '" cy="' + (b.y * G) + '" r="8"/>';
+      }
+    } else if (state.wireStart) {
+      const p = state.wireStart;
+      out += '<circle class="draft-ring" cx="' + (p.x * G) + '" cy="' + (p.y * G) + '" r="10"/>';
+      out += '<circle class="draft-dot" cx="' + (p.x * G) + '" cy="' + (p.y * G) + '" r="5"/>';
+    }
+    els.draftLayer.innerHTML = out;
+  }
+
+  function renderAll() {
+    solution = computeSolution();
+    renderScene();
+    renderDraft();
+    updateLiveReading();
+    updateStatus();
+    updateToolbar();
+    updatePalette();
+  }
+
+  function scheduleRender() {
+    if (rafPending) return;
+    rafPending = true;
+    requestAnimationFrame(function () {
+      rafPending = false;
+      renderAll();
+    });
+  }
+
+  function updateToolbar() {
+    const sel = selectedItem();
+    els.rotateBtn.disabled = !sel;
+    els.deleteBtn.disabled = !sel;
+    els.undoBtn.disabled = history.length === 0;
+    els.clearBtn.title = clearArmed ? 'Tap again to clear everything' : 'Clear the board';
+  }
+
+  function updatePalette() {
+    els.palette.querySelectorAll('[data-tool]').forEach(function (btn) {
+      const on = btn.dataset.tool === state.tool;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      // Current arrows belong to simulation; keep them out of drawing mode.
+      if (btn.dataset.tool === 'arrow') btn.hidden = state.mode !== 'sim';
+    });
+  }
+
+  function updateStatus() {
+    const sel = selectedItem();
+    let text = 'Tap a part, then tap the board';
+    let warn = false;
+
+    if (state.tool === 'wire') {
+      text = state.wireStart ? 'Tap a second dot to finish the wire' : 'Tap two dots to draw a wire';
+    } else if (state.tool !== 'select') {
+      text = HINTS[state.tool] || 'Tap the board to place the part';
+    } else if (sel) {
+      text = PART_NAME[sel.type] + ' selected';
+      if (sel.type === 'wire') text = 'Wire selected';
+    } else if (state.items.length === 0) {
+      text = 'Add a part to get started';
+    }
+
+    if (state.mode === 'sim') {
+      const hasSource = state.items.some(function (i) { return i.type === 'battery'; });
+      if (!solution.ok) {
+        text = solution.note || 'Meters unavailable — check the circuit';
+        warn = true;
+      } else if (solution.note) {
+        text = solution.note;
+        warn = true;
+      } else if (hasSource && !solution.closed) {
+        text = 'Open circuit — close a switch to complete the loop';
+        warn = true;
+      }
+    }
+
+    els.statusText.textContent = text;
+    els.liveDot.classList.toggle('warn', warn);
+  }
+
+  /* ============================================================
+     Drawing / simulation modes
+     ============================================================ */
+
+  function setMode(mode) {
+    const next = mode === 'draw' ? 'draw' : 'sim';
+    if (next === state.mode) return;
+    state.mode = next;
+
+    if (next === 'draw') {
+      const sel = selectedItem();
+      if (sel && sel.type === 'arrow') state.selected = null;
+      if (state.tool === 'arrow') setTool('select');
+      state.wireStart = null;
+      drag = null;
+    }
+
+    renderAll();
+    renderInspector();
+    updateModeControls();
+    save();
+    showToast(next === 'draw'
+      ? 'Drawing mode — meter readings and current arrows are hidden'
+      : 'Simulation mode — readings on, ' + (state.realism === 'realistic' ? 'realistic parts' : 'ideal parts'));
+  }
+
+  function setRealism(value) {
+    const next = value === 'realistic' ? 'realistic' : 'ideal';
+    if (next === state.realism) return;
+    state.realism = next;
+    renderAll();
+    renderInspector();
+    updateModeControls();
+    save();
+    showToast(next === 'realistic'
+      ? 'Realistic model — every part now carries 1–2% internal resistance'
+      : 'Ideal model — no internal resistance');
+  }
+
+  function updateModeControls() {
+    document.querySelectorAll('[data-mode-tab]').forEach(function (btn) {
+      btn.setAttribute('aria-pressed', btn.dataset.modeTab === state.mode ? 'true' : 'false');
+    });
+    document.querySelectorAll('[data-realism]').forEach(function (btn) {
+      btn.setAttribute('aria-pressed', btn.dataset.realism === state.realism ? 'true' : 'false');
+    });
+    if (els.modelSeg) els.modelSeg.hidden = state.mode !== 'sim';
+    if (els.modeHint) {
+      els.modeHint.textContent = state.mode === 'draw'
+        ? 'Readings off'
+        : (state.realism === 'realistic' ? '1–2% internal resistance' : 'No internal resistance');
+    }
+  }
+
+  /* ============================================================
+     Inspector
+     ============================================================ */
+
+  function readingChip(caption, value, muted) {
+    return '<div class="readout' + (muted ? ' muted' : '') + '">' +
+      '<span class="cap">' + caption + '</span>' +
+      '<span class="val">' + value + '</span></div>';
+  }
+
+  function liveReadingMarkup(item) {
+    if (!item || state.mode !== 'sim') return '';
+    if (item.type === 'voltmeter') {
+      const ready = metersLive();
+      return readingChip('Voltage across voltmeter',
+        ready ? fmt(solution.volts.get(item.id), 'V') : '— V', !ready);
+    }
+    if (item.type === 'ammeter') {
+      const ready = metersLive();
+      return readingChip('Current through ammeter',
+        ready ? fmt(solution.amps.get(item.id), 'A') : '— A', !ready);
+    }
+    if (item.type === 'resistor') {
+      return readingChip('Current through resistor', fmt(solution.resistorAmps.get(item.id), 'A'), !solution.ok);
+    }
+    if (item.type === 'battery') {
+      const rec = solution.sources.get(item.id);
+      if (item.mode === 'current') {
+        return readingChip('Terminal voltage', fmt(rec ? rec.v : null, 'V'), !solution.ok);
+      }
+      return readingChip('Current supplied', fmt(rec ? Math.abs(rec.i) : null, 'A'), !solution.ok);
+    }
+    return '';
+  }
+
+  function updateLiveReading() {
+    const host = document.getElementById('liveReading');
+    if (!host) return;
+    const item = selectedItem();
+    host.innerHTML = liveReadingMarkup(item);
+  }
+
+  function fieldNumber(opts) {
+    return '<div class="field"><label for="' + opts.id + '">' + opts.label + '</label>' +
+      '<span class="unit-input"><input id="' + opts.id + '" type="number" inputmode="decimal" ' +
+      'min="' + opts.min + '" max="' + opts.max + '" step="' + opts.step + '" value="' + opts.value + '" ' +
+      'aria-label="' + opts.label + '">' +
+      '<span class="suffix">' + opts.unit + '</span></span></div>';
+  }
+
+  function fieldRange(opts) {
+    return '<input type="range" id="' + opts.id + 'Range" min="' + opts.rangeMin + '" max="' + opts.rangeMax +
+      '" step="' + opts.rangeStep + '" value="' + opts.value + '" aria-label="' + opts.label + ' slider">';
+  }
+
+  function renderInspector() {
+    const item = selectedItem();
+    els.inspectorHint.textContent = item ? (LABEL_HINTS[item.type] || '') : 'Values & readings';
+
+    if (!item) {
+      els.inspector.innerHTML =
+        '<div class="empty-state">' +
+        '<p class="hint">Tap a part on the board to edit it. Use the palette to add parts, and tap two dots to draw a wire.</p>' +
+        '<p class="hint">The voltmeter reads potential difference and the ammeter reads current. In Simulation mode the values are solved from the wiring; Realistic adds 1–2% internal resistance to every part.</p>' +
+        '<div class="btn-row">' +
+        '<button class="btn primary" id="exampleBtn" type="button">Load an example</button>' +
+        '<button class="btn" id="startBtn" type="button">Start blank</button>' +
+        '</div>' +
+        '</div>';
+      const exampleBtn = document.getElementById('exampleBtn');
+      const startBtn = document.getElementById('startBtn');
+      if (exampleBtn) exampleBtn.addEventListener('click', function () { loadExample(true); });
+      if (startBtn) startBtn.addEventListener('click', function () { clearBoard(false); });
+      return;
+    }
+
+    let html = '<div id="liveReading">' + liveReadingMarkup(item) + '</div>';
+
+    if (state.mode === 'draw') {
+      html += '<p class="hint">Drawing mode hides meter readings and current arrows. Switch to Simulation once the wiring is ready.</p>';
+    } else if ((item.type === 'voltmeter' || item.type === 'ammeter') && !metersLive()) {
+      html += '<p class="hint">' + (solution.ok
+        ? 'No reading yet — the circuit is open. Close a switch to complete the loop.'
+        : 'No reading — check the circuit for a short across a source.') + '</p>';
+    }
+
+    if (item.type === 'battery') {
+      const isCurrent = item.mode === 'current';
+      html += '<div class="seg" role="group" aria-label="Source type">' +
+        '<button type="button" data-mode="voltage" aria-pressed="' + (!isCurrent) + '">Voltage</button>' +
+        '<button type="button" data-mode="current" aria-pressed="' + (isCurrent) + '">Current</button>' +
+        '</div>';
+      if (isCurrent) {
+        html += fieldNumber({
+          id: 'valueInput', label: 'Source current', min: 0, max: 1000, step: 0.1,
+          value: item.amps, unit: 'A'
+        });
+        html += fieldRange({
+          id: 'valueInput', label: 'Source current', rangeMin: 0, rangeMax: 5, rangeStep: 0.1, value: item.amps
+        });
+        html += '<p class="hint">Drives a fixed current through the loop. Current sources need a complete path.</p>';
+      } else {
+        html += fieldNumber({
+          id: 'valueInput', label: 'Battery voltage', min: 0, max: 1000, step: 0.5,
+          value: item.volts, unit: 'V'
+        });
+        html += fieldRange({
+          id: 'valueInput', label: 'Battery voltage', rangeMin: 0, rangeMax: 24, rangeStep: 0.5, value: item.volts
+        });
+        html += '<p class="hint">The long line is the positive terminal. Tap rotate to flip the polarity.</p>';
+      }
+    } else if (item.type === 'resistor') {
+      html += fieldNumber({
+        id: 'valueInput', label: 'Resistance', min: 0.01, max: 1000000, step: 1,
+        value: item.ohms, unit: 'Ω'
+      });
+      html += fieldRange({
+        id: 'valueInput', label: 'Resistance', rangeMin: 0.01, rangeMax: 1000, rangeStep: 0.1, value: Math.min(item.ohms, 1000)
+      });
+      html += '<p class="hint">Combine with the battery voltage to set the current: I = V / R.</p>';
+    } else if (item.type === 'switch') {
+      html += '<div class="toggle"><span class="label">Switch is ' + (item.closed ? 'closed' : 'open') + '</span>' +
+        '<button type="button" class="switch-visual" id="switchToggle" aria-label="Toggle switch" aria-pressed="' +
+        (item.closed ? 'true' : 'false') + '"></button></div>';
+      html += '<p class="hint">' + (item.closed
+        ? 'Closed switches conduct: current can flow through this branch.'
+        : 'Open switches break the loop: current through this branch is zero.') + '</p>';
+    } else if (item.type === 'capacitor') {
+      html += '<p class="note">A capacitor is an open circuit for steady DC: it stores charge but passes no steady current, so it does not affect the meter readings here.</p>';
+    } else if (item.type === 'inductor') {
+      html += '<p class="note">' + (state.realism === 'realistic'
+        ? 'For steady DC an inductor acts as a wire with 0.05 Ω of winding resistance.'
+        : 'An inductor is a wire (0 Ω) for steady DC, so its two terminals behave as one node.') + '</p>';
+    } else if (item.type === 'voltmeter') {
+      html += '<p class="hint">Connect the voltmeter across the two points you want to measure. ' +
+        (state.realism === 'realistic'
+          ? 'A real meter has a 1 MΩ input, so it draws a tiny current.'
+          : 'An ideal meter has infinite resistance, so it draws no current.') + '</p>';
+    } else if (item.type === 'ammeter') {
+      html += '<p class="hint">Place the ammeter in series with the branch you want to measure. ' +
+        (state.realism === 'realistic'
+          ? 'A real meter adds a small 0.05 Ω shunt in that branch.'
+          : 'An ideal meter has zero resistance.') + '</p>';
+    } else if (item.type === 'arrow') {
+      html += '<p class="hint">A visual marker for the conventional current direction. It is not part of the circuit, and it only appears in Simulation mode.</p>';
+    } else if (item.type === 'wire') {
+      html += '<p class="hint">Wire from (' + item.x1 + ', ' + item.y1 + ') to (' + item.x2 + ', ' + item.y2 +
+        '). Wires join any terminal or other wire they touch.</p>';
+    }
+
+    if (state.mode === 'sim' && state.realism === 'realistic') {
+      if (item.type === 'resistor' && solution.resistorR.has(item.id)) {
+        const eff = solution.resistorR.get(item.id);
+        const gain = item.ohms > 0 ? (eff / item.ohms - 1) * 100 : 0;
+        html += '<p class="note">Realistic model: +' + gain.toFixed(1) + '% internal resistance (' +
+          eff.toFixed(1) + ' Ω effective).</p>';
+      } else if (item.type === 'battery' && solution.sourceR.has(item.id)) {
+        html += '<p class="note">Realistic model: internal resistance ' +
+          fmtNum(solution.sourceR.get(item.id), 'Ω') + '.</p>';
+      }
+    }
+
+    html += '<div class="btn-row">' +
+      '<button class="btn" id="rotateInline" type="button">Rotate 90°</button>' +
+      '<button class="btn danger" id="deleteInline" type="button">Delete</button>' +
+      '</div>';
+
+    els.inspector.innerHTML = html;
+    bindInspector(item);
+    revealInspector();
+  }
+
+  // On phones the parts palette is pinned to the bottom of the viewport.
+  // Keep the editor above it after a part is selected.
+  function revealInspector() {
+    if (!window.matchMedia('(max-width: 919px)').matches) return;
+    const panel = els.inspector.closest('.panel');
+    const palette = document.querySelector('.palette-panel');
+    if (!panel || !palette) return;
+    const panelRect = panel.getBoundingClientRect();
+    const paletteRect = palette.getBoundingClientRect();
+    const overlap = panelRect.bottom - (paletteRect.top - 10);
+    if (overlap <= 0) return;
+    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const room = maxScroll - window.scrollY;
+    if (room <= 0) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollBy({ top: Math.min(overlap + 10, room), behavior: reduce ? 'auto' : 'smooth' });
+  }
+
+  function bindInspector(item) {
+    els.inspector.querySelectorAll('[data-mode]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        item.mode = btn.dataset.mode;
+        showToast(item.mode === 'current' ? 'Battery set as a current source' : 'Battery set as a voltage source');
+        renderAll();
+        renderInspector();
+        save();
+      });
+    });
+
+    const num = document.getElementById('valueInput');
+    const range = document.getElementById('valueInputRange');
+    if (num) {
+      const apply = function (raw, syncNum, syncRange) {
+        let v = Number(raw);
+        if (!Number.isFinite(v)) v = 0;
+        v = clamp(v, Number(num.min), Number(num.max));
+        if (item.type === 'battery') {
+          if (item.mode === 'current') item.amps = v; else item.volts = v;
+        } else if (item.type === 'resistor') {
+          item.ohms = v;
+        }
+        if (syncNum) num.value = v;
+        if (syncRange && range) range.value = clamp(v, Number(range.min), Number(range.max));
+        solution = computeSolution();
+        renderScene();
+        updateLiveReading();
+        updateStatus();
+        updateToolbar();
+        save();
+      };
+      num.addEventListener('focus', function () { pushHistory(); });
+      num.addEventListener('input', function () { apply(num.value, false, true); });
+      num.addEventListener('blur', function () {
+        if (num.value === '') apply(0, true, true);
+      });
+      if (range) {
+        range.addEventListener('input', function () { apply(range.value, true, false); });
+      }
+    }
+
+    const toggle = document.getElementById('switchToggle');
+    if (toggle) {
+      toggle.addEventListener('click', function () {
+        pushHistory();
+        item.closed = !item.closed;
+        toggle.setAttribute('aria-pressed', item.closed ? 'true' : 'false');
+        renderAll();
+        renderInspector();
+        save();
+      });
+    }
+
+    const rotateInline = document.getElementById('rotateInline');
+    if (rotateInline) rotateInline.addEventListener('click', rotateSelected);
+
+    const deleteInline = document.getElementById('deleteInline');
+    if (deleteInline) deleteInline.addEventListener('click', deleteSelected);
+  }
+
+  /* ============================================================
+     Circuit solver (modified nodal analysis)
+     ============================================================ */
+
+  function UnionFind() {
+    this.parent = new Map();
+  }
+  UnionFind.prototype.find = function (key) {
+    if (!this.parent.has(key)) this.parent.set(key, key);
+    let root = key;
+    while (this.parent.get(root) !== root) root = this.parent.get(root);
+    let cursor = key;
+    while (this.parent.get(cursor) !== cursor) {
+      const next = this.parent.get(cursor);
+      this.parent.set(cursor, root);
+      cursor = next;
+    }
+    return root;
+  };
+  UnionFind.prototype.union = function (a, b) {
+    const ra = this.find(a);
+    const rb = this.find(b);
+    if (ra !== rb) this.parent.set(ra, rb);
+  };
+
+  function solveLinear(A, b) {
+    const n = b.length;
+    for (let i = 0; i < n; i++) {
+      let pivot = i;
+      for (let r = i + 1; r < n; r++) {
+        if (Math.abs(A[r][i]) > Math.abs(A[pivot][i])) pivot = r;
+      }
+      if (Math.abs(A[pivot][i]) < 1e-11) return null;
+      if (pivot !== i) {
+        const tmpRow = A[pivot]; A[pivot] = A[i]; A[i] = tmpRow;
+        const tmpB = b[pivot]; b[pivot] = b[i]; b[i] = tmpB;
+      }
+      const pv = A[i][i];
+      for (let r = i + 1; r < n; r++) {
+        const f = A[r][i] / pv;
+        if (f === 0) continue;
+        for (let c = i; c < n; c++) A[r][c] -= f * A[i][c];
+        b[r] -= f * b[i];
+      }
+    }
+    const x = new Float64Array(n);
+    for (let i = n - 1; i >= 0; i--) {
+      let sum = b[i];
+      for (let c = i + 1; c < n; c++) sum -= A[i][c] * x[c];
+      x[i] = sum / A[i][i];
+    }
+    return x;
+  }
+
+  // A stable 1–2% per part, derived from its id so readings never flicker.
+  function partFactor(id) {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) % 100000;
+    return 0.01 + (hash % 101) / 10000;
+  }
+
+  // Realistic sources get internal resistance worth 1–2% of the loop they
+  // drive. The ideal pass supplies the terminal voltage and current to size it.
+  function internalResistance(item, baseline) {
+    const seen = baseline ? baseline.sources.get(item.id) : null;
+    if (seen && Math.abs(seen.i) > 1e-9 && Number.isFinite(seen.v)) {
+      const loopR = Math.abs(seen.v / seen.i);
+      if (Number.isFinite(loopR) && loopR > 0) {
+        return clamp(partFactor(item.id) * loopR, 0.01, 5000);
+      }
+    }
+    return 0.1;
+  }
+
+  function computeSolution() {
+    if (state.mode !== 'sim') return emptySolution();
+    const ideal = solveCircuit(false, null);
+    if (state.realism !== 'realistic' || !ideal.ok) return ideal;
+    return solveCircuit(true, ideal);
+  }
+
+  function solveCircuit(realistic, baseline) {
+    const sol = emptySolution();
+    const items = state.items;
+    const wires = items.filter(function (i) { return i.type === 'wire'; });
+    const parts = items.filter(function (i) { return i.type !== 'wire'; });
+    const uf = new UnionFind();
+    const key = function (x, y) { return x + ',' + y; };
+
+    // Wires merge every grid point they pass over.
+    for (const w of wires) {
+      uf.union(key(w.x1, w.y1), key(w.x2, w.y2));
+      if (w.y1 === w.y2) {
+        const lo = Math.min(w.x1, w.x2);
+        const hi = Math.max(w.x1, w.x2);
+        for (let x = lo; x < hi; x++) uf.union(key(x, w.y1), key(x + 1, w.y1));
+      } else if (w.x1 === w.x2) {
+        const lo = Math.min(w.y1, w.y2);
+        const hi = Math.max(w.y1, w.y2);
+        for (let y = lo; y < hi; y++) uf.union(key(w.x1, y), key(w.x1, y + 1));
+      }
+    }
+
+    // Inductors and closed switches are ideal shorts at DC. In the realistic
+    // model they keep a small series resistance instead of merging their ends.
+    if (!realistic) {
+      for (const p of parts) {
+        if (p.type === 'inductor' || (p.type === 'switch' && p.closed)) {
+          const t = terminals(p);
+          uf.union(key(t[0].x, t[0].y), key(t[1].x, t[1].y));
+        }
+      }
+    }
+
+    const nodeIds = new Map();
+    function nodeOf(point) {
+      const root = uf.find(key(point.x, point.y));
+      let id = nodeIds.get(root);
+      if (id === undefined) {
+        id = nodeIds.size;
+        nodeIds.set(root, id);
+      }
+      return id;
+    }
+
+    // Discover nodes in a stable order.
+    for (const p of parts) {
+      const t = terminals(p);
+      nodeOf(t[0]);
+      nodeOf(t[1]);
+    }
+
+    const resistors = [];
+    const voltageSources = [];
+    const currentSources = [];
+    const ammeters = [];
+    const ammeterShunts = [];
+    const voltmeters = [];
+    const batteryRecs = [];
+    const resistorRecs = [];
+
+    for (const p of parts) {
+      if (p.type === 'arrow') continue;
+      const t = terminals(p);
+      const a = nodeOf(t[0]);
+      const b = nodeOf(t[1]);
+
+      if (p.type === 'resistor') {
+        const baseR = Math.max(Number(p.ohms) || 1, 0.001);
+        const r = realistic ? baseR * (1 + partFactor(p.id)) : baseR;
+        sol.resistorR.set(p.id, r);
+        if (a === b) {
+          sol.resistorAmps.set(p.id, 0);
+        } else {
+          resistors.push({ a: a, b: b, r: r });
+          resistorRecs.push({ id: p.id, a: a, b: b, r: r });
+        }
+      } else if (p.type === 'battery') {
+        if (a === b) {
+          sol.note = 'A battery is shorted — separate its terminals';
+        } else if (p.mode === 'current') {
+          const src = { a: a, b: b, i: Math.max(0, Number(p.amps) || 0), id: p.id };
+          currentSources.push(src);
+          batteryRecs.push({ id: p.id, a: a, b: b, mode: 'current', src: src });
+        } else {
+          const rInt = realistic ? internalResistance(p, baseline) : 0.05;
+          sol.sourceR.set(p.id, rInt);
+          const src = { a: a, b: b, e: Number(p.volts) || 0, r: rInt, id: p.id };
+          voltageSources.push(src);
+          batteryRecs.push({ id: p.id, a: a, b: b, mode: 'voltage', src: src });
+        }
+      } else if (p.type === 'ammeter') {
+        if (a === b) {
+          sol.amps.set(p.id, 0);
+        } else if (realistic) {
+          // A real ammeter has a small shunt resistance instead of 0 Ω.
+          const r = 0.05;
+          resistors.push({ a: a, b: b, r: r });
+          ammeterShunts.push({ a: a, b: b, id: p.id, r: r });
+        } else {
+          ammeters.push({ a: a, b: b, id: p.id });
+        }
+      } else if (p.type === 'voltmeter') {
+        voltmeters.push({ a: a, b: b, id: p.id });
+        // A real voltmeter draws a little current through its 1 MΩ input.
+        if (realistic && a !== b) resistors.push({ a: a, b: b, r: 1e6, meter: true });
+      } else if (realistic && a !== b && (p.type === 'inductor' || p.type === 'switch')) {
+        if (p.type === 'inductor' || p.closed) {
+          resistors.push({ a: a, b: b, r: 0.05 });
+        }
+      }
+    }
+
+    // A circuit counts as closed when a source has a conductive path between
+    // its own terminals, other than through itself, so current can circulate.
+    const closureEdges = [];
+    for (const el of resistors) closureEdges.push({ a: el.a, b: el.b });
+    // A voltmeter closes a (no-current) loop all by itself, so a battery with
+    // just a voltmeter across it still reads a voltage.
+    for (const m of voltmeters) closureEdges.push({ a: m.a, b: m.b });
+    for (const m of ammeters) closureEdges.push({ a: m.a, b: m.b });
+    for (const m of ammeterShunts) closureEdges.push({ a: m.a, b: m.b });
+    for (const s of voltageSources) closureEdges.push({ a: s.a, b: s.b, id: s.id });
+    for (const s of currentSources) closureEdges.push({ a: s.a, b: s.b, id: s.id });
+
+    function hasPath(from, to, skipId) {
+      const seen = new Set([from]);
+      const queue = [from];
+      while (queue.length) {
+        const node = queue.shift();
+        for (const e of closureEdges) {
+          if (e.id === skipId) continue;
+          let next = -1;
+          if (e.a === node) next = e.b;
+          else if (e.b === node) next = e.a;
+          if (next < 0 || seen.has(next)) continue;
+          if (next === to) return true;
+          seen.add(next);
+          queue.push(next);
+        }
+      }
+      return false;
+    }
+
+    for (const src of voltageSources.concat(currentSources)) {
+      if (src.a === src.b) { sol.closed = true; break; }
+      if (hasPath(src.a, src.b, src.id)) { sol.closed = true; break; }
+    }
+
+    const nodeCount = nodeIds.size;
+
+    // Each conductive island gets its own 0 V reference. This keeps isolated
+    // parts exactly at zero instead of injecting numerical leakage currents.
+    const island = new UnionFind();
+    function connect(a, b) { island.union('n' + a, 'n' + b); }
+    for (const el of resistors) connect(el.a, el.b);
+    for (const s of voltageSources) connect(s.a, s.b);
+    for (const s of currentSources) connect(s.a, s.b);
+    for (const m of ammeters) connect(m.a, m.b);
+
+    const varIndex = new Array(nodeCount).fill(-1);
+    const referenced = new Set();
+    let nodeVars = 0;
+    for (let node = 0; node < nodeCount; node++) {
+      const root = island.find('n' + node);
+      if (!referenced.has(root)) {
+        referenced.add(root);
+      } else {
+        varIndex[node] = nodeVars++;
+      }
+    }
+
+    const size = nodeVars + voltageSources.length + ammeters.length;
+
+    // Default readings: honest zeros for ideal meters in a solved circuit.
+    for (const m of voltmeters) sol.volts.set(m.id, 0);
+    for (const m of ammeters) if (!sol.amps.has(m.id)) sol.amps.set(m.id, 0);
+
+    if (size === 0) {
+      for (const r of resistorRecs) sol.resistorAmps.set(r.id, 0);
+      for (const b of batteryRecs) sol.sources.set(b.id, { i: 0, v: 0 });
+      return sol;
+    }
+
+    const A = [];
+    for (let i = 0; i < size; i++) A.push(new Float64Array(size));
+    const rhs = new Float64Array(size);
+    const vi = function (node) { return varIndex[node]; };
+
+    for (const el of resistors) {
+      const g = 1 / el.r;
+      const ia = vi(el.a);
+      const ib = vi(el.b);
+      if (ia >= 0) A[ia][ia] += g;
+      if (ib >= 0) A[ib][ib] += g;
+      if (ia >= 0 && ib >= 0) {
+        A[ia][ib] -= g;
+        A[ib][ia] -= g;
+      }
+    }
+
+    for (const s of currentSources) {
+      if (vi(s.a) >= 0) rhs[vi(s.a)] += s.i;
+      if (vi(s.b) >= 0) rhs[vi(s.b)] -= s.i;
+    }
+
+    let col = nodeVars;
+    for (const s of voltageSources) {
+      const k = col++;
+      s.col = k;
+      if (vi(s.a) >= 0) {
+        A[vi(s.a)][k] += 1;
+        A[k][vi(s.a)] += 1;
+      }
+      if (vi(s.b) >= 0) {
+        A[vi(s.b)][k] -= 1;
+        A[k][vi(s.b)] -= 1;
+      }
+      A[k][k] -= s.r;
+      rhs[k] = s.e;
+    }
+
+    for (const m of ammeters) {
+      const k = col++;
+      m.col = k;
+      if (vi(m.a) >= 0) {
+        A[vi(m.a)][k] += 1;
+        A[k][vi(m.a)] += 1;
+      }
+      if (vi(m.b) >= 0) {
+        A[vi(m.b)][k] -= 1;
+        A[k][vi(m.b)] -= 1;
+      }
+      rhs[k] = 0;
+    }
+
+    const x = solveLinear(A, rhs);
+    if (!x) {
+      sol.ok = false;
+      sol.note = 'No stable reading — check for a direct short across a source';
+      return sol;
+    }
+
+    const V = function (node) {
+      const index = varIndex[node];
+      return index < 0 ? 0 : x[index];
+    };
+
+    for (const m of voltmeters) {
+      sol.volts.set(m.id, Math.abs(V(m.a) - V(m.b)));
+    }
+    for (const m of ammeters) {
+      sol.amps.set(m.id, Math.abs(x[m.col]));
+    }
+    for (const m of ammeterShunts) {
+      sol.amps.set(m.id, Math.abs((V(m.a) - V(m.b)) / m.r));
+    }
+    for (const r of resistorRecs) {
+      sol.resistorAmps.set(r.id, Math.abs((V(r.a) - V(r.b)) / r.r));
+    }
+
+    let huge = false;
+    for (let i = 0; i < nodeVars; i++) {
+      if (Math.abs(x[i]) > 1e6) { huge = true; break; }
+    }
+
+    for (const b of batteryRecs) {
+      const current = b.mode === 'voltage' ? x[b.src.col] : b.src.i;
+      sol.sources.set(b.id, { i: current, v: V(b.a) - V(b.b) });
+    }
+
+    if (huge) {
+      sol.note = 'Open loop — a current source needs a closed path';
+    }
+    return sol;
+  }
+
+  /* ============================================================
+     Board interaction
+     ============================================================ */
+
+  function svgPoint(evt) {
+    const rect = els.board.getBoundingClientRect();
+    const ctm = els.board.getScreenCTM();
+    if (!ctm) return { x: 0, y: 0 };
+    const p = els.board.createSVGPoint();
+    p.x = evt.clientX;
+    p.y = evt.clientY;
+    return p.matrixTransform(ctm.inverse());
+  }
+
+  function snapPoint(evt) {
+    const p = svgPoint(evt);
+    return {
+      x: clamp(Math.round(p.x / G), 0, COLS),
+      y: clamp(Math.round(p.y / G), 0, ROWS)
+    };
+  }
+
+  function distanceToSegment(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len2 = dx * dx + dy * dy;
+    let t = len2 === 0 ? 0 : ((px - x1) * dx + (py - y1) * dy) / len2;
+    t = clamp(t, 0, 1);
+    const cx = x1 + t * dx;
+    const cy = y1 + t * dy;
+    return Math.hypot(px - cx, py - cy);
+  }
+
+  function hitTest(svgP) {
+    // Components first (they draw above wires), then wires.
+    for (let i = state.items.length - 1; i >= 0; i--) {
+      const it = state.items[i];
+      if (it.type === 'wire') continue;
+      if (it.type === 'arrow' && state.mode !== 'sim') continue;
+      const dx = svgP.x - it.x * G;
+      const dy = svgP.y - it.y * G;
+      const angle = -rotOf(it) * Math.PI / 2;
+      const lx = dx * Math.cos(angle) - dy * Math.sin(angle);
+      const ly = dx * Math.sin(angle) + dy * Math.cos(angle);
+      if (Math.abs(lx) <= G * 1.02 && Math.abs(ly) <= G * 0.64) return it;
+    }
+    for (let i = state.items.length - 1; i >= 0; i--) {
+      const it = state.items[i];
+      if (it.type !== 'wire') continue;
+      const d = distanceToSegment(svgP.x, svgP.y,
+        it.x1 * G, it.y1 * G, it.x2 * G, it.y2 * G);
+      if (d < 24) return it;
+    }
+    return null;
+  }
+
+  function constrainWire(start, point) {
+    if (point.x === start.x || point.y === start.y) return point;
+    const dx = Math.abs(point.x - start.x);
+    const dy = Math.abs(point.y - start.y);
+    return dx >= dy ? { x: point.x, y: start.y } : { x: start.x, y: point.y };
+  }
+
+  function onPointerDown(evt) {
+    if (evt.button !== undefined && evt.button !== 0) return;
+    const gridP = snapPoint(evt);
+    const svgP = svgPoint(evt);
+    const hit = hitTest(svgP);
+
+    if (state.tool === 'wire') {
+      evt.preventDefault();
+      if (state.wireStart) {
+        if (samePoint(state.wireStart, gridP)) {
+          state.wireStart = null;
+        } else if (!isAxisAligned(state.wireStart, gridP)) {
+          showToast('Wires must be horizontal or vertical');
+        } else {
+          addWire(state.wireStart, gridP);
+          state.wireStart = null;
+        }
+        renderAll();
+        return;
+      }
+      state.wireStart = gridP;
+      drag = { kind: 'wire', start: gridP, end: gridP, pointerId: evt.pointerId };
+      try { els.board.setPointerCapture(evt.pointerId); } catch (e) { /* noop */ }
+      renderAll();
+      return;
+    }
+
+    if (state.tool !== 'select') {
+      evt.preventDefault();
+      // With a placement tool active, tapping an existing part selects it;
+      // wires are ignored so a new part can still be dropped near/over one.
+      if (hit && hit.type !== 'wire') {
+        selectItem(hit.id);
+        setTool('select');
+        renderAll();
+        renderInspector();
+        return;
+      }
+      const type = state.tool;
+      const placed = placePart(type, gridP);
+      if (placed) {
+        selectItem(placed.id);
+        renderAll();
+        renderInspector();
+        showToast(PART_NAME[type] + ' added — tap the board to add another');
+      }
+      return;
+    }
+
+    if (hit) {
+      evt.preventDefault();
+      selectItem(hit.id);
+      if (hit.type !== 'wire') {
+        drag = {
+          kind: 'move',
+          id: hit.id,
+          start: svgP,
+          origX: hit.x,
+          origY: hit.y,
+          before: snapshot(),
+          pointerId: evt.pointerId
+        };
+        try { els.board.setPointerCapture(evt.pointerId); } catch (e) { /* noop */ }
+      }
+      renderAll();
+      renderInspector();
+      return;
+    }
+
+    if (state.selected) {
+      selectItem(null);
+      renderAll();
+      renderInspector();
+    }
+  }
+
+  function onPointerMove(evt) {
+    if (!drag) return;
+    evt.preventDefault();
+    if (drag.kind === 'wire') {
+      const p = constrainWire(drag.start, snapPoint(evt));
+      if (!samePoint(p, drag.end)) {
+        drag.end = p;
+        renderDraft();
+      }
+      return;
+    }
+    if (drag.kind === 'move') {
+      const item = state.items.find(function (i) { return i.id === drag.id; });
+      if (!item) return;
+      const dx = Math.round((svgPoint(evt).x - drag.start.x) / G);
+      const dy = Math.round((svgPoint(evt).y - drag.start.y) / G);
+      const next = clampPlacement(rotOf(item), { x: drag.origX + dx, y: drag.origY + dy });
+      if (next.x !== item.x || next.y !== item.y) {
+        item.x = next.x;
+        item.y = next.y;
+        scheduleRender();
+      }
+    }
+  }
+
+  function onPointerUp(evt) {
+    if (!drag) return;
+    if (drag.kind === 'wire') {
+      const start = drag.start;
+      const end = drag.end;
+      drag = null;
+      if (!samePoint(start, end) && isAxisAligned(start, end)) {
+        addWire(start, end);
+        state.wireStart = null;
+      } else {
+        // A tap rather than a drag: remember the start and wait for a second tap.
+        state.wireStart = start;
+      }
+      renderAll();
+      return;
+    }
+    if (drag.kind === 'move') {
+      const before = drag.before;
+      drag = null;
+      if (snapshot() !== before) {
+        history.push(before);
+        if (history.length > 60) history.shift();
+        save();
+        updateToolbar();
+      }
+    }
+  }
+
+  function setTool(tool) {
+    state.tool = tool;
+    state.wireStart = null;
+    els.board.style.cursor = tool === 'select' ? 'default' : 'crosshair';
+    els.board.dataset.tool = tool;
+    updatePalette();
+    updateStatus();
+  }
+
+  function selectItem(id) {
+    state.selected = id;
+    updateToolbar();
+    updateStatus();
+  }
+
+  function placePart(type, point) {
+    if (type === 'select' || type === 'wire') return null;
+    pushHistory();
+    const p = clampPlacement(0, point);
+    const item = createItem(type, p.x, p.y, 0);
+    state.items.push(item);
+    save();
+    return item;
+  }
+
+  function addWire(a, b) {
+    if (!a || !b) return;
+    if (!isAxisAligned(a, b) || samePoint(a, b)) return;
+    pushHistory();
+    state.items.push({
+      id: uid(), type: 'wire',
+      x1: a.x, y1: a.y, x2: b.x, y2: b.y
+    });
+    save();
+  }
+
+  function rotateSelected() {
+    const item = selectedItem();
+    if (!item) return;
+    if (item.type === 'wire') {
+      showToast('Wires follow the grid; rotate a part instead');
+      return;
+    }
+    pushHistory();
+    item.rot = (rotOf(item) + 1) % 4;
+    clampPart(item);
+    renderAll();
+    save();
+  }
+
+  function deleteSelected() {
+    const item = selectedItem();
+    if (!item) return;
+    pushHistory();
+    state.items = state.items.filter(function (i) { return i.id !== item.id; });
+    state.selected = null;
+    state.wireStart = null;
+    renderAll();
+    renderInspector();
+    save();
+  }
+
+  function clearBoard(skipHistory) {
+    if (!state.items.length && !state.selected) return;
+    if (!skipHistory) pushHistory();
+    state.items = [];
+    state.selected = null;
+    state.wireStart = null;
+    drag = null;
+    setTool('select');
+    renderAll();
+    renderInspector();
+    save();
+    showToast('Board cleared');
+  }
+
+  /* ============================================================
+     History & storage
+     ============================================================ */
+
+  function snapshot() {
+    return JSON.stringify(state.items);
+  }
+
+  function pushHistory() {
+    history.push(snapshot());
+    if (history.length > 60) history.shift();
+    updateToolbar();
+  }
+
+  function undo() {
+    if (!history.length) return;
+    const previous = history.pop();
+    try {
+      state.items = JSON.parse(previous);
+    } catch (e) {
+      return;
+    }
+    state.selected = null;
+    state.wireStart = null;
+    drag = null;
+    renderAll();
+    renderInspector();
+    save();
+  }
+
+  function sanitizeItems(raw) {
+    if (!Array.isArray(raw)) return [];
+    const allowed = new Set(PARTS.map(function (p) { return p[0]; }));
+    const clean = [];
+    for (const candidate of raw) {
+      if (!candidate || typeof candidate !== 'object') continue;
+      if (!allowed.has(candidate.type) || candidate.type === 'select') continue;
+      const item = {
+        id: typeof candidate.id === 'string' && candidate.id ? candidate.id : uid(),
+        type: candidate.type,
+        x: Number(candidate.x),
+        y: Number(candidate.y),
+        rot: Number(candidate.rot)
+      };
+      item.rot = ((Math.round(item.rot) || 0) % 4 + 4) % 4;
+
+      if (item.type === 'wire') {
+        item.x1 = Number(candidate.x1);
+        item.y1 = Number(candidate.y1);
+        item.x2 = Number(candidate.x2);
+        item.y2 = Number(candidate.y2);
+        if (![item.x1, item.y1, item.x2, item.y2].every(Number.isFinite)) continue;
+        if (item.x1 !== item.x2 && item.y1 !== item.y2) continue;
+        if (item.x1 === item.x2 && item.y1 === item.y2) continue;
+        item.x1 = clamp(Math.round(item.x1), 0, COLS);
+        item.x2 = clamp(Math.round(item.x2), 0, COLS);
+        item.y1 = clamp(Math.round(item.y1), 0, ROWS);
+        item.y2 = clamp(Math.round(item.y2), 0, ROWS);
+        clean.push(item);
+        continue;
+      }
+
+      if (!Number.isFinite(item.x) || !Number.isFinite(item.y)) continue;
+
+      item.x = clamp(Math.round(item.x), 0, COLS);
+      item.y = clamp(Math.round(item.y), 0, ROWS);
+      if (item.type === 'battery') {
+        item.mode = candidate.mode === 'current' ? 'current' : 'voltage';
+        item.volts = clamp(Number(candidate.volts) || 0, 0, 1000);
+        item.amps = clamp(Number(candidate.amps) || 0, 0, 1000);
+      } else if (item.type === 'resistor') {
+        item.ohms = clamp(Number(candidate.ohms) || 0.01, 0.01, 1000000);
+      } else if (item.type === 'switch') {
+        item.closed = candidate.closed !== false;
+      }
+      clean.push(item);
+    }
+    return clean;
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        v: 3,
+        cols: COLS,
+        rows: ROWS,
+        mode: state.mode,
+        realism: state.realism,
+        items: state.items
+      }));
+    } catch (e) { /* private mode etc. */ }
+  }
+
+  function load() {
+    let raw = null;
+    try {
+      raw = localStorage.getItem(STORE_KEY);
+    } catch (e) {
+      raw = null;
+    }
+    if (!raw) return false;
+
+    let parsed = null;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (e) {
+      parsed = null;
+    }
+    if (!parsed || typeof parsed !== 'object') {
+      state.items = [];
+      return true;
+    }
+
+    COLS = clamp(Math.round(Number(parsed.cols) || DEFAULT_SIZE.cols), SIZE_LIMITS.cols[0], SIZE_LIMITS.cols[1]);
+    ROWS = clamp(Math.round(Number(parsed.rows) || DEFAULT_SIZE.rows), SIZE_LIMITS.rows[0], SIZE_LIMITS.rows[1]);
+    state.mode = parsed.mode === 'draw' ? 'draw' : 'sim';
+    state.realism = parsed.realism === 'realistic' ? 'realistic' : 'ideal';
+    state.items = sanitizeItems(parsed.items);
+    return true;
+  }
+
+  /* ============================================================
+     Example circuit
+     ============================================================ */
+
+  function loadExample(withHistory) {
+    if (withHistory) pushHistory();
+    const items = [];
+    function add(type, x, y, rot, extra) {
+      const item = createItem(type, x, y, rot);
+      if (extra) Object.assign(item, extra);
+      items.push(item);
+      return item;
+    }
+    function wire(x1, y1, x2, y2) {
+      items.push({ id: uid(), type: 'wire', x1: x1, y1: y1, x2: x2, y2: y2 });
+    }
+
+    add('battery', 2, 7, 3, { volts: 9, mode: 'voltage' });
+    add('resistor', 6, 3, 0, { ohms: 100 });
+    add('switch', 6, 11, 0, { closed: true });
+    add('ammeter', 10, 7, 1);
+    add('voltmeter', 6, 7, 0);
+    add('arrow', 8, 2, 0);
+
+    wire(2, 6, 2, 3);
+    wire(2, 3, 5, 3);
+    wire(7, 3, 10, 3);
+    wire(10, 3, 10, 6);
+    wire(10, 8, 10, 11);
+    wire(10, 11, 7, 11);
+    wire(5, 11, 2, 11);
+    wire(2, 11, 2, 8);
+    wire(5, 7, 5, 3);
+    wire(7, 7, 7, 3);
+
+    state.items = items;
+    state.selected = null;
+    state.wireStart = null;
+    setTool('select');
+    save();
+    renderAll();
+    renderInspector();
+  }
+
+  /* ============================================================
+     Theme
+     ============================================================ */
+
+  function currentTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#09140f' : '#005A36');
+    els.themeBtn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    els.themeBtn.title = els.themeBtn.getAttribute('aria-label');
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* noop */ }
+  }
+
+  function toggleTheme() {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+  }
+
+  /* ============================================================
+     Wire up UI
+     ============================================================ */
+
+  function buildPalette() {
+    els.palette.innerHTML = PARTS.map(function (part) {
+      const type = part[0];
+      const name = part[1];
+      const pressed = state.tool === type;
+      return '<button class="part-btn" type="button" data-tool="' + type + '" ' +
+        'aria-pressed="' + (pressed ? 'true' : 'false') + '" ' +
+        'title="' + HINTS[type] + '" aria-label="' + name + ': ' + HINTS[type] + '">' +
+        paletteIcon(type) + '<span>' + name + '</span></button>';
+    }).join('');
+  }
+
+  function bindEvents() {
+    els.board.addEventListener('pointerdown', onPointerDown);
+    els.board.addEventListener('pointermove', onPointerMove);
+    els.board.addEventListener('pointerup', onPointerUp);
+    els.board.addEventListener('pointercancel', onPointerUp);
+    els.board.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+    els.palette.addEventListener('click', function (event) {
+      const btn = event.target.closest('[data-tool]');
+      if (!btn) return;
+      const tool = btn.dataset.tool;
+      setTool(state.tool === tool ? 'select' : tool);
+      if (state.tool === 'select') {
+        renderAll();
+      } else {
+        renderDraft();
+        updatePalette();
+        updateStatus();
+      }
+    });
+
+    els.themeBtn.addEventListener('click', toggleTheme);
+
+    document.querySelectorAll('[data-mode-tab]').forEach(function (btn) {
+      btn.addEventListener('click', function () { setMode(btn.dataset.modeTab); });
+    });
+    document.querySelectorAll('[data-realism]').forEach(function (btn) {
+      btn.addEventListener('click', function () { setRealism(btn.dataset.realism); });
+    });
+
+    if (els.sizeBtn) {
+      els.sizeBtn.addEventListener('click', function (event) {
+        event.stopPropagation();
+        setSizePanel(els.sizePop.hidden);
+      });
+      els.sizePop.addEventListener('click', function (event) {
+        const btn = event.target.closest('[data-size]');
+        if (!btn) return;
+        const dim = btn.dataset.size;
+        const delta = Number(btn.dataset.delta) || 0;
+        setBoardSize(dim === 'cols' ? COLS + delta : COLS, dim === 'rows' ? ROWS + delta : ROWS, true);
+      });
+      els.sizeReset.addEventListener('click', function () {
+        setBoardSize(DEFAULT_SIZE.cols, DEFAULT_SIZE.rows);
+      });
+      document.addEventListener('pointerdown', function (event) {
+        if (els.sizePop.hidden) return;
+        if (els.sizePop.contains(event.target) || els.sizeBtn.contains(event.target)) return;
+        setSizePanel(false);
+      });
+    }
+
+    els.undoBtn.addEventListener('click', undo);
+    els.rotateBtn.addEventListener('click', rotateSelected);
+    els.deleteBtn.addEventListener('click', deleteSelected);
+
+    els.clearBtn.addEventListener('click', function () {
+      if (!state.items.length) {
+        showToast('The board is already empty');
+        return;
+      }
+      if (!clearArmed) {
+        clearArmed = true;
+        updateToolbar();
+        showToast('Tap the clear button again to remove everything');
+        clearTimeout(clearTimer);
+        clearTimer = setTimeout(function () {
+          clearArmed = false;
+          updateToolbar();
+        }, 3200);
+        return;
+      }
+      clearArmed = false;
+      clearTimeout(clearTimer);
+      clearBoard(false);
+    });
+
+    document.addEventListener('keydown', function (event) {
+      const target = event.target;
+      const typing = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      if (typing) return;
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+        event.preventDefault();
+        undo();
+        return;
+      }
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        if (state.selected) {
+          event.preventDefault();
+          deleteSelected();
+        }
+        return;
+      }
+      if (event.key === 'Escape') {
+        if (els.sizePop && !els.sizePop.hidden) {
+          setSizePanel(false);
+          els.sizeBtn.focus({ preventScroll: true });
+          return;
+        }
+        setTool('select');
+        selectItem(null);
+        renderAll();
+        return;
+      }
+      if (event.key.toLowerCase() === 'r') {
+        rotateSelected();
+      }
+    });
+  }
+
+  /* ============================================================
+     Init
+     ============================================================ */
+
+  function init() {
+    els.board.dataset.tool = state.tool;
+    buildPalette();
+    bindEvents();
+    applyTheme(currentTheme());
+
+    const hadSavedBoard = load();
+    applyBoardSize();
+    updateModeControls();
+    if (!hadSavedBoard) {
+      loadExample(false);
+      setTimeout(function () { showToast('Sample circuit loaded — edit it or clear the board'); }, 700);
+    } else {
+      renderAll();
+      renderInspector();
+    }
+  }
+
+  init();
+})();
+</script>
+
+
+<span id="PING_CONTENT_MB_MAIN" style="display: none;"></span><span id="PING_CONTENT_PUSH_NOTIFICATION" style="display: none;"></span></body></html>
