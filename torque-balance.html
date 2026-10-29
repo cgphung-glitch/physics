@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- saved from url=(0049)http://127.0.0.1:4173/physics/torque-balance.html -->
+<!-- saved from url=(0034)http://127.0.0.1:4188/student.html -->
 <html lang="en" data-theme="light" style="--tb: 57px;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#005A36">
 <meta name="description" content="Balance a meterstick with hanging masses: torques, lever arms, center of gravity and an unknown mass.">
-<title>Torque Balance Lab · Meterstick Equilibrium</title>
+<title>Torque Balance Lab · Student</title>
 <script>
   // Set the theme before first paint to avoid a flash.
   (function () {
@@ -147,7 +147,6 @@
 
   /* ---------- layout ---------- */
   main {
-    max-width: 1040px;
     margin: 0 auto;
     padding: 12px;
     padding-bottom: calc(28px + env(safe-area-inset-bottom));
@@ -170,6 +169,32 @@
   .chips {
     display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
     padding: 2px 0 6px;
+  }
+
+  .nudge-bar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin-top: 2px; padding: 7px 2px 5px;
+    border-top: 1px solid var(--line);
+  }
+  .nudge-bar[hidden] { display: none; }
+  .nudge-bar .nb-name {
+    font-size: 12.5px; font-weight: 650;
+    padding: 4px 9px; border-radius: 999px;
+    border: 1px solid var(--readout-border);
+    background: var(--accent-soft); color: var(--accent);
+    max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .nudge-bar .nb-pills { margin-left: auto; }
+  .nudge-bar .nb-hint {
+    flex-basis: 100%; font-size: 11.5px; color: var(--muted); line-height: 1.35;
+  }
+  .nudge-bar .nb-hint kbd {
+    font: inherit; font-weight: 650; padding: 0 3px;
+    border: 1px solid var(--line); border-radius: 4px; background: var(--panel-2);
+  }
+  @media (max-width: 559px) {
+    /* no keyboard on a phone: keep the bar one row tall */
+    .nudge-bar .nb-hint { display: none; }
   }
 
   .chip {
@@ -214,13 +239,14 @@
   .mass-block { stroke-width: 2.2; }
   .mass-text { font-size: 20px; font-weight: 650; dominant-baseline: middle; text-anchor: middle; }
   .mass-sub { font-size: 19px; dominant-baseline: middle; text-anchor: middle; }
-  .mass-x { font-size: 19px; text-anchor: middle; }
+  .mass-x, .pivot-x { font-size: 19px; text-anchor: middle; }
   .dim { stroke-width: 1.8; stroke-dasharray: 7 5; }
   .dim-tick { stroke-width: 1.8; }
   .dim-text { font-size: 20px; font-weight: 600; text-anchor: middle; }
   .dim-text.small { font-size: 17px; font-weight: 500; }
   .cg-mark { fill: var(--gold); }
   .cg-text { fill: var(--gold); font-size: 19px; font-weight: 650; text-anchor: middle; }
+  .stick-mass { fill: var(--ink-2); font-size: 20px; font-weight: 600; }
   .world-note { fill: var(--muted); font-size: 19px; text-anchor: middle; }
   .sel-ring { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-dasharray: 8 6; }
   .net-arc { fill: none; stroke-width: 3.4; stroke-linecap: round; }
@@ -232,9 +258,10 @@
   svg#board.compact .ruler-num { font-size: 30px; }
   svg#board.compact .mass-text { font-size: 28px; }
   svg#board.compact .mass-sub { font-size: 26px; }
-  svg#board.compact .mass-x { font-size: 25px; }
+  svg#board.compact .mass-x, svg#board.compact .pivot-x { font-size: 25px; }
   svg#board.compact .dim-text { font-size: 27px; }
   svg#board.compact .cg-text { font-size: 25px; }
+  svg#board.compact .stick-mass { font-size: 28px; }
   svg#board.compact .world-note { font-size: 25px; }
 
   /* ---------- cards ---------- */
@@ -523,6 +550,37 @@
     .slider { height: 30px; }
   }
 
+  /* Laptop/desktop: fill the window, board on the left, every panel on the right. */
+  @media (min-width: 900px) {
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      grid-template-areas:
+        "stage case"
+        "stage cols"
+        "stage data"
+        "stage exp"
+        "stage app"
+        "stage foot";
+      align-items: start;
+      gap: 14px;
+    }
+    .stage { grid-area: stage; align-self: start; }
+    .case-card { grid-area: case; }
+    .cols { grid-area: cols; grid-template-columns: 1fr; }
+    .data-card { grid-area: data; }
+    .export-card { grid-area: exp; }
+    .app-card { grid-area: app; }
+    footer.foot { grid-area: foot; }
+    /* the board is sized by the width of its column, not clipped by a height cap */
+    svg#board { max-height: none; }
+  }
+
+  /* only put Controls and Hangers side by side when the right column is wide enough */
+  @media (min-width: 1500px) {
+    .cols { grid-template-columns: 1fr 1fr; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .switch::after { transition: none; }
     .toast { transition: none; }
@@ -540,17 +598,12 @@
       </svg>
     </span>
     <div class="brand-text">
-      <h1>Torque Balance Lab</h1>
+      <h1>Torque Balance Lab · Student</h1>
       <p>Meterstick · rotational equilibrium</p>
     </div>
   </div>
   <div class="top-actions">
-    <button id="levelBtn" class="icon-btn" type="button" title="Level the stick (solve)" aria-label="Level the stick" fdprocessedid="6z0l9">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 4v6"></path><path d="m8.5 7.5 3.5 3 3.5-3"></path><path d="M4 20h16"></path>
-      </svg>
-    </button>
-    <button id="themeBtn" class="icon-btn" type="button" title="Switch to dark theme" aria-label="Switch theme" fdprocessedid="354u5">
+    <button id="themeBtn" class="icon-btn" type="button" title="Switch to dark theme" aria-label="Switch theme" fdprocessedid="7zv1uq">
       <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
         <circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"></path>
       </svg>
@@ -560,70 +613,80 @@
 
 <main>
   <section class="stage" aria-label="Meterstick balance">
-    <div class="chips" id="chips"><span class="chip ok"><b>Balanced</b> · Στ = 0</span><span class="chip">unknown side solved</span><span class="chip">fulcrum <b>50.0 cm</b></span><span class="chip act" id="chipLevel" role="button" tabindex="0">Level it</span></div>
-    <svg id="board" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Meterstick balance diagram"><g id="world"><path class="stand" d="M 466.00 202 L 500.00 188 L 534.00 202 Z"></path><rect class="stand-soft" x="446.00" y="236" width="108" height="12" rx="4"></rect><rect class="stand" x="496.00" y="220" width="8" height="18"></rect><g id="beamGroup" transform="rotate(0.000 500.00 190)"><line class="tick major" x1="74.00" y1="180" x2="74.00" y2="200.00"></line><text class="ruler-num" x="74.00" y="172" text-anchor="middle">0</text><line class="tick" x1="82.52" y1="180" x2="82.52" y2="191.00"></line><line class="tick" x1="91.04" y1="180" x2="91.04" y2="191.00"></line><line class="tick" x1="99.56" y1="180" x2="99.56" y2="191.00"></line><line class="tick" x1="108.08" y1="180" x2="108.08" y2="191.00"></line><line class="tick mid" x1="116.60" y1="180" x2="116.60" y2="195.00"></line><line class="tick" x1="125.12" y1="180" x2="125.12" y2="191.00"></line><line class="tick" x1="133.64" y1="180" x2="133.64" y2="191.00"></line><line class="tick" x1="142.16" y1="180" x2="142.16" y2="191.00"></line><line class="tick" x1="150.68" y1="180" x2="150.68" y2="191.00"></line><line class="tick major" x1="159.20" y1="180" x2="159.20" y2="200.00"></line><text class="ruler-num" x="159.20" y="172" text-anchor="middle">10</text><line class="tick" x1="167.72" y1="180" x2="167.72" y2="191.00"></line><line class="tick" x1="176.24" y1="180" x2="176.24" y2="191.00"></line><line class="tick" x1="184.76" y1="180" x2="184.76" y2="191.00"></line><line class="tick" x1="193.28" y1="180" x2="193.28" y2="191.00"></line><line class="tick mid" x1="201.80" y1="180" x2="201.80" y2="195.00"></line><line class="tick" x1="210.32" y1="180" x2="210.32" y2="191.00"></line><line class="tick" x1="218.84" y1="180" x2="218.84" y2="191.00"></line><line class="tick" x1="227.36" y1="180" x2="227.36" y2="191.00"></line><line class="tick" x1="235.88" y1="180" x2="235.88" y2="191.00"></line><line class="tick major" x1="244.40" y1="180" x2="244.40" y2="200.00"></line><text class="ruler-num" x="244.40" y="172" text-anchor="middle">20</text><line class="tick" x1="252.92" y1="180" x2="252.92" y2="191.00"></line><line class="tick" x1="261.44" y1="180" x2="261.44" y2="191.00"></line><line class="tick" x1="269.96" y1="180" x2="269.96" y2="191.00"></line><line class="tick" x1="278.48" y1="180" x2="278.48" y2="191.00"></line><line class="tick mid" x1="287.00" y1="180" x2="287.00" y2="195.00"></line><line class="tick" x1="295.52" y1="180" x2="295.52" y2="191.00"></line><line class="tick" x1="304.04" y1="180" x2="304.04" y2="191.00"></line><line class="tick" x1="312.56" y1="180" x2="312.56" y2="191.00"></line><line class="tick" x1="321.08" y1="180" x2="321.08" y2="191.00"></line><line class="tick major" x1="329.60" y1="180" x2="329.60" y2="200.00"></line><text class="ruler-num" x="329.60" y="172" text-anchor="middle">30</text><line class="tick" x1="338.12" y1="180" x2="338.12" y2="191.00"></line><line class="tick" x1="346.64" y1="180" x2="346.64" y2="191.00"></line><line class="tick" x1="355.16" y1="180" x2="355.16" y2="191.00"></line><line class="tick" x1="363.68" y1="180" x2="363.68" y2="191.00"></line><line class="tick mid" x1="372.20" y1="180" x2="372.20" y2="195.00"></line><line class="tick" x1="380.72" y1="180" x2="380.72" y2="191.00"></line><line class="tick" x1="389.24" y1="180" x2="389.24" y2="191.00"></line><line class="tick" x1="397.76" y1="180" x2="397.76" y2="191.00"></line><line class="tick" x1="406.28" y1="180" x2="406.28" y2="191.00"></line><line class="tick major" x1="414.80" y1="180" x2="414.80" y2="200.00"></line><text class="ruler-num" x="414.80" y="172" text-anchor="middle">40</text><line class="tick" x1="423.32" y1="180" x2="423.32" y2="191.00"></line><line class="tick" x1="431.84" y1="180" x2="431.84" y2="191.00"></line><line class="tick" x1="440.36" y1="180" x2="440.36" y2="191.00"></line><line class="tick" x1="448.88" y1="180" x2="448.88" y2="191.00"></line><line class="tick mid" x1="457.40" y1="180" x2="457.40" y2="195.00"></line><line class="tick" x1="465.92" y1="180" x2="465.92" y2="191.00"></line><line class="tick" x1="474.44" y1="180" x2="474.44" y2="191.00"></line><line class="tick" x1="482.96" y1="180" x2="482.96" y2="191.00"></line><line class="tick" x1="491.48" y1="180" x2="491.48" y2="191.00"></line><line class="tick major" x1="500.00" y1="180" x2="500.00" y2="200.00"></line><text class="ruler-num" x="500.00" y="172" text-anchor="middle">50</text><line class="tick" x1="508.52" y1="180" x2="508.52" y2="191.00"></line><line class="tick" x1="517.04" y1="180" x2="517.04" y2="191.00"></line><line class="tick" x1="525.56" y1="180" x2="525.56" y2="191.00"></line><line class="tick" x1="534.08" y1="180" x2="534.08" y2="191.00"></line><line class="tick mid" x1="542.60" y1="180" x2="542.60" y2="195.00"></line><line class="tick" x1="551.12" y1="180" x2="551.12" y2="191.00"></line><line class="tick" x1="559.64" y1="180" x2="559.64" y2="191.00"></line><line class="tick" x1="568.16" y1="180" x2="568.16" y2="191.00"></line><line class="tick" x1="576.68" y1="180" x2="576.68" y2="191.00"></line><line class="tick major" x1="585.20" y1="180" x2="585.20" y2="200.00"></line><text class="ruler-num" x="585.20" y="172" text-anchor="middle">60</text><line class="tick" x1="593.72" y1="180" x2="593.72" y2="191.00"></line><line class="tick" x1="602.24" y1="180" x2="602.24" y2="191.00"></line><line class="tick" x1="610.76" y1="180" x2="610.76" y2="191.00"></line><line class="tick" x1="619.28" y1="180" x2="619.28" y2="191.00"></line><line class="tick mid" x1="627.80" y1="180" x2="627.80" y2="195.00"></line><line class="tick" x1="636.32" y1="180" x2="636.32" y2="191.00"></line><line class="tick" x1="644.84" y1="180" x2="644.84" y2="191.00"></line><line class="tick" x1="653.36" y1="180" x2="653.36" y2="191.00"></line><line class="tick" x1="661.88" y1="180" x2="661.88" y2="191.00"></line><line class="tick major" x1="670.40" y1="180" x2="670.40" y2="200.00"></line><text class="ruler-num" x="670.40" y="172" text-anchor="middle">70</text><line class="tick" x1="678.92" y1="180" x2="678.92" y2="191.00"></line><line class="tick" x1="687.44" y1="180" x2="687.44" y2="191.00"></line><line class="tick" x1="695.96" y1="180" x2="695.96" y2="191.00"></line><line class="tick" x1="704.48" y1="180" x2="704.48" y2="191.00"></line><line class="tick mid" x1="713.00" y1="180" x2="713.00" y2="195.00"></line><line class="tick" x1="721.52" y1="180" x2="721.52" y2="191.00"></line><line class="tick" x1="730.04" y1="180" x2="730.04" y2="191.00"></line><line class="tick" x1="738.56" y1="180" x2="738.56" y2="191.00"></line><line class="tick" x1="747.08" y1="180" x2="747.08" y2="191.00"></line><line class="tick major" x1="755.60" y1="180" x2="755.60" y2="200.00"></line><text class="ruler-num" x="755.60" y="172" text-anchor="middle">80</text><line class="tick" x1="764.12" y1="180" x2="764.12" y2="191.00"></line><line class="tick" x1="772.64" y1="180" x2="772.64" y2="191.00"></line><line class="tick" x1="781.16" y1="180" x2="781.16" y2="191.00"></line><line class="tick" x1="789.68" y1="180" x2="789.68" y2="191.00"></line><line class="tick mid" x1="798.20" y1="180" x2="798.20" y2="195.00"></line><line class="tick" x1="806.72" y1="180" x2="806.72" y2="191.00"></line><line class="tick" x1="815.24" y1="180" x2="815.24" y2="191.00"></line><line class="tick" x1="823.76" y1="180" x2="823.76" y2="191.00"></line><line class="tick" x1="832.28" y1="180" x2="832.28" y2="191.00"></line><line class="tick major" x1="840.80" y1="180" x2="840.80" y2="200.00"></line><text class="ruler-num" x="840.80" y="172" text-anchor="middle">90</text><line class="tick" x1="849.32" y1="180" x2="849.32" y2="191.00"></line><line class="tick" x1="857.84" y1="180" x2="857.84" y2="191.00"></line><line class="tick" x1="866.36" y1="180" x2="866.36" y2="191.00"></line><line class="tick" x1="874.88" y1="180" x2="874.88" y2="191.00"></line><line class="tick mid" x1="883.40" y1="180" x2="883.40" y2="195.00"></line><line class="tick" x1="891.92" y1="180" x2="891.92" y2="191.00"></line><line class="tick" x1="900.44" y1="180" x2="900.44" y2="191.00"></line><line class="tick" x1="908.96" y1="180" x2="908.96" y2="191.00"></line><line class="tick" x1="917.48" y1="180" x2="917.48" y2="191.00"></line><line class="tick major" x1="926.00" y1="180" x2="926.00" y2="200.00"></line><text class="ruler-num" x="926.00" y="172" text-anchor="middle">100</text><rect class="beam-fill" x="74.0" y="180" width="852.0" height="20" rx="3"></rect><line class="beam-axis" x1="74.0" y1="190" x2="926.0" y2="190"></line><path class="cg-mark" d="M 500.00 168 l -9 -14 l 18 0 z"></path><text class="cg-text" x="500.00" y="148">CG</text><line class="dim" x1="500.00" y1="144" x2="878.29" y2="144" stroke="var(--accent)"></line><line class="dim-tick" x1="500.00" y1="137" x2="500.00" y2="151" stroke="var(--accent)"></line><line class="dim-tick" x1="878.29" y1="137" x2="878.29" y2="151" stroke="var(--accent)"></line><text class="dim-text" x="689.14" y="136" fill="var(--accent)">rₖ = 44.4 cm</text><rect class="clamp" x="147.20" y="176" width="24.00" height="28" rx="4"></rect><rect class="clamp clamp-sel" x="866.29" y="176" width="24.00" height="28" rx="4"></rect></g><g id="hangers"><g data-hanger="h5vcxi4h" transform="translate(159.20 190.00)"><circle cx="0" cy="0" r="3.4" fill="var(--metal)"></circle><line class="hanger" x1="0" y1="0" x2="0" y2="110"></line><rect class="mass-block" x="-21.0" y="110" width="42.0" height="44" rx="6" fill="var(--panel-2)" stroke="var(--ink-2)"></rect><text class="mass-text" x="0" y="125" fill="var(--ink-2)">mᵤ</text><text class="mass-sub" x="0" y="143" fill="var(--ink-2)">? g</text><text class="mass-x" x="0" y="180" fill="var(--muted)">x = 10.0 cm</text><rect class="hit" data-hit="h5vcxi4h" x="-37.0" y="-14" width="74.0" height="206" rx="10"></rect></g><g data-hanger="hifh33k8" transform="translate(878.29 190.00)"><rect class="sel-ring" x="-33.4" y="-8" width="66.9" height="184" rx="12"></rect><circle cx="0" cy="0" r="3.4" fill="var(--metal)"></circle><line class="hanger" x1="0" y1="0" x2="0" y2="110"></line><rect class="mass-block" x="-22.4" y="110" width="44.9" height="44" rx="6" fill="var(--panel-2)" stroke="var(--accent)"></rect><text class="mass-text" x="0" y="125" fill="var(--accent)">mₖ</text><text class="mass-sub" x="0" y="143" fill="var(--ink-2)">200 g</text><text class="mass-x" x="0" y="180" fill="var(--muted)">x = 94.4 cm</text><rect class="hit" data-hit="hifh33k8" x="-38.4" y="-14" width="76.9" height="206" rx="10"></rect></g></g></g></svg>
-    <p class="sr-only" id="liveVerdict" aria-live="polite">Balanced with an unknown mass hanging on the stick.</p>
+    <div class="chips" id="chips"><span class="chip ok"><b>Balanced</b> · Στ = 0</span><span class="chip">%&nbsp;difference <b>0.0%</b></span><span class="chip">fulcrum <b>50.0 cm</b></span></div>
+    <div class="nudge-bar" id="nudgeBar" role="group" aria-label="Fine position control"><span class="nb-name">m3</span><span class="readout"><span id="nbVal">10.0</span> <span class="u">cm</span></span><span class="pills nb-pills"><button class="pill sm" type="button" data-nb="-1" aria-label="Move back 1 centimetre" fdprocessedid="g11g7">−1</button><button class="pill sm" type="button" data-nb="-0.1" aria-label="Move back 0.1 centimetre" fdprocessedid="9asfqh">−0.1</button><button class="pill sm" type="button" data-nb="0.1" aria-label="Move forward 0.1 centimetre" fdprocessedid="g971">+0.1</button><button class="pill sm" type="button" data-nb="1" aria-label="Move forward 1 centimetre" fdprocessedid="3glcv8">+1</button></span><span class="nb-hint">Tap ±0.1 cm, or use <kbd>←</kbd> <kbd>→</kbd> (hold <kbd>Shift</kbd> for 1 cm). Rounds to 0.1 cm and stays on the stick.</span></div>
+    <svg id="board" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Meterstick balance diagram"><g id="world"><text class="stick-mass" x="16" y="30">stick 89.5 g</text><path class="stand" d="M 466.00 202 L 500.00 188 L 534.00 202 Z"></path><rect class="stand-soft" x="446.00" y="236" width="108" height="12" rx="4"></rect><rect class="stand" x="496.00" y="220" width="8" height="18"></rect><text class="pivot-x" x="500.00" y="272" fill="var(--muted)">x = 50.0 cm</text><g id="beamGroup" transform="rotate(0.000 500.00 190)"><line class="tick major" x1="74.00" y1="180" x2="74.00" y2="200.00"></line><text class="ruler-num" x="74.00" y="172" text-anchor="middle">0</text><line class="tick" x1="82.52" y1="180" x2="82.52" y2="191.00"></line><line class="tick" x1="91.04" y1="180" x2="91.04" y2="191.00"></line><line class="tick" x1="99.56" y1="180" x2="99.56" y2="191.00"></line><line class="tick" x1="108.08" y1="180" x2="108.08" y2="191.00"></line><line class="tick mid" x1="116.60" y1="180" x2="116.60" y2="195.00"></line><line class="tick" x1="125.12" y1="180" x2="125.12" y2="191.00"></line><line class="tick" x1="133.64" y1="180" x2="133.64" y2="191.00"></line><line class="tick" x1="142.16" y1="180" x2="142.16" y2="191.00"></line><line class="tick" x1="150.68" y1="180" x2="150.68" y2="191.00"></line><line class="tick major" x1="159.20" y1="180" x2="159.20" y2="200.00"></line><text class="ruler-num" x="159.20" y="172" text-anchor="middle">10</text><line class="tick" x1="167.72" y1="180" x2="167.72" y2="191.00"></line><line class="tick" x1="176.24" y1="180" x2="176.24" y2="191.00"></line><line class="tick" x1="184.76" y1="180" x2="184.76" y2="191.00"></line><line class="tick" x1="193.28" y1="180" x2="193.28" y2="191.00"></line><line class="tick mid" x1="201.80" y1="180" x2="201.80" y2="195.00"></line><line class="tick" x1="210.32" y1="180" x2="210.32" y2="191.00"></line><line class="tick" x1="218.84" y1="180" x2="218.84" y2="191.00"></line><line class="tick" x1="227.36" y1="180" x2="227.36" y2="191.00"></line><line class="tick" x1="235.88" y1="180" x2="235.88" y2="191.00"></line><line class="tick major" x1="244.40" y1="180" x2="244.40" y2="200.00"></line><text class="ruler-num" x="244.40" y="172" text-anchor="middle">20</text><line class="tick" x1="252.92" y1="180" x2="252.92" y2="191.00"></line><line class="tick" x1="261.44" y1="180" x2="261.44" y2="191.00"></line><line class="tick" x1="269.96" y1="180" x2="269.96" y2="191.00"></line><line class="tick" x1="278.48" y1="180" x2="278.48" y2="191.00"></line><line class="tick mid" x1="287.00" y1="180" x2="287.00" y2="195.00"></line><line class="tick" x1="295.52" y1="180" x2="295.52" y2="191.00"></line><line class="tick" x1="304.04" y1="180" x2="304.04" y2="191.00"></line><line class="tick" x1="312.56" y1="180" x2="312.56" y2="191.00"></line><line class="tick" x1="321.08" y1="180" x2="321.08" y2="191.00"></line><line class="tick major" x1="329.60" y1="180" x2="329.60" y2="200.00"></line><text class="ruler-num" x="329.60" y="172" text-anchor="middle">30</text><line class="tick" x1="338.12" y1="180" x2="338.12" y2="191.00"></line><line class="tick" x1="346.64" y1="180" x2="346.64" y2="191.00"></line><line class="tick" x1="355.16" y1="180" x2="355.16" y2="191.00"></line><line class="tick" x1="363.68" y1="180" x2="363.68" y2="191.00"></line><line class="tick mid" x1="372.20" y1="180" x2="372.20" y2="195.00"></line><line class="tick" x1="380.72" y1="180" x2="380.72" y2="191.00"></line><line class="tick" x1="389.24" y1="180" x2="389.24" y2="191.00"></line><line class="tick" x1="397.76" y1="180" x2="397.76" y2="191.00"></line><line class="tick" x1="406.28" y1="180" x2="406.28" y2="191.00"></line><line class="tick major" x1="414.80" y1="180" x2="414.80" y2="200.00"></line><text class="ruler-num" x="414.80" y="172" text-anchor="middle">40</text><line class="tick" x1="423.32" y1="180" x2="423.32" y2="191.00"></line><line class="tick" x1="431.84" y1="180" x2="431.84" y2="191.00"></line><line class="tick" x1="440.36" y1="180" x2="440.36" y2="191.00"></line><line class="tick" x1="448.88" y1="180" x2="448.88" y2="191.00"></line><line class="tick mid" x1="457.40" y1="180" x2="457.40" y2="195.00"></line><line class="tick" x1="465.92" y1="180" x2="465.92" y2="191.00"></line><line class="tick" x1="474.44" y1="180" x2="474.44" y2="191.00"></line><line class="tick" x1="482.96" y1="180" x2="482.96" y2="191.00"></line><line class="tick" x1="491.48" y1="180" x2="491.48" y2="191.00"></line><line class="tick major" x1="500.00" y1="180" x2="500.00" y2="200.00"></line><text class="ruler-num" x="500.00" y="172" text-anchor="middle">50</text><line class="tick" x1="508.52" y1="180" x2="508.52" y2="191.00"></line><line class="tick" x1="517.04" y1="180" x2="517.04" y2="191.00"></line><line class="tick" x1="525.56" y1="180" x2="525.56" y2="191.00"></line><line class="tick" x1="534.08" y1="180" x2="534.08" y2="191.00"></line><line class="tick mid" x1="542.60" y1="180" x2="542.60" y2="195.00"></line><line class="tick" x1="551.12" y1="180" x2="551.12" y2="191.00"></line><line class="tick" x1="559.64" y1="180" x2="559.64" y2="191.00"></line><line class="tick" x1="568.16" y1="180" x2="568.16" y2="191.00"></line><line class="tick" x1="576.68" y1="180" x2="576.68" y2="191.00"></line><line class="tick major" x1="585.20" y1="180" x2="585.20" y2="200.00"></line><text class="ruler-num" x="585.20" y="172" text-anchor="middle">60</text><line class="tick" x1="593.72" y1="180" x2="593.72" y2="191.00"></line><line class="tick" x1="602.24" y1="180" x2="602.24" y2="191.00"></line><line class="tick" x1="610.76" y1="180" x2="610.76" y2="191.00"></line><line class="tick" x1="619.28" y1="180" x2="619.28" y2="191.00"></line><line class="tick mid" x1="627.80" y1="180" x2="627.80" y2="195.00"></line><line class="tick" x1="636.32" y1="180" x2="636.32" y2="191.00"></line><line class="tick" x1="644.84" y1="180" x2="644.84" y2="191.00"></line><line class="tick" x1="653.36" y1="180" x2="653.36" y2="191.00"></line><line class="tick" x1="661.88" y1="180" x2="661.88" y2="191.00"></line><line class="tick major" x1="670.40" y1="180" x2="670.40" y2="200.00"></line><text class="ruler-num" x="670.40" y="172" text-anchor="middle">70</text><line class="tick" x1="678.92" y1="180" x2="678.92" y2="191.00"></line><line class="tick" x1="687.44" y1="180" x2="687.44" y2="191.00"></line><line class="tick" x1="695.96" y1="180" x2="695.96" y2="191.00"></line><line class="tick" x1="704.48" y1="180" x2="704.48" y2="191.00"></line><line class="tick mid" x1="713.00" y1="180" x2="713.00" y2="195.00"></line><line class="tick" x1="721.52" y1="180" x2="721.52" y2="191.00"></line><line class="tick" x1="730.04" y1="180" x2="730.04" y2="191.00"></line><line class="tick" x1="738.56" y1="180" x2="738.56" y2="191.00"></line><line class="tick" x1="747.08" y1="180" x2="747.08" y2="191.00"></line><line class="tick major" x1="755.60" y1="180" x2="755.60" y2="200.00"></line><text class="ruler-num" x="755.60" y="172" text-anchor="middle">80</text><line class="tick" x1="764.12" y1="180" x2="764.12" y2="191.00"></line><line class="tick" x1="772.64" y1="180" x2="772.64" y2="191.00"></line><line class="tick" x1="781.16" y1="180" x2="781.16" y2="191.00"></line><line class="tick" x1="789.68" y1="180" x2="789.68" y2="191.00"></line><line class="tick mid" x1="798.20" y1="180" x2="798.20" y2="195.00"></line><line class="tick" x1="806.72" y1="180" x2="806.72" y2="191.00"></line><line class="tick" x1="815.24" y1="180" x2="815.24" y2="191.00"></line><line class="tick" x1="823.76" y1="180" x2="823.76" y2="191.00"></line><line class="tick" x1="832.28" y1="180" x2="832.28" y2="191.00"></line><line class="tick major" x1="840.80" y1="180" x2="840.80" y2="200.00"></line><text class="ruler-num" x="840.80" y="172" text-anchor="middle">90</text><line class="tick" x1="849.32" y1="180" x2="849.32" y2="191.00"></line><line class="tick" x1="857.84" y1="180" x2="857.84" y2="191.00"></line><line class="tick" x1="866.36" y1="180" x2="866.36" y2="191.00"></line><line class="tick" x1="874.88" y1="180" x2="874.88" y2="191.00"></line><line class="tick mid" x1="883.40" y1="180" x2="883.40" y2="195.00"></line><line class="tick" x1="891.92" y1="180" x2="891.92" y2="191.00"></line><line class="tick" x1="900.44" y1="180" x2="900.44" y2="191.00"></line><line class="tick" x1="908.96" y1="180" x2="908.96" y2="191.00"></line><line class="tick" x1="917.48" y1="180" x2="917.48" y2="191.00"></line><line class="tick major" x1="926.00" y1="180" x2="926.00" y2="200.00"></line><text class="ruler-num" x="926.00" y="172" text-anchor="middle">100</text><rect class="beam-fill" x="74.0" y="180" width="852.0" height="20" rx="3"></rect><line class="beam-axis" x1="74.0" y1="190" x2="926.0" y2="190"></line><path class="cg-mark" d="M 500.00 168 l -9 -14 l 18 0 z"></path><text class="cg-text" x="500.00" y="148">CG</text><line class="dim" x1="500.00" y1="144" x2="159.20" y2="144" stroke="var(--gold)"></line><line class="dim-tick" x1="500.00" y1="137" x2="500.00" y2="151" stroke="var(--gold)"></line><line class="dim-tick" x1="159.20" y1="137" x2="159.20" y2="151" stroke="var(--gold)"></line><text class="dim-text" x="329.60" y="136" fill="var(--gold)">r3 = 40.0 cm</text><line class="dim" x1="500.00" y1="144" x2="329.60" y2="144" stroke="var(--gold)"></line><line class="dim-tick" x1="500.00" y1="137" x2="500.00" y2="151" stroke="var(--gold)"></line><line class="dim-tick" x1="329.60" y1="137" x2="329.60" y2="151" stroke="var(--gold)"></line><text class="dim-text" x="414.80" y="108" fill="var(--gold)">r1 = 20.0 cm</text><line class="dim" x1="500.00" y1="144" x2="670.40" y2="144" stroke="var(--accent)"></line><line class="dim-tick" x1="500.00" y1="137" x2="500.00" y2="151" stroke="var(--accent)"></line><line class="dim-tick" x1="670.40" y1="137" x2="670.40" y2="151" stroke="var(--accent)"></line><text class="dim-text" x="585.20" y="136" fill="var(--accent)">r2 = 20.0 cm</text><rect class="clamp" x="317.60" y="176" width="24.00" height="28" rx="4"></rect><rect class="clamp" x="658.40" y="176" width="24.00" height="28" rx="4"></rect><rect class="clamp clamp-sel" x="147.20" y="176" width="24.00" height="28" rx="4"></rect></g><g id="hangers"><g data-hanger="hllvx42p" transform="translate(329.60 190.00)"><circle cx="0" cy="0" r="3.4" fill="var(--metal)"></circle><line class="hanger" x1="0" y1="0" x2="0" y2="110"></line><rect class="mass-block" x="-23.0" y="110" width="46.0" height="44" rx="6" fill="var(--panel-2)" stroke="var(--ink-2)"></rect><text class="mass-text" x="0" y="125" fill="var(--ink-2)">m1</text><text class="mass-sub" x="0" y="176" fill="var(--ink-2)">100 g</text><text class="mass-x" x="0" y="210" fill="var(--muted)">x = 30.0 cm</text><rect class="hit" data-hit="hllvx42p" x="-39.0" y="-14" width="78.0" height="240" rx="10"></rect></g><g data-hanger="heljbmnp" transform="translate(670.40 190.00)"><circle cx="0" cy="0" r="3.4" fill="var(--metal)"></circle><line class="hanger" x1="0" y1="0" x2="0" y2="110"></line><rect class="mass-block" x="-23.0" y="110" width="46.0" height="44" rx="6" fill="var(--panel-2)" stroke="var(--ink-2)"></rect><text class="mass-text" x="0" y="125" fill="var(--ink-2)">m2</text><text class="mass-sub" x="0" y="176" fill="var(--ink-2)">200 g</text><text class="mass-x" x="0" y="210" fill="var(--muted)">x = 70.0 cm</text><rect class="hit" data-hit="heljbmnp" x="-39.0" y="-14" width="78.0" height="240" rx="10"></rect></g><g data-hanger="hlu8ccof" transform="translate(159.20 190.00)"><rect class="sel-ring" x="-34.0" y="-8" width="68.0" height="226.0" rx="12"></rect><circle cx="0" cy="0" r="3.4" fill="var(--metal)"></circle><line class="hanger" x1="0" y1="0" x2="0" y2="110"></line><rect class="mass-block" x="-23.0" y="110" width="46.0" height="44" rx="6" fill="var(--panel-2)" stroke="var(--accent)"></rect><text class="mass-text" x="0" y="125" fill="var(--accent)">m3</text><text class="mass-sub" x="0" y="176" fill="var(--accent)">50 g</text><text class="mass-x" x="0" y="210" fill="var(--muted)">x = 10.0 cm</text><rect class="hit" data-hit="hlu8ccof" x="-39.0" y="-14" width="78.0" height="240" rx="10"></rect></g></g></g></svg>
+    <p class="sr-only" id="liveVerdict" aria-live="polite">Balanced. Counter-clockwise torque 0.392 N·m equals clockwise torque 0.392 N·m.</p>
   </section>
 
-  <section class="card" aria-label="Experiment case">
+  <section class="card case-card" aria-label="Experiment case">
     <h2>Experiment case</h2>
-    <div class="case-row" id="caseChips"><button class="case-chip" data-case="explore" aria-pressed="false" fdprocessedid="muyxgc">Explore</button><button class="case-chip" data-case="case1" aria-pressed="false" fdprocessedid="b5b1vp">Case 1</button><button class="case-chip" data-case="case2a" aria-pressed="false" fdprocessedid="6s5i9">Case 2(a)</button><button class="case-chip" data-case="case2b" aria-pressed="false" fdprocessedid="q1v4r">Case 2(b)</button><button class="case-chip" data-case="case3" aria-pressed="true" fdprocessedid="od8l4r">Case 3</button><button class="case-chip" data-case="case5" aria-pressed="false" fdprocessedid="gsfutd">Case 5</button><button class="case-chip" data-case="case6a" aria-pressed="false" fdprocessedid="273m8i">Case 6(a)</button><button class="case-chip" data-case="case6b" aria-pressed="false" fdprocessedid="z6pj4c">Case 6(b)</button><button class="case-chip" data-case="case6c" aria-pressed="false" fdprocessedid="eburbb">Case 6(c)</button><button class="case-chip" data-case="case6d" aria-pressed="false" fdprocessedid="daiih7">Case 6(d)</button></div>
-    <h3 class="case-title" id="caseTitle">Case 3 · Unknown mass by the method of moments</h3>
-    <ol class="steps" id="caseSteps"><li>Pivot at the center of gravity; the stick’s own weight cancels.</li><li>The <b>unknown mass mᵤ</b> hangs at 10.0 cm.</li><li>Slide the known <b>mₖ = 200 g</b> on the other side until the stick balances, and record rᵤ and rₖ.</li><li>Use rᵤmᵤ = rₖmₖ to compute your value for mᵤ, then weigh it on the lab balance and compare.</li></ol>
-    <div class="live ok" id="caseLive"><b>In equilibrium</b> at x0′ = 50.0 cm, so Στ<sub>ccw</sub> = Στ<sub>cw</sub>. Solve the balance equation for the unknown mass and check it against the lab balance.</div>
-    <div class="pred" id="casePred">
+    <div class="case-row" id="caseChips"><button class="case-chip" data-case="explore" aria-pressed="false" fdprocessedid="2mv16i">Explore</button><button class="case-chip" data-case="case1" aria-pressed="false" fdprocessedid="otvi0d">Case 1</button><button class="case-chip" data-case="case2a" aria-pressed="true" fdprocessedid="eip3rb">Case 2(a)</button><button class="case-chip" data-case="case2b" aria-pressed="false" fdprocessedid="w4hb1k">Case 2(b)</button><button class="case-chip" data-case="case3" aria-pressed="false" fdprocessedid="xmuvvi">Case 3</button><button class="case-chip" data-case="case5" aria-pressed="false" fdprocessedid="lqnmx">Case 5</button><button class="case-chip" data-case="case6a" aria-pressed="false" fdprocessedid="ee31un">Case 6(a)</button><button class="case-chip" data-case="case6b" aria-pressed="false" fdprocessedid="urcn9b">Case 6(b)</button><button class="case-chip" data-case="case6c" aria-pressed="false" fdprocessedid="ttx4ui">Case 6(c)</button><button class="case-chip" data-case="case6d" aria-pressed="false" fdprocessedid="sgg7zj">Case 6(d)</button></div>
+    <h3 class="case-title" id="caseTitle">Case 2(a) · Three known masses, find the lever arm</h3>
+    <ol class="steps" id="caseSteps"><li>Pivot still at the center of gravity, so the stick’s weight cancels.</li><li><b>m1 = 100 g</b> at 30.0 cm and <b>m2 = 200 g</b> at 70.0 cm.</li><li>Work out which side is heavier, then move <b>m3 = 50 g</b> to the correct side and slide it until it balances.</li><li>Record all three lever arms and compare the two torque sums.</li></ol>
+    <div class="live ok" id="caseLive"><b>In equilibrium</b> at x0′ = 50.0 cm. Στ<sub>ccw</sub> = Στ<sub>cw</sub> = 0.392 N·m, percent difference 0.0%.</div>
+    <div class="pred" id="casePred" hidden="">
       <div class="field">
-        <label for="predInput" id="predLabel">Your value for the unknown mass (g)</label>
-        <input type="number" id="predInput" step="0.1" inputmode="decimal" autocomplete="off" fdprocessedid="wwswj4">
+        <label for="predInput" id="predLabel">Your prediction</label>
+        <input type="number" id="predInput" step="0.1" inputmode="decimal" autocomplete="off" fdprocessedid="8jmp5">
       </div>
-      <button class="pill" id="predBtn" type="button" fdprocessedid="oebem">Check</button>
-      <div class="pred-out" id="predOut"><span class="note">Work it out with Στ<sub>ccw</sub> = Στ<sub>cw</sub>, then check it here.</span></div>
+      <button class="pill" id="predBtn" type="button" fdprocessedid="85cl6">Check</button>
+      <div class="pred-out" id="predOut"></div>
     </div>
   </section>
 
   <div class="cols">
     <section class="card" aria-label="Selected element">
       <h2>Controls</h2>
-      <div id="selBody"><div class="sel-head"><span class="name">mₖ</span><span class="tag">hanging mass</span></div><label class="f">Mass</label><div class="pills" style="margin-bottom:8px"><button class="pill sm" data-mass="50" aria-pressed="false" fdprocessedid="dr3gj7">50 g</button><button class="pill sm" data-mass="100" aria-pressed="false" fdprocessedid="7oh4pd">100 g</button><button class="pill sm" data-mass="200" aria-pressed="true" fdprocessedid="tb69s">200 g</button><button class="pill sm" data-mass="500" aria-pressed="false" fdprocessedid="3eai5q">500 g</button></div><div class="row" style="margin-bottom:10px"><input type="number" id="massNum" min="0.1" max="2000" step="0.1" value="200" aria-label="Mass in grams" style="max-width:130px" fdprocessedid="rhx9v8"><span class="note">g</span></div><label class="f" for="posRange">Position on the stick</label><input class="slider" type="range" id="posRange" min="0" max="100" step="0.1" value="94.4" aria-label="Position on the stick"><div class="row between" style="margin-top:2px"><div class="readout"><span id="posVal">94.4</span> <span class="u">cm</span></div><div class="pills"><button class="pill sm" data-nudge="-1" fdprocessedid="bbgco8">−1</button><button class="pill sm" data-nudge="-0.1" fdprocessedid="123mf">−0.1</button><button class="pill sm" data-nudge="0.1" fdprocessedid="ush2x">+0.1</button><button class="pill sm" data-nudge="1" fdprocessedid="6niwe">+1</button></div></div><div class="row" style="margin-top:8px"><button class="pill sm" id="levelSel" type="button" fdprocessedid="8jw3mf">Level it with this hanger</button><button class="pill sm danger" id="delSel" type="button" fdprocessedid="w2u18">Remove</button></div></div>
+      <div id="selBody"><div class="sel-head"><span class="name">m3</span><span class="tag">hanging mass</span></div><label class="f">Mass</label><div class="pills" style="margin-bottom:8px"><button class="pill sm" data-mass="50" aria-pressed="true" fdprocessedid="aubsof">50 g</button><button class="pill sm" data-mass="100" aria-pressed="false" fdprocessedid="ak8psj">100 g</button><button class="pill sm" data-mass="200" aria-pressed="false" fdprocessedid="8ajdar">200 g</button><button class="pill sm" data-mass="500" aria-pressed="false" fdprocessedid="4yds9e">500 g</button></div><div class="row" style="margin-bottom:10px"><input type="number" id="massNum" min="0.1" max="2000" step="0.1" value="50" aria-label="Mass in grams" style="max-width:130px" fdprocessedid="zzkj2f"><span class="note">g</span></div><label class="f" for="posRange">Position on the stick</label><input class="slider" type="range" id="posRange" min="0" max="100" step="0.1" value="10" aria-label="Position on the stick"><div class="row between" style="margin-top:2px"><div class="readout"><span id="posVal">10.0</span> <span class="u">cm</span></div><div class="pills"><button class="pill sm" data-nudge="-1" fdprocessedid="beagp9">−1</button><button class="pill sm" data-nudge="-0.1" fdprocessedid="y9ddjk">−0.1</button><button class="pill sm" data-nudge="0.1" fdprocessedid="g6tpc">+0.1</button><button class="pill sm" data-nudge="1" fdprocessedid="k8shm">+1</button></div></div><div class="row" style="margin-top:8px"><button class="pill sm danger" id="delSel" type="button" fdprocessedid="i47n3g">Remove</button></div></div>
     </section>
 
     <section class="card" aria-label="Hanging masses">
       <h2>Hangers</h2>
-      <div id="hangList"><div class="hang-row"><button class="hang-pick" data-pick="h5vcxi4h" aria-pressed="false" fdprocessedid="aj2s3s"><span class="swatch" style="background:var(--gold)"></span><span class="tag">mᵤ</span><span class="vals">? g · x = 10.0 cm · r = 40.0 cm</span></button><button class="pill sm danger" data-del="h5vcxi4h" aria-label="Remove mᵤ" fdprocessedid="fgpgmr">×</button></div><div class="hang-row"><button class="hang-pick" data-pick="hifh33k8" aria-pressed="true" fdprocessedid="7e61m"><span class="swatch" style="background:var(--accent)"></span><span class="tag">mₖ</span><span class="vals">200 g · x = 94.4 cm · r = 44.4 cm · τ = 0.870 N·m</span></button><button class="pill sm danger" data-del="hifh33k8" aria-label="Remove mₖ" fdprocessedid="k9jxph">×</button></div></div>
-      <div class="pills" style="margin-top:10px" id="addPills"><button class="pill sm" data-add="50" fdprocessedid="vperld">+ 50 g</button><button class="pill sm" data-add="100" fdprocessedid="q1tv1">+ 100 g</button><button class="pill sm" data-add="200" fdprocessedid="nfzm3o">+ 200 g</button><button class="pill sm" data-add="500" fdprocessedid="4qak4f">+ 500 g</button><button class="pill sm" data-add="unknown" fdprocessedid="c8sfqr">+ unknown mass</button></div>
+      <div id="hangList"><div class="hang-row"><button class="hang-pick" data-pick="hllvx42p" aria-pressed="false" fdprocessedid="z2v0q3"><span class="swatch" style="background:var(--gold)"></span><span class="tag">m1</span><span class="vals">100 g · x = 30.0 cm · r = 20.0 cm · τ = 0.196 N·m</span></button><button class="pill sm danger" data-del="hllvx42p" aria-label="Remove m1" fdprocessedid="7m0cs">×</button></div><div class="hang-row"><button class="hang-pick" data-pick="heljbmnp" aria-pressed="false" fdprocessedid="ovy1nb"><span class="swatch" style="background:var(--accent)"></span><span class="tag">m2</span><span class="vals">200 g · x = 70.0 cm · r = 20.0 cm · τ = 0.392 N·m</span></button><button class="pill sm danger" data-del="heljbmnp" aria-label="Remove m2" fdprocessedid="ya02mz">×</button></div><div class="hang-row"><button class="hang-pick" data-pick="hlu8ccof" aria-pressed="true" fdprocessedid="ssl42b"><span class="swatch" style="background:var(--gold)"></span><span class="tag">m3</span><span class="vals">50 g · x = 10.0 cm · r = 40.0 cm · τ = 0.196 N·m</span></button><button class="pill sm danger" data-del="hlu8ccof" aria-label="Remove m3" fdprocessedid="otsgze">×</button></div></div>
+      <div class="pills" style="margin-top:10px" id="addPills"><button class="pill sm" data-add="50" fdprocessedid="b91xww">+ 50 g</button><button class="pill sm" data-add="100" fdprocessedid="enl1hi">+ 100 g</button><button class="pill sm" data-add="200" fdprocessedid="682ne6">+ 200 g</button><button class="pill sm" data-add="500" fdprocessedid="iys73">+ 500 g</button><button class="pill sm" data-add="unknown" fdprocessedid="t0ppwn">+ unknown mass</button></div>
       <p class="note" style="margin-top:8px">Drag a hanger or the fulcrum on the stick, or pick one to fine-tune it here.</p>
     </section>
   </div>
 
-  <section class="card" aria-label="Measured data">
+  <section class="card data-card" aria-label="Measured data">
     <h2>
-      <span>Data &amp; torques</span>
-      <span class="unit-toggle" id="unitToggle"><button class="pill sm" data-unit="Nm" aria-pressed="true" fdprocessedid="55797c">N·m</button><button class="pill sm" data-unit="gcm" aria-pressed="false" fdprocessedid="3x4yb">g·cm</button></span>
+      <span>Data</span>
     </h2>
-    <div class="data-scroll" id="tableWrap"><table><thead><tr><th>Element</th><th>m (g)</th><th>x (cm)</th><th>r (cm)</th><th>Side</th><th>τ (N·m)</th></tr></thead><tbody><tr><td>mᵤ <span class="badge">unknown</span></td><td>?</td><td>10.0</td><td>40.0</td><td><span class="badge ccw">CCW</span></td><td>?</td></tr><tr><td>mₖ</td><td>200</td><td>94.4</td><td>44.4</td><td><span class="badge cw">CW</span></td><td>0.870</td></tr><tr><td>meterstick at CG</td><td>150</td><td>50.0</td><td>0.0</td><td>—</td><td>0.000</td></tr><tr class="total"><td>Στ counter-clockwise</td><td colspan="4"></td><td>?</td></tr><tr class="total"><td>Στ clockwise</td><td colspan="4"></td><td>0.870</td></tr><tr class="total"><td>Percent difference</td><td colspan="4"></td><td>—</td></tr></tbody></table><p class="note" style="margin-top:8px">1 hanger has a hidden mass, so its row and its torque are left out of the sums above. In equilibrium the two sides are equal, so the unknown follows from the known side: mᵤ = (rₖ mₖ) / rᵤ.</p></div>
-    <div id="unknownBox"><div style="border-top:1px dashed var(--line);margin-top:12px;padding-top:10px"><div class="row between"><strong style="font-size:13.5px">Unknown mass mᵤ</strong><span class="note">rᵤ = 40.0 cm</span></div><p class="note good" style="margin:6px 0 0">Balanced. Method of moments: mᵤ = (rₖ mₖ) / rᵤ = (44.4 cm × 200 g) / 40.0 cm = <b>222.0 g</b>.</p><div class="row" style="margin-top:8px"><button class="pill sm" id="weighBtn" type="button" fdprocessedid="nq0smmi">Weigh it on the lab balance</button></div></div></div>
+    <div class="data-scroll" id="tableWrap"><table><thead><tr><th>Element</th><th>m (g)</th><th>x (cm)</th><th>r (cm)</th><th>Side</th></tr></thead><tbody><tr><td>m1</td><td>100</td><td>30.0</td><td>20.0</td><td><span class="badge ccw">CCW</span></td></tr><tr><td>m2</td><td>200</td><td>70.0</td><td>20.0</td><td><span class="badge cw">CW</span></td></tr><tr><td>m3</td><td>50</td><td>10.0</td><td>40.0</td><td><span class="badge ccw">CCW</span></td></tr><tr><td>meterstick at CG</td><td>89.5</td><td>50.0</td><td>0.0</td><td>—</td></tr></tbody></table></div>
+    <div id="unknownBox"></div>
   </section>
 
-  <section class="card" aria-label="Apparatus settings">
+  <section class="card export-card" aria-label="Export">
+    <h2>Export</h2>
+    <div class="pills">
+      <button class="pill sm" id="exportPng" type="button" fdprocessedid="41rgua">Board image (PNG)</button>
+      <button class="pill sm" id="exportCsv" type="button" fdprocessedid="4211aj">All cases (CSV)</button>
+    </div>
+    <p class="note" style="margin-top:8px">The PNG is the board exactly as it stands. The CSV
+      lists every case's elements with its pivot and lever arms.</p>
+  </section>
+
+  <section class="card app-card" aria-label="Apparatus settings">
     <h2>Apparatus</h2>
     <div class="grid3">
       <div>
         <label class="f" for="stickMass">Stick mass (g)</label>
-        <input type="number" id="stickMass" min="1" max="2000" step="0.1" inputmode="decimal" fdprocessedid="fkaafs">
+        <input type="number" id="stickMass" min="1" max="2000" step="0.1" inputmode="decimal" fdprocessedid="wh291">
       </div>
       <div>
         <label class="f" for="stickCG">Stick CG (cm)</label>
-        <input type="number" id="stickCG" min="0" max="100" step="0.1" inputmode="decimal" fdprocessedid="wk89o">
+        <input type="number" id="stickCG" min="0" max="100" step="0.1" inputmode="decimal" fdprocessedid="9sia1f2">
       </div>
       <div>
         <label class="f" for="clampMass">Clamp mass (g)</label>
-        <input type="number" id="clampMass" min="0" max="200" step="0.1" inputmode="decimal" fdprocessedid="z4xqcp">
+        <input type="number" id="clampMass" min="0" max="200" step="0.1" inputmode="decimal" fdprocessedid="tkhpdk">
       </div>
     </div>
     <div class="grid2" style="margin-top:8px">
       <div>
         <label class="f" for="grav">Gravity g (m/s²)</label>
-        <input type="number" id="grav" min="1" max="30" step="0.01" inputmode="decimal" fdprocessedid="b41d">
+        <input type="number" id="grav" min="1" max="30" step="0.01" inputmode="decimal" fdprocessedid="ra7xl9">
       </div>
       <div>
         <label class="f">Pivot position</label>
@@ -633,20 +696,20 @@
     <div style="margin-top:8px">
       <div class="switch-row">
         <span>Show lever arms on the stick</span>
-        <button class="switch" id="swArms" role="switch" aria-checked="true" aria-label="Show lever arms" fdprocessedid="3utr3"></button>
+        <button class="switch" id="swArms" role="switch" aria-checked="true" aria-label="Show lever arms" fdprocessedid="cski7b"></button>
       </div>
       <div class="switch-row">
         <span>Show the stick's center of gravity</span>
-        <button class="switch" id="swCG" role="switch" aria-checked="true" aria-label="Show center of gravity" fdprocessedid="gj6na"></button>
+        <button class="switch" id="swCG" role="switch" aria-checked="true" aria-label="Show center of gravity" fdprocessedid="v4q36d"></button>
       </div>
       <div class="switch-row">
         <span>Split the stick into two segments (Case 5b)</span>
-        <button class="switch" id="swSeg" role="switch" aria-checked="false" aria-label="Split the stick into segments" fdprocessedid="fvwyu"></button>
+        <button class="switch" id="swSeg" role="switch" aria-checked="false" aria-label="Split the stick into segments" fdprocessedid="76hn04"></button>
       </div>
     </div>
     <div class="pills" style="margin-top:10px">
-      <button class="pill sm" id="resetCase" type="button" fdprocessedid="it0cmr">Reset this case</button>
-      <button class="pill sm" id="clearBoard" type="button" fdprocessedid="6v3f1n">Clear all hangers</button>
+      <button class="pill sm" id="resetCase" type="button" fdprocessedid="eq4n69">Reset this case</button>
+      <button class="pill sm" id="clearBoard" type="button" fdprocessedid="ffpf6d">Clear all hangers</button>
     </div>
   </section>
 
@@ -658,7 +721,7 @@
   </footer>
 </main>
 
-<div class="toast" id="toast" role="status">Moved mₖ to 94.4 cm</div>
+<div class="toast" id="toast" role="status">Case 2(a) loaded</div>
 
 <script>
 (function () {
@@ -668,8 +731,8 @@
      Constants & small helpers
      ============================================================ */
 
-  var STORE_KEY = 'torque-lab-v1';
-  var THEME_KEY = 'torque-lab-theme';
+  var STORE_KEY = 'torque-student-v1';
+  var THEME_KEY = 'torque-student-theme';
 
   var LEN = 100;                 // meterstick length in cm
   var VIEW = { w: 1000, h: 500 };
@@ -686,6 +749,9 @@
 
   function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
   function round1(v) { return Math.round(v * 10) / 10; }
+  // One physical metre stick for every setup: the same mass in all cases, so the
+  // recorded torques and the answer keys agree from case to case. Editable in Apparatus.
+  var STICK_MASS = 89.5;
   function uid() { return 'h' + Math.random().toString(36).slice(2, 9); }
 
   function esc(s) {
@@ -721,7 +787,7 @@
         'The stick is in equilibrium when the counter-clockwise and clockwise torques are equal.'
       ],
       setup: {
-        pivot: 50, stickMass: 150, stickCG: 50, clampMass: 0,
+        pivot: 50, stickCG: 50, clampMass: 0,
         items: [{ role: 'm1', mass: 200, x: 20 }, { role: 'm2', mass: 100, x: 74 }]
       }
     },
@@ -737,7 +803,7 @@
         'Record r1, r2, both torques and their percent difference.'
       ],
       setup: {
-        pivot: 50, stickMass: 150, stickCG: 50, clampMass: 0,
+        pivot: 50, stickCG: 50, clampMass: 0,
         items: [{ role: 'm1', mass: 100, x: 15 }, { role: 'm2', mass: 200, x: 78 }]
       }
     },
@@ -753,7 +819,7 @@
         'Record all three lever arms and compare the two torque sums.'
       ],
       setup: {
-        pivot: 50, stickMass: 150, stickCG: 50, clampMass: 0,
+        pivot: 50, stickCG: 50, clampMass: 0,
         items: [
           { role: 'm1', mass: 100, x: 30 },
           { role: 'm2', mass: 200, x: 70 },
@@ -773,7 +839,7 @@
         'Move m3 to the correct side and slide it until the stick balances, then compare your prediction with the measurement.'
       ],
       setup: {
-        pivot: 50, stickMass: 150, stickCG: 50, clampMass: 0,
+        pivot: 50, stickCG: 50, clampMass: 0,
         items: [
           { role: 'm1', mass: 100, x: 20 },
           { role: 'm2', mass: 200, x: 60 },
@@ -798,7 +864,7 @@
         'Use r\u1d64m\u1d64 = r\u2096m\u2096 to compute your value for m\u1d64, then weigh it on the lab balance and compare.'
       ],
       setup: {
-        pivot: 50, stickMass: 150, stickCG: 50, clampMass: 0,
+        pivot: 50, stickCG: 50, clampMass: 0,
         items: [
           { role: 'm\u1d64', mass: null, x: 10, unknown: true },
           { role: 'm\u2096', mass: 200, x: 85 }
@@ -822,7 +888,7 @@
         '(5b) Turn on \u201cSplit the stick into two segments\u201d to see each part of the stick\u2019s own weight and its torque; the two segments give the same total as treating the whole stick as a mass at its CG.'
       ],
       setup: {
-        pivot: 40, stickMass: 150, stickCG: 50, clampMass: 0,
+        pivot: 40, stickCG: 50, clampMass: 0,
         items: [{ role: 'm1', mass: 100, x: 0 }]
       }
     },
@@ -838,7 +904,7 @@
         'Compare the counter-clockwise and clockwise torque sums.'
       ],
       setup: {
-        pivot: 34, stickMass: 150, stickCG: 50, clampMass: 0,
+        pivot: 34, stickCG: 50, clampMass: 0,
         items: [{ role: 'm1', mass: 100, x: 0 }, { role: 'm2', mass: 100, x: 60 }]
       }
     },
@@ -853,7 +919,7 @@
         'Watch how the system\u2019s center of gravity shifts as m2 moves to the right.'
       ],
       setup: {
-        pivot: 34, stickMass: 150, stickCG: 50, clampMass: 0,
+        pivot: 34, stickCG: 50, clampMass: 0,
         items: [{ role: 'm1', mass: 100, x: 0 }, { role: 'm2', mass: 100, x: 70 }]
       }
     },
@@ -868,7 +934,7 @@
         'Keep this balance point: the next case asks you to predict where it goes for 90 cm.'
       ],
       setup: {
-        pivot: 34, stickMass: 150, stickCG: 50, clampMass: 0,
+        pivot: 34, stickCG: 50, clampMass: 0,
         items: [{ role: 'm1', mass: 100, x: 0 }, { role: 'm2', mass: 100, x: 80 }]
       }
     },
@@ -883,7 +949,12 @@
         'Then slide the fulcrum until it balances and compare your prediction with the measurement.'
       ],
       setup: {
-        pivot: 44.3, stickMass: 150, stickCG: 50, clampMass: 0,
+        // 6(d) starts where 6(c) balanced, so that bearing has to be worked out
+        // from the stick's actual mass rather than hard-coded for a 150 g stick
+        pivot: function (s) {
+          return balancePivot(s, [{ m: 100, x: 0 }, { m: 100, x: 80 }]);
+        },
+        stickCG: 50, clampMass: 0,
         items: [{ role: 'm1', mass: 100, x: 0 }, { role: 'm2', mass: 100, x: 90 }]
       },
       predict: {
@@ -899,13 +970,27 @@
     return CASES[0];
   }
 
+  // Pivot that balances a given set of hanging masses plus the stick itself.
+  // Takes the case's own CG so a setup can be computed before it is loaded.
+  function balancePivot(s, pairs) {
+    var num = 0, den = 0;
+    for (var i = 0; i < pairs.length; i++) {
+      num += pairs[i].m * pairs[i].x;
+      den += pairs[i].m;
+    }
+    num += state.stickMass * s.stickCG;
+    den += state.stickMass;
+    if (den <= 0) return 0;
+    return round1(num / den);
+  }
+
   /* ============================================================
      State
      ============================================================ */
 
   var state = {
     pivot: 50,
-    stickMass: 150,
+    stickMass: STICK_MASS,
     stickCG: 50,
     clampMass: 0,
     g: 9.8,
@@ -1014,16 +1099,6 @@
     return state.pivot - sum / m;
   }
 
-  function solvedValue() {
-    var it = getItem(state.selected);
-    if (!it) {
-      for (var i = state.items.length - 1; i >= 0; i--) {
-        if (!state.items[i].unknown || state.revealed) { it = state.items[i]; break; }
-      }
-    }
-    return solvePositionFor(it);
-  }
-
   function itemByRole(role) {
     for (var i = 0; i < state.items.length; i++) if (state.items[i].role === role) return state.items[i];
     return null;
@@ -1051,31 +1126,6 @@
     return num / den;
   }
 
-  function levelIt() {
-    var it = null;
-    if (state.selected && state.selected !== 'pivot') it = getItem(state.selected);
-    if (!it) {
-      var lc = caseById(state.caseId);
-      if (!state.selected && lc.level && lc.level !== 'pivot') it = itemByRole(lc.level);
-    }
-    if (it) {
-      var x = solvedValue();
-      if (!isFinite(x)) { toast('That hanger cannot balance the stick'); return; }
-      if (x < -0.05 || x > LEN + 0.05) {
-        toast('No balance point on the stick for that mass — change a mass or the fulcrum');
-        return;
-      }
-      it.x = round1(clamp(x, 0, LEN));
-      toast('Moved ' + it.role + ' to ' + num(it.x, 1) + ' cm');
-    } else {
-      var p = solvedPivot();
-      if (!isFinite(p)) { toast('Nothing to balance yet'); return; }
-      state.pivot = round1(clamp(p, 0, LEN));
-      toast('Fulcrum at ' + num(state.pivot, 1) + ' cm');
-    }
-    render();
-  }
-
   /* ============================================================
      Board rendering
      ============================================================ */
@@ -1092,7 +1142,7 @@
   function blockWidth(it) {
     if (it.unknown && !state.revealed) return 42;
     var m = Math.max(massOf(it), 1);
-    return clamp(34 * Math.pow(m / 100, 0.4), 30, 84);
+    return clamp(34 * Math.pow(m / 100, 0.4), 46, 84);
   }
 
   function sideColor(t) {
@@ -1139,6 +1189,7 @@
       beamContent.push('<text class="cg-text" x="' + num(cgX, 2) + '" y="' + cgText + '">CG</text>');
     }
 
+
     // ---- lever arms (labels get a row by position so neighbours never share one)
     var dimItems = [];
     for (var i = 0; i < state.items.length; i++) {
@@ -1181,7 +1232,14 @@
     // ---- hanging masses (kept vertical, hung from the rotated attachment point)
     var blockH = compact ? 66 : BLOCK_H;
     var line1 = compact ? 16 : 15;
-    var line2 = compact ? 50 : 33;
+    // the mass label sits outside the block, under it: the block is only 30-84
+    // units wide, which is too narrow for "100 g" at a readable size
+    var massLabelY = HANG + blockH + (compact ? 30 : 22);
+    var posLabelY = massLabelY + 34;
+    var labelBlockH = compact ? massLabelY + 22 : posLabelY + 16;
+    // deepest point any hanger (plus its labels) can reach at full tilt, so the
+    // viewBox can grow instead of cutting a label off at the ends of the stick
+    var deepest = 0;
     refs.blockH = blockH;
     var hangerContent = [];
     for (var h = 0; h < state.items.length; h++) {
@@ -1190,8 +1248,11 @@
       var w2 = blockWidth(hi);
       var dm = displayMass(hi);
       var col2 = state.selected === hi.id ? 'var(--accent)' : 'var(--ink-2)';
+      var ringH = labelBlockH;
+      var reach = BEAM_Y + Math.abs(cmToX(hi.x) - cmToX(state.pivot)) * Math.sin(TILT_MAX * Math.PI / 180) + ringH;
+      if (reach > deepest) deepest = reach;
       var selRing = state.selected === hi.id
-        ? '<rect class="sel-ring" x="' + num(-w2 / 2 - 11, 1) + '" y="-8" width="' + num(w2 + 22, 1) + '" height="' + (HANG + blockH + 30) + '" rx="12"/>'
+        ? '<rect class="sel-ring" x="' + num(-w2 / 2 - 11, 1) + '" y="-8" width="' + num(w2 + 22, 1) + '" height="' + num(ringH, 1) + '" rx="12"/>'
         : '';
       var massLine = dm == null ? '? g' : (num(dm, dm % 1 === 0 ? 0 : 1) + ' g');
       hangerContent.push(
@@ -1201,9 +1262,9 @@
           '<line class="hanger" x1="0" y1="0" x2="0" y2="' + HANG + '"/>' +
           '<rect class="mass-block" x="' + num(-w2 / 2, 1) + '" y="' + HANG + '" width="' + num(w2, 1) + '" height="' + blockH + '" rx="6" fill="var(--panel-2)" stroke="' + col2 + '"/>' +
           '<text class="mass-text" x="0" y="' + (HANG + line1) + '" fill="' + col2 + '">' + esc(hi.role) + '</text>' +
-          '<text class="mass-sub" x="0" y="' + (HANG + line2) + '" fill="var(--ink-2)">' + massLine + '</text>' +
-          (compact ? '' : '<text class="mass-x" x="0" y="' + (HANG + blockH + 26) + '" fill="var(--muted)">x = ' + num(hi.x, 1) + ' cm</text>') +
-          '<rect class="hit" data-hit="' + esc(hi.id) + '" x="' + num(-w2 / 2 - 16, 1) + '" y="-14" width="' + num(w2 + 32, 1) + '" height="' + (HANG + blockH + 52) + '" rx="10"/>' +
+          '<text class="mass-sub" x="0" y="' + massLabelY + '" fill="' + col2 + '">' + massLine + '</text>' +
+          (compact ? '' : '<text class="mass-x" x="0" y="' + posLabelY + '" fill="var(--muted)">x = ' + num(hi.x, 1) + ' cm</text>') +
+          '<rect class="hit" data-hit="' + esc(hi.id) + '" x="' + num(-w2 / 2 - 16, 1) + '" y="-14" width="' + num(w2 + 32, 1) + '" height="' + (ringH + 14) + '" rx="10"/>' +
         '</g>');
     }
     refs.hangers.forEach(function (ref) {
@@ -1215,7 +1276,8 @@
       '<path class="stand" d="M ' + num(px - 34, 2) + ' ' + (BEAM_Y + BEAM_H / 2 + 2) + ' L ' + num(px, 2) + ' ' + (BEAM_Y - 2) +
         ' L ' + num(px + 34, 2) + ' ' + (BEAM_Y + BEAM_H / 2 + 2) + ' Z"/>',
       '<rect class="stand-soft" x="' + num(px - 54, 2) + '" y="' + (BEAM_Y + 46) + '" width="108" height="12" rx="4"/>',
-      '<rect class="stand" x="' + num(px - 4, 2) + '" y="' + (BEAM_Y + 30) + '" width="8" height="18"/>'
+      '<rect class="stand" x="' + num(px - 4, 2) + '" y="' + (BEAM_Y + 30) + '" width="8" height="18"/>',
+      '<text class="pivot-x" x="' + num(px, 2) + '" y="' + (BEAM_Y + 82) + '" fill="var(--muted)">x = ' + num(state.pivot, 1) + ' cm</text>'
     ];
 
     // ---- net torque arrow
@@ -1232,8 +1294,11 @@
         '<path d="M ' + num(p2.x, 2) + ' ' + num(p2.y, 2) + ' l ' + (cwDir ? -7 : 7) + ' -1 l ' + (cwDir ? 6 : -6) + ' 7 z" fill="' + col3 + '"/>';
     }
 
+    svg.setAttribute('viewBox', '0 0 ' + VIEW.w + ' ' + Math.round(Math.max(VIEW.h, deepest + 10)));
+
     svg.innerHTML =
       '<g id="world">' +
+        '<text class="stick-mass" x="16" y="30">stick ' + num(state.stickMass, state.stickMass % 1 === 0 ? 0 : 1) + ' g</text>' +
         stand.join('') +
         '<g id="beamGroup" transform="rotate(' + num(theta, 3) + ' ' + num(px, 2) + ' ' + BEAM_Y + ')">' +
           beamContent.join('') +
@@ -1333,16 +1398,8 @@
       }
     }
     html += '<span class="chip">fulcrum <b>' + num(state.pivot, 1) + ' cm</b></span>';
-    html += '<span class="chip act" id="chipLevel" role="button" tabindex="0">Level it</span>';
 
     document.getElementById('chips').innerHTML = html;
-    var lvl = document.getElementById('chipLevel');
-    if (lvl) {
-      lvl.addEventListener('click', levelIt);
-      lvl.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); levelIt(); }
-      });
-    }
 
     var live = document.getElementById('liveVerdict');
     if (hidden) {
@@ -1450,7 +1507,6 @@
         '</div>' +
       '</div>' +
       '<div class="row" style="margin-top:8px">' +
-        '<button class="pill sm" id="levelSel" type="button">Level it with this hanger</button>' +
         '<button class="pill sm danger" id="delSel" type="button">Remove</button>' +
       '</div>';
 
@@ -1487,13 +1543,54 @@
       });
     });
 
-    document.getElementById('levelSel').addEventListener('click', levelIt);
     document.getElementById('delSel').addEventListener('click', function () {
       var id = it.id;
       state.items = state.items.filter(function (o) { return o.id !== id; });
       state.selected = null;
       render();
       toast('Removed ' + it.role);
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Fine position control (under the board, so it is next to the stick)
+     ------------------------------------------------------------------ */
+
+  function nudgeSelected(delta) {
+    if (state.selected === 'pivot') {
+      state.pivot = round1(clamp(state.pivot + delta, 0, LEN));
+    } else {
+      var it = getItem(state.selected);
+      if (!it) return;
+      it.x = round1(clamp(it.x + delta, 0, LEN));
+    }
+    render();
+  }
+
+  function renderNudgeBar() {
+    var bar = document.getElementById('nudgeBar');
+    var isPivot = state.selected === 'pivot';
+    var it = isPivot ? null : getItem(state.selected);
+    if (!isPivot && !it) { bar.hidden = true; bar.innerHTML = ''; return; }
+
+    var val = isPivot ? state.pivot : it.x;
+    bar.innerHTML =
+      '<span class="nb-name">' + esc(isPivot ? 'Fulcrum' : it.role) + '</span>' +
+      '<span class="readout"><span id="nbVal">' + num(val, 1) + '</span> <span class="u">cm</span></span>' +
+      '<span class="pills nb-pills">' +
+        '<button class="pill sm" type="button" data-nb="-1" aria-label="Move back 1 centimetre">\u22121</button>' +
+        '<button class="pill sm" type="button" data-nb="-0.1" aria-label="Move back 0.1 centimetre">\u22120.1</button>' +
+        '<button class="pill sm" type="button" data-nb="0.1" aria-label="Move forward 0.1 centimetre">+0.1</button>' +
+        '<button class="pill sm" type="button" data-nb="1" aria-label="Move forward 1 centimetre">+1</button>' +
+      '</span>' +
+      '<span class="nb-hint">Tap \u00b10.1 cm, or use <kbd>\u2190</kbd> <kbd>\u2192</kbd> ' +
+        '(hold <kbd>Shift</kbd> for 1 cm). Rounds to 0.1 cm and stays on the stick.</span>';
+    bar.hidden = false;
+
+    bar.querySelectorAll('[data-nb]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        nudgeSelected(parseFloat(b.getAttribute('data-nb')));
+      });
     });
   }
 
@@ -1602,18 +1699,17 @@
      Data table
      ============================================================ */
 
+  // Student build: the table records the measurements — mass, position, lever arm
+  // and side — and leaves every torque for the student to work out.
   function renderTable() {
     var t = totals(state.revealed);
-    var hid = totals(true).hiddenSide;
     var html = '<table><thead><tr>' +
-      '<th>Element</th><th>m (g)</th><th>x (cm)</th><th>r (cm)</th><th>Side</th><th>&tau; (' + torqueUnitLabel() + ')</th>' +
+      '<th>Element</th><th>m (g)</th><th>x (cm)</th><th>r (cm)</th><th>Side</th>' +
       '</tr></thead><tbody>';
 
     for (var i = 0; i < state.items.length; i++) {
       var it = state.items[i];
       var dm = displayMass(it);
-      var row = null;
-      for (var r = 0; r < t.rows.length; r++) if (t.rows[r].it === it) row = t.rows[r];
       var side = it.x < state.pivot ? '<span class="badge ccw">CCW</span>' : (it.x > state.pivot ? '<span class="badge cw">CW</span>' : '—');
       html += '<tr>' +
         '<td>' + esc(it.role) + (it.unknown ? ' <span class="badge">unknown</span>' : '') + '</td>' +
@@ -1621,7 +1717,6 @@
         '<td>' + num(it.x, 1) + '</td>' +
         '<td>' + num(Math.abs(it.x - state.pivot), 1) + '</td>' +
         '<td>' + side + '</td>' +
-        '<td>' + (row && row.t != null ? (row.t < 0 ? '−' : '') + fmtTorque(Math.abs(row.t)) : '?') + '</td>' +
       '</tr>';
     }
 
@@ -1629,33 +1724,24 @@
       '<td>' + num(state.stickMass, state.stickMass % 1 === 0 ? 0 : 1) + '</td>' +
       '<td>' + num(state.stickCG, 1) + '</td>' +
       '<td>' + num(Math.abs(state.stickCG - state.pivot), 1) + '</td>' +
-      '<td>' + (Math.abs(state.stickCG - state.pivot) < 0.05 ? '—' : (state.stickCG < state.pivot ? '<span class="badge ccw">CCW</span>' : '<span class="badge cw">CW</span>')) + '</td>' +
-      '<td>' + (t.stickT < 0 ? '−' : '') + fmtTorque(Math.abs(t.stickT)) + '</td></tr>';
+      '<td>' + (Math.abs(state.stickCG - state.pivot) < 0.05 ? '—' : (state.stickCG < state.pivot ? '<span class="badge ccw">CCW</span>' : '<span class="badge cw">CW</span>')) + '</td></tr>';
 
     if (state.segments) {
       var mu = state.stickMass / LEN;
       var x0 = state.pivot;
       var lLeft = x0, lRight = LEN - x0;
       var mLeft = mu * lLeft, mRight = mu * lRight;
-      var tLeft = mLeft * (lLeft / 2);      // CCW magnitude about the pivot
-      var tRight = mRight * (lRight / 2);   // CW magnitude about the pivot
       html += '<tr class="sub"><td>stick segment left of pivot</td><td>' + num(mLeft, 1) + '</td><td>' + num(x0 / 2, 1) +
-        '</td><td>' + num(lLeft / 2, 1) + '</td><td><span class="badge ccw">CCW</span></td><td>−' + fmtTorque(tLeft) + '</td></tr>';
+        '</td><td>' + num(lLeft / 2, 1) + '</td><td><span class="badge ccw">CCW</span></td></tr>';
       html += '<tr class="sub"><td>stick segment right of pivot</td><td>' + num(mRight, 1) + '</td><td>' + num((x0 + LEN) / 2, 1) +
-        '</td><td>' + num(lRight / 2, 1) + '</td><td><span class="badge cw">CW</span></td><td>' + fmtTorque(tRight) + '</td></tr>';
+        '</td><td>' + num(lRight / 2, 1) + '</td><td><span class="badge cw">CW</span></td></tr>';
     }
 
-    html += '<tr class="total"><td>&Sigma;&tau; counter-clockwise</td><td colspan="4"></td><td>' +
-      (hid === 'ccw' ? '?' : fmtTorque(t.ccw)) + '</td></tr>';
-    html += '<tr class="total"><td>&Sigma;&tau; clockwise</td><td colspan="4"></td><td>' +
-      (hid === 'cw' ? '?' : fmtTorque(t.cw)) + '</td></tr>';
-    html += '<tr class="total"><td>Percent difference</td><td colspan="4"></td><td>' +
-      (hid ? '—' : num(percentDiff(), 1) + '%') + '</td></tr>';
     html += '</tbody></table>';
 
     if (t.hidden) {
       html += '<p class="note" style="margin-top:8px">' + t.hidden + ' hanger' + (t.hidden > 1 ? 's have' : ' has') +
-        ' a hidden mass, so its row and its torque are left out of the sums above. In equilibrium the two sides are equal, so the unknown follows from the known side: ' +
+        ' a hidden mass, so its row is left blank. In equilibrium the two sides are equal, so the unknown follows from the known side: ' +
         'm\u1d64 = (r\u2096 m\u2096) / r\u1d64.</p>';
     }
     document.getElementById('tableWrap').innerHTML = html;
@@ -1789,13 +1875,149 @@
   }
 
   /* ============================================================
+     Export: the board as a PNG, every case as one CSV
+     ============================================================ */
+
+  function download(blob, name) {
+    var a = document.createElement('a');
+    var u = URL.createObjectURL(blob);
+    a.href = u;
+    a.download = name;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(u); a.remove(); }, 1000);
+  }
+
+  // The board is styled by the page's CSS and by CSS variables, none of which travel
+  // with a serialised SVG, so copy the computed presentation values onto a clone.
+  function exportBoard(scale, name) {
+    var svg = document.getElementById('board');
+    var clone = svg.cloneNode(true);
+    var vb = (svg.getAttribute('viewBox') || '0 0 1000 500').split(/\s+/).map(Number);
+    var props = ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'stroke-dashoffset',
+      'stroke-linecap', 'stroke-linejoin', 'font-size', 'font-family', 'font-weight',
+      'font-style', 'text-anchor', 'dominant-baseline', 'opacity', 'fill-opacity', 'stroke-opacity'];
+    var src = svg.querySelectorAll('*');
+    var dst = clone.querySelectorAll('*');
+    for (var i = 0; i < src.length; i++) {
+      var cs = window.getComputedStyle(src[i]);
+      for (var p = 0; p < props.length; p++) {
+        var v = cs.getPropertyValue(props[p]);
+        if (!v) continue;
+        v = v.trim();
+        if (v === 'auto' || v === 'normal' || v === 'initial') continue;
+        if (v === 'none' && props[p] !== 'fill' && props[p] !== 'stroke') continue;
+        dst[i].setAttribute(props[p], v);
+      }
+    }
+    clone.removeAttribute('class');
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    clone.setAttribute('width', vb[2]);
+    clone.setAttribute('height', vb[3]);
+
+    var xml = '<?xml version="1.0" encoding="UTF-8"?>' + new XMLSerializer().serializeToString(clone);
+    var img = new Image();
+    img.onload = function () {
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.round(vb[2] * scale);
+      canvas.height = Math.round(vb[3] * scale);
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = window.getComputedStyle(document.querySelector('.stage')).backgroundColor || '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(function (blob) {
+        if (!blob) { toast('Could not render the board image'); return; }
+        download(blob, name);
+        toast('Board image saved');
+      }, 'image/png');
+    };
+    img.onerror = function () { toast('Could not render the board image'); };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
+  }
+
+  // One flat spec per case, so the same reader serves the live setup and the presets.
+  function liveSpec() {
+    return {
+      pivot: state.pivot,
+      stickCG: state.stickCG,
+      clampMass: state.clampMass,
+      items: state.items.map(function (it) {
+        return { role: it.role, x: it.x, mass: displayMass(it) };
+      })
+    };
+  }
+
+  function presetSpec(c) {
+    var s = c.setup;
+    return {
+      pivot: typeof s.pivot === 'function' ? s.pivot(s) : s.pivot,
+      stickCG: s.stickCG,
+      clampMass: s.clampMass || 0,
+      items: s.items.map(function (o) {
+        return { role: o.role, x: o.x, mass: o.unknown ? null : o.mass };
+      })
+    };
+  }
+
+  // Measurements only: no torque is worked out anywhere in the student build.
+  function setupRows(spec) {
+    var clamp = spec.clampMass || 0;
+    var rows = [];
+    for (var i = 0; i < spec.items.length; i++) {
+      var it = spec.items[i];
+      rows.push({
+        el: it.role,
+        m: it.mass == null ? '?' : it.mass + clamp,
+        x: it.x,
+        r: Math.abs(round1(it.x - spec.pivot)),
+        side: it.x < spec.pivot ? 'CCW' : (it.x > spec.pivot ? 'CW' : '—')
+      });
+    }
+    rows.push({
+      el: 'meterstick at CG', m: state.stickMass, x: spec.stickCG,
+      r: Math.abs(round1(spec.stickCG - spec.pivot)),
+      side: Math.abs(spec.stickCG - spec.pivot) < 0.05 ? '—' : (spec.stickCG < spec.pivot ? 'CCW' : 'CW')
+    });
+    return rows;
+  }
+
+  function csvCell(v) {
+    var s = v == null ? '' : String(v);
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  function exportCasesCsv() {
+    var head = ['case_id', 'case', 'element', 'mass_g', 'x_cm', 'lever_arm_cm', 'side', 'pivot_cm'];
+    var lines = [head.join(',')];
+
+    for (var i = 0; i < CASES.length; i++) {
+      var c = CASES[i];
+      var spec = c.id === state.caseId ? liveSpec() : presetSpec(c);
+      var rows = setupRows(spec);
+      for (var r = 0; r < rows.length; r++) {
+        var row = rows[r];
+        lines.push([
+          c.id, c.chip, row.el,
+          row.m === '?' ? '?' : num(row.m, row.m % 1 === 0 ? 0 : 1),
+          num(row.x, 1), num(row.r, 1), row.side, num(spec.pivot, 1)
+        ].map(csvCell).join(','));
+      }
+    }
+
+    var csv = '\ufeff' + lines.join('\r\n') + '\r\n';
+    download(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'torque-balance-student-all-cases.csv');
+    toast('Exported ' + CASES.length + ' cases to CSV');
+  }
+
+  /* ============================================================
      Storage & cases
      ============================================================ */
 
   function save() {
     try {
       localStorage.setItem(STORE_KEY, JSON.stringify({
-        v: 4,
+        v: 5,
         pivot: state.pivot,
         stickMass: state.stickMass,
         stickCG: state.stickCG,
@@ -1844,7 +2066,9 @@
 
     state.pivot = round1(clamp(Number(raw.pivot), 0, LEN));
     if (!isFinite(state.pivot)) state.pivot = 50;
-    state.stickMass = clamp(Number(raw.stickMass) || 150, 1, 2000);
+    // v4 and earlier stored a randomly drawn stick mass; the stick is now one fixed
+    // mass shared by every case, so an older setup adopts it once (edits persist from v5 on)
+    state.stickMass = raw.v === 5 ? round1(clamp(Number(raw.stickMass) || STICK_MASS, 1, 2000)) : STICK_MASS;
     state.stickCG = round1(clamp(Number(raw.stickCG) || 50, 0, LEN));
     state.clampMass = clamp(Number(raw.clampMass) || 0, 0, 200);
     state.g = clamp(Number(raw.g) || 9.8, 1, 30);
@@ -1864,10 +2088,11 @@
     var c = caseById(id);
     state.caseId = c.id;
     var s = c.setup;
-    state.pivot = s.pivot;
-    state.stickMass = s.stickMass;
+    // the stick keeps the mass it was given at start-up: it is one physical stick,
+    // so loading another case does not swap it for a different one
     state.stickCG = s.stickCG;
     state.clampMass = s.clampMass || 0;
+    state.pivot = typeof s.pivot === 'function' ? s.pivot(s) : s.pivot;
     state.items = s.items.map(function (o) {
       var it = { id: uid(), role: o.role, x: o.x, mass: null, unknown: !!o.unknown };
       if (o.unknown) it.trueMass = round1(60 + Math.random() * 180);
@@ -1901,6 +2126,7 @@
     animateTilt();
     updateChips();
     if (!opts.skipSelected) renderSelected();
+    renderNudgeBar();
     renderHangers();
     renderTable();
     renderUnknownBox();
@@ -1911,7 +2137,7 @@
   }
 
   function syncApparatusInputs() {
-    document.getElementById('stickMass').value = state.stickMass;
+    document.getElementById('stickMass').value = num(state.stickMass, state.stickMass % 1 === 0 ? 0 : 1);
     document.getElementById('stickCG').value = state.stickCG;
     document.getElementById('clampMass').value = state.clampMass;
     document.getElementById('grav').value = state.g;
@@ -1922,16 +2148,7 @@
     var swSeg = document.getElementById('swSeg');
     swSeg.setAttribute('aria-checked', String(state.segments));
 
-    var ut = document.getElementById('unitToggle');
-    ut.innerHTML = '<button class="pill sm" data-unit="Nm" aria-pressed="' + (state.tauUnit === 'Nm') + '">N·m</button>' +
-      '<button class="pill sm" data-unit="gcm" aria-pressed="' + (state.tauUnit === 'gcm') + '">g·cm</button>';
-    ut.querySelectorAll('[data-unit]').forEach(function (b) {
-      b.addEventListener('click', function (e) {
-        e.stopPropagation();
-        state.tauUnit = b.getAttribute('data-unit');
-        render();
-      });
-    });
+    // no torque unit switch here: the student table has no torque column
   }
 
   var toastTimer = null;
@@ -2056,7 +2273,7 @@
       var c = caseById('case1');
       state.caseId = c.id;
       state.pivot = c.setup.pivot;
-      state.stickMass = c.setup.stickMass;
+      state.stickMass = STICK_MASS;
       state.stickCG = c.setup.stickCG;
       state.items = c.setup.items.map(function (o) {
         var it = { id: uid(), role: o.role, x: o.x, mass: null, unknown: !!o.unknown };
@@ -2072,7 +2289,11 @@
       setTheme(next);
     });
 
-    document.getElementById('levelBtn').addEventListener('click', levelIt);
+    document.getElementById('exportPng').addEventListener('click', function () {
+      exportBoard(2, 'torque-balance-student-board.png');
+    });
+    document.getElementById('exportCsv').addEventListener('click', exportCasesCsv);
+
 
     var board = document.getElementById('board');
     board.addEventListener('pointerdown', onDown);
@@ -2083,7 +2304,7 @@
 
     // apparatus inputs
     document.getElementById('stickMass').addEventListener('change', function () {
-      state.stickMass = clamp(parseFloat(this.value) || 150, 1, 2000);
+      state.stickMass = round1(clamp(parseFloat(this.value) || STICK_MASS, 1, 2000));
       render();
     });
     document.getElementById('stickCG').addEventListener('change', function () {
@@ -2133,6 +2354,17 @@
     renderAddPills();
     render();
     syncCompact();
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      if (!state.selected) return;
+      var t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      e.preventDefault();
+      nudgeSelected((e.key === 'ArrowRight' ? 1 : -1) * (e.shiftKey ? 1 : 0.1));
+    });
+
     var resizeTimer = null;
     window.addEventListener('resize', function () {
       measureTopbar();
