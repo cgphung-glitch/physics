@@ -1,0 +1,1516 @@
+/* ============================================================
+   The Period of a Pendulum — simulation, timing, plots, exports
+   ============================================================ */
+(function () {
+  'use strict';
+
+  /* ---------------- constants ---------------- */
+
+  var G = 9.81;                  // accepted free-fall acceleration, m/s²
+  var CYCLES = 40;               // cycles timed per trial, as in the lab
+  var MAX_TRIALS = 5;
+  var STOPWATCH_SIGMA = 0.085;   // hand timing scatter on a 40-cycle total, s
+  var RELEASE_SIGMA = 0.0012;    // how precisely the bob is pulled aside, m
+  var AUTO_SPEED = 32;           // time-lapse used while filling five trials
+  var STEP = 1 / 500;            // integrator step, s
+  var MAX_FRAME = 2;             // longest wall-clock step a single frame may replay, s
+  var SAMPLE_HZ = 60;            // angle-trace sampling rate
+  var FONT = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+  /* ---------------- helpers ---------------- */
+
+  function $(id) { return document.getElementById(id); }
+
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+  function mean(arr) {
+    if (!arr.length) return 0;
+    var s = 0;
+    for (var i = 0; i < arr.length; i++) s += arr[i];
+    return s / arr.length;
+  }
+
+  function stdev(arr) {
+    if (arr.length < 2) return 0;
+    var m = mean(arr);
+    var s = 0;
+    for (var i = 0; i < arr.length; i++) s += (arr[i] - m) * (arr[i] - m);
+    return Math.sqrt(s / (arr.length - 1));
+  }
+
+  function randn() {
+    var u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  function deg(rad) { return rad * 180 / Math.PI; }
+
+  function rr(ctx, x, y, w, h, r) {
+    r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+    ctx.beginPath();
+    if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); return; }
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  /* ---------------- physics ---------------- */
+
+  // Arithmetic–geometric mean, used for the complete elliptic integral K.
+  function agm(a, b) {
+    for (var i = 0; i < 14; i++) {
+      if (Math.abs(a - b) < 1e-15) break;
+      var na = (a + b) / 2;
+      var nb = Math.sqrt(a * b);
+      a = na; b = nb;
+    }
+    return a;
+  }
+
+  // Exact period of a simple pendulum: T = 4√(L/g)·K(sin θ₀/2).
+  function exactPeriod(L, theta0) {
+    var k = Math.sin(Math.abs(theta0) / 2);
+    var K = Math.PI / (2 * agm(1, Math.sqrt(Math.max(0, 1 - k * k))));
+    return 4 * Math.sqrt(L / G) * K;
+  }
+
+  // Small-angle period, T = 2π√(L/g).
+  function smallPeriod(L) {
+    return 2 * Math.PI * Math.sqrt(L / G);
+  }
+
+  // Release angle from the sideways pull d, per the worksheet: θ = sin⁻¹(d/L).
+  function angleFor(d, L) {
+    return Math.asin(clamp(d / L, -1, 1));
+  }
+
+  /* ---------------- investigation parts ---------------- */
+
+  function opt(id, mass, L, d, label, unit) {
+    return { id: id, mass: mass, L: L, d: d, label: label, unit: unit, key: null };
+  }
+
+  var PARTS = {
+    '1': {
+      id: '1',
+      name: 'Bob mass',
+      note: 'L = 0.500 m · d = 0.100 m',
+      options: [
+        opt('m50', 0.050, 0.500, 0.100, '50', 'g'),
+        opt('m100', 0.100, 0.500, 0.100, '100', 'g')
+      ]
+    },
+    '2': {
+      id: '2',
+      name: 'Start distance',
+      note: 'm = 100 g · L = 0.500 m',
+      options: [
+        opt('d5', 0.100, 0.500, 0.050, '5', 'cm'),
+        opt('d10', 0.100, 0.500, 0.100, '10', 'cm'),
+        opt('d15', 0.100, 0.500, 0.150, '15', 'cm'),
+        opt('d20', 0.100, 0.500, 0.200, '20', 'cm')
+      ]
+    },
+    '3': {
+      id: '3',
+      name: 'String length',
+      note: 'm = 100 g · d = 0.100 m',
+      options: [
+        opt('l30', 0.100, 0.300, 0.100, '30', 'cm'),
+        opt('l40', 0.100, 0.400, 0.100, '40', 'cm'),
+        opt('l50', 0.100, 0.500, 0.100, '50', 'cm'),
+        opt('l60', 0.100, 0.600, 0.100, '60', 'cm'),
+        opt('l70', 0.100, 0.700, 0.100, '70', 'cm')
+      ]
+    }
+  };
+
+  Object.keys(PARTS).forEach(function (p) {
+    PARTS[p].options.forEach(function (o) {
+      o.key = p + '|' + o.id;
+      o.part = p;
+    });
+  });
+
+  function configFor(key) {
+    for (var p in PARTS) {
+      if (!Object.prototype.hasOwnProperty.call(PARTS, p)) continue;
+      for (var i = 0; i < PARTS[p].options.length; i++) {
+        if (PARTS[p].options[i].key === key) return PARTS[p].options[i];
+      }
+    }
+    return null;
+  }
+
+  /* ---------------- state ---------------- */
+
+  var state = {
+    part: '1',
+    sel: { '1': '1|m50', '2': '2|d10', '3': '3|l50' },
+    data: {},          // key -> [{ total, period }]
+    trace: null,       // last recorded swing
+    last: null,        // { key, total, period } most recent trial shown
+    speed: 1           // playback rate; 1× is real time
+  };
+
+  function dataArr(key) {
+    if (!state.data[key]) state.data[key] = [];
+    return state.data[key];
+  }
+
+  function currentKey() { return state.sel[state.part]; }
+
+  function currentConfig() { return configFor(currentKey()); }
+
+  /* ---------------- simulation ---------------- */
+
+  var sim = {
+    active: false,
+    t: 0,
+    theta: 0,
+    omega: 0,
+    prevOmega: 0,
+    cycles: 0,
+    theta0: 0,
+    L: 0.5,
+    mass: 0.1,
+    samples: [],
+    nextSample: 0,
+    speed: 1,
+    crossTime: 0,
+    auto: false,
+    autoLeft: 0,
+    autoKey: null
+  };
+
+  function poseIdle() {
+    var cfg = currentConfig();
+    if (!cfg) return;
+    sim.L = cfg.L;
+    sim.mass = cfg.mass;
+    sim.theta0 = angleFor(cfg.d, cfg.L);
+    sim.theta = sim.theta0;
+    sim.omega = 0;
+    sim.prevOmega = 0;
+    sim.t = 0;
+    sim.cycles = 0;
+    sim.samples = [];
+    sim.nextSample = 0;
+    sim.crossTime = 0;
+  }
+
+  function startTrial(speed) {
+    var cfg = currentConfig();
+    if (!cfg) return;
+    var dEff = cfg.d + randn() * RELEASE_SIGMA;
+    sim.active = true;
+    sim.L = cfg.L;
+    sim.mass = cfg.mass;
+    sim.theta0 = angleFor(Math.min(dEff, cfg.L * 0.97), cfg.L);
+    sim.theta = sim.theta0;
+    sim.omega = 0;
+    sim.prevOmega = 0;
+    sim.t = 0;
+    sim.cycles = 0;
+    sim.crossTime = 0;
+    sim.samples = [];
+    sim.nextSample = 0;
+    sim.speed = speed || state.speed;
+    state.last = null;
+    setBusy(true);
+    refreshButtons();
+    refreshPills();
+    refreshStats();
+    drawScene();
+  }
+
+  // One RK4 step of θ'' = −(g/L) sin θ.
+  function rk4(h) {
+    var L = sim.L;
+    var th = sim.theta, om = sim.omega;
+    var k1t = om, k1o = -(G / L) * Math.sin(th);
+    var k2t = om + h / 2 * k1o, k2o = -(G / L) * Math.sin(th + h / 2 * k1t);
+    var k3t = om + h / 2 * k2o, k3o = -(G / L) * Math.sin(th + h / 2 * k2t);
+    var k4t = om + h * k3o, k4o = -(G / L) * Math.sin(th + h * k3t);
+    sim.theta = th + h / 6 * (k1t + 2 * k2t + 2 * k3t + k4t);
+    sim.omega = om + h / 6 * (k1o + 2 * k2o + 2 * k3o + k4o);
+  }
+
+  function advance(dtSim) {
+    var remaining = dtSim;
+    var guard = 0;
+    while (remaining > 1e-9 && sim.cycles < CYCLES && guard++ < 20000) {
+      var h = Math.min(STEP, remaining);
+      var prev = sim.omega;
+      rk4(h);
+      sim.t += h;
+      remaining -= h;
+
+      // A full cycle ends each time the bob reaches its starting side again,
+      // i.e. when ω changes sign from + to −.
+      if (prev > 0 && sim.omega <= 0) {
+        var frac = prev / (prev - sim.omega);
+        sim.crossTime = sim.t - h + h * frac;
+        sim.cycles++;
+        if (sim.cycles >= CYCLES) break;
+      }
+
+      if (sim.t >= sim.nextSample) {
+        sim.nextSample += 1 / SAMPLE_HZ;
+        sim.samples.push({ t: sim.t, th: sim.theta });
+      }
+    }
+  }
+
+  function finishTrial() {
+    var measured = sim.crossTime + randn() * STOPWATCH_SIGMA;
+    var period = measured / CYCLES;
+    var key = currentKey();
+    var arr = dataArr(key);
+    if (arr.length >= MAX_TRIALS) arr.length = MAX_TRIALS - 1;
+
+    arr.push({ total: measured, period: period, theta0: sim.theta0 });
+    state.last = { key: key, total: measured, period: period, theta0: sim.theta0 };
+    state.trace = {
+      key: key,
+      L: sim.L,
+      mass: sim.mass,
+      theta0: sim.theta0,
+      total: measured,
+      period: period,
+      samples: sim.samples.slice()
+    };
+    sim.active = false;
+
+    if (sim.auto) {
+      sim.autoLeft--;
+      if (sim.autoLeft > 0) {
+        setTimeout(function () {
+          if (!sim.auto) return;
+          startTrial(AUTO_SPEED);
+        }, 180);
+        renderAll();
+        return;
+      }
+      sim.auto = false;
+      sim.autoLeft = 0;
+      setBusy(false);
+      renderAll();
+      toast('Five trials recorded for ' + currentConfig().label + ' ' + currentConfig().unit);
+      return;
+    }
+
+    setBusy(false);
+    renderAll();
+    toast('Trial recorded: 40 cycles in ' + measured.toFixed(1) + ' s → T = ' + period.toFixed(3) + ' s');
+  }
+
+  function stopRun() {
+    var wasAuto = sim.auto;
+    sim.active = false;
+    sim.auto = false;
+    sim.autoLeft = 0;
+    setBusy(false);
+    poseIdle();
+    renderAll();
+    if (wasAuto) toast('Run stopped — no trial recorded');
+  }
+
+  // Fill the current setting up to five trials.
+  function startAuto() {
+    if (sim.active) {
+      if (sim.auto) stopRun();
+      return;
+    }
+    var key = currentKey();
+    var arr = dataArr(key);
+    if (arr.length >= MAX_TRIALS) arr.length = 0;
+    sim.auto = true;
+    sim.autoKey = key;
+    sim.autoLeft = MAX_TRIALS - arr.length;
+    renderAll();
+    startTrial(AUTO_SPEED);
+  }
+
+  /* ---------------- dom ---------------- */
+
+  var themeToggle = $('themeToggle');
+  var canvasWrap = $('canvasWrap');
+  var sceneCanvas = $('scene');
+  var sceneCtx = sceneCanvas.getContext('2d');
+  var optGrid = $('optGrid');
+  var optNote = $('optNote');
+  var runBtn = $('runBtn');
+  var runBtnLabel = $('runBtnLabel');
+  var autoBtn = $('autoBtn');
+  var clearBtn = $('clearBtn');
+  var statusLine = $('statusLine');
+  var dataBody = $('dataBody');
+  var tableHead = $('tableHead');
+
+  var sceneW = 0, sceneH = 0, sceneDpr = 1;
+  var charts = {};
+
+  /* ---------------- palette ---------------- */
+
+  var paletteCache = null;
+
+  function palette() {
+    if (paletteCache) return paletteCache;
+    var css = getComputedStyle(document.documentElement);
+    function v(name) { return css.getPropertyValue(name).trim(); }
+    paletteCache = {
+      panel: v('--panel'),
+      panel2: v('--panel-2'),
+      panel3: v('--panel-3'),
+      border: v('--border'),
+      text: v('--text'),
+      muted: v('--muted'),
+      faint: v('--faint'),
+      grid: v('--grid'),
+      axis: v('--axis'),
+      accent: v('--accent'),
+      accent2: v('--accent-2'),
+      good: v('--good'),
+      sceneTop: v('--scene-top'),
+      sceneBottom: v('--scene-bottom'),
+      sceneFloor: v('--scene-floor'),
+      frame: v('--viz-frame'),
+      frameEdge: v('--viz-frame-edge'),
+      frameHi: v('--viz-frame-hi'),
+      base: v('--viz-base'),
+      string: v('--viz-string'),
+      bob: v('--viz-bob'),
+      bobDark: v('--viz-bob-dark'),
+      bobLight: v('--viz-bob-light'),
+      bobEdge: v('--viz-bob-edge'),
+      arc: v('--viz-arc'),
+      arcInk: v('--viz-arc-ink')
+    };
+    return paletteCache;
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem('pendulum-theme', theme); } catch (e) {}
+    themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    paletteCache = null;
+    drawScene();
+    drawCharts();
+  }
+
+  themeToggle.addEventListener('click', function () {
+    applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  });
+
+  /* ---------------- data helpers ---------------- */
+
+  // Mean period for one configuration, or null when it has no trials.
+  function periodOf(key) {
+    var arr = state.data[key];
+    if (!arr || !arr.length) return null;
+    return mean(arr.map(function (t) { return t.period; }));
+  }
+
+  // Proportional (through-origin) fit of T² against L, from Part 3.
+  function lengthFit() {
+    var pts = [];
+    PARTS['3'].options.forEach(function (o) {
+      var arr = state.data[o.key];
+      if (!arr || !arr.length) return;
+      var T = mean(arr.map(function (t) { return t.period; }));
+      var sT = arr.length > 1 ? stdev(arr.map(function (t) { return t.period; })) : 0;
+      pts.push({
+        L: o.L,
+        T: T,
+        T2: T * T,
+        err: 2 * T * sT,
+        n: arr.length,
+        key: o.key
+      });
+    });
+
+    if (pts.length < 2) return { pts: pts, k: null, r2: null, g: null };
+
+    var sxy = 0, sxx = 0;
+    pts.forEach(function (p) { sxy += p.L * p.T2; sxx += p.L * p.L; });
+    var k = sxx > 0 ? sxy / sxx : null;
+    if (!k) return { pts: pts, k: null, r2: null, g: null };
+
+    var ssRes = 0, ssTot = 0;
+    var my = mean(pts.map(function (p) { return p.T2; }));
+    pts.forEach(function (p) {
+      ssRes += Math.pow(p.T2 - k * p.L, 2);
+      ssTot += Math.pow(p.T2 - my, 2);
+    });
+    var r2 = ssTot > 0 ? 1 - ssRes / ssTot : null;
+
+    return { pts: pts, k: k, r2: r2, g: 4 * Math.PI * Math.PI / k };
+  }
+
+  /* ---------------- scene ---------------- */
+
+  function resizeScene() {
+    if (!canvasWrap) return;
+    var rect = canvasWrap.getBoundingClientRect();
+    sceneW = Math.max(280, Math.round(rect.width));
+    sceneH = Math.max(220, Math.round(rect.height));
+    sceneDpr = Math.min(window.devicePixelRatio || 1, 2);
+    sceneCanvas.width = Math.round(sceneW * sceneDpr);
+    sceneCanvas.height = Math.round(sceneH * sceneDpr);
+    drawScene();
+  }
+
+  function arrowHead(ctx, x, y, ang, s) {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(ang - 0.42) * s, y + Math.sin(ang - 0.42) * s);
+    ctx.lineTo(x + Math.cos(ang + 0.42) * s, y + Math.sin(ang + 0.42) * s);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawArrow(ctx, x1, y1, x2, y2, color, dash) {
+    var a = Math.atan2(y2 - y1, x2 - x1);
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 1.1;
+    ctx.setLineDash(dash || []);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    arrowHead(ctx, x1, y1, a, 5.2);
+    arrowHead(ctx, x2, y2, a + Math.PI, 5.2);
+    ctx.restore();
+  }
+
+  function drawScene() {
+    if (!sceneW || !sceneH) return;
+    var p = palette();
+    var ctx = sceneCtx;
+    var w = sceneW, h = sceneH;
+
+    ctx.setTransform(sceneDpr, 0, 0, sceneDpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    var bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, p.sceneTop);
+    bg.addColorStop(1, p.sceneBottom);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    var cfg = currentConfig();
+    if (!cfg) return;
+
+    var pivotX = w * 0.5;
+    var pivotY = clamp(h * 0.2, 44, 88);
+    var pxPerM = (h - pivotY - 60) / 0.78;
+    var L = cfg.L;
+    var theta0 = angleFor(cfg.d, cfg.L);
+    var theta = sim.theta;
+
+    var bx = pivotX + Math.sin(theta) * L * pxPerM;
+    var by = pivotY + Math.cos(theta) * L * pxPerM;
+    var maxLeft = pivotX - Math.sin(theta0) * L * pxPerM;
+    var maxY = pivotY + Math.cos(theta0) * L * pxPerM;
+
+    /* ---- floor ---- */
+    ctx.globalAlpha = 0.55;
+    ctx.strokeStyle = p.sceneFloor;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, h - 23.5);
+    ctx.lineTo(w, h - 23.5);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    /* ---- length ruler ---- */
+    var rulerX = Math.max(22, w * 0.055);
+    var rulerTop = pivotY + 12;
+    var rulerBot = pivotY + 0.72 * pxPerM;
+    ctx.strokeStyle = p.arc;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(rulerX, rulerTop);
+    ctx.lineTo(rulerX, rulerBot);
+    ctx.stroke();
+    for (var cm = 0; cm <= 70; cm += 10) {
+      var ry = pivotY + (cm / 100) * pxPerM;
+      if (ry > rulerBot + 0.5) break;
+      var long = cm % 20 === 0;
+      ctx.beginPath();
+      ctx.moveTo(rulerX, ry);
+      ctx.lineTo(rulerX + (long ? 6 : 3.5), ry);
+      ctx.stroke();
+      if (long && cm > 0) {
+        ctx.fillStyle = p.arcInk;
+        ctx.font = '500 8px ' + FONT;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(cm), rulerX + 9, ry);
+      }
+    }
+
+    /* ---- support: base, rod, arm ---- */
+    var baseW = Math.min(96, w * 0.22);
+    var rodX = Math.min(
+      pivotX + Math.max(130, Math.min(w * 0.28, 230)),
+      w - baseW / 2 - 10
+    );
+    var floorY = h - 28;
+    var armY = pivotY;
+
+    // base plate
+    ctx.fillStyle = p.base;
+    rr(ctx, rodX - baseW / 2, floorY - 4, baseW, 8, 3.5);
+    ctx.fill();
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(rodX, floorY + 6, baseW * 0.46, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // rod
+    var rodGrad = ctx.createLinearGradient(rodX - 3.5, 0, rodX + 3.5, 0);
+    rodGrad.addColorStop(0, p.frameEdge);
+    rodGrad.addColorStop(0.35, p.frameHi);
+    rodGrad.addColorStop(1, p.frame);
+    ctx.fillStyle = rodGrad;
+    rr(ctx, rodX - 3.5, armY, 7, floorY - armY - 4, 2.5);
+    ctx.fill();
+
+    // horizontal arm
+    var armGrad = ctx.createLinearGradient(0, armY - 4, 0, armY + 4);
+    armGrad.addColorStop(0, p.frameHi);
+    armGrad.addColorStop(1, p.frame);
+    ctx.fillStyle = armGrad;
+    rr(ctx, pivotX - 7, armY - 3.5, rodX - pivotX + 7, 7, 3);
+    ctx.fill();
+    ctx.strokeStyle = p.frameEdge;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    /* ---- protractor ---- */
+    var arcR = clamp(0.4 * L * pxPerM, 46, 104);
+    var arcMax = Math.max(30, Math.ceil((deg(theta0) + 4) / 10) * 10);
+    ctx.strokeStyle = p.arc;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(pivotX, pivotY, arcR, Math.PI / 2 - arcMax * Math.PI / 180, Math.PI / 2 + arcMax * Math.PI / 180);
+    ctx.stroke();
+
+    for (var a = -arcMax; a <= arcMax; a += 5) {
+      var rad = a * Math.PI / 180;
+      var tick = (Math.abs(a) % 10 === 0) ? 5.5 : 3;
+      ctx.strokeStyle = p.arc;
+      ctx.beginPath();
+      ctx.moveTo(pivotX + Math.sin(rad) * arcR, pivotY + Math.cos(rad) * arcR);
+      ctx.lineTo(pivotX + Math.sin(rad) * (arcR + tick), pivotY + Math.cos(rad) * (arcR + tick));
+      ctx.stroke();
+      if (Math.abs(a) % 20 === 0 || (arcMax <= 22 && Math.abs(a) % 10 === 0)) {
+        var lx = pivotX + Math.sin(rad) * (arcR + 15);
+        var ly = pivotY + Math.cos(rad) * (arcR + 15);
+        ctx.fillStyle = p.arcInk;
+        ctx.font = '500 8.5px ' + FONT;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(a + '°', lx, ly);
+      }
+    }
+
+    /* ---- centre line and arc of travel ---- */
+    ctx.save();
+    ctx.setLineDash([3, 4]);
+    ctx.strokeStyle = p.arcInk;
+    ctx.globalAlpha = 0.5;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pivotX, pivotY);
+    ctx.lineTo(pivotX, pivotY + L * pxPerM * 1.05);
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.9;
+    ctx.setLineDash([2, 5]);
+    ctx.strokeStyle = p.arc;
+    ctx.beginPath();
+    ctx.arc(pivotX, pivotY, L * pxPerM, Math.PI / 2 - theta0, Math.PI / 2 + theta0);
+    ctx.stroke();
+    ctx.restore();
+
+    /* ---- release distance marker ---- */
+    if (theta0 > 0.06) {
+      var dColor = p.arcInk;
+      ctx.globalAlpha = 0.85;
+      drawArrow(ctx, pivotX, maxY, maxLeft, maxY, dColor, [3, 3]);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = p.muted;
+      ctx.font = '600 10px ' + FONT;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('d = ' + (cfg.d * 100).toFixed(0) + ' cm', (pivotX + maxLeft) / 2, maxY - 6);
+    }
+
+    /* ---- angle shaded between centre line and string ---- */
+    if (theta0 > 0.09) {
+      var shadeR = Math.min(arcR * 0.82, 70);
+      ctx.beginPath();
+      ctx.moveTo(pivotX, pivotY);
+      ctx.arc(pivotX, pivotY, shadeR, Math.PI / 2, Math.PI / 2 - theta, theta > 0);
+      ctx.closePath();
+      ctx.fillStyle = p.accent;
+      ctx.globalAlpha = 0.12;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      var mid = Math.PI / 2 - theta / 2;
+      ctx.fillStyle = p.accent;
+      ctx.font = 'italic 600 11px Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('θ', pivotX + Math.cos(mid) * (shadeR + 13),
+        pivotY + Math.sin(mid) * (shadeR + 13));
+    }
+
+    /* ---- string ---- */
+    ctx.strokeStyle = p.string;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(pivotX, pivotY + 2);
+    ctx.lineTo(bx, by);
+    ctx.stroke();
+
+    /* ---- bob ---- */
+    var bobR = 10 + (sim.mass - 0.05) * 45;
+    var bobGrad = ctx.createRadialGradient(bx - bobR * 0.36, by - bobR * 0.42, bobR * 0.12, bx, by, bobR * 1.12);
+    bobGrad.addColorStop(0, p.bobLight);
+    bobGrad.addColorStop(0.55, p.bob);
+    bobGrad.addColorStop(1, p.bobDark);
+    ctx.beginPath();
+    ctx.arc(bx, by, bobR, 0, Math.PI * 2);
+    ctx.fillStyle = bobGrad;
+    ctx.fill();
+    ctx.strokeStyle = p.bobEdge;
+    ctx.lineWidth = 1.1;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.ellipse(bx - bobR * 0.33, by - bobR * 0.4, bobR * 0.26, bobR * 0.18, -0.7, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.fill();
+
+    // release ghost while the bob waits at the start
+    if (!sim.active && sim.t < 1e-9) {
+      ctx.beginPath();
+      ctx.arc(maxLeft, maxY, bobR, 0, Math.PI * 2);
+      ctx.setLineDash([2.5, 3]);
+      ctx.strokeStyle = p.bobDark;
+      ctx.globalAlpha = 0.42;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.setLineDash([]);
+    }
+
+    /* ---- clamp at the pivot ---- */
+    ctx.fillStyle = p.frameEdge;
+    rr(ctx, pivotX - 10, pivotY - 9, 20, 13, 3);
+    ctx.fill();
+    ctx.fillStyle = p.frameHi;
+    rr(ctx, pivotX - 7, pivotY - 7, 14, 5, 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(pivotX, pivotY + 2, 2.6, 0, Math.PI * 2);
+    ctx.fillStyle = p.panel;
+    ctx.fill();
+    ctx.strokeStyle = p.frameEdge;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+  }
+
+  /* ---------------- theme-aware draw scheduling ---------------- */
+
+  function scheduleScene() {
+    if (scheduleScene.pending) return;
+    scheduleScene.pending = true;
+    requestAnimationFrame(function () {
+      scheduleScene.pending = false;
+      drawScene();
+    });
+  }
+
+  /* ---------------- charts ---------------- */
+
+  function chartColors() {
+    var p = palette();
+    return {
+      panel: p.panel,
+      panel2: p.panel2,
+      grid: p.grid,
+      axis: p.axis,
+      text: p.text,
+      muted: p.muted,
+      faint: p.faint,
+      accent: p.accent,
+      accent2: p.accent2,
+      good: p.good
+    };
+  }
+
+  function cfgTrace() {
+    var p = palette();
+    var tr = state.trace;
+    var period = tr ? tr.period : smallPeriod(0.5);
+    var windowT = tr ? Math.min(tr.total, period * 6) : period * 6;
+    var pts = [];
+    var nCyc = 0;
+
+    if (tr) {
+      var stride = Math.max(1, Math.ceil(tr.samples.length / 620));
+      for (var i = 0; i < tr.samples.length; i += stride) {
+        var s = tr.samples[i];
+        if (s.t > windowT) break;
+        pts.push([s.t, deg(s.th)]);
+        if (i === 0) nCyc = 0;
+      }
+      nCyc = Math.min(6, Math.round(windowT / period));
+    }
+
+    var amp = tr ? deg(tr.theta0) : 12;
+
+    return {
+      colors: chartColors(),
+      xMin: 0,
+      xMax: windowT,
+      yMin: -amp * 1.22,
+      yMax: amp * 1.22,
+      xLabel: 'Time (s)',
+      yLabel: 'Angle from vertical (°)',
+      emptyText: 'Time a swing to record its angle–time trace',
+      series: tr ? [{
+        type: 'line',
+        points: pts,
+        color: p.accent,
+        width: 1.5
+      }] : [],
+      annotations: tr ? [{
+        text: 'T = ' + tr.period.toFixed(3) + ' s   ·   first ' + nCyc + ' of 40 cycles',
+        x: windowT * 0.5,
+        y: amp * 1.08,
+        color: p.muted,
+        align: 'center',
+        size: 10
+      }] : []
+    };
+  }
+
+  function massSeries() {
+    var out = [];
+    PARTS['1'].options.forEach(function (o) {
+      var arr = state.data[o.key];
+      if (!arr || !arr.length) return;
+      var per = arr.map(function (t) { return t.period; });
+      out.push({
+        x: o.mass * 1000,
+        y: mean(per),
+        yerr: arr.length > 1 ? stdev(per) : 0,
+        n: arr.length
+      });
+    });
+    return out;
+  }
+
+  function cfgMass() {
+    var p = palette();
+    var pts = massSeries();
+    var theory = exactPeriod(0.5, angleFor(0.1, 0.5));
+    var ys = pts.map(function (q) { return q.y; });
+    var lo = Math.min.apply(null, ys.concat([theory]));
+    var hi = Math.max.apply(null, ys.concat([theory]));
+    var pad = Math.max(0.012, (hi - lo) * 1.6);
+
+    var series = [{
+      type: 'line',
+      points: [[20, theory], [130, theory]],
+      color: p.accent2,
+      width: 1.5,
+      dash: [5, 4],
+      label: 'theory T at θ₀ = 11.5°'
+    }];
+
+    if (pts.length) {
+      series.push({
+        type: 'error',
+        points: pts,
+        color: p.accent,
+        radius: 4.5,
+        fill: p.panel,
+        label: 'measured'
+      });
+    }
+
+    return {
+      colors: chartColors(),
+      xMin: 20,
+      xMax: 130,
+      yMin: lo - pad,
+      yMax: hi + pad,
+      xLabel: 'Bob mass (g)',
+      yLabel: 'Period T (s)',
+      emptyText: 'Time both bobs in Part 1 to compare',
+      series: series
+    };
+  }
+
+  function angleSeries() {
+    var out = [];
+    PARTS['2'].options.forEach(function (o) {
+      var arr = state.data[o.key];
+      if (!arr || !arr.length) return;
+      var per = arr.map(function (t) { return t.period; });
+      out.push({
+        x: deg(angleFor(o.d, o.L)),
+        y: mean(per),
+        yerr: arr.length > 1 ? stdev(per) : 0,
+        n: arr.length
+      });
+    });
+    return out;
+  }
+
+  function cfgAngle() {
+    var p = palette();
+    var pts = angleSeries();
+    var L = 0.5;
+    var curve = [];
+    for (var a = 0; a <= 26; a += 1) {
+      curve.push([a, exactPeriod(L, a * Math.PI / 180)]);
+    }
+
+    var t0 = smallPeriod(L);
+    var top = exactPeriod(L, 26 * Math.PI / 180);
+    var lo = t0;
+    var hi = top;
+    pts.forEach(function (q) {
+      lo = Math.min(lo, q.y - q.yerr);
+      hi = Math.max(hi, q.y + q.yerr);
+    });
+    var pad = Math.max(0.004, (hi - lo) * 0.18);
+
+    var series = [
+      {
+        type: 'line',
+        points: curve,
+        color: p.accent2,
+        width: 1.7,
+        label: 'exact T(θ)'
+      },
+      {
+        type: 'line',
+        points: [[0, t0], [26, t0]],
+        color: p.faint,
+        width: 1.3,
+        dash: [4, 4],
+        label: 'small-angle limit'
+      }
+    ];
+
+    if (pts.length) {
+      series.push({
+        type: 'error',
+        points: pts,
+        color: p.accent,
+        radius: 4.5,
+        fill: p.panel,
+        label: 'measured'
+      });
+    }
+
+    return {
+      colors: chartColors(),
+      xMin: 0,
+      xMax: 26,
+      yMin: lo - pad,
+      yMax: hi + pad,
+      xLabel: 'Swing angle θ (°)',
+      yLabel: 'Period T (s)',
+      emptyText: 'Time the 5, 10, 15 and 20 cm starts in Part 2',
+      series: series
+    };
+  }
+
+  function cfgL2() {
+    var p = palette();
+    var fit = lengthFit();
+    var k = fit.k;
+    var maxT2 = 0;
+    fit.pts.forEach(function (q) { maxT2 = Math.max(maxT2, q.T2); });
+
+    var series = [];
+    if (k) {
+      series.push({
+        type: 'line',
+        points: [[0, 0], [0.76, k * 0.76]],
+        color: p.accent2,
+        width: 1.9,
+        label: 'T² = k L'
+      });
+    }
+    if (fit.pts.length) {
+      series.push({
+        type: 'error',
+        points: fit.pts.map(function (q) { return { x: q.L, y: q.T2, yerr: q.err }; }),
+        color: p.accent,
+        radius: 4.5,
+        fill: p.panel,
+        label: 'measured'
+      });
+    }
+
+    var yMax = Math.max(maxT2 * 1.16, k ? k * 0.76 * 1.05 : 0, 0.6);
+    var noteX = 0.40;
+    var annotations = [];
+    if (k) {
+      annotations.push({
+        text: 'slope k = ' + k.toFixed(3) + ' s²/m',
+        x: noteX, y: yMax * 0.30, color: p.accent2, size: 10.5
+      });
+      annotations.push({
+        text: 'g = 4π²/k = ' + fit.g.toFixed(2) + ' m/s²',
+        x: noteX, y: yMax * 0.20, color: p.text, size: 10.5, weight: 650
+      });
+    }
+
+    return {
+      colors: chartColors(),
+      xMin: 0,
+      xMax: 0.76,
+      yMin: 0,
+      yMax: yMax,
+      xLabel: 'String length L (m)',
+      yLabel: 'Period squared T² (s²)',
+      emptyText: 'Time three or more lengths in Part 3 to fit the line',
+      series: series,
+      annotations: annotations
+    };
+  }
+
+  function drawCharts() {
+    ['trace', 'mass', 'angle', 'l2'].forEach(function (k) {
+      if (charts[k]) charts[k].schedule();
+    });
+  }
+
+  /* ---------------- rendering ---------------- */
+
+  function setBusy(busy) {
+    document.querySelectorAll('.part-tab').forEach(function (b) {
+      b.disabled = busy;
+    });
+    optGrid.querySelectorAll('button').forEach(function (b) {
+      b.disabled = busy;
+    });
+    runBtn.disabled = busy;
+    clearBtn.disabled = busy;
+    autoBtn.disabled = false;
+  }
+
+  function refreshButtons() {
+    var key = currentKey();
+    var n = dataArr(key).length;
+    runBtnLabel.textContent = n >= MAX_TRIALS ? 'Retake trial 5' : 'Time trial ' + (n + 1);
+
+    if (sim.active && sim.auto) {
+      autoBtn.textContent = 'Stop';
+      autoBtn.classList.remove('btn-outline');
+      autoBtn.classList.add('btn-ghost');
+    } else {
+      var left = MAX_TRIALS - n;
+      autoBtn.textContent = left <= 0 ? 'Retake all 5' : 'Record ' + left + ' trial' + (left === 1 ? '' : 's');
+      autoBtn.classList.add('btn-outline');
+      autoBtn.classList.remove('btn-ghost');
+      autoBtn.disabled = sim.active;
+    }
+  }
+
+  function refreshPills() {
+    var key = currentKey();
+    var n = dataArr(key).length;
+    var pill = $('trialPill');
+    if (sim.active) {
+      pill.textContent = 'Timing…';
+      pill.setAttribute('data-tone', 'accent');
+    } else if (n) {
+      pill.textContent = n + ' of ' + MAX_TRIALS + ' trials';
+      pill.setAttribute('data-tone', n >= MAX_TRIALS ? 'good' : 'accent');
+    } else {
+      pill.textContent = 'No run yet';
+      pill.removeAttribute('data-tone');
+    }
+
+    var badge = $('runBadge');
+    if (sim.active) {
+      badge.textContent = sim.auto ? 'Auto' : 'Timing';
+      badge.setAttribute('data-state', sim.auto ? 'auto' : 'running');
+    } else {
+      badge.textContent = 'Idle';
+      badge.setAttribute('data-state', 'idle');
+    }
+  }
+
+  function currentValues() {
+    var key = currentKey();
+    if (state.last && state.last.key === key) return state.last;
+    var arr = state.data[key];
+    if (arr && arr.length) {
+      var t = arr[arr.length - 1];
+      return { key: key, total: t.total, period: t.period };
+    }
+    return null;
+  }
+
+  function refreshStats() {
+    var cfg = currentConfig();
+    if (!cfg) return;
+    var vals = currentValues();
+    var theta0 = angleFor(cfg.d, cfg.L);
+
+    $('statL').textContent = cfg.L.toFixed(3) + ' m';
+    $('statMass').textContent = (cfg.mass * 1000).toFixed(0) + ' g';
+    $('statD').textContent = (cfg.d * 100).toFixed(1) + ' cm';
+    $('statTheta').textContent = deg(theta0).toFixed(1) + '°';
+    $('statTotal').textContent = vals ? vals.total.toFixed(2) + ' s' : '—';
+    $('statTheory').textContent = exactPeriod(cfg.L, theta0).toFixed(3) + ' s';
+    $('statPeriodBig').innerHTML = vals
+      ? vals.period.toFixed(3) + '<small> s</small>'
+      : '—';
+  }
+
+  function refreshHud() {
+    $('hudTheta').textContent = deg(sim.theta).toFixed(1);
+    $('hudTime').textContent = sim.active ? sim.t.toFixed(2) : (state.last ? state.last.total.toFixed(2) : '0.00');
+    $('hudCycles').textContent = sim.cycles + ' / ' + CYCLES;
+    $('cycleCount').textContent = sim.cycles + ' / ' + CYCLES;
+    $('cycleFill').style.width = (sim.cycles / CYCLES * 100).toFixed(1) + '%';
+  }
+
+  function statusText() {
+    var cfg = currentConfig();
+    if (!cfg) return '';
+    var theta = deg(angleFor(cfg.d, cfg.L));
+    if (sim.active) {
+      if (sim.auto) {
+        return 'Auto run · trial ' + (MAX_TRIALS - sim.autoLeft + 1) + ' of ' + MAX_TRIALS +
+          ' · ' + sim.cycles + ' of ' + CYCLES + ' cycles';
+      }
+      return 'Timing ' + CYCLES + ' cycles · ' + sim.cycles + ' counted · t = ' + sim.t.toFixed(1) + ' s';
+    }
+    var vals = currentValues();
+    if (vals) {
+      return 'Trial recorded · 40 cycles in ' + vals.total.toFixed(1) + ' s · T = ' + vals.period.toFixed(3) + ' s';
+    }
+    return 'Part ' + state.part + ' · L = ' + cfg.L.toFixed(3) + ' m · release ' +
+      (cfg.d * 100).toFixed(1) + ' cm (θ = ' + theta.toFixed(1) + '°) · ' + CYCLES + ' cycles per trial';
+  }
+
+  function refreshStatus() {
+    statusLine.textContent = statusText();
+  }
+
+  function buildOptions() {
+    var cfg = PARTS[state.part];
+    optNote.textContent = cfg.note;
+    $('optLabel').firstChild.textContent = cfg.name + ' ';
+
+    optGrid.innerHTML = '';
+    cfg.options.forEach(function (o) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'block-btn';
+      b.dataset.key = o.key;
+      b.setAttribute('role', 'radio');
+      b.innerHTML = '<span>' + o.label + '</span><small>' + o.unit + '</small>';
+      if (o.key === currentKey()) {
+        b.classList.add('is-active');
+        b.setAttribute('aria-checked', 'true');
+      } else {
+        b.setAttribute('aria-checked', 'false');
+      }
+      if (dataArr(o.key).length) b.classList.add('is-done');
+      b.addEventListener('click', function () {
+        if (sim.active) return;
+        state.sel[state.part] = o.key;
+        state.last = null;
+        poseIdle();
+        renderAll();
+      });
+      optGrid.appendChild(b);
+    });
+
+    document.querySelectorAll('.part-tab').forEach(function (b) {
+      var on = b.dataset.part === state.part;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      b.disabled = sim.active;
+    });
+  }
+
+  function buildTable() {
+    var part = state.part;
+    var opts = PARTS[part].options;
+    var heads;
+    if (part === '1') heads = ['Bob', 't₁', 't₂', 't₃', 't₄', 't₅', 'T̄'];
+    else if (part === '2') heads = ['d', 'θ', 't₁', 't₂', 't₃', 't₄', 't₅', 'T̄'];
+    else heads = ['L', 't₁', 't₂', 't₃', 't₄', 't₅', 'T̄', 'T²'];
+
+    tableHead.innerHTML = heads.map(function (h) {
+      return '<th scope="col">' + h + '</th>';
+    }).join('');
+
+    dataBody.innerHTML = '';
+    var complete = 0;
+    var trials = 0;
+
+    opts.forEach(function (o) {
+      var arr = state.data[o.key] || [];
+      if (arr.length >= MAX_TRIALS) complete++;
+      trials += arr.length;
+
+      var tr = document.createElement('tr');
+      if (o.key === currentKey()) tr.className = 'is-current';
+
+      var cells = ['<td>' + o.label + ' ' + o.unit + '</td>'];
+      if (part === '2') {
+        cells.push('<td>' + deg(angleFor(o.d, o.L)).toFixed(1) + '°</td>');
+      }
+
+      for (var i = 0; i < MAX_TRIALS; i++) {
+        cells.push(arr[i]
+          ? '<td>' + arr[i].total.toFixed(1) + '</td>'
+          : '<td class="empty">—</td>');
+      }
+
+      if (arr.length) {
+        var per = mean(arr.map(function (t) { return t.period; }));
+        cells.push('<td class="avg">' + per.toFixed(3) + '</td>');
+        if (part === '3') cells.push('<td class="avg">' + (per * per).toFixed(3) + '</td>');
+      } else {
+        cells.push('<td class="empty">—</td>');
+        if (part === '3') cells.push('<td class="empty">—</td>');
+      }
+
+      tr.innerHTML = cells.join('');
+      tr.addEventListener('click', function () {
+        if (sim.active) return;
+        state.sel[state.part] = o.key;
+        state.last = null;
+        poseIdle();
+        renderAll();
+      });
+      dataBody.appendChild(tr);
+    });
+
+    var pill = $('dataCount');
+    pill.textContent = complete + ' / ' + opts.length + ' rows';
+    $('tableNote').textContent = part === '3'
+      ? 'Cells are total times for 40 cycles (s). T² comes from the mean period.'
+      : 'Each cell is the total time for 40 cycles (s). Tap a row to load that setting.';
+  }
+
+  function refreshResult() {
+    var fit = lengthFit();
+    var n = fit.pts.length;
+    var pill = $('resultPill');
+    var gEl = $('resultG');
+    var delta = $('resultDelta');
+
+    $('resultN').textContent = n + ' / 5';
+
+    if (!fit.g) {
+      gEl.textContent = '—';
+      delta.hidden = true;
+      $('resultSlope').textContent = '—';
+      $('resultR2').textContent = '—';
+      $('resultUnit').textContent = '—';
+      pill.textContent = n ? n + ' of 5 lengths' : 'No data';
+      pill.setAttribute('data-tone', 'accent');
+      $('resultNote').textContent = n === 1
+        ? 'One length is not enough — time a second length to draw the line.'
+        : 'Time at least two lengths in Part 3 to fit T² against L.';
+      return;
+    }
+
+    var g = fit.g;
+    gEl.innerHTML = g.toFixed(2) + '<small> m/s²</small>';
+    $('resultSlope').textContent = fit.k.toFixed(3) + ' s²/m';
+    $('resultR2').textContent = fit.r2 == null ? '—' : fit.r2.toFixed(4);
+    $('resultUnit').textContent = (g / (4 * Math.PI * Math.PI)).toFixed(3) + ' m';
+
+    var diff = (g - G) / G * 100;
+    delta.hidden = false;
+    delta.textContent = (diff >= 0 ? '+' : '') + diff.toFixed(1) + '% vs 9.81';
+    delta.setAttribute('data-tone', Math.abs(diff) <= 2 ? 'good' : 'warn');
+
+    pill.textContent = n >= 5 ? 'Complete' : n + ' of 5 lengths';
+    pill.setAttribute('data-tone', n >= 3 ? 'good' : 'accent');
+
+    $('resultNote').textContent =
+      'The line through the origin means T² grows in proportion to L. Releasing from 10 cm tilts the ' +
+      'shortest pendulum through the largest angle, so its period is lifted slightly — a small systematic ' +
+      'error that lowers g a little.';
+  }
+
+  function refreshChartMeta() {
+    var tr = state.trace;
+    $('traceMeta').textContent = tr
+      ? 'L = ' + tr.L.toFixed(3) + ' m · θ₀ = ' + deg(tr.theta0).toFixed(1) + '° · T = ' + tr.period.toFixed(3) + ' s'
+      : 'No swing recorded yet';
+
+    var m1 = (state.data['1|m50'] || []).length;
+    var m2 = (state.data['1|m100'] || []).length;
+    $('massMeta').textContent = (m1 || m2)
+      ? '50 g: ' + m1 + ' trials · 100 g: ' + m2 + ' trials'
+      : 'No masses timed yet';
+
+    var n2 = PARTS['2'].options.filter(function (o) {
+      return (state.data[o.key] || []).length;
+    }).length;
+    $('angleMeta').textContent = n2
+      ? n2 + ' of 4 start distances timed'
+      : 'No angles timed yet';
+
+    var n3 = PARTS['3'].options.filter(function (o) {
+      return (state.data[o.key] || []).length;
+    }).length;
+    $('l2Meta').textContent = n3
+      ? n3 + ' of 5 lengths timed' + (n3 >= 2 ? ' · slope from a through-origin fit' : '')
+      : 'Time at least one length in Part 3 to start the graph';
+  }
+
+  function renderAll() {
+    buildOptions();
+    refreshButtons();
+    refreshPills();
+    refreshStats();
+    refreshHud();
+    refreshStatus();
+    buildTable();
+    refreshResult();
+    refreshChartMeta();
+    drawCharts();
+    drawScene();
+  }
+
+  /* ---------------- CSV ---------------- */
+
+  function csvCell(v) {
+    var s = String(v == null ? '' : v);
+    if (/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function downloadCSV(name, rows) {
+    var text = rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n') + '\r\n';
+    var blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  }
+
+  $('exportTableBtn').addEventListener('click', function () {
+    var rows = [[
+      'Part', 'Setting', 'Length (m)', 'Mass (g)', 'Start distance (m)', 'Angle (deg)',
+      'Trial 1 total (s)', 'Trial 2 total (s)', 'Trial 3 total (s)', 'Trial 4 total (s)', 'Trial 5 total (s)',
+      'Average total (s)', 'Period (s)', 'T^2 (s^2)'
+    ]];
+    var counted = 0;
+
+    ['1', '2', '3'].forEach(function (part) {
+      PARTS[part].options.forEach(function (o) {
+        var arr = state.data[o.key] || [];
+        if (!arr.length) return;
+        counted++;
+        var per = mean(arr.map(function (t) { return t.period; }));
+        var row = [
+          part === '1' ? '1 (bob mass)' : part === '2' ? '2 (swing angle)' : '3 (string length)',
+          o.label + ' ' + o.unit,
+          o.L.toFixed(3),
+          (o.mass * 1000).toFixed(1),
+          o.d.toFixed(3),
+          deg(angleFor(o.d, o.L)).toFixed(1)
+        ];
+        for (var i = 0; i < MAX_TRIALS; i++) {
+          row.push(arr[i] ? arr[i].total.toFixed(3) : '');
+        }
+        row.push(mean(arr.map(function (t) { return t.total; })).toFixed(3));
+        row.push(per.toFixed(4));
+        row.push((per * per).toFixed(4));
+        rows.push(row);
+      });
+    });
+
+    if (!counted) { toast('Nothing to export yet — time a swing first'); return; }
+    downloadCSV('pendulum-data.csv', rows);
+    toast('Data table exported as CSV');
+  });
+
+  $('exportRunBtn').addEventListener('click', function () {
+    var tr = state.trace;
+    if (!tr) { toast('Time a swing first — there is no trace yet'); return; }
+    var rows = [['Time (s)', 'Angle from vertical (deg)', 'x (m)', 'y (m)']];
+    tr.samples.forEach(function (s) {
+      rows.push([
+        s.t.toFixed(4),
+        deg(s.th).toFixed(3),
+        (tr.L * Math.sin(s.th)).toFixed(4),
+        (tr.L * Math.cos(s.th)).toFixed(4)
+      ]);
+    });
+    downloadCSV('pendulum-swing-trace.csv', rows);
+    toast('Swing trace exported as CSV');
+  });
+
+  /* ---------------- controls ---------------- */
+
+  runBtn.addEventListener('click', function () {
+    if (sim.active) return;
+    startTrial(state.speed);
+  });
+
+  autoBtn.addEventListener('click', function () {
+    if (sim.active && !sim.auto) return;
+    startAuto();
+  });
+
+  clearBtn.addEventListener('click', function () {
+    if (sim.active) return;
+    var any = Object.keys(state.data).some(function (k) { return state.data[k].length; });
+    state.data = {};
+    state.trace = null;
+    state.last = null;
+    poseIdle();
+    renderAll();
+    toast(any ? 'All recorded data cleared' : 'No data to clear');
+  });
+
+  document.querySelectorAll('.speed button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      state.speed = parseFloat(b.dataset.speed);
+      document.querySelectorAll('.speed button').forEach(function (o) {
+        o.classList.toggle('is-active', o === b);
+      });
+      if (sim.active) sim.speed = state.speed;
+    });
+  });
+
+  document.querySelectorAll('.part-tab').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (sim.active) return;
+      state.part = b.dataset.part;
+      state.last = null;
+      poseIdle();
+      renderAll();
+    });
+  });
+
+  document.querySelectorAll('.export-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var chart = charts[b.dataset.chart];
+      if (!chart) return;
+      var names = {
+        trace: 'pendulum-angle-time',
+        mass: 'pendulum-period-vs-mass',
+        angle: 'pendulum-period-vs-angle',
+        l2: 'pendulum-t2-vs-length'
+      };
+      if (b.dataset.format === 'png') {
+        chart.exportPNG(names[b.dataset.chart]);
+        toast('Plot exported as PNG');
+      } else {
+        chart.exportSVG(names[b.dataset.chart]);
+        toast('Plot exported as SVG');
+      }
+    });
+  });
+
+  var toastTimer = null;
+  function toast(msg) {
+    var el = $('toast');
+    el.textContent = msg;
+    el.classList.add('is-visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove('is-visible'); }, 2400);
+  }
+
+  /* ---------------- frame loop ---------------- */
+
+  var lastFrame = performance.now();
+
+  function frame(now) {
+    // The swing is driven by wall-clock time, not by a fixed step per frame, so
+    // one second of clock time is one second of pendulum motion even when the
+    // browser hands us few frames. MAX_FRAME only guards against huge jumps
+    // after the tab was suspended.
+    var dt = Math.min(MAX_FRAME, (now - lastFrame) / 1000);
+    lastFrame = now;
+
+    if (sim.active) {
+      advance(dt * sim.speed);
+
+      if (sim.cycles >= CYCLES) {
+        finishTrial();
+      } else {
+        drawScene();
+        refreshHud();
+        refreshStatus();
+        refreshStats();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------------- init ---------------- */
+
+  function init() {
+    charts.trace = ChartKit.create($('chartTrace'), cfgTrace);
+    charts.mass = ChartKit.create($('chartMass'), cfgMass);
+    charts.angle = ChartKit.create($('chartAngle'), cfgAngle);
+    charts.l2 = ChartKit.create($('chartL2'), cfgL2);
+
+    themeToggle.setAttribute(
+      'aria-label',
+      document.documentElement.dataset.theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+    );
+
+    poseIdle();
+    resizeScene();
+    if (window.ResizeObserver) new ResizeObserver(resizeScene).observe(canvasWrap);
+    else window.addEventListener('resize', resizeScene);
+    window.addEventListener('orientationchange', function () {
+      setTimeout(resizeScene, 120);
+    });
+
+    renderAll();
+    requestAnimationFrame(frame);
+  }
+
+  init();
+})();
