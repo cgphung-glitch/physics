@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<!-- saved from url=(0022)http://127.0.0.1:4174/ -->
-<html lang="en" data-theme="light"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!-- saved from url=(0113)file:///C:/Users/cphung/OneDrive%20-%20methodistu/Documents/GitHub/physics/Moment-of-Inertia%20on-an-Incline.html -->
+<html lang="en" data-theme="dark"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Moment of Inertia on an Incline · PHY 1510 Experiment 10a</title>
@@ -16,7 +16,7 @@
     } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="./Moment-of-Inertia on-an-Incline_files/styles.css">
+<link rel="stylesheet" href="./Moment-of-Inertia_files/styles.css">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
   </div>
   <div class="topbar-right">
     <span class="eq-chip" aria-hidden="true">I = m r₀² (g sin θ / a − 1)</span>
-    <button class="theme-btn" id="themeToggle" type="button" aria-label="Switch to dark theme" title="Toggle light / dark theme">
+    <button class="theme-btn" id="themeToggle" type="button" aria-label="Switch to light theme" title="Toggle light / dark theme">
       <svg class="ico ico-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.3 5.3l1.9 1.9M16.8 16.8l1.9 1.9M18.7 5.3l-1.9 1.9M7.2 16.8l-1.9 1.9"></path></svg>
       <svg class="ico ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.4A8.4 8.4 0 0 1 9.6 4a8.6 8.6 0 1 0 10.4 10.4z"></path></svg>
     </button>
@@ -52,21 +52,21 @@
     <div class="canvas-wrap" id="canvasWrap">
       <canvas id="scene" role="img" aria-label="Animation of the variable inertia disk rolling down an inclined board, with steel balls at the inner or outer rim" width="1041" height="488"></canvas>
       <div class="hud hud-left" aria-hidden="true">
-        <div class="hud-metric"><span>t</span><strong id="hudTime">1.57</strong><small>s</small></div>
-        <div class="hud-metric"><span>v</span><strong id="hudVel">0.77</strong><small>m/s</small></div>
-        <div class="hud-metric"><span>ω</span><strong id="hudOmega">12.8</strong><small>rad/s</small></div>
+        <div class="hud-metric"><span>t</span><strong id="hudTime">0.00</strong><small>s</small></div>
+        <div class="hud-metric"><span>v</span><strong id="hudVel">0.00</strong><small>m/s</small></div>
+        <div class="hud-metric"><span>ω</span><strong id="hudOmega">0.0</strong><small>rad/s</small></div>
       </div>
       <div class="hud hud-right" aria-hidden="true">
         <div class="hud-angle" id="hudTheta">4.3°</div>
         <div class="hud-sub">sin θ = <span id="hudSin">0.075</span></div>
-        <div class="hud-sub">I = <span id="hudI">9.95 × 10⁻⁴</span> kg·m²</div>
+        <div class="hud-sub">I = <span id="hudI">6.30 × 10⁻⁴</span> kg·m²</div>
       </div>
     </div>
 
     <div class="stage-controls">
       <div class="field">
-        <span class="field-label">Ball arrangement <em id="caseHint">one diameter</em></span>
-        <div class="block-options case-options" id="caseOptions" role="group" aria-label="Ball arrangement"><button type="button" class="block-btn" data-case-id="disk" aria-pressed="false" title="Disk alone">Disk only</button><button type="button" class="block-btn" data-case-id="outer" aria-pressed="false" title="Case 1 · four balls on the outer rim">4 outer</button><button type="button" class="block-btn" data-case-id="inner" aria-pressed="false" title="Case 2 · four balls on the inner rim">4 inner</button><button type="button" class="block-btn is-active" data-case-id="inline" aria-pressed="true" title="Case 3 · two inner and two outer balls in line">Inline 2+2</button><button type="button" class="block-btn" data-case-id="alternating" aria-pressed="false" title="Case 4 · two inner and two outer balls, alternating">Alternating</button></div>
+        <span class="field-label">Ball arrangement <em id="caseHint">no steel balls</em></span>
+        <div class="block-options case-options" id="caseOptions" role="group" aria-label="Ball arrangement"><button type="button" class="block-btn is-active" data-case-id="disk" aria-pressed="true" title="Disk alone">Disk only</button><button type="button" class="block-btn" data-case-id="outer" aria-pressed="false" title="Case 1 · four balls on the outer rim">4 outer</button><button type="button" class="block-btn" data-case-id="inner" aria-pressed="false" title="Case 2 · four balls on the inner rim">4 inner</button><button type="button" class="block-btn" data-case-id="inline" aria-pressed="false" title="Case 3 · two inner and two outer balls in line">Inline 2+2</button><button type="button" class="block-btn" data-case-id="alternating" aria-pressed="false" title="Case 4 · two inner and two outer balls, alternating">Alternating</button><button type="button" class="block-btn is-active" data-case-id="disk" aria-pressed="true" title="Disk alone">Disk only</button><button type="button" class="block-btn" data-case-id="outer" aria-pressed="false" title="Case 1 · four balls on the outer rim">4 outer</button><button type="button" class="block-btn" data-case-id="inner" aria-pressed="false" title="Case 2 · four balls on the inner rim">4 inner</button><button type="button" class="block-btn" data-case-id="inline" aria-pressed="false" title="Case 3 · two inner and two outer balls in line">Inline 2+2</button><button type="button" class="block-btn" data-case-id="alternating" aria-pressed="false" title="Case 4 · two inner and two outer balls, alternating">Alternating</button></div>
       </div>
 
       <div class="field">
@@ -74,7 +74,7 @@
         <div class="action-row">
           <button class="btn btn-primary" id="runBtn" type="button">
             <svg class="ico-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6L19 12z" fill="currentColor" stroke="none"></path></svg>
-            <span id="runBtnLabel">Retake trial 3</span>
+            <span id="runBtnLabel">Release disk</span>
           </button>
           <button class="btn btn-outline" id="autoBtn" type="button">Run all trials</button>
           <button class="btn btn-ghost" id="clearBtn" type="button" title="Erase every recorded stopwatch time">Clear data</button>
@@ -100,18 +100,18 @@
     <article class="panel card">
       <div class="card-head">
         <h2>Current run</h2>
-        <span class="pill" id="trialPill" data-tone="good">3 / 3 trials</span>
+        <span class="pill" id="trialPill" data-tone="">No run yet</span>
       </div>
       <div class="stats">
-        <div class="stat"><span>Arrangement</span><strong id="statCase">Inline 2+2</strong></div>
+        <div class="stat"><span>Arrangement</span><strong id="statCase">Disk only</strong></div>
         <div class="stat"><span>Incline angle θ</span><strong id="statTheta">4.3°</strong></div>
         <div class="stat"><span>sin θ = h / d</span><strong id="statSin">0.075</strong></div>
         <div class="stat"><span>Travel distance d</span><strong id="statD">0.600 m</strong></div>
-        <div class="stat stat-wide stat-accent"><span>Acceleration a = 2d / t²</span><strong id="statAccel">0.491 m/s²</strong></div>
-        <div class="stat"><span>Stopwatch time t</span><strong id="statTime">1.56 s</strong></div>
-        <div class="stat"><span>Average speed v̄ = d / t</span><strong id="statSpeed">0.384 m/s</strong></div>
-        <div class="stat"><span>Average ω̄ = v̄ / r₀</span><strong id="statOmega">6.40 rad/s</strong></div>
-        <div class="stat"><span>Total I from this run</span><strong id="statI">9.88 × 10⁻⁴ kg·m²</strong></div>
+        <div class="stat stat-wide stat-accent"><span>Acceleration a = 2d / t²</span><strong id="statAccel">—</strong></div>
+        <div class="stat"><span>Stopwatch time t</span><strong id="statTime">—</strong></div>
+        <div class="stat"><span>Average speed v̄ = d / t</span><strong id="statSpeed">—</strong></div>
+        <div class="stat"><span>Average ω̄ = v̄ / r₀</span><strong id="statOmega">—</strong></div>
+        <div class="stat"><span>Total I from this run</span><strong id="statI">—</strong></div>
       </div>
       <div class="card-foot">
         <button class="btn btn-quiet btn-sm" id="exportRunBtn" type="button">Export run samples (CSV)</button>
@@ -121,28 +121,28 @@
     <article class="panel card result-card">
       <div class="card-head">
         <h2>Result</h2>
-        <span class="pill" id="resultPill" data-tone="good">5 recorded</span>
+        <span class="pill" id="resultPill" data-tone="">No data</span>
       </div>
       <div class="result-hero">
         <div class="result-value">
           <span>Disk moment of inertia (kg·m²)</span>
-          <strong id="resultI">6.50 × 10⁻⁴</strong>
+          <strong id="resultI">—</strong>
         </div>
-        <div class="delta" id="resultDelta" data-tone="">+3.1%</div>
+        <div class="delta" id="resultDelta" data-tone="" hidden="">+3.1%</div>
       </div>
       <dl class="result-list">
         <div><dt>Disk alone · I = ½ m₀ r₀²</dt><dd id="resultTheory">6.30 × 10⁻⁴ kg·m²</dd></div>
         <div><dt>One ball at r₁ · m_b r₁²</dt><dd id="resultBallTheory">1.51 × 10⁻⁴ kg·m²</dd></div>
-        <div><dt>Arrangements recorded</dt><dd id="resultN">5 / 5</dd></div>
+        <div><dt>Arrangements recorded</dt><dd id="resultN">0 / 5</dd></div>
       </dl>
-      <div class="case-list" id="caseList"><div><dt>4 outer · I total</dt><dd>1.29 × 10⁻³</dd></div><div><dt>4 outer · each ball</dt><dd>1.60 × 10⁻⁴</dd></div><div><dt>4 inner · I total</dt><dd>7.58 × 10⁻⁴</dd></div><div><dt>4 inner · each ball</dt><dd>2.71 × 10⁻⁵</dd></div><div><dt>inline · I total</dt><dd>1.00 × 10⁻³</dd></div><div><dt>inline · each ball</dt><dd>8.78 × 10⁻⁵</dd></div><div><dt>alt. · I total</dt><dd>9.91 × 10⁻⁴</dd></div><div><dt>alt. · each ball</dt><dd>8.53 × 10⁻⁵</dd></div></div>
-      <p class="note" id="resultNote">I = m r₀² (g sin θ / a − 1) with a = 2d / t². Case 2 · four balls on the inner rim was fastest (1.50 s) because it carries the smallest moment of inertia.</p>
+      <div class="case-list" id="caseList"></div>
+      <p class="note" id="resultNote">Time the disk alone three times, then repeat each ball arrangement.</p>
     </article>
 
     <article class="panel card">
       <div class="card-head">
         <h2>Data table</h2>
-        <span class="pill" id="dataCount">15 trials</span>
+        <span class="pill" id="dataCount">0 trials</span>
       </div>
       <div class="table-wrap">
         <table class="data-table">
@@ -157,7 +157,7 @@
               <th scope="col">I</th>
             </tr>
           </thead>
-          <tbody id="dataBody"><tr data-case-id="disk"><td class="case-name">Disk only</td><td>1.59</td><td>1.56</td><td>1.57</td><td class="avg">1.57</td><td>0.382</td><td>6.5 × 10⁻⁴</td></tr><tr data-case-id="outer"><td class="case-name">4 outer</td><td>1.67</td><td>1.63</td><td>1.63</td><td class="avg">1.64</td><td>0.366</td><td>1.3 × 10⁻³</td></tr><tr data-case-id="inner"><td class="case-name">4 inner</td><td>1.51</td><td>1.50</td><td>1.49</td><td class="avg">1.50</td><td>0.400</td><td>7.6 × 10⁻⁴</td></tr><tr data-case-id="inline" class="is-current"><td class="case-name">Inline 2+2</td><td>1.57</td><td>1.57</td><td>1.56</td><td class="avg">1.57</td><td>0.383</td><td>1.0 × 10⁻³</td></tr><tr data-case-id="alternating"><td class="case-name">Alternating</td><td>1.54</td><td>1.57</td><td>1.58</td><td class="avg">1.56</td><td>0.384</td><td>9.9 × 10⁻⁴</td></tr></tbody>
+          <tbody id="dataBody"><tr data-case-id="disk" class="is-current"><td class="case-name">Disk only</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="avg">—</td><td>—</td><td>—</td></tr><tr data-case-id="outer"><td class="case-name">4 outer</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="avg">—</td><td>—</td><td>—</td></tr><tr data-case-id="inner"><td class="case-name">4 inner</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="avg">—</td><td>—</td><td>—</td></tr><tr data-case-id="inline"><td class="case-name">Inline 2+2</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="avg">—</td><td>—</td><td>—</td></tr><tr data-case-id="alternating"><td class="case-name">Alternating</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="avg">—</td><td>—</td><td>—</td></tr></tbody>
         </table>
       </div>
       <p class="table-note">Stopwatch times in seconds, v̄ in m/s and I in kg·m². Tap a row to select that arrangement.</p>
@@ -222,7 +222,7 @@
         <div class="chart-head">
           <div>
             <h3>Distance vs time</h3>
-            <p id="xtMeta">inline · stopwatch 1.56 s</p>
+            <p id="xtMeta">No run recorded yet</p>
           </div>
           <div class="export-group">
             <button type="button" class="export-btn" data-chart="xt" data-format="png">PNG</button>
@@ -237,7 +237,7 @@
         <div class="chart-head">
           <div>
             <h3>Speed vs time</h3>
-            <p id="vtMeta">inline · v̄ = 0.384 m/s</p>
+            <p id="vtMeta">No run recorded yet</p>
           </div>
           <div class="export-group">
             <button type="button" class="export-btn" data-chart="vt" data-format="png">PNG</button>
@@ -252,7 +252,7 @@
         <div class="chart-head">
           <div>
             <h3>Moment of inertia vs ball radius</h3>
-            <p id="caseMeta">5 of 5 arrangements</p>
+            <p id="caseMeta">Record a run to plot moment of inertia</p>
           </div>
           <div class="export-group">
             <button type="button" class="export-btn" data-chart="case" data-format="png">PNG</button>
@@ -269,8 +269,8 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="./Moment-of-Inertia on-an-Incline_files/charts.js.download"></script>
-<script src="./Moment-of-Inertia on-an-Incline_files/app.js.download"></script>
+<script src="./Moment-of-Inertia_files/charts.js.download"></script>
+<script src="./Moment-of-Inertia_files/app.js.download"></script>
 
 
 <span id="PING_CONTENT_MB_MAIN" style="display: none;"></span><span id="PING_CONTENT_PUSH_NOTIFICATION" style="display: none;"></span></body></html>
