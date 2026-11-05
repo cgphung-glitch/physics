@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<!-- saved from url=(0092)file:///C:/Users/cphung/Downloads/Hooke's%20Law%20%C2%B7%20PHY%201510%20Experiment%205a.html -->
+<html lang="en" data-theme="dark"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hooke's Law · PHY 1510 Experiment 5a</title>
+<meta name="description" content="Interactive simulation of Experiment 5a (Hooke's Law): stretch a spring with slotted weights, read the scale, time 10 oscillations, and determine the force constant from the F–ΔL slope and from the period.">
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('hookes-law-theme');
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  })();
+</script>
+<link rel="stylesheet" href="./hookes-law_files/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-badge" aria-hidden="true">k</div>
+    <div class="brand-text">
+      <h1>Hooke’s Law</h1>
+      <p>PHY 1510 · Experiment 5a · Static &amp; oscillation methods</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="eq-chip" aria-hidden="true">F = k&nbsp;ΔL</span>
+    <button class="theme-btn" id="themeToggle" type="button" aria-label="Switch to light theme" title="Toggle light / dark theme">
+      <svg class="ico ico-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.3 5.3l1.9 1.9M16.8 16.8l1.9 1.9M18.7 5.3l-1.9 1.9M7.2 16.8l-1.9 1.9"></path></svg>
+      <svg class="ico ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.4A8.4 8.4 0 0 1 9.6 4a8.6 8.6 0 1 0 10.4 10.4z"></path></svg>
+    </button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ============ LEFT: apparatus ============ -->
+  <section class="panel stage" aria-labelledby="stageTitle">
+    <div class="panel-head">
+      <div>
+        <h2 id="stageTitle">Apparatus</h2>
+        <p class="sub">Hooke’s law apparatus, slotted weights and stopwatch</p>
+      </div>
+      <span class="badge" id="runBadge" data-state="idle">Idle</span>
+    </div>
+
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="scene" role="img" aria-label="Animation of a spring hanging from a clamp stand, with a pointer reading a vertical centimetre scale and slotted weights on the hanger" width="1041" height="354"></canvas>
+      <div class="hud hud-left" aria-hidden="true">
+        <div class="hud-metric"><span id="hudL1">L</span><strong id="hudV1">12.98</strong><small id="hudU1">cm</small></div>
+        <div class="hud-metric"><span id="hudL2">ΔL</span><strong id="hudV2">0.00</strong><small id="hudU2">cm</small></div>
+        <div class="hud-metric"><span id="hudL3">m</span><strong id="hudV3">50</strong><small id="hudU3">g</small></div>
+      </div>
+      <div class="hud hud-right" aria-hidden="true">
+        <div class="hud-angle" id="hudBig">0 / 10</div>
+        <div class="hud-sub" id="hudSub">readings recorded</div>
+      </div>
+    </div>
+
+    <div class="cycle-meter" aria-hidden="true">
+      <span class="cycle-label" id="meterLabel">Readings</span>
+      <div class="cycle-track"><div class="cycle-fill" id="meterFill" style="width: 0%;"></div></div>
+      <span class="cycle-count" id="meterCount">0 / 10</span>
+    </div>
+
+    <div class="stage-controls">
+      <div class="part-tabs" role="tablist" aria-label="Part of the experiment">
+        <button type="button" class="part-tab is-active" data-part="A" role="tab" aria-selected="true"><b>A</b><span>Elongation</span></button>
+        <button type="button" class="part-tab" data-part="B" role="tab" aria-selected="false"><b>B</b><span>Oscillation</span></button>
+      </div>
+
+      <!-- Part A -->
+      <div class="control-set" id="panelA">
+        <div class="field">
+          <span class="field-label" id="loadLabel">Hanging mass <em id="loadNote">hanger 50 g + no slotted weights</em></span>
+          <div class="load-stepper">
+            <button class="btn btn-outline load-step" id="minusBtn" type="button" aria-label="Remove one 50 g slotted weight" disabled="">− 50 g</button>
+            <div class="load-readout">
+              <strong id="loadVal">50<small>g</small></strong>
+              <span>total on the spring</span>
+            </div>
+            <button class="btn btn-outline load-step" id="plusBtn" type="button" aria-label="Add one 50 g slotted weight">+ 50 g</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Read the scale</span>
+          <div class="action-row">
+            <button class="btn btn-primary" id="recordBtn" type="button">Record initial reading</button>
+            <button class="btn btn-outline" id="fillBtn" type="button">Record all 10 readings</button>
+            <button class="btn btn-ghost" id="clearBtnA" type="button" title="Erase every reading from both parts">Clear data</button>
+          </div>
+          <p class="field-hint" id="hintA">Record the initial reading with only the 50 g hanger, then add one 50 g weight at a time.</p>
+        </div>
+      </div>
+
+      <!-- Part B -->
+      <div class="control-set" id="panelB" hidden="">
+        <div class="field">
+          <span class="field-label" id="oscLabel">Oscillating mass <em id="oscNote">1.0 cm, 2.0 cm and 2.9 cm beyond the hanger mark</em></span>
+          <div class="opt-grid mass-grid" id="massGrid" role="group" aria-labelledby="oscLabel"><button type="button" class="block-btn is-active" data-g="100" aria-pressed="true"><span>100</span><small>g</small></button><button type="button" class="block-btn" data-g="150" aria-pressed="false"><span>150</span><small>g</small></button><button type="button" class="block-btn" data-g="200" aria-pressed="false"><span>200</span><small>g</small></button></div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Run</span>
+          <div class="action-row">
+            <button class="btn btn-primary" id="oscBtn" type="button">
+              <svg class="ico-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6L19 12z" fill="currentColor" stroke="none"></path></svg>
+              <span id="oscBtnLabel">Time 10 oscillations</span>
+            </button>
+            <button class="btn btn-outline" id="oscAuto" type="button">Record 5 trials</button>
+            <button class="btn btn-ghost" id="clearBtnB" type="button" title="Erase every reading from both parts">Clear data</button>
+          </div>
+          <p class="field-hint" id="hintB">Each trial pulls the mass 3.0 cm below its rest position and starts the stopwatch on release.</p>
+        </div>
+      </div>
+
+      <div class="stage-foot">
+        <p class="status" id="statusLine" aria-live="polite">Record the initial reading with the 50 g hanger to begin.</p>
+        <div class="speed" id="speedGroup" role="group" aria-label="Playback speed" hidden="">
+          <span class="speed-label">Speed</span>
+          <button type="button" data-speed="1" class="is-active" title="Real time — the stopwatch matches the motion">1×</button>
+          <button type="button" data-speed="4" title="Playback only; the stopwatch still reports the true time">4×</button>
+          <button type="button" data-speed="8" title="Playback only; the stopwatch still reports the true time">8×</button>
+          <button type="button" data-speed="16" title="Playback only; the stopwatch still reports the true time">16×</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RIGHT: information panels ============ -->
+  <aside class="sidebar" aria-label="Experiment information">
+
+    <article class="panel card">
+      <div class="card-head">
+        <h2>Current reading</h2>
+        <span class="pill" id="trialPill" data-tone="accent">No readings yet</span>
+      </div>
+      <div class="stats" id="statsGrid"><div class="stat"><span>Hanging mass</span><strong>50 g</strong></div><div class="stat"><span>Added load F</span><strong>0.000 N</strong></div><div class="stat"><span>Scale reading L</span><strong>12.98 cm</strong></div><div class="stat"><span>Initial reading L₀</span><strong>—</strong></div><div class="stat"><span>Elongation ΔL</span><strong>—</strong></div><div class="stat stat-wide stat-accent"><span>k for this reading</span><strong>—</strong></div></div>
+      <div class="card-foot">
+        <button class="btn btn-quiet btn-sm" id="exportTrace" type="button">Export oscillation trace (CSV)</button>
+      </div>
+    </article>
+
+    <article class="panel card result-card">
+      <div class="card-head">
+        <h2>Result</h2>
+        <span class="pill" id="resultPill" data-tone="accent">No data</span>
+      </div>
+      <div class="result-hero">
+        <div class="result-value">
+          <span>Force constant from the F–ΔL slope</span>
+          <strong id="resultK">—</strong>
+        </div>
+        <div class="delta" id="resultDelta" hidden="">—</div>
+      </div>
+      <dl class="result-list">
+        <div><dt>Readings recorded</dt><dd id="resultN">0 / 10</dd></div>
+        <div><dt>Slope of F vs ΔL</dt><dd id="resultSlope">—</dd></div>
+        <div><dt>Intercept of the fit</dt><dd id="resultIntercept">—</dd></div>
+        <div><dt>Fit quality R²</dt><dd id="resultR2">—</dd></div>
+        <div><dt>Mean k per reading ± SD</dt><dd id="resultKAvg">—</dd></div>
+        <div><dt>Slope vs mean k (% diff.)</dt><dd id="resultKDiff">—</dd></div>
+        <div><dt>k from the oscillation trials</dt><dd id="resultKOsc">—</dd></div>
+        <div><dt>k from the T² vs m slope</dt><dd id="resultKOscFit">—</dd></div>
+        <div><dt>Part A vs Part B (% diff.)</dt><dd id="resultABDiff">—</dd></div>
+      </dl>
+      <p class="note" id="resultNote">Record the initial reading and at least two added loads to fit the line, then time ten oscillations in Part B to compare methods.</p>
+      <div class="card-foot">
+        <button class="btn btn-quiet btn-sm" id="exportTable" type="button">Export data (CSV)</button>
+      </div>
+    </article>
+
+    <article class="panel card">
+      <div class="card-head">
+        <h2>Data table</h2>
+        <span class="pill" id="dataCount">0 / 10 rows</span>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr id="tableHead"><th scope="col">#</th><th scope="col">Total mass</th><th scope="col">Load F</th><th scope="col">Scale L</th><th scope="col">ΔL</th><th scope="col">k</th></tr></thead>
+          <tbody id="dataBody"><tr class="is-current"><td>1</td><td>50 g</td><td>0.00</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>2</td><td>100 g</td><td>0.49</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>3</td><td>150 g</td><td>0.98</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>4</td><td>200 g</td><td>1.47</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>5</td><td>250 g</td><td>1.96</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>6</td><td>300 g</td><td>2.45</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>7</td><td>350 g</td><td>2.94</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>8</td><td>400 g</td><td>3.43</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>9</td><td>450 g</td><td>3.92</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>10</td><td>500 g</td><td>4.41</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr></tbody>
+        </table>
+      </div>
+      <p class="table-note" id="tableNote">ΔL is measured from the initial 50 g reading; k = F / ΔL.</p>
+    </article>
+
+    <article class="panel card">
+      <h2>About this experiment</h2>
+      <p class="card-text">
+        A coiled spring stretches in proportion to the weight pulling on it, as long as the elastic limit
+        is not exceeded. The change in length <em>ΔL</em> is proportional to the applied force <em>F</em>:
+      </p>
+      <p class="formula">F = k&nbsp;ΔL</p>
+      <p class="card-text">
+        The constant <em>k</em> is the force constant of the spring, in N/m. A graph of <em>F</em> against
+        <em>ΔL</em> is a straight line whose slope is <em>k</em>. The same spring can be measured a second
+        way: a mass on the spring oscillates with period
+      </p>
+      <p class="formula">T = 2π √(m / k)</p>
+      <p class="card-text">
+        so <strong>k = 4π²m / T²</strong>. Comparing the two results tests whether the simple static model
+        and the oscillation model agree.
+      </p>
+      <ul class="objectives">
+        <li>Record the initial scale reading with the hanger alone.</li>
+        <li>Add 50 g at a time and take ten readings in all.</li>
+        <li>Graph weight against ΔL; find the slope and the average <em>k</em> with its standard deviation.</li>
+        <li>Time ten oscillations for a load stretched 1–2 cm; find <em>k</em> from the period.</li>
+        <li>Compare the two constants with a percent difference.</li>
+      </ul>
+      <details class="procedure">
+        <summary>Procedure</summary>
+        <ol>
+          <li>Hang the 50 g hanger so the spring is barely stretched, and record the initial scale reading.</li>
+          <li>Add a 50 g slotted weight, wait for the pointer to settle, and record the new reading.</li>
+          <li>Repeat until ten readings have been taken, then remove the weights.</li>
+          <li>Switch to Part B, hang 100 g or 150 g so the spring stretches 1–2 cm beyond the hanger mark, and record it.</li>
+          <li>Pull the mass down about 3 cm, release, and time ten complete oscillations.</li>
+          <li>Divide the total time by ten to get the period, then find <em>k</em> = 4π²m / T².</li>
+          <li>Plot <em>F</em> against <em>ΔL</em>, fit the line, and compare the slope with the mean <em>k</em> and with the oscillation result.</li>
+        </ol>
+      </details>
+      <p class="field-hint" style="margin-top:10px">
+        The scale reads to 0.01 cm. All loads used here stay inside the elastic limit, so the spring returns
+        to its original length when the weights are removed.
+      </p>
+    </article>
+
+  </aside>
+
+  <!-- ============ BELOW: plots ============ -->
+  <section class="plots" aria-labelledby="plotsTitle">
+    <div class="plots-head">
+      <div>
+        <h2 id="plotsTitle">Plots &amp; graphs</h2>
+        <p>The F–ΔL line gives <em>k</em>; the oscillation data gives a second, independent value.</p>
+      </div>
+      <p class="plots-hint">Every plot exports as PNG or SVG.</p>
+    </div>
+
+    <div class="plot-grid">
+      <article class="panel chart-card span-2">
+        <div class="chart-head">
+          <div>
+            <h3>Weight added vs elongation</h3>
+            <p id="metaA">No readings recorded yet</p>
+          </div>
+          <div class="export-group">
+            <button type="button" class="export-btn" data-chart="a" data-format="png">PNG</button>
+            <button type="button" class="export-btn" data-chart="a" data-format="svg">SVG</button>
+          </div>
+        </div>
+        <div class="chart-frame chart-frame-tall"><canvas id="chartA" role="img" aria-label="Weight added versus spring elongation, with the straight-line fit whose slope is the force constant" width="1812" height="392"></canvas></div>
+        <p class="chart-note">Slope = <em>k</em>. The fit should pass close to the origin because ΔL is measured from the initial reading.</p>
+      </article>
+
+      <article class="panel chart-card">
+        <div class="chart-head">
+          <div>
+            <h3>T² vs hanging mass</h3>
+            <p id="metaOsc">No oscillations timed yet</p>
+          </div>
+          <div class="export-group">
+            <button type="button" class="export-btn" data-chart="osc" data-format="png">PNG</button>
+            <button type="button" class="export-btn" data-chart="osc" data-format="svg">SVG</button>
+          </div>
+        </div>
+        <div class="chart-frame"><canvas id="chartOsc" role="img" aria-label="Period squared versus hanging mass with a straight-line fit whose slope gives the spring constant" width="883" height="290"></canvas></div>
+        <p class="chart-note">T² = (4π²/<em>k</em>)·m, so <em>k</em> = 4π² / slope.</p>
+      </article>
+
+      <article class="panel chart-card">
+        <div class="chart-head">
+          <div>
+            <h3>Displacement vs time</h3>
+            <p id="metaTrace">No trial recorded yet</p>
+          </div>
+          <div class="export-group">
+            <button type="button" class="export-btn" data-chart="trace" data-format="png">PNG</button>
+            <button type="button" class="export-btn" data-chart="trace" data-format="svg">SVG</button>
+          </div>
+        </div>
+        <div class="chart-frame"><canvas id="chartTrace" role="img" aria-label="Displacement of the oscillating mass below equilibrium versus time for the most recent trial" width="883" height="290"></canvas></div>
+        <p class="chart-note">Ten complete oscillations; the stopwatch runs from the release at <em>t</em> = 0.</p>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite">Ten readings recorded from 50 g to 500 g</div>
+
+<script src="./hookes-law_files/charts.js.download"></script>
+<script src="./hookes-law_files/app.js.download"></script>
+
+
+<span id="PING_CONTENT_MB_MAIN" style="display: none;"></span><span id="PING_CONTENT_PUSH_NOTIFICATION" style="display: none;"></span></body></html>

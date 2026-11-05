@@ -1,0 +1,1690 @@
+/* ============================================================
+   Hooke's Law — apparatus, readings, oscillation timing, fits
+   ============================================================ */
+(function () {
+  'use strict';
+
+  /* ---------------- constants ---------------- */
+
+  var G = 9.81;                  // gravitational acceleration, m/s²
+  var K = 50.0;                  // force constant of the simulated spring, N/m
+  var NAT = 0.120;               // unstretched spring length, m
+  var HANGER = 0.050;            // hanger mass, kg
+  var DISC = 0.050;              // one slotted weight, kg
+  var SPRING_MASS = 0.018;       // the spring's own mass, kg
+  var M_EFF = SPRING_MASS / 3;   // effective mass added by the spring to the oscillation
+  var MAX_DISCS = 9;             // added weights after the hanger → ten readings
+  var SIGMA_READ = 0.03;         // scale-reading scatter, cm
+  var PULL = 0.030;              // pull below equilibrium, m
+  var PULL_TIME = 0.38;          // s spent pulling the mass down before release
+  var CYCLES = 10;               // oscillations timed per trial
+  var SIGMA_TIME = 0.08;         // stopwatch scatter on a 10-cycle total, s
+  var MAX_TRIALS = 5;
+  var GAMMA = 0.05;              // light damping, 1/s
+  var AUTO_SPEED = 16;           // time-lapse used while filling five trials
+  var STEP_B = 1 / 240;          // integration step for the oscillation, s
+  var SAMPLE_HZ = 110;           // trace sampling rate, Hz
+  var MAX_FRAME = 0.05;          // longest wall-clock step a single frame may replay, s
+  var FONT = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+  var OSC = [
+    { g: 100, discs: 1 },
+    { g: 150, discs: 2 },
+    { g: 200, discs: 3 }
+  ];
+
+  /* ---------------- helpers ---------------- */
+
+  function $(id) { return document.getElementById(id); }
+
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+  function mean(arr) {
+    if (!arr.length) return 0;
+    var s = 0;
+    for (var i = 0; i < arr.length; i++) s += arr[i];
+    return s / arr.length;
+  }
+
+  function stdev(arr) {
+    if (arr.length < 2) return 0;
+    var m = mean(arr);
+    var s = 0;
+    for (var i = 0; i < arr.length; i++) s += (arr[i] - m) * (arr[i] - m);
+    return Math.sqrt(s / (arr.length - 1));
+  }
+
+  function randn() {
+    var u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  function round2(v) { return Math.round(v * 100) / 100; }
+
+  function pctDiff(a, b) {
+    var denom = (Math.abs(a) + Math.abs(b)) / 2;
+    return denom > 1e-12 ? Math.abs(a - b) / denom * 100 : 0;
+  }
+
+  function rr(ctx, x, y, w, h, r) {
+    r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+    ctx.beginPath();
+    if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); return; }
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  /* ---------------- physics ---------------- */
+
+  function eqExt(m) { return m * G / K; }                 // extension at equilibrium, m
+  function massFor(discs) { return HANGER + discs * DISC; } // kg
+  function lengthCm(m) { return (NAT + eqExt(m)) * 100; }
+  function periodFor(g) { return 2 * Math.PI * Math.sqrt(((g / 1000) + M_EFF) / K); }
+
+  function springReading(discs) {
+    return round2(lengthCm(massFor(discs)) + randn() * SIGMA_READ);
+  }
+
+  /* ---------------- state ---------------- */
+
+  var state = {
+    part: 'A',
+    discs: 0,
+    rows: [],                       // [{ discs, Lcm }]
+    massG: 100,
+    trials: { 100: [], 150: [], 200: [] },
+    speed: 1,
+    trace: null
+  };
+
+  var simA = {
+    ext: eqExt(HANGER),
+    target: eqExt(HANGER),
+    vel: 0,
+    anim: false
+  };
+
+  var simB = {
+    phase: 'idle',                  // idle | pull | swing
+    t: 0,
+    pullT: 0,
+    T: periodFor(100),
+    omega: 2 * Math.PI / periodFor(100),
+    mass: 0.100,
+    samples: [],
+    nextSample: 0,
+    shown: 0,
+    autoLeft: 0,
+    speed: 1
+  };
+
+  function running() { return simB.phase === 'pull' || simB.phase === 'swing'; }
+
+  function oscXcm() {
+    if (simB.phase === 'pull') {
+      var u = clamp(simB.pullT / PULL_TIME, 0, 1);
+      return PULL * 100 * u * u * (3 - 2 * u);
+    }
+    if (simB.phase === 'swing') {
+      return PULL * 100 * Math.cos(simB.omega * simB.t) * Math.exp(-GAMMA * simB.t);
+    }
+    return 0;
+  }
+
+  /* ---------------- reading helpers ---------------- */
+
+  function rowAt(discs) {
+    for (var i = 0; i < state.rows.length; i++) {
+      if (state.rows[i].discs === discs) return state.rows[i];
+    }
+    return null;
+  }
+
+  function initialRow() { return rowAt(0); }
+
+  // The pointer is read to the nearest 0.01 cm. Once a load has been recorded, show
+  // the pointer at that recorded reading so the apparatus and the table agree.
+  function displayLengthCm(discs, ext) {
+    var r = rowAt(discs);
+    var base = (NAT + ext) * 100;
+    if (!r) return base;
+    return base + (r.Lcm - lengthCm(massFor(discs)));
+  }
+
+  function rowInfo(r) {
+    var F = r.discs * DISC * G;
+    var l0 = initialRow();
+    var dLcm = l0 ? r.Lcm - l0.Lcm : null;
+    var k = (dLcm != null && dLcm > 0.02) ? F / (dLcm / 100) : null;
+    return { F: F, dLcm: dLcm, k: k };
+  }
+
+  function fitA() {
+    var pts = [];
+    state.rows.forEach(function (r) {
+      if (r.discs === 0) return;
+      var info = rowInfo(r);
+      if (info.dLcm == null || info.dLcm <= 0) return;
+      pts.push({ x: info.dLcm / 100, dLcm: info.dLcm, y: info.F, k: info.k, discs: r.discs });
+    });
+    pts.sort(function (a, b) { return a.discs - b.discs; });
+
+    var ks = pts.map(function (p) { return p.k; }).filter(function (v) {
+      return v != null && isFinite(v);
+    });
+
+    var out = {
+      n: pts.length,
+      pts: pts,
+      k: null,
+      b: null,
+      r2: null,
+      kAvg: ks.length ? mean(ks) : null,
+      kSd: ks.length ? stdev(ks) : null
+    };
+
+    if (pts.length < 2) return out;
+
+    var n = pts.length, sx = 0, sy = 0, sxx = 0, sxy = 0;
+    pts.forEach(function (p) { sx += p.x; sy += p.y; sxx += p.x * p.x; sxy += p.x * p.y; });
+    var den = n * sxx - sx * sx;
+    if (Math.abs(den) < 1e-12) return out;
+
+    var k = (n * sxy - sx * sy) / den;
+    var b = (sy - k * sx) / n;
+    var ssRes = 0, ssTot = 0, my = sy / n;
+    pts.forEach(function (p) {
+      ssRes += Math.pow(p.y - (k * p.x + b), 2);
+      ssTot += Math.pow(p.y - my, 2);
+    });
+
+    out.k = k;
+    out.b = b;
+    out.r2 = ssTot > 0 ? 1 - ssRes / ssTot : null;
+    return out;
+  }
+
+  function oscGroup(g) {
+    var arr = state.trials[g] || [];
+    if (!arr.length) return null;
+    var m = g / 1000;
+    var periods = arr.map(function (t) { return t.period; });
+    var ks = periods.map(function (T) { return 4 * Math.PI * Math.PI * m / (T * T); });
+    return {
+      g: g,
+      m: m,
+      arr: arr,
+      n: arr.length,
+      T: mean(periods),
+      sdT: stdev(periods),
+      T2: mean(periods) * mean(periods),
+      k: mean(ks),
+      sk: stdev(ks)
+    };
+  }
+
+  function oscGroups() {
+    return OSC.map(function (o) { return oscGroup(o.g); }).filter(function (x) { return !!x; });
+  }
+
+  function oscAvg() {
+    var gs = oscGroups();
+    return gs.length ? mean(gs.map(function (g) { return g.k; })) : null;
+  }
+
+  function fitOsc() {
+    var gs = oscGroups();
+    var out = { n: gs.length, slope: null, intercept: null, k: null, r2: null };
+    if (gs.length < 2) return out;
+
+    var n = gs.length, sx = 0, sy = 0, sxx = 0, sxy = 0;
+    gs.forEach(function (g) { sx += g.m; sy += g.T2; sxx += g.m * g.m; sxy += g.m * g.T2; });
+    var den = n * sxx - sx * sx;
+    if (Math.abs(den) < 1e-14) return out;
+
+    var slope = (n * sxy - sx * sy) / den;
+    var intercept = (sy - slope * sx) / n;
+    if (!(slope > 0)) return out;
+
+    var ssRes = 0, ssTot = 0, my = sy / n;
+    gs.forEach(function (g) {
+      ssRes += Math.pow(g.T2 - (slope * g.m + intercept), 2);
+      ssTot += Math.pow(g.T2 - my, 2);
+    });
+
+    out.slope = slope;
+    out.intercept = intercept;
+    out.k = 4 * Math.PI * Math.PI / slope;
+    out.r2 = ssTot > 0 ? 1 - ssRes / ssTot : null;
+    return out;
+  }
+
+  /* ---------------- dom ---------------- */
+
+  var themeToggle = $('themeToggle');
+  var canvasWrap = $('canvasWrap');
+  var sceneCanvas = $('scene');
+  var sceneCtx = sceneCanvas.getContext('2d');
+  var massGrid = $('massGrid');
+  var minusBtn = $('minusBtn');
+  var plusBtn = $('plusBtn');
+  var loadVal = $('loadVal');
+  var loadNote = $('loadNote');
+  var recordBtn = $('recordBtn');
+  var fillBtn = $('fillBtn');
+  var oscBtn = $('oscBtn');
+  var oscBtnLabel = $('oscBtnLabel');
+  var oscAuto = $('oscAuto');
+  var hintA = $('hintA');
+  var hintB = $('hintB');
+  var statusLine = $('statusLine');
+  var statsGrid = $('statsGrid');
+  var tableHead = $('tableHead');
+  var dataBody = $('dataBody');
+  var speedGroup = $('speedGroup');
+
+  var sceneW = 0, sceneH = 0, sceneDpr = 1;
+  var charts = {};
+
+  /* ---------------- palette ---------------- */
+
+  var paletteCache = null;
+
+  function palette() {
+    if (paletteCache) return paletteCache;
+    var css = getComputedStyle(document.documentElement);
+    function v(name) { return css.getPropertyValue(name).trim(); }
+    paletteCache = {
+      panel: v('--panel'),
+      panel2: v('--panel-2'),
+      panel3: v('--panel-3'),
+      border: v('--border'),
+      text: v('--text'),
+      muted: v('--muted'),
+      faint: v('--faint'),
+      grid: v('--grid'),
+      axis: v('--axis'),
+      accent: v('--accent'),
+      accent2: v('--accent-2'),
+      good: v('--good'),
+      sceneTop: v('--scene-top'),
+      sceneBottom: v('--scene-bottom'),
+      sceneFloor: v('--scene-floor'),
+      frame: v('--viz-frame'),
+      frameEdge: v('--viz-frame-edge'),
+      frameHi: v('--viz-frame-hi'),
+      base: v('--viz-base'),
+      string: v('--viz-string'),
+      bob: v('--viz-bob'),
+      bobDark: v('--viz-bob-dark'),
+      bobLight: v('--viz-bob-light'),
+      bobEdge: v('--viz-bob-edge'),
+      arc: v('--viz-arc'),
+      arcInk: v('--viz-arc-ink')
+    };
+    return paletteCache;
+  }
+
+  function chartColors() {
+    var p = palette();
+    return {
+      panel: p.panel,
+      text: p.text,
+      muted: p.muted,
+      faint: p.faint,
+      grid: p.grid,
+      axis: p.axis,
+      accent: p.accent,
+      accent2: p.accent2,
+      good: p.good
+    };
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem('hookes-law-theme', theme); } catch (e) {}
+    themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    paletteCache = null;
+    drawScene();
+    drawCharts();
+  }
+
+  themeToggle.addEventListener('click', function () {
+    applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  });
+
+  /* ---------------- scene ---------------- */
+
+  function resizeScene() {
+    if (!canvasWrap) return;
+    var rect = canvasWrap.getBoundingClientRect();
+    sceneW = Math.max(280, Math.round(rect.width));
+    sceneH = Math.max(220, Math.round(rect.height));
+    sceneDpr = Math.min(window.devicePixelRatio || 1, 2);
+    sceneCanvas.width = Math.round(sceneW * sceneDpr);
+    sceneCanvas.height = Math.round(sceneH * sceneDpr);
+    drawScene();
+  }
+
+  function drawSpring(ctx, cx, top, bottom, color, highlight) {
+    if (bottom - top < 8) return;
+    var coils = 14;
+    var seg = coils * 18;
+    var amp = clamp((bottom - top) / 24, 4.5, 10);
+    var i, t, x, y;
+
+    function path() {
+      ctx.beginPath();
+      for (i = 0; i <= seg; i++) {
+        t = i / seg;
+        x = cx + Math.sin(t * coils * Math.PI * 2) * amp;
+        y = top + (bottom - top) * t;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+    }
+
+    ctx.save();
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    path();
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.55;
+    ctx.strokeStyle = highlight;
+    ctx.lineWidth = 0.9;
+    ctx.translate(1.1, 0);
+    path();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawBracket(ctx, x, y1, y2, color, label) {
+    if (Math.abs(y2 - y1) < 3) return;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, y1);
+    ctx.lineTo(x, y2);
+    ctx.stroke();
+    [y1, y2].forEach(function (y) {
+      ctx.beginPath();
+      ctx.moveTo(x - 4, y);
+      ctx.lineTo(x + 4, y);
+      ctx.stroke();
+    });
+    ctx.font = '600 9.5px ' + FONT;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.translate(x + 10, (y1 + y2) / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(label, 0, 0);
+    ctx.restore();
+  }
+
+  function drawScene() {
+    if (!sceneW || !sceneH) return;
+    var p = palette();
+    var ctx = sceneCtx;
+    var w = sceneW, h = sceneH;
+
+    ctx.setTransform(sceneDpr, 0, 0, sceneDpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    var bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, p.sceneTop);
+    bg.addColorStop(1, p.sceneBottom);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    var partB = state.part === 'B';
+    var discs = partB ? Math.round((state.massG / 1000 - HANGER) / DISC) : state.discs;
+    var mass = massFor(discs);
+    var eq = eqExt(mass);
+
+    var armY = clamp(h * 0.13, 42, 66);
+    var pxPerCm = clamp((h - armY - 104) / 23.5, 4.2, 15);
+    var boardW = clamp(w * 0.13, 46, 62);
+    var baseW = clamp(w * 0.17, 64, 100);
+
+    var localCX = 62;
+    var localBoardX = localCX + 30;
+    var localRodX = localBoardX + boardW + 52;
+    var ox = Math.max(10, (w - (localRodX + baseW / 2)) / 2);
+    var cx = ox + localCX;
+    var boardX = ox + localBoardX;
+    var rodX = ox + localRodX;
+    var floorY = h - 24;
+
+    function yFor(cm) { return armY + cm * pxPerCm; }
+
+    var extNow;
+    var xDisp = 0;
+    if (partB) {
+      xDisp = oscXcm();
+      extNow = eq + xDisp / 100;
+    } else {
+      extNow = simA.ext;
+    }
+
+    var Lcm = partB ? (NAT + extNow) * 100 : displayLengthCm(state.discs, extNow);
+    var springBot = yFor(Lcm);
+
+    /* ---- floor ---- */
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = p.sceneFloor;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, floorY + 8.5);
+    ctx.lineTo(w, floorY + 8.5);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    /* ---- stand: base, rod, arm ---- */
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(rodX, floorY + 6, baseW * 0.46, 3.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = p.base;
+    rr(ctx, rodX - baseW / 2, floorY - 5, baseW, 9, 3.5);
+    ctx.fill();
+
+    var rodGrad = ctx.createLinearGradient(rodX - 4, 0, rodX + 4, 0);
+    rodGrad.addColorStop(0, p.frameEdge);
+    rodGrad.addColorStop(0.35, p.frameHi);
+    rodGrad.addColorStop(1, p.frame);
+    ctx.fillStyle = rodGrad;
+    rr(ctx, rodX - 4, armY - 5, 8, floorY - armY + 5, 2.5);
+    ctx.fill();
+
+    var armGrad = ctx.createLinearGradient(0, armY - 6, 0, armY + 2);
+    armGrad.addColorStop(0, p.frameHi);
+    armGrad.addColorStop(1, p.frame);
+    ctx.fillStyle = armGrad;
+    rr(ctx, cx - 12, armY - 6, rodX - cx + 12, 8, 3);
+    ctx.fill();
+    ctx.strokeStyle = p.frameEdge;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    /* ---- scale plate ---- */
+    var boardTop = yFor(10) - 9;
+    var boardBot = yFor(23) + 9;
+    var boardGrad = ctx.createLinearGradient(boardX, 0, boardX + boardW, 0);
+    boardGrad.addColorStop(0, p.panel2);
+    boardGrad.addColorStop(0.55, p.panel);
+    boardGrad.addColorStop(1, p.panel2);
+    ctx.fillStyle = boardGrad;
+    rr(ctx, boardX, boardTop, boardW, boardBot - boardTop, 5);
+    ctx.fill();
+    ctx.strokeStyle = p.border;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.strokeStyle = p.axis;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(boardX, boardTop + 4);
+    ctx.lineTo(boardX, boardBot - 4);
+    ctx.stroke();
+
+    ctx.font = '600 8px ' + FONT;
+    ctx.fillStyle = p.muted;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('cm', boardX + 6, boardTop + 10);
+
+    for (var cm = 10; cm <= 23; cm++) {
+      var ty = yFor(cm);
+      if (ty < boardTop + 4 || ty > boardBot - 4) continue;
+      var major = cm % 2 === 0;
+      ctx.strokeStyle = major ? p.axis : p.faint;
+      ctx.globalAlpha = major ? 1 : 0.55;
+      ctx.beginPath();
+      ctx.moveTo(boardX, ty);
+      ctx.lineTo(boardX + (major ? 8 : 4), ty);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      if (cm > 10) {
+        ctx.font = '500 8px ' + FONT;
+        ctx.fillStyle = p.muted;
+        ctx.textAlign = 'left';
+        ctx.fillText(String(cm), boardX + 19, ty);
+      }
+    }
+
+    /* ---- reference lines ---- */
+    var l0 = initialRow();
+    if (!partB && l0) {
+      var yL0 = yFor(l0.Lcm);
+      ctx.save();
+      ctx.setLineDash([3, 4]);
+      ctx.strokeStyle = p.accent2;
+      ctx.globalAlpha = 0.45;
+      ctx.beginPath();
+      ctx.moveTo(cx - 18, yL0);
+      ctx.lineTo(boardX + boardW - 6, yL0);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if (partB) {
+      var yEq = yFor(lengthCm(mass));
+      var yRel = yFor(lengthCm(mass) + PULL * 100);
+
+      ctx.save();
+      ctx.setLineDash([3, 4]);
+      ctx.globalAlpha = 0.45;
+      ctx.strokeStyle = p.faint;
+      ctx.beginPath();
+      ctx.moveTo(cx - 20, yEq);
+      ctx.lineTo(boardX + boardW - 6, yEq);
+      ctx.stroke();
+      ctx.globalAlpha = 0.4;
+      ctx.strokeStyle = p.accent;
+      ctx.beginPath();
+      ctx.moveTo(cx - 20, yRel);
+      ctx.lineTo(boardX + boardW - 6, yRel);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.font = '500 8px ' + FONT;
+      ctx.fillStyle = p.faint;
+      ctx.textAlign = 'right';
+      ctx.fillText('rest', cx - 24, yEq);
+      ctx.fillStyle = p.accent;
+      ctx.globalAlpha = 0.8;
+      ctx.fillText('release', cx - 24, yRel);
+      ctx.globalAlpha = 1;
+    }
+
+    /* ---- spring ---- */
+    drawSpring(ctx, cx, armY, springBot, p.frame, p.frameHi);
+
+    // top clamp
+    ctx.fillStyle = p.frameEdge;
+    rr(ctx, cx - 13, armY - 4, 26, 9, 3);
+    ctx.fill();
+    ctx.fillStyle = p.frameHi;
+    ctx.globalAlpha = 0.7;
+    rr(ctx, cx - 10, armY - 2.5, 20, 2, 1);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // bottom plate
+    ctx.fillStyle = p.frame;
+    rr(ctx, cx - 10, springBot - 2, 20, 5, 2);
+    ctx.fill();
+    ctx.strokeStyle = p.frameEdge;
+    ctx.lineWidth = 0.7;
+    ctx.stroke();
+
+    /* ---- pointer ---- */
+    ctx.strokeStyle = p.accent2;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - 2, springBot);
+    ctx.lineTo(boardX + 12, springBot);
+    ctx.stroke();
+
+    ctx.fillStyle = p.accent2;
+    ctx.beginPath();
+    ctx.moveTo(boardX + 16, springBot);
+    ctx.lineTo(boardX + 10, springBot - 3.8);
+    ctx.lineTo(boardX + 10, springBot + 3.8);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(cx, springBot, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    /* ---- hanger and slotted weights ---- */
+    var discGap = clamp(pxPerCm * 0.62, 4, 7);
+    var hookY = springBot + 2;
+
+    ctx.strokeStyle = p.frameEdge;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, hookY);
+    ctx.lineTo(cx, hookY + 9);
+    ctx.stroke();
+
+    var barY = hookY + 11;
+    var barW = clamp(w * 0.11, 44, 62);
+    var barGrad = ctx.createLinearGradient(cx - barW / 2, 0, cx + barW / 2, 0);
+    barGrad.addColorStop(0, p.frameEdge);
+    barGrad.addColorStop(0.4, p.frameHi);
+    barGrad.addColorStop(1, p.frame);
+    ctx.fillStyle = barGrad;
+    rr(ctx, cx - barW / 2, barY, barW, 5, 2.5);
+    ctx.fill();
+
+    var discY = barY + 8;
+    for (var d = 0; d < discs; d++) {
+      var dy = discY + d * discGap;
+      ctx.fillStyle = p.accent2;
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath();
+      ctx.ellipse(cx, dy + 3, barW * 0.44, discGap * 0.72, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = p.panel;
+      ctx.lineWidth = 0.6;
+      ctx.stroke();
+
+      ctx.strokeStyle = p.accent2;
+      ctx.globalAlpha = 0.35;
+      ctx.beginPath();
+      ctx.ellipse(cx, dy + 3, barW * 0.22, discGap * 0.34, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    var labelY = discY + Math.max(0, discs) * discGap + 9;
+    ctx.font = '600 9.5px ' + FONT;
+    ctx.fillStyle = p.muted;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    if (labelY < h - 6) {
+      ctx.fillText(String((mass * 1000).toFixed(0)) + ' g', cx, labelY);
+    }
+
+    /* ---- displacement bracket ---- */
+    var bracketX = boardX + boardW + 18;
+    if (!partB && l0) {
+      var dNow = Lcm - l0.Lcm;
+      if (Math.abs(dNow) > 0.04) {
+        drawBracket(ctx, bracketX, yFor(l0.Lcm), springBot, p.accent2, 'ΔL = ' + Math.abs(dNow).toFixed(2) + ' cm');
+      }
+    } else if (partB) {
+      var xCm = xDisp;
+      if (Math.abs(xCm) > 0.04) {
+        drawBracket(ctx, bracketX, yFor(lengthCm(mass)), springBot, p.accent2, 'x = ' + (xCm >= 0 ? '+' : '−') + Math.abs(xCm).toFixed(2) + ' cm');
+      }
+    }
+  }
+
+  /* ---------------- charts ---------------- */
+
+  function cfgA() {
+    var p = palette();
+    var fit = fitA();
+
+    var xs = fit.pts.map(function (q) { return q.dLcm; });
+    var ys = fit.pts.map(function (q) { return q.F; });
+    var maxX = Math.max(1, Math.max.apply(null, xs.concat([0])));
+    var maxY = Math.max(0.5, Math.max.apply(null, ys.concat([0])));
+    var xMax = Math.max(1, Math.ceil(maxX * 1.15 * 2) / 2);
+    var yMax = Math.max(0.5, Math.ceil(maxY * 1.15 * 10) / 10);
+
+    var series = [];
+    if (fit.k != null) {
+      series.push({
+        type: 'line',
+        points: [[0, fit.b], [xMax, fit.k * (xMax / 100) + fit.b]],
+        color: p.accent2,
+        width: 2,
+        label: 'least-squares fit'
+      });
+    }
+    if (fit.pts.length) {
+      series.push({
+        type: 'error',
+        points: fit.pts.map(function (q) { return { x: q.dLcm, y: q.F, yerr: 0 }; }),
+        color: p.accent,
+        radius: 4.2,
+        fill: p.panel,
+        label: 'measured'
+      });
+    }
+
+    var annotations = [];
+    if (fit.k != null) {
+      annotations.push({
+        text: 'slope k = ' + fit.k.toFixed(1) + ' N/m',
+        x: xMax * 0.52,
+        y: yMax * 0.24,
+        color: p.accent2,
+        size: 10.5
+      });
+    }
+
+    return {
+      colors: chartColors(),
+      xMin: 0,
+      xMax: xMax,
+      yMin: 0,
+      yMax: yMax,
+      xLabel: 'Elongation ΔL (cm)',
+      yLabel: 'Weight added F (N)',
+      emptyText: 'Record the initial reading and two added loads',
+      series: series,
+      annotations: annotations
+    };
+  }
+
+  function cfgOsc() {
+    var p = palette();
+    var gs = oscGroups();
+    var fit = fitOsc();
+
+    var yMax = 0.12;
+    gs.forEach(function (g) {
+      yMax = Math.max(yMax, g.T2 * 1.18, (g.T2 + 2 * g.T * g.sdT) * 1.12);
+    });
+
+    var series = [];
+    if (fit.k != null) {
+      series.push({
+        type: 'line',
+        points: [[0, fit.intercept], [240, fit.slope * 0.24 + fit.intercept]],
+        color: p.accent2,
+        width: 2,
+        label: 'least-squares fit'
+      });
+    }
+    if (gs.length) {
+      series.push({
+        type: 'error',
+        points: gs.map(function (g) {
+          return { x: g.g, y: g.T2, yerr: 2 * g.T * g.sdT };
+        }),
+        color: p.accent,
+        radius: 4.4,
+        fill: p.panel,
+        label: 'measured'
+      });
+    }
+
+    var annotations = [];
+    if (fit.k != null) {
+      annotations.push({
+        text: 'k = 4π²/slope = ' + fit.k.toFixed(1) + ' N/m',
+        x: 112,
+        y: yMax * 0.22,
+        color: p.accent2,
+        size: 10.5
+      });
+    }
+
+    return {
+      colors: chartColors(),
+      xMin: 0,
+      xMax: 240,
+      yMin: 0,
+      yMax: yMax,
+      xLabel: 'Hanging mass m (g)',
+      yLabel: 'Period squared T² (s²)',
+      emptyText: 'Time at least two loads in Part B to fit the line',
+      series: series,
+      annotations: annotations
+    };
+  }
+
+  function cfgTrace() {
+    var p = palette();
+    var tr = state.trace;
+    var pts = [];
+    var yMax = 3.6;
+    var yMin = -0.6;
+    var xMax = 1;
+
+    if (tr && tr.samples.length) {
+      var stride = Math.max(1, Math.ceil(tr.samples.length / 700));
+      for (var i = 0; i < tr.samples.length; i += stride) {
+        pts.push([tr.samples[i].t, tr.samples[i].x]);
+      }
+      xMax = Math.max(1, tr.samples[tr.samples.length - 1].t);
+      yMax = Math.max(tr.amp * 1.16, 0.5);
+      yMin = -Math.max(tr.amp * 0.22, 0.15);
+    }
+
+    return {
+      colors: chartColors(),
+      xMin: 0,
+      xMax: xMax,
+      yMin: yMin,
+      yMax: yMax,
+      xLabel: 'Time (s)',
+      yLabel: 'Displacement below rest (cm)',
+      emptyText: 'Time 10 oscillations to record a trace',
+      series: pts.length ? [{
+        type: 'line',
+        points: pts,
+        color: p.accent,
+        width: 1.5
+      }] : [],
+      annotations: tr ? [{
+        text: 'T = ' + tr.period.toFixed(3) + ' s   ·   10 oscillations in ' + tr.total.toFixed(2) + ' s',
+        x: xMax * 0.5,
+        y: yMax * 0.97,
+        color: p.muted,
+        align: 'center',
+        size: 9.5
+      }] : []
+    };
+  }
+
+  function drawCharts() {
+    ['a', 'osc', 'trace'].forEach(function (k) {
+      if (charts[k]) charts[k].schedule();
+    });
+  }
+
+  /* ---------------- UI helpers ---------------- */
+
+  function toast(msg) {
+    var el = $('toast');
+    el.textContent = msg;
+    el.classList.add('is-visible');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(function () { el.classList.remove('is-visible'); }, 2600);
+  }
+
+  function setMetric(n, label, value, unit) {
+    $('hudL' + n).textContent = label;
+    $('hudV' + n).textContent = value;
+    $('hudU' + n).textContent = unit;
+  }
+
+  function statCell(label, value, big) {
+    return '<div class="stat' + (big ? ' stat-wide stat-accent' : '') + '">' +
+      '<span>' + label + '</span><strong>' + value + '</strong></div>';
+  }
+
+  function renderStats() {
+    if (state.part === 'A') {
+      var l0 = initialRow();
+      var liveL = displayLengthCm(state.discs, simA.ext);
+      var dNow = l0 ? liveL - l0.Lcm : null;
+      var kNow = (state.discs > 0 && dNow != null && dNow > 0.02)
+        ? (state.discs * DISC * G) / (dNow / 100)
+        : null;
+
+      statsGrid.innerHTML =
+        statCell('Hanging mass', ((massFor(state.discs)) * 1000).toFixed(0) + ' g') +
+        statCell('Added load F', (state.discs * DISC * G).toFixed(3) + ' N') +
+        statCell('Scale reading L', liveL.toFixed(2) + ' cm') +
+        statCell('Initial reading L₀', l0 ? l0.Lcm.toFixed(2) + ' cm' : '—') +
+        statCell('Elongation ΔL', dNow != null ? dNow.toFixed(2) + ' cm' : '—') +
+        statCell('k for this reading', kNow != null ? kNow.toFixed(1) + ' N/m' : '—', true);
+    } else {
+      var arr = state.trials[state.massG] || [];
+      var last = arr.length ? arr[arr.length - 1] : null;
+      statsGrid.innerHTML =
+        statCell('Hanging mass', state.massG + ' g') +
+        statCell('Rest length', lengthCm(state.massG / 1000).toFixed(2) + ' cm') +
+        statCell('Amplitude', '3.00 cm') +
+        statCell('Stopwatch total', last ? last.total.toFixed(2) + ' s' : '—') +
+        statCell('Period T', last ? last.period.toFixed(3) + ' s' : '—') +
+        statCell('k from this trial', last ? last.k.toFixed(1) + ' N/m' : '—', true);
+    }
+  }
+
+  function renderHud() {
+    var meterFill = $('meterFill');
+    var meterCount = $('meterCount');
+    var meterLabel = $('meterLabel');
+
+    if (state.part === 'A') {
+      var l0 = initialRow();
+      var liveL = displayLengthCm(state.discs, simA.ext);
+      setMetric(1, 'L', liveL.toFixed(2), 'cm');
+      setMetric(2, 'ΔL', l0 ? (liveL - l0.Lcm).toFixed(2) : '0.00', 'cm');
+      setMetric(3, 'm', (massFor(state.discs) * 1000).toFixed(0), 'g');
+      $('hudBig').textContent = state.rows.length + ' / 10';
+      $('hudSub').textContent = 'readings recorded';
+      meterLabel.textContent = 'Readings';
+      meterCount.textContent = state.rows.length + ' / 10';
+      meterFill.style.width = (state.rows.length / 10 * 100).toFixed(1) + '%';
+    } else {
+      setMetric(1, 't', simB.t.toFixed(2), 's');
+      setMetric(2, 'x', oscXcm().toFixed(2), 'cm');
+      setMetric(3, 'm', String(state.massG), 'g');
+      $('hudBig').textContent = simB.shown + ' / 10';
+      $('hudSub').textContent = 'oscillations';
+      meterLabel.textContent = 'Stopwatch';
+      meterCount.textContent = simB.shown + ' / 10';
+      meterFill.style.width = (simB.shown / 10 * 100).toFixed(1) + '%';
+    }
+  }
+
+  function renderStatus() {
+    if (state.part === 'A') {
+      if (state.rows.length === 0) {
+        statusLine.textContent = 'Record the initial reading with the 50 g hanger to begin.';
+        return;
+      }
+      var l0 = initialRow();
+      var liveL = displayLengthCm(state.discs, simA.ext);
+      var dNow = liveL - l0.Lcm;
+      statusLine.textContent = 'Load ' + (massFor(state.discs) * 1000).toFixed(0) +
+        ' g · pointer at ' + liveL.toFixed(2) + ' cm · ΔL = ' + dNow.toFixed(2) + ' cm';
+      return;
+    }
+
+    if (simB.phase === 'pull') {
+      statusLine.textContent = 'Pulling the mass 3.0 cm below its rest position…';
+    } else if (simB.phase === 'swing') {
+      statusLine.textContent = 'Timing 10 oscillations · ' + simB.shown + ' counted · t = ' + simB.t.toFixed(2) + ' s';
+    } else {
+      var arr = state.trials[state.massG] || [];
+      var last = arr.length ? arr[arr.length - 1] : null;
+      statusLine.textContent = last
+        ? 'Trial recorded · 10 oscillations in ' + last.total.toFixed(2) + ' s · T = ' + last.period.toFixed(3) + ' s'
+        : 'Load ' + state.massG + ' g · pull 3.0 cm and release · 10 oscillations per trial';
+    }
+  }
+
+  function renderTabs() {
+    document.querySelectorAll('.part-tab').forEach(function (b) {
+      var on = b.dataset.part === state.part;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      b.disabled = running();
+    });
+    $('panelA').hidden = state.part !== 'A';
+    $('panelB').hidden = state.part !== 'B';
+    speedGroup.hidden = state.part !== 'B';
+  }
+
+  function renderMassGrid() {
+    massGrid.innerHTML = '';
+    OSC.forEach(function (o) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'block-btn';
+      b.dataset.g = o.g;
+      var arr = state.trials[o.g] || [];
+      if (o.g === state.massG) b.classList.add('is-active');
+      if (arr.length) b.classList.add('is-done');
+      b.setAttribute('aria-pressed', o.g === state.massG ? 'true' : 'false');
+      b.innerHTML = '<span>' + o.g + '</span><small>g</small>';
+      b.addEventListener('click', function () {
+        if (running()) return;
+        selectMass(o.g);
+      });
+      massGrid.appendChild(b);
+    });
+  }
+
+  function renderButtons() {
+    var run = running();
+    var arr = state.trials[state.massG] || [];
+
+    minusBtn.disabled = run || state.discs <= 0;
+    plusBtn.disabled = run || state.discs >= MAX_DISCS;
+    recordBtn.disabled = run || (state.discs > 0 && !initialRow());
+    fillBtn.disabled = run;
+    $('clearBtnA').disabled = run;
+    $('clearBtnB').disabled = run;
+
+    massGrid.querySelectorAll('button').forEach(function (b) { b.disabled = run; });
+
+    if (state.discs === 0) {
+      recordBtn.textContent = initialRow() ? 'Retake initial reading' : 'Record initial reading';
+    } else {
+      recordBtn.textContent = rowAt(state.discs) ? 'Retake reading' : 'Record reading';
+    }
+
+    oscBtnLabel.textContent = run ? 'Stop run' : 'Time 10 oscillations';
+    oscAuto.disabled = run && simB.autoLeft === 0;
+
+    if (run && simB.autoLeft > 0) {
+      oscAuto.textContent = 'Stop';
+    } else if (arr.length >= MAX_TRIALS) {
+      oscAuto.textContent = 'Retake 5 trials';
+    } else {
+      var left = MAX_TRIALS - arr.length;
+      oscAuto.textContent = 'Record ' + left + ' trial' + (left === 1 ? '' : 's');
+    }
+  }
+
+  function renderPills() {
+    var pill = $('trialPill');
+    if (state.part === 'A') {
+      pill.textContent = state.rows.length ? state.rows.length + ' of 10 readings' : 'No readings yet';
+      pill.setAttribute('data-tone', state.rows.length === 10 ? 'good' : 'accent');
+    } else if (running()) {
+      pill.textContent = simB.autoLeft > 0 ? 'Auto run' : 'Timing…';
+      pill.setAttribute('data-tone', 'accent');
+    } else {
+      var n = (state.trials[state.massG] || []).length;
+      pill.textContent = n ? n + ' of 5 trials' : 'No run yet';
+      pill.setAttribute('data-tone', n >= MAX_TRIALS ? 'good' : 'accent');
+    }
+
+    var badge = $('runBadge');
+    if (running()) {
+      badge.textContent = simB.autoLeft > 0 ? 'Auto' : 'Timing';
+      badge.setAttribute('data-state', simB.autoLeft > 0 ? 'auto' : 'running');
+    } else {
+      badge.textContent = 'Idle';
+      badge.setAttribute('data-state', 'idle');
+    }
+  }
+
+  function buildTable() {
+    dataBody.innerHTML = '';
+    var heads, note, pill;
+
+    if (state.part === 'A') {
+      heads = ['#', 'Total mass', 'Load F', 'Scale L', 'ΔL', 'k'];
+      note = 'ΔL is measured from the initial 50 g reading; k = F / ΔL.';
+      pill = state.rows.length + ' / 10 rows';
+
+      for (var d = 0; d <= MAX_DISCS; d++) {
+        var r = rowAt(d);
+        var info = r ? rowInfo(r) : null;
+        var tr = document.createElement('tr');
+        if (d === state.discs) tr.className = 'is-current';
+        var cells = [
+          '<td>' + (d + 1) + '</td>',
+          '<td>' + (massFor(d) * 1000).toFixed(0) + ' g</td>',
+          '<td>' + (d * DISC * G).toFixed(2) + '</td>',
+          r ? '<td>' + r.Lcm.toFixed(2) + '</td>' : '<td class="empty">—</td>',
+          (info && info.dLcm != null) ? '<td>' + info.dLcm.toFixed(2) + '</td>' : '<td class="empty">—</td>',
+          (info && info.k != null) ? '<td class="avg">' + info.k.toFixed(1) + '</td>' : '<td class="empty">—</td>'
+        ];
+        tr.innerHTML = cells.join('');
+        (function (discs) {
+          tr.addEventListener('click', function () {
+            if (running()) return;
+            setLoad(discs);
+          });
+        }(d));
+        dataBody.appendChild(tr);
+      }
+    } else {
+      heads = ['Load', 't₁', 't₂', 't₃', 't₄', 't₅', 'T̄', 'k'];
+      note = 'Cells are total times for 10 oscillations (s). T̄ and k come from the trials on the row.';
+      var loadsWithData = 0;
+
+      OSC.forEach(function (o) {
+        var arr = state.trials[o.g] || [];
+        if (arr.length) loadsWithData++;
+        var grp = oscGroup(o.g);
+        var tr = document.createElement('tr');
+        if (o.g === state.massG) tr.className = 'is-current';
+        var cells = ['<td>' + o.g + ' g</td>'];
+        for (var i = 0; i < MAX_TRIALS; i++) {
+          cells.push(arr[i] ? '<td>' + arr[i].total.toFixed(2) + '</td>' : '<td class="empty">—</td>');
+        }
+        cells.push(grp ? '<td class="avg">' + grp.T.toFixed(3) + '</td>' : '<td class="empty">—</td>');
+        cells.push(grp ? '<td class="avg">' + grp.k.toFixed(1) + '</td>' : '<td class="empty">—</td>');
+        tr.innerHTML = cells.join('');
+        (function (g) {
+          tr.addEventListener('click', function () {
+            if (running()) return;
+            selectMass(g);
+          });
+        }(o.g));
+        dataBody.appendChild(tr);
+      });
+      pill = loadsWithData + ' / 3 loads';
+    }
+
+    tableHead.innerHTML = heads.map(function (h) {
+      return '<th scope="col">' + h + '</th>';
+    }).join('');
+    $('dataCount').textContent = pill;
+    $('tableNote').textContent = note;
+  }
+
+  function renderResult() {
+    var fit = fitA();
+    var kB = oscAvg();
+    var fitB = fitOsc();
+    var kEl = $('resultK');
+    var delta = $('resultDelta');
+    var pill = $('resultPill');
+
+    $('resultN').textContent = state.rows.length + ' / 10';
+    $('resultSlope').textContent = fit.k != null ? fit.k.toFixed(1) + ' N/m' : '—';
+    $('resultIntercept').textContent = fit.b != null ? fit.b.toFixed(3) + ' N' : '—';
+    $('resultR2').textContent = fit.r2 != null ? fit.r2.toFixed(4) : '—';
+    $('resultKAvg').textContent = fit.kAvg != null
+      ? fit.kAvg.toFixed(1) + (fit.kSd != null ? ' ± ' + fit.kSd.toFixed(1) : '') + ' N/m'
+      : '—';
+    $('resultKDiff').textContent = (fit.k != null && fit.kAvg != null)
+      ? pctDiff(fit.k, fit.kAvg).toFixed(1) + '%'
+      : '—';
+    $('resultKOsc').textContent = kB != null ? kB.toFixed(1) + ' N/m' : '—';
+    $('resultKOscFit').textContent = fitB.k != null ? fitB.k.toFixed(1) + ' N/m' : '—';
+    $('resultABDiff').textContent = (fit.k != null && kB != null)
+      ? pctDiff(fit.k, kB).toFixed(1) + '%'
+      : '—';
+
+    if (fit.k != null) {
+      kEl.innerHTML = fit.k.toFixed(1) + '<small> N/m</small>';
+      pill.textContent = kB != null ? 'Both parts' : 'Part A only';
+    } else {
+      kEl.textContent = '—';
+      pill.textContent = kB != null ? 'Part B only' : 'No data';
+    }
+    pill.setAttribute('data-tone', (fit.k != null && kB != null) ? 'good' : 'accent');
+
+    if (fit.k != null && kB != null) {
+      var diff = pctDiff(fit.k, kB);
+      delta.hidden = false;
+      delta.textContent = diff.toFixed(1) + '% between methods';
+      delta.setAttribute('data-tone', diff <= 5 ? 'good' : 'warn');
+    } else {
+      delta.hidden = true;
+    }
+
+    if (fit.k != null && kB != null) {
+      $('resultNote').textContent =
+        'Both methods agree to within a few percent. Part B reads slightly low because the spring has mass ' +
+        'of its own, which the simple T = 2π√(m/k) model ignores; the T² vs m fit compensates by allowing ' +
+        'an intercept.';
+    } else if (fit.k != null) {
+      $('resultNote').textContent =
+        'The F–ΔL line is fitted. Switch to Part B and time ten oscillations for a second, independent ' +
+        'value of k.';
+    } else if (kB != null) {
+      $('resultNote').textContent =
+        'Part B gives a value of k. Record the initial reading and at least two added loads in Part A to ' +
+        'draw the F–ΔL line.';
+    } else {
+      $('resultNote').textContent =
+        'Record the initial reading and at least two added loads to fit the line, then time ten oscillations ' +
+        'in Part B to compare methods.';
+    }
+  }
+
+  function renderChartMeta() {
+    var fit = fitA();
+    $('metaA').textContent = fit.pts.length
+      ? state.rows.length + ' readings · ' + (fit.k != null ? 'slope k = ' + fit.k.toFixed(1) + ' N/m' : 'one more load to fit')
+      : 'No readings recorded yet';
+
+    var gs = oscGroups();
+    $('metaOsc').textContent = gs.length
+      ? gs.length + ' of 3 loads timed' + (gs.length >= 2 ? ' · fit through ' + gs.length + ' points' : ' · add a second load')
+      : 'No oscillations timed yet';
+
+    var tr = state.trace;
+    $('metaTrace').textContent = tr
+      ? tr.g + ' g · T = ' + tr.period.toFixed(3) + ' s · 10 cycles in ' + tr.total.toFixed(2) + ' s'
+      : 'No trial recorded yet';
+  }
+
+  function renderLoadControls() {
+    loadVal.innerHTML = (massFor(state.discs) * 1000).toFixed(0) + '<small>g</small>';
+    loadNote.textContent = 'hanger 50 g + ' +
+      (state.discs === 0 ? 'no slotted weights' : state.discs + ' × 50 g slotted weight' + (state.discs === 1 ? '' : 's'));
+    hintA.textContent = state.discs === 0
+      ? 'Record the initial reading with only the 50 g hanger, then add one 50 g weight at a time.'
+      : 'Wait for the pointer to settle, then record. Ten readings take the load from 50 g to 500 g.';
+  }
+
+  function renderAll() {
+    renderTabs();
+    renderMassGrid();
+    renderButtons();
+    renderPills();
+    renderLoadControls();
+    renderStats();
+    renderHud();
+    renderStatus();
+    buildTable();
+    renderResult();
+    renderChartMeta();
+    drawCharts();
+    drawScene();
+  }
+
+  /* ---------------- actions ---------------- */
+
+  function setLoad(n) {
+    if (running()) return;
+    state.discs = clamp(n, 0, MAX_DISCS);
+    simA.target = eqExt(massFor(state.discs));
+    simA.anim = true;
+    renderAll();
+  }
+
+  function selectMass(g) {
+    if (running()) return;
+    state.massG = g;
+    simB.phase = 'idle';
+    simB.t = 0;
+    simB.shown = 0;
+    simB.pullT = 0;
+    simB.autoLeft = 0;
+    simB.mass = g / 1000;
+    simB.T = periodFor(g);
+    simB.omega = 2 * Math.PI / simB.T;
+    simB.samples = [];
+    renderAll();
+  }
+
+  function recordA() {
+    if (running()) return;
+    if (state.discs > 0 && !initialRow()) {
+      toast('Record the initial 50 g reading first');
+      return;
+    }
+    var Lcm = springReading(state.discs);
+    var r = rowAt(state.discs);
+    if (r) r.Lcm = Lcm;
+    else state.rows.push({ discs: state.discs, Lcm: Lcm });
+    state.rows.sort(function (a, b) { return a.discs - b.discs; });
+    renderAll();
+
+    var info = rowInfo(rowAt(state.discs));
+    if (state.discs === 0) {
+      toast('Initial reading recorded: ' + Lcm.toFixed(2) + ' cm at 50 g');
+    } else {
+      toast('Reading recorded: ' + Lcm.toFixed(2) + ' cm · ΔL = ' + info.dLcm.toFixed(2) +
+        ' cm · k = ' + info.k.toFixed(1) + ' N/m');
+    }
+  }
+
+  function fillA() {
+    if (running()) return;
+    state.rows = [];
+    for (var d = 0; d <= MAX_DISCS; d++) {
+      state.rows.push({ discs: d, Lcm: springReading(d) });
+    }
+    state.discs = MAX_DISCS;
+    simA.target = eqExt(massFor(MAX_DISCS));
+    simA.anim = true;
+    renderAll();
+    toast('Ten readings recorded from 50 g to 500 g');
+  }
+
+  function startOsc() {
+    if (running()) return;
+    simB.mass = state.massG / 1000;
+    simB.T = periodFor(state.massG);
+    simB.omega = 2 * Math.PI / simB.T;
+    simB.phase = 'pull';
+    simB.pullT = 0;
+    simB.t = 0;
+    simB.shown = 0;
+    simB.samples = [];
+    simB.nextSample = 0;
+    simB.speed = simB.autoLeft > 0 ? AUTO_SPEED : state.speed;
+    renderAll();
+  }
+
+  function finishOsc() {
+    var limit = CYCLES * simB.T;
+    simB.samples = simB.samples.filter(function (s) { return s.t <= limit + 1e-6; });
+
+    var measured = limit + randn() * SIGMA_TIME;
+    if (measured < limit * 0.7) measured = limit * 0.7;
+    var period = measured / CYCLES;
+    var kTrial = 4 * Math.PI * Math.PI * simB.mass / (period * period);
+
+    var g = state.massG;
+    var arr = state.trials[g];
+    if (arr.length >= MAX_TRIALS) arr.length = MAX_TRIALS - 1;
+    arr.push({ total: measured, period: period, k: kTrial });
+
+    state.trace = {
+      g: g,
+      total: measured,
+      period: period,
+      k: kTrial,
+      amp: PULL * 100,
+      samples: simB.samples.slice()
+    };
+
+    simB.phase = 'idle';
+    simB.t = limit;
+    simB.shown = CYCLES;
+    simB.samples = [];
+
+    if (simB.autoLeft > 0) {
+      simB.autoLeft--;
+      if (simB.autoLeft > 0) {
+        setTimeout(function () {
+          if (simB.autoLeft > 0 && state.part === 'B') startOsc();
+        }, 220);
+        renderAll();
+        return;
+      }
+      simB.autoLeft = 0;
+    }
+
+    renderAll();
+    toast('Trial recorded: 10 oscillations in ' + measured.toFixed(2) + ' s · T = ' +
+      period.toFixed(3) + ' s · k = ' + kTrial.toFixed(1) + ' N/m');
+  }
+
+  function stopRun() {
+    var was = running() || simB.autoLeft > 0;
+    simB.phase = 'idle';
+    simB.autoLeft = 0;
+    simB.t = 0;
+    simB.pullT = 0;
+    simB.shown = 0;
+    simB.samples = [];
+    renderAll();
+    if (was) toast('Run stopped — no trial recorded');
+  }
+
+  function startAuto() {
+    if (running()) {
+      if (simB.autoLeft > 0) stopRun();
+      return;
+    }
+    var arr = state.trials[state.massG];
+    if (arr.length >= MAX_TRIALS) arr.length = 0;
+    simB.autoLeft = MAX_TRIALS - arr.length;
+    startOsc();
+  }
+
+  function clearAll() {
+    if (running()) return;
+    var any = state.rows.length || oscGroups().length;
+    state.rows = [];
+    state.trials = { 100: [], 150: [], 200: [] };
+    state.trace = null;
+    state.discs = 0;
+    simA.ext = eqExt(HANGER);
+    simA.target = eqExt(HANGER);
+    simA.vel = 0;
+    simA.anim = false;
+    simB.phase = 'idle';
+    simB.t = 0;
+    simB.shown = 0;
+    simB.samples = [];
+    simB.autoLeft = 0;
+    renderAll();
+    toast(any ? 'All recorded data cleared' : 'No data to clear');
+  }
+
+  function stepA(dt) {
+    if (!simA.anim) return false;
+    var m = massFor(state.discs);
+    var w0 = Math.sqrt(K / m);
+    var zeta = 0.55;
+    var steps = 4;
+    var hStep = Math.min(dt, MAX_FRAME) / steps;
+    for (var i = 0; i < steps; i++) {
+      var a = -w0 * w0 * (simA.ext - simA.target) - 2 * zeta * w0 * simA.vel;
+      simA.vel += a * hStep;
+      simA.ext += simA.vel * hStep;
+    }
+    if (Math.abs(simA.ext - simA.target) < 2e-5 && Math.abs(simA.vel) < 2e-4) {
+      simA.ext = simA.target;
+      simA.vel = 0;
+      simA.anim = false;
+    }
+    return true;
+  }
+
+  function stepB(dt) {
+    if (simB.phase === 'pull') {
+      simB.pullT += dt;
+      if (simB.pullT >= PULL_TIME) {
+        simB.phase = 'swing';
+        simB.t = 0;
+        simB.omega = 2 * Math.PI / simB.T;
+        simB.samples = [{ t: 0, x: PULL * 100 }];
+        simB.nextSample = 1 / SAMPLE_HZ;
+      }
+      return;
+    }
+    if (simB.phase !== 'swing') return;
+
+    var limit = CYCLES * simB.T;
+    var target = Math.min(limit, simB.t + dt * simB.speed);
+
+    while (simB.t < target - 1e-12) {
+      var hStep = Math.min(STEP_B, target - simB.t);
+      simB.t += hStep;
+      if (simB.t >= simB.nextSample) {
+        simB.nextSample += 1 / SAMPLE_HZ;
+        simB.samples.push({
+          t: simB.t,
+          x: PULL * 100 * Math.cos(simB.omega * simB.t) * Math.exp(-GAMMA * simB.t)
+        });
+      }
+    }
+
+    simB.shown = Math.min(CYCLES, Math.floor(simB.t / simB.T + 1e-9));
+    if (simB.t >= limit - 1e-9) finishOsc();
+  }
+
+  /* ---------------- CSV ---------------- */
+
+  function csvCell(v) {
+    var s = String(v == null ? '' : v);
+    if (/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function downloadCSV(name, rows) {
+    var text = rows.map(function (r) { return r.map(csvCell).join(','); }).join('\r\n') + '\r\n';
+    var blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  }
+
+  $('exportTable').addEventListener('click', function () {
+    if (!state.rows.length && !oscGroups().length) {
+      toast('Nothing to export yet — take a reading first');
+      return;
+    }
+
+    var fit = fitA();
+    var rows = [['Experiment 5a — Hooke\'s law'], []];
+
+    rows.push(['Part A — spring elongation']);
+    rows.push(['Reading', 'Total mass (g)', 'Added load F (N)', 'Scale reading L (cm)', 'Elongation dL (cm)', 'k_i (N/m)']);
+    state.rows.slice().sort(function (a, b) { return a.discs - b.discs; }).forEach(function (r, i) {
+      var info = rowInfo(r);
+      rows.push([
+        i + 1,
+        (massFor(r.discs) * 1000).toFixed(0),
+        info.F.toFixed(4),
+        r.Lcm.toFixed(2),
+        info.dLcm != null ? info.dLcm.toFixed(3) : '',
+        info.k != null ? info.k.toFixed(2) : ''
+      ]);
+    });
+    rows.push([]);
+    rows.push(['F vs dL fit', 'slope k (N/m)', 'intercept (N)', 'R^2', 'mean k (N/m)', 'SD (N/m)']);
+    rows.push([
+      'least squares',
+      fit.k != null ? fit.k.toFixed(3) : '',
+      fit.b != null ? fit.b.toFixed(4) : '',
+      fit.r2 != null ? fit.r2.toFixed(5) : '',
+      fit.kAvg != null ? fit.kAvg.toFixed(3) : '',
+      fit.kSd != null ? fit.kSd.toFixed(3) : ''
+    ]);
+
+    rows.push([]);
+    rows.push(['Part B — oscillating spring']);
+    rows.push(['Load (g)', 'Trial 1 (s)', 'Trial 2 (s)', 'Trial 3 (s)', 'Trial 4 (s)', 'Trial 5 (s)', 'Mean period (s)', 'k (N/m)']);
+    OSC.forEach(function (o) {
+      var arr = state.trials[o.g] || [];
+      if (!arr.length) return;
+      var grp = oscGroup(o.g);
+      var row = [o.g];
+      for (var i = 0; i < MAX_TRIALS; i++) row.push(arr[i] ? arr[i].total.toFixed(3) : '');
+      row.push(grp.T.toFixed(4));
+      row.push(grp.k.toFixed(2));
+      rows.push(row);
+    });
+
+    downloadCSV('hookes-law-data.csv', rows);
+    toast('Data table exported as CSV');
+  });
+
+  $('exportTrace').addEventListener('click', function () {
+    var tr = state.trace;
+    if (!tr) {
+      toast('Time an oscillation first — there is no trace yet');
+      return;
+    }
+    var restCm = lengthCm(tr.g / 1000);
+    var rows = [['Time (s)', 'Displacement below rest (cm)', 'Spring length (cm)']];
+    tr.samples.forEach(function (s) {
+      rows.push([s.t.toFixed(4), s.x.toFixed(3), (restCm + s.x).toFixed(3)]);
+    });
+    downloadCSV('hookes-law-oscillation-trace.csv', rows);
+    toast('Oscillation trace exported as CSV');
+  });
+
+  /* ---------------- events ---------------- */
+
+  minusBtn.addEventListener('click', function () { setLoad(state.discs - 1); });
+  plusBtn.addEventListener('click', function () { setLoad(state.discs + 1); });
+  recordBtn.addEventListener('click', recordA);
+  fillBtn.addEventListener('click', fillA);
+
+  oscBtn.addEventListener('click', function () {
+    if (running()) {
+      stopRun();
+      return;
+    }
+    simB.autoLeft = 0;
+    startOsc();
+  });
+
+  oscAuto.addEventListener('click', function () {
+    if (running()) {
+      if (simB.autoLeft > 0) stopRun();
+      return;
+    }
+    startAuto();
+  });
+
+  $('clearBtnA').addEventListener('click', clearAll);
+  $('clearBtnB').addEventListener('click', clearAll);
+
+  document.querySelectorAll('.part-tab').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (running()) return;
+      state.part = b.dataset.part;
+      if (state.part === 'B') {
+        simB.phase = 'idle';
+        simB.t = 0;
+        simB.shown = 0;
+        simB.autoLeft = 0;
+        simB.T = periodFor(state.massG);
+        simB.omega = 2 * Math.PI / simB.T;
+      }
+      renderAll();
+    });
+  });
+
+  document.querySelectorAll('.speed button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      state.speed = parseFloat(b.dataset.speed);
+      document.querySelectorAll('.speed button').forEach(function (o) {
+        o.classList.toggle('is-active', o === b);
+      });
+      if (running()) simB.speed = state.speed;
+    });
+  });
+
+  document.querySelectorAll('.export-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var chart = charts[b.dataset.chart];
+      if (!chart) return;
+      var names = {
+        a: 'hookes-law-force-vs-elongation',
+        osc: 'hookes-law-t2-vs-mass',
+        trace: 'hookes-law-displacement-time'
+      };
+      if (b.dataset.format === 'png') {
+        chart.exportPNG(names[b.dataset.chart]);
+        toast('Plot exported as PNG');
+      } else {
+        chart.exportSVG(names[b.dataset.chart]);
+        toast('Plot exported as SVG');
+      }
+    });
+  });
+
+  /* ---------------- frame loop ---------------- */
+
+  var lastFrame = performance.now();
+
+  function frame(now) {
+    var dt = Math.min(MAX_FRAME, (now - lastFrame) / 1000);
+    lastFrame = now;
+
+    if (state.part === 'A') {
+      var wasAnimating = simA.anim;
+      stepA(dt);
+      if (wasAnimating) {
+        drawScene();
+        renderHud();
+        renderStatus();
+      }
+    } else if (running()) {
+      stepB(dt);
+      if (running()) {
+        drawScene();
+        renderHud();
+        renderStatus();
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------------- init ---------------- */
+
+  function init() {
+    charts.a = ChartKit.create($('chartA'), cfgA);
+    charts.osc = ChartKit.create($('chartOsc'), cfgOsc);
+    charts.trace = ChartKit.create($('chartTrace'), cfgTrace);
+
+    themeToggle.setAttribute(
+      'aria-label',
+      document.documentElement.dataset.theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+    );
+
+    simB.mass = state.massG / 1000;
+    simB.T = periodFor(state.massG);
+    simB.omega = 2 * Math.PI / simB.T;
+
+    resizeScene();
+    if (window.ResizeObserver) new ResizeObserver(resizeScene).observe(canvasWrap);
+    else window.addEventListener('resize', resizeScene);
+    window.addEventListener('orientationchange', function () {
+      setTimeout(resizeScene, 120);
+    });
+
+    renderAll();
+    requestAnimationFrame(frame);
+  }
+
+  init();
+})();
