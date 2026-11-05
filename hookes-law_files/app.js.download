@@ -727,16 +727,34 @@
 
   /* ---------------- charts ---------------- */
 
+  // Fit an axis to the plotted values, leaving a small margin at each end.
+  function autoRange(values, fallback, frac) {
+    var vals = values.filter(function (v) { return isFinite(v); });
+    if (!vals.length) return { min: fallback[0], max: fallback[1] };
+    var lo = Math.min.apply(null, vals);
+    var hi = Math.max.apply(null, vals);
+    var pad = hi - lo > 1e-12
+      ? (hi - lo) * (frac == null ? 0.08 : frac)
+      : Math.max(Math.abs(hi) * 0.12, 0.005);
+    return { min: lo - pad, max: hi + pad };
+  }
+
   function cfgA() {
     var p = palette();
     var fit = fitA();
 
     var xs = fit.pts.map(function (q) { return q.dLcm; });
-    var ys = fit.pts.map(function (q) { return q.F; });
     var maxX = Math.max(1, Math.max.apply(null, xs.concat([0])));
-    var maxY = Math.max(0.5, Math.max.apply(null, ys.concat([0])));
     var xMax = Math.max(1, Math.ceil(maxX * 1.15 * 2) / 2);
-    var yMax = Math.max(0.5, Math.ceil(maxY * 1.15 * 10) / 10);
+
+    var yVals = fit.pts.map(function (q) { return q.F; });
+    if (fit.k != null && xs.length > 1) {
+      yVals.push(
+        fit.b + fit.k * Math.min.apply(null, xs) / 100,
+        fit.b + fit.k * Math.max.apply(null, xs) / 100
+      );
+    }
+    var yr = autoRange(yVals, [0, 0.5], 0.08);
 
     var series = [];
     if (fit.k != null) {
@@ -764,7 +782,7 @@
       annotations.push({
         text: 'slope k = ' + fit.k.toFixed(1) + ' N/m',
         x: xMax * 0.52,
-        y: yMax * 0.24,
+        y: yr.min + (yr.max - yr.min) * 0.16,
         color: p.accent2,
         size: 10.5
       });
@@ -774,8 +792,8 @@
       colors: chartColors(),
       xMin: 0,
       xMax: xMax,
-      yMin: 0,
-      yMax: yMax,
+      yMin: yr.min,
+      yMax: yr.max,
       xLabel: 'Elongation ΔL (cm)',
       yLabel: 'Weight added F (N)',
       emptyText: 'Record the initial reading and two added loads',
@@ -789,10 +807,17 @@
     var gs = oscGroups();
     var fit = fitOsc();
 
-    var yMax = 0.12;
+    var yVals = [];
     gs.forEach(function (g) {
-      yMax = Math.max(yMax, g.T2 * 1.18, (g.T2 + 2 * g.T * g.sdT) * 1.12);
+      yVals.push(g.T2 - 2 * g.T * g.sdT, g.T2, g.T2 + 2 * g.T * g.sdT);
     });
+    if (fit.k != null && gs.length > 1) {
+      yVals.push(
+        fit.intercept + fit.slope * gs[0].g / 1000,
+        fit.intercept + fit.slope * gs[gs.length - 1].g / 1000
+      );
+    }
+    var yr = autoRange(yVals, [0, 0.12], 0.08);
 
     var series = [];
     if (fit.k != null) {
@@ -821,8 +846,8 @@
     if (fit.k != null) {
       annotations.push({
         text: 'k = 4π²/slope = ' + fit.k.toFixed(1) + ' N/m',
-        x: 112,
-        y: yMax * 0.22,
+        x: 12,
+        y: yr.min + (yr.max - yr.min) * 0.86,
         color: p.accent2,
         size: 10.5
       });
@@ -832,8 +857,8 @@
       colors: chartColors(),
       xMin: 0,
       xMax: 240,
-      yMin: 0,
-      yMax: yMax,
+      yMin: yr.min,
+      yMax: yr.max,
       xLabel: 'Hanging mass m (g)',
       yLabel: 'Period squared T² (s²)',
       emptyText: 'Time at least two loads in Part B to fit the line',
@@ -846,18 +871,21 @@
     var p = palette();
     var tr = state.trace;
     var pts = [];
-    var yMax = 3.6;
-    var yMin = -0.6;
+    var yMax = 3.5;
+    var yMin = -0.5;
     var xMax = 1;
 
     if (tr && tr.samples.length) {
       var stride = Math.max(1, Math.ceil(tr.samples.length / 700));
+      var yVals = [];
       for (var i = 0; i < tr.samples.length; i += stride) {
         pts.push([tr.samples[i].t, tr.samples[i].x]);
+        yVals.push(tr.samples[i].x);
       }
       xMax = Math.max(1, tr.samples[tr.samples.length - 1].t);
-      yMax = Math.max(tr.amp * 1.16, 0.5);
-      yMin = -Math.max(tr.amp * 0.22, 0.15);
+      var yr = autoRange(yVals, [-0.5, 3.5], 0.06);
+      yMin = yr.min;
+      yMax = yr.max;
     }
 
     return {
@@ -878,7 +906,7 @@
       annotations: tr ? [{
         text: 'T = ' + tr.period.toFixed(3) + ' s   ·   10 oscillations in ' + tr.total.toFixed(2) + ' s',
         x: xMax * 0.5,
-        y: yMax * 0.97,
+        y: yMin + (yMax - yMin) * 0.96,
         color: p.muted,
         align: 'center',
         size: 9.5

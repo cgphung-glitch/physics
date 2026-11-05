@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0092)file:///C:/Users/cphung/Downloads/Hooke's%20Law%20%C2%B7%20PHY%201510%20Experiment%205a.html -->
+<!-- saved from url=(0032)http://127.0.0.1:8781/index.html -->
 <html lang="en" data-theme="dark"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -52,58 +52,58 @@
     <div class="canvas-wrap" id="canvasWrap">
       <canvas id="scene" role="img" aria-label="Animation of a spring hanging from a clamp stand, with a pointer reading a vertical centimetre scale and slotted weights on the hanger" width="1041" height="354"></canvas>
       <div class="hud hud-left" aria-hidden="true">
-        <div class="hud-metric"><span id="hudL1">L</span><strong id="hudV1">12.98</strong><small id="hudU1">cm</small></div>
-        <div class="hud-metric"><span id="hudL2">ΔL</span><strong id="hudV2">0.00</strong><small id="hudU2">cm</small></div>
-        <div class="hud-metric"><span id="hudL3">m</span><strong id="hudV3">50</strong><small id="hudU3">g</small></div>
+        <div class="hud-metric"><span id="hudL1">t</span><strong id="hudV1">4.03</strong><small id="hudU1">s</small></div>
+        <div class="hud-metric"><span id="hudL2">x</span><strong id="hudV2">0.00</strong><small id="hudU2">cm</small></div>
+        <div class="hud-metric"><span id="hudL3">m</span><strong id="hudV3">200</strong><small id="hudU3">g</small></div>
       </div>
       <div class="hud hud-right" aria-hidden="true">
-        <div class="hud-angle" id="hudBig">0 / 10</div>
-        <div class="hud-sub" id="hudSub">readings recorded</div>
+        <div class="hud-angle" id="hudBig">10 / 10</div>
+        <div class="hud-sub" id="hudSub">oscillations</div>
       </div>
     </div>
 
     <div class="cycle-meter" aria-hidden="true">
-      <span class="cycle-label" id="meterLabel">Readings</span>
-      <div class="cycle-track"><div class="cycle-fill" id="meterFill" style="width: 0%;"></div></div>
-      <span class="cycle-count" id="meterCount">0 / 10</span>
+      <span class="cycle-label" id="meterLabel">Stopwatch</span>
+      <div class="cycle-track"><div class="cycle-fill" id="meterFill" style="width: 100%;"></div></div>
+      <span class="cycle-count" id="meterCount">10 / 10</span>
     </div>
 
     <div class="stage-controls">
       <div class="part-tabs" role="tablist" aria-label="Part of the experiment">
-        <button type="button" class="part-tab is-active" data-part="A" role="tab" aria-selected="true"><b>A</b><span>Elongation</span></button>
-        <button type="button" class="part-tab" data-part="B" role="tab" aria-selected="false"><b>B</b><span>Oscillation</span></button>
+        <button type="button" class="part-tab" data-part="A" role="tab" aria-selected="false"><b>A</b><span>Elongation</span></button>
+        <button type="button" class="part-tab is-active" data-part="B" role="tab" aria-selected="true"><b>B</b><span>Oscillation</span></button>
       </div>
 
       <!-- Part A -->
-      <div class="control-set" id="panelA">
+      <div class="control-set" id="panelA" hidden="">
         <div class="field">
-          <span class="field-label" id="loadLabel">Hanging mass <em id="loadNote">hanger 50 g + no slotted weights</em></span>
+          <span class="field-label" id="loadLabel">Hanging mass <em id="loadNote">hanger 50 g + 9 × 50 g slotted weights</em></span>
           <div class="load-stepper">
-            <button class="btn btn-outline load-step" id="minusBtn" type="button" aria-label="Remove one 50 g slotted weight" disabled="">− 50 g</button>
+            <button class="btn btn-outline load-step" id="minusBtn" type="button" aria-label="Remove one 50 g slotted weight">− 50 g</button>
             <div class="load-readout">
-              <strong id="loadVal">50<small>g</small></strong>
+              <strong id="loadVal">500<small>g</small></strong>
               <span>total on the spring</span>
             </div>
-            <button class="btn btn-outline load-step" id="plusBtn" type="button" aria-label="Add one 50 g slotted weight">+ 50 g</button>
+            <button class="btn btn-outline load-step" id="plusBtn" type="button" aria-label="Add one 50 g slotted weight" disabled="">+ 50 g</button>
           </div>
         </div>
 
         <div class="field">
           <span class="field-label">Read the scale</span>
           <div class="action-row">
-            <button class="btn btn-primary" id="recordBtn" type="button">Record initial reading</button>
+            <button class="btn btn-primary" id="recordBtn" type="button">Retake reading</button>
             <button class="btn btn-outline" id="fillBtn" type="button">Record all 10 readings</button>
             <button class="btn btn-ghost" id="clearBtnA" type="button" title="Erase every reading from both parts">Clear data</button>
           </div>
-          <p class="field-hint" id="hintA">Record the initial reading with only the 50 g hanger, then add one 50 g weight at a time.</p>
+          <p class="field-hint" id="hintA">Wait for the pointer to settle, then record. Ten readings take the load from 50 g to 500 g.</p>
         </div>
       </div>
 
       <!-- Part B -->
-      <div class="control-set" id="panelB" hidden="">
+      <div class="control-set" id="panelB">
         <div class="field">
           <span class="field-label" id="oscLabel">Oscillating mass <em id="oscNote">1.0 cm, 2.0 cm and 2.9 cm beyond the hanger mark</em></span>
-          <div class="opt-grid mass-grid" id="massGrid" role="group" aria-labelledby="oscLabel"><button type="button" class="block-btn is-active" data-g="100" aria-pressed="true"><span>100</span><small>g</small></button><button type="button" class="block-btn" data-g="150" aria-pressed="false"><span>150</span><small>g</small></button><button type="button" class="block-btn" data-g="200" aria-pressed="false"><span>200</span><small>g</small></button></div>
+          <div class="opt-grid mass-grid" id="massGrid" role="group" aria-labelledby="oscLabel"><button type="button" class="block-btn is-done" data-g="100" aria-pressed="false"><span>100</span><small>g</small></button><button type="button" class="block-btn is-done" data-g="150" aria-pressed="false"><span>150</span><small>g</small></button><button type="button" class="block-btn is-active is-done" data-g="200" aria-pressed="true"><span>200</span><small>g</small></button></div>
         </div>
 
         <div class="field">
@@ -113,7 +113,7 @@
               <svg class="ico-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6L19 12z" fill="currentColor" stroke="none"></path></svg>
               <span id="oscBtnLabel">Time 10 oscillations</span>
             </button>
-            <button class="btn btn-outline" id="oscAuto" type="button">Record 5 trials</button>
+            <button class="btn btn-outline" id="oscAuto" type="button">Retake 5 trials</button>
             <button class="btn btn-ghost" id="clearBtnB" type="button" title="Erase every reading from both parts">Clear data</button>
           </div>
           <p class="field-hint" id="hintB">Each trial pulls the mass 3.0 cm below its rest position and starts the stopwatch on release.</p>
@@ -121,8 +121,8 @@
       </div>
 
       <div class="stage-foot">
-        <p class="status" id="statusLine" aria-live="polite">Record the initial reading with the 50 g hanger to begin.</p>
-        <div class="speed" id="speedGroup" role="group" aria-label="Playback speed" hidden="">
+        <p class="status" id="statusLine" aria-live="polite">Trial recorded · 10 oscillations in 4.15 s · T = 0.415 s</p>
+        <div class="speed" id="speedGroup" role="group" aria-label="Playback speed">
           <span class="speed-label">Speed</span>
           <button type="button" data-speed="1" class="is-active" title="Real time — the stopwatch matches the motion">1×</button>
           <button type="button" data-speed="4" title="Playback only; the stopwatch still reports the true time">4×</button>
@@ -139,9 +139,9 @@
     <article class="panel card">
       <div class="card-head">
         <h2>Current reading</h2>
-        <span class="pill" id="trialPill" data-tone="accent">No readings yet</span>
+        <span class="pill" id="trialPill" data-tone="good">5 of 5 trials</span>
       </div>
-      <div class="stats" id="statsGrid"><div class="stat"><span>Hanging mass</span><strong>50 g</strong></div><div class="stat"><span>Added load F</span><strong>0.000 N</strong></div><div class="stat"><span>Scale reading L</span><strong>12.98 cm</strong></div><div class="stat"><span>Initial reading L₀</span><strong>—</strong></div><div class="stat"><span>Elongation ΔL</span><strong>—</strong></div><div class="stat stat-wide stat-accent"><span>k for this reading</span><strong>—</strong></div></div>
+      <div class="stats" id="statsGrid"><div class="stat"><span>Hanging mass</span><strong>200 g</strong></div><div class="stat"><span>Rest length</span><strong>15.92 cm</strong></div><div class="stat"><span>Amplitude</span><strong>3.00 cm</strong></div><div class="stat"><span>Stopwatch total</span><strong>4.15 s</strong></div><div class="stat"><span>Period T</span><strong>0.415 s</strong></div><div class="stat stat-wide stat-accent"><span>k from this trial</span><strong>45.9 N/m</strong></div></div>
       <div class="card-foot">
         <button class="btn btn-quiet btn-sm" id="exportTrace" type="button">Export oscillation trace (CSV)</button>
       </div>
@@ -150,27 +150,27 @@
     <article class="panel card result-card">
       <div class="card-head">
         <h2>Result</h2>
-        <span class="pill" id="resultPill" data-tone="accent">No data</span>
+        <span class="pill" id="resultPill" data-tone="good">Both parts</span>
       </div>
       <div class="result-hero">
         <div class="result-value">
           <span>Force constant from the F–ΔL slope</span>
-          <strong id="resultK">—</strong>
+          <strong id="resultK">50.2<small> N/m</small></strong>
         </div>
-        <div class="delta" id="resultDelta" hidden="">—</div>
+        <div class="delta" id="resultDelta" data-tone="good">4.9% between methods</div>
       </div>
       <dl class="result-list">
-        <div><dt>Readings recorded</dt><dd id="resultN">0 / 10</dd></div>
-        <div><dt>Slope of F vs ΔL</dt><dd id="resultSlope">—</dd></div>
-        <div><dt>Intercept of the fit</dt><dd id="resultIntercept">—</dd></div>
-        <div><dt>Fit quality R²</dt><dd id="resultR2">—</dd></div>
-        <div><dt>Mean k per reading ± SD</dt><dd id="resultKAvg">—</dd></div>
-        <div><dt>Slope vs mean k (% diff.)</dt><dd id="resultKDiff">—</dd></div>
-        <div><dt>k from the oscillation trials</dt><dd id="resultKOsc">—</dd></div>
-        <div><dt>k from the T² vs m slope</dt><dd id="resultKOscFit">—</dd></div>
-        <div><dt>Part A vs Part B (% diff.)</dt><dd id="resultABDiff">—</dd></div>
+        <div><dt>Readings recorded</dt><dd id="resultN">10 / 10</dd></div>
+        <div><dt>Slope of F vs ΔL</dt><dd id="resultSlope">50.2 N/m</dd></div>
+        <div><dt>Intercept of the fit</dt><dd id="resultIntercept">-0.031 N</dd></div>
+        <div><dt>Fit quality R²</dt><dd id="resultR2">0.9999</dd></div>
+        <div><dt>Mean k per reading ± SD</dt><dd id="resultKAvg">49.2 ± 0.9 N/m</dd></div>
+        <div><dt>Slope vs mean k (% diff.)</dt><dd id="resultKDiff">1.9%</dd></div>
+        <div><dt>k from the oscillation trials</dt><dd id="resultKOsc">47.8 N/m</dd></div>
+        <div><dt>k from the T² vs m slope</dt><dd id="resultKOscFit">50.9 N/m</dd></div>
+        <div><dt>Part A vs Part B (% diff.)</dt><dd id="resultABDiff">4.9%</dd></div>
       </dl>
-      <p class="note" id="resultNote">Record the initial reading and at least two added loads to fit the line, then time ten oscillations in Part B to compare methods.</p>
+      <p class="note" id="resultNote">Both methods agree to within a few percent. Part B reads slightly low because the spring has mass of its own, which the simple T = 2π√(m/k) model ignores; the T² vs m fit compensates by allowing an intercept.</p>
       <div class="card-foot">
         <button class="btn btn-quiet btn-sm" id="exportTable" type="button">Export data (CSV)</button>
       </div>
@@ -179,15 +179,15 @@
     <article class="panel card">
       <div class="card-head">
         <h2>Data table</h2>
-        <span class="pill" id="dataCount">0 / 10 rows</span>
+        <span class="pill" id="dataCount">3 / 3 loads</span>
       </div>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr id="tableHead"><th scope="col">#</th><th scope="col">Total mass</th><th scope="col">Load F</th><th scope="col">Scale L</th><th scope="col">ΔL</th><th scope="col">k</th></tr></thead>
-          <tbody id="dataBody"><tr class="is-current"><td>1</td><td>50 g</td><td>0.00</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>2</td><td>100 g</td><td>0.49</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>3</td><td>150 g</td><td>0.98</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>4</td><td>200 g</td><td>1.47</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>5</td><td>250 g</td><td>1.96</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>6</td><td>300 g</td><td>2.45</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>7</td><td>350 g</td><td>2.94</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>8</td><td>400 g</td><td>3.43</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>9</td><td>450 g</td><td>3.92</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>10</td><td>500 g</td><td>4.41</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr></tbody>
+          <thead><tr id="tableHead"><th scope="col">Load</th><th scope="col">t₁</th><th scope="col">t₂</th><th scope="col">t₃</th><th scope="col">t₄</th><th scope="col">t₅</th><th scope="col">T̄</th><th scope="col">k</th></tr></thead>
+          <tbody id="dataBody"><tr><td>100 g</td><td>2.76</td><td>2.92</td><td>3.05</td><td>3.04</td><td>2.93</td><td class="avg">0.294</td><td class="avg">45.9</td></tr><tr><td>150 g</td><td>3.41</td><td>3.53</td><td>3.58</td><td>3.46</td><td>3.39</td><td class="avg">0.347</td><td class="avg">49.1</td></tr><tr class="is-current"><td>200 g</td><td>4.05</td><td>4.11</td><td>3.91</td><td>4.03</td><td>4.15</td><td class="avg">0.405</td><td class="avg">48.2</td></tr></tbody>
         </table>
       </div>
-      <p class="table-note" id="tableNote">ΔL is measured from the initial 50 g reading; k = F / ΔL.</p>
+      <p class="table-note" id="tableNote">Cells are total times for 10 oscillations (s). T̄ and k come from the trials on the row.</p>
     </article>
 
     <article class="panel card">
@@ -249,7 +249,7 @@
         <div class="chart-head">
           <div>
             <h3>Weight added vs elongation</h3>
-            <p id="metaA">No readings recorded yet</p>
+            <p id="metaA">10 readings · slope k = 50.2 N/m</p>
           </div>
           <div class="export-group">
             <button type="button" class="export-btn" data-chart="a" data-format="png">PNG</button>
@@ -264,7 +264,7 @@
         <div class="chart-head">
           <div>
             <h3>T² vs hanging mass</h3>
-            <p id="metaOsc">No oscillations timed yet</p>
+            <p id="metaOsc">3 of 3 loads timed · fit through 3 points</p>
           </div>
           <div class="export-group">
             <button type="button" class="export-btn" data-chart="osc" data-format="png">PNG</button>
@@ -279,7 +279,7 @@
         <div class="chart-head">
           <div>
             <h3>Displacement vs time</h3>
-            <p id="metaTrace">No trial recorded yet</p>
+            <p id="metaTrace">200 g · T = 0.415 s · 10 cycles in 4.15 s</p>
           </div>
           <div class="export-group">
             <button type="button" class="export-btn" data-chart="trace" data-format="png">PNG</button>
@@ -294,10 +294,10 @@
 
 </main>
 
-<div class="toast" id="toast" role="status" aria-live="polite">Ten readings recorded from 50 g to 500 g</div>
+<div class="toast" id="toast" role="status" aria-live="polite">Trial recorded: 10 oscillations in 4.15 s · T = 0.415 s · k = 45.9 N/m</div>
 
 <script src="./hookes-law_files/charts.js.download"></script>
 <script src="./hookes-law_files/app.js.download"></script>
 
 
-<span id="PING_CONTENT_MB_MAIN" style="display: none;"></span><span id="PING_CONTENT_PUSH_NOTIFICATION" style="display: none;"></span></body></html>
+<span id="PING_CONTENT_PUSH_NOTIFICATION" style="display: none;"></span><span id="PING_CONTENT_MB_MAIN" style="display: none;"></span></body></html>
