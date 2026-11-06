@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Moment of Inertia on an Incline · PHY 1510 Experiment 10a</title>
+<meta name="description" content="Interactive simulation of Experiment 10a: roll a variable-inertia disk down an incline, time each ball arrangement with a stopwatch, and work out the moment of inertia from the travel time." />
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('moi-theme');
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  })();
+</script>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-badge" aria-hidden="true">I</div>
+    <div class="brand-text">
+      <h1>Moment of Inertia on an Incline</h1>
+      <p>PHY 1510 · Experiment 10a · Variable inertia disk</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="eq-chip" aria-hidden="true">I = m r₀² (g sin θ / a − 1)</span>
+    <button class="theme-btn" id="themeToggle" type="button" aria-label="Switch to dark theme" title="Toggle light / dark theme">
+      <svg class="ico ico-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.3 5.3l1.9 1.9M16.8 16.8l1.9 1.9M18.7 5.3l-1.9 1.9M7.2 16.8l-1.9 1.9"/></svg>
+      <svg class="ico ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.4A8.4 8.4 0 0 1 9.6 4a8.6 8.6 0 1 0 10.4 10.4z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ============ LEFT: animation ============ -->
+  <section class="panel stage" aria-labelledby="stageTitle">
+    <div class="panel-head">
+      <div>
+        <h2 id="stageTitle">Apparatus</h2>
+        <p class="sub">Incline board, variable inertia disk and stopwatch</p>
+      </div>
+      <span class="badge" id="runBadge" data-state="idle">Idle</span>
+    </div>
+
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="scene" role="img" aria-label="Animation of the variable inertia disk rolling down an inclined board, with steel balls at the inner or outer rim"></canvas>
+      <div class="hud hud-left" aria-hidden="true">
+        <div class="hud-metric"><span>t</span><strong id="hudTime">0.00</strong><small>s</small></div>
+        <div class="hud-metric"><span>v</span><strong id="hudVel">0.00</strong><small>m/s</small></div>
+        <div class="hud-metric"><span>ω</span><strong id="hudOmega">0.0</strong><small>rad/s</small></div>
+      </div>
+      <div class="hud hud-right" aria-hidden="true">
+        <div class="hud-angle" id="hudTheta">4.3°</div>
+        <div class="hud-sub">sin θ = <span id="hudSin">0.075</span></div>
+        <div class="hud-sub">I = <span id="hudI">6.30 × 10⁻⁴</span> kg·m²</div>
+      </div>
+    </div>
+
+    <div class="stage-controls">
+      <div class="field">
+        <span class="field-label">Ball arrangement <em id="caseHint">no steel balls</em></span>
+        <div class="block-options case-options" id="caseOptions" role="group" aria-label="Ball arrangement"></div>
+      </div>
+
+      <div class="field">
+        <span class="field-label">Run</span>
+        <div class="action-row">
+          <button class="btn btn-primary" id="runBtn" type="button">
+            <svg class="ico-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6L19 12z" fill="currentColor" stroke="none"/></svg>
+            <span id="runBtnLabel">Release disk</span>
+          </button>
+          <button class="btn btn-outline" id="autoBtn" type="button">Run all trials</button>
+          <button class="btn btn-ghost" id="clearBtn" type="button" title="Erase every recorded stopwatch time">Clear data</button>
+        </div>
+      </div>
+
+      <div class="stage-foot">
+        <p class="status" id="statusLine" aria-live="polite">Pick an arrangement, then release the disk.</p>
+        <div class="speed" role="group" aria-label="Animation speed">
+          <span class="speed-label">Speed</span>
+          <button type="button" data-speed="0.5">0.5×</button>
+          <button type="button" data-speed="1" class="is-active">1×</button>
+          <button type="button" data-speed="2">2×</button>
+          <button type="button" data-speed="4">4×</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RIGHT: information panels ============ -->
+  <aside class="sidebar" aria-label="Experiment information">
+
+    <article class="panel card">
+      <div class="card-head">
+        <h2>Current run</h2>
+        <span class="pill" id="trialPill">No run yet</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>Arrangement</span><strong id="statCase">Disk alone</strong></div>
+        <div class="stat"><span>Incline angle θ</span><strong id="statTheta">—</strong></div>
+        <div class="stat"><span>sin θ = h / d</span><strong id="statSin">—</strong></div>
+        <div class="stat"><span>Travel distance d</span><strong id="statD">0.600 m</strong></div>
+        <div class="stat stat-wide stat-accent"><span>Acceleration a = 2d / t²</span><strong id="statAccel">—</strong></div>
+        <div class="stat"><span>Stopwatch time t</span><strong id="statTime">—</strong></div>
+        <div class="stat"><span>Average speed v̄ = d / t</span><strong id="statSpeed">—</strong></div>
+        <div class="stat"><span>Average ω̄ = v̄ / r₀</span><strong id="statOmega">—</strong></div>
+        <div class="stat"><span>Total I from this run</span><strong id="statI">—</strong></div>
+      </div>
+      <div class="card-foot">
+        <button class="btn btn-quiet btn-sm" id="exportRunBtn" type="button">Export run samples (CSV)</button>
+      </div>
+    </article>
+
+    <article class="panel card result-card">
+      <div class="card-head">
+        <h2>Result</h2>
+        <span class="pill" id="resultPill">No data</span>
+      </div>
+      <div class="result-hero">
+        <div class="result-value">
+          <span>Disk moment of inertia (kg·m²)</span>
+          <strong id="resultI">—</strong>
+        </div>
+        <div class="delta" id="resultDelta" hidden>—</div>
+      </div>
+      <dl class="result-list">
+        <div><dt>Disk alone · I = ½ m₀ r₀²</dt><dd id="resultTheory">—</dd></div>
+        <div><dt>One ball at r₁ · m_b r₁²</dt><dd id="resultBallTheory">—</dd></div>
+        <div><dt>Arrangements recorded</dt><dd id="resultN">0 / 5</dd></div>
+      </dl>
+      <div class="case-list" id="caseList"></div>
+      <p class="note" id="resultNote">Time the disk alone three times, then repeat each ball arrangement.</p>
+    </article>
+
+    <article class="panel card">
+      <div class="card-head">
+        <h2>Data table</h2>
+        <span class="pill" id="dataCount">0 trials</span>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">case</th>
+              <th scope="col">t₁ (s)</th>
+              <th scope="col">t₂ (s)</th>
+              <th scope="col">t₃ (s)</th>
+              <th scope="col">avg t</th>
+              <th scope="col">v̄</th>
+              <th scope="col">I</th>
+            </tr>
+          </thead>
+          <tbody id="dataBody"></tbody>
+        </table>
+      </div>
+      <p class="table-note">Stopwatch times in seconds, v̄ in m/s and I in kg·m². Tap a row to select that arrangement.</p>
+      <div class="card-foot">
+        <button class="btn btn-quiet btn-sm" id="exportTableBtn" type="button">Export table (CSV)</button>
+      </div>
+    </article>
+
+    <article class="panel card">
+      <h2>About this experiment</h2>
+      <p class="card-text">
+        A disk rolling down an incline speeds up more slowly when its mass sits farther from the axis. The travel
+        time is the only thing you time with a stopwatch, but it carries the whole answer:
+      </p>
+      <p class="formula" id="modelFormula">I = m r₀² (g sin θ / a − 1)</p>
+      <p class="card-text">
+        For a body rolling without slipping, <strong>a = g sin θ · m r₀² / (m r₀² + I)</strong>. Measuring
+        <strong>a = 2d / t²</strong> over the marked distance d therefore gives the total moment of inertia of
+        whatever is rolling.
+      </p>
+      <dl class="result-list">
+        <div><dt>Disk mass m₀</dt><dd>0.350 kg</dd></div>
+        <div><dt>Disk radius r₀</dt><dd>6.00 cm</dd></div>
+        <div><dt>Steel ball mass m_b</dt><dd>50.0 g</dd></div>
+        <div><dt>Outer rim r₁</dt><dd>5.50 cm</dd></div>
+        <div><dt>Inner rim r₂</dt><dd>2.50 cm</dd></div>
+        <div><dt>Incline height h</dt><dd>4.5 cm</dd></div>
+        <div><dt>Travel distance d</dt><dd>0.600 m</dd></div>
+      </dl>
+      <ul class="objectives">
+        <li>Time the disk down a fixed incline and turn that time into acceleration.</li>
+        <li>Separate the moment of inertia of the disk from that of the steel balls.</li>
+        <li>Compare arrangements with the same balls in different places.</li>
+      </ul>
+      <details class="procedure">
+        <summary>Procedure</summary>
+        <ol>
+          <li>Weigh the disk (m₀) and measure its radius (r₀); record h and the marked distance d.</li>
+          <li>Release the disk from the start mark and stop the watch at the stop mark; repeat three times.</li>
+          <li>Open the disk and put one steel ball in each outer-rim holder (Case 1); time three runs.</li>
+          <li>Move all four balls to the inner rim (Case 2); time three runs.</li>
+          <li>Use two inner and two outer balls in line (Case 3), then alternating (Case 4); time three runs each.</li>
+          <li>Compute a = 2d / t², then I = m r₀² (g sin θ / a − 1) for every arrangement.</li>
+        </ol>
+      </details>
+    </article>
+
+  </aside>
+
+  <!-- ============ BELOW: plots ============ -->
+  <section class="plots" aria-labelledby="plotsTitle">
+    <div class="plots-head">
+      <div>
+        <h2 id="plotsTitle">Plots &amp; graphs</h2>
+        <p>Travel time turns into acceleration; acceleration turns into the moment of inertia of each arrangement.</p>
+      </div>
+      <p class="plots-hint">Every plot exports as PNG or SVG.</p>
+    </div>
+
+    <div class="plot-grid">
+      <article class="panel chart-card">
+        <div class="chart-head">
+          <div>
+            <h3>Distance vs time</h3>
+            <p id="xtMeta">No run recorded yet</p>
+          </div>
+          <div class="export-group">
+            <button type="button" class="export-btn" data-chart="xt" data-format="png">PNG</button>
+            <button type="button" class="export-btn" data-chart="xt" data-format="svg">SVG</button>
+          </div>
+        </div>
+        <div class="chart-frame"><canvas id="chartXT" role="img" aria-label="Distance along the incline versus time for the current run, with the measured stopping point"></canvas></div>
+        <p class="chart-note">s = ½ a t² from the measured acceleration; the marker is the stopwatch stop.</p>
+      </article>
+
+      <article class="panel chart-card">
+        <div class="chart-head">
+          <div>
+            <h3>Speed vs time</h3>
+            <p id="vtMeta">No run recorded yet</p>
+          </div>
+          <div class="export-group">
+            <button type="button" class="export-btn" data-chart="vt" data-format="png">PNG</button>
+            <button type="button" class="export-btn" data-chart="vt" data-format="svg">SVG</button>
+          </div>
+        </div>
+        <div class="chart-frame"><canvas id="chartVT" role="img" aria-label="Linear speed versus time for the current run, with the average speed shown as a dashed line"></canvas></div>
+        <p class="chart-note">The dashed line is the average speed d / t the stopwatch gives you.</p>
+      </article>
+
+      <article class="panel chart-card span-2">
+        <div class="chart-head">
+          <div>
+            <h3>Moment of inertia vs ball radius</h3>
+            <p id="caseMeta">Record a run to plot moment of inertia</p>
+          </div>
+          <div class="export-group">
+            <button type="button" class="export-btn" data-chart="case" data-format="png">PNG</button>
+            <button type="button" class="export-btn" data-chart="case" data-format="svg">SVG</button>
+          </div>
+        </div>
+        <div class="chart-frame chart-frame-tall"><canvas id="chartCASE" role="img" aria-label="Total moment of inertia versus mean ball radius for each arrangement, with the model curve"></canvas></div>
+        <p class="chart-note">I grows with the square of the ball radius, so the outer rim adds far more inertia than the inner rim. Cases 3 and 4 land on the same point.</p>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="charts.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
