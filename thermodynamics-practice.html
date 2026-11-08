@@ -1,0 +1,2470 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Thermodynamics Practice & Problem Engine | Chapter 15</title>
+  
+  <!-- KaTeX CSS & JS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --card-border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --primary: #f0883e; /* Thermal flame amber */
+      --primary-hover: #d2722b;
+      --primary-light: rgba(240, 136, 62, 0.15);
+      --success: #2ea043;
+      --success-bg: rgba(46, 160, 67, 0.15);
+      --danger: #f85149;
+      --danger-bg: rgba(248, 81, 73, 0.15);
+      --accent: #58a6ff;
+      --accent-bg: rgba(88, 166, 255, 0.12);
+      --input-bg: #0d1117;
+      --shadow: 0 8px 24px rgba(0,0,0,0.5);
+      --calc-btn: #21262d;
+      --calc-btn-hover: #30363d;
+      --calc-op: #388bfd;
+      --calc-fn: #30363d;
+    }
+
+    [data-theme="light"] {
+      --bg: #f6f8fa;
+      --card-bg: #ffffff;
+      --card-border: #d0d7de;
+      --text: #1f2328;
+      --text-muted: #656d76;
+      --primary: #cf5600;
+      --primary-hover: #ab4400;
+      --primary-light: rgba(207, 86, 0, 0.12);
+      --success: #1a7f37;
+      --success-bg: rgba(26, 127, 55, 0.12);
+      --danger: #cf222e;
+      --danger-bg: rgba(207, 34, 46, 0.12);
+      --accent: #0969da;
+      --accent-bg: rgba(9, 105, 218, 0.1);
+      --input-bg: #f6f8fa;
+      --shadow: 0 4px 16px rgba(0,0,0,0.1);
+      --calc-btn: #eaeef2;
+      --calc-btn-hover: #d0d7de;
+      --calc-op: #0969da;
+      --calc-fn: #e1e4e8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      line-height: 1.5;
+      transition: background-color 0.25s, color 0.25s;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 760px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-bottom: 90px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      font-size: 1.7rem;
+    }
+
+    .logo-text h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .logo-text p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 7px 11px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Scoreboard */
+    .scoreboard {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .stat-val {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .stat-streak {
+      color: #ff9b37;
+    }
+
+    /* Controls Bar: Mode & Topic Selector */
+    .controls-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .control-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .segmented-control {
+      display: flex;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .seg-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .seg-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    select.topic-dropdown {
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.82rem;
+      outline: none;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    /* Main Problem Card */
+    .problem-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px 16px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .problem-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 10px;
+    }
+
+    .topic-badge {
+      background: var(--accent-bg);
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .variable-badge {
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .q-progress {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .problem-prompt {
+      font-size: 1.02rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .problem-prompt strong {
+      color: var(--primary);
+    }
+
+    /* Parameter Box */
+    .param-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .param-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .param-name {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .param-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* Input & Submission */
+    .answer-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--card-border);
+      padding-top: 14px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .answer-input-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .answer-input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 1.15rem;
+      font-weight: 700;
+      padding: 10px 12px;
+      padding-right: 65px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .answer-input:focus {
+      border-color: var(--primary);
+    }
+
+    .unit-tag {
+      position: absolute;
+      right: 12px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+      pointer-events: none;
+    }
+
+    .action-btn-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 8px;
+    }
+
+    .submit-btn {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .submit-btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .submit-btn:active {
+      transform: scale(0.98);
+    }
+
+    .skip-btn {
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 12px;
+      cursor: pointer;
+    }
+
+    .skip-btn:hover {
+      border-color: var(--text-muted);
+    }
+
+    /* Solution Box (Locked until submitted) */
+    .solution-box {
+      margin-top: 8px;
+      border-radius: 12px;
+      padding: 14px;
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .solution-box.correct {
+      background: var(--success-bg);
+      border: 1px solid var(--success);
+    }
+
+    .solution-box.incorrect {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger);
+    }
+
+    .result-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .result-badge.correct { color: var(--success); }
+    .result-badge.incorrect { color: var(--danger); }
+
+    .solution-steps {
+      font-size: 0.92rem;
+      line-height: 1.6;
+      margin-top: 8px;
+      color: var(--text);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .next-problem-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .next-problem-btn:hover {
+      opacity: 0.92;
+    }
+
+    /* Floating Calculator */
+    .floating-calc-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      cursor: pointer;
+      z-index: 100;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .floating-calc-btn:hover {
+      transform: scale(1.06);
+    }
+
+    /* Calculator Modal / Window */
+    .calc-modal {
+      position: fixed;
+      bottom: 86px;
+      right: 20px;
+      width: 320px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      z-index: 101;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      animation: popIn 0.25s ease-out;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.92) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .calc-header {
+      background: var(--input-bg);
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .calc-header span {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .calc-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+
+    .calc-display {
+      padding: 10px 12px;
+      background: var(--input-bg);
+      border-bottom: 1px solid var(--card-border);
+      text-align: right;
+    }
+
+    .calc-formula {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      min-height: 18px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .calc-main-num {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+      overflow-x: auto;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      padding: 8px;
+    }
+
+    .calc-btn {
+      background: var(--calc-btn);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 10px 2px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.1s;
+    }
+
+    .calc-btn:hover {
+      background: var(--calc-btn-hover);
+    }
+
+    .calc-btn:active {
+      transform: scale(0.96);
+    }
+
+    .calc-btn.op {
+      background: var(--calc-op);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .calc-btn.fn {
+      background: var(--calc-fn);
+      font-size: 0.8rem;
+      color: var(--accent);
+    }
+
+    .calc-btn.action {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .calc-insert-row {
+      padding: 6px 8px 8px;
+      background: var(--card-bg);
+    }
+
+    .calc-insert-btn {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Modal (Formula Sheet & Results) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow);
+      animation: popIn 0.25s ease-out;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .modal-header h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .formula-section {
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .formula-section h3 {
+      font-size: 0.92rem;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    /* Summary Modal styling */
+    .summary-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .summary-card {
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .summary-val {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .summary-lbl {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .katex-display {
+      margin: 0.5em 0 !important;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 4px 0;
+    }
+
+    @media (max-width: 480px) {
+      .app-container { padding-bottom: 110px; }
+      .calc-modal { width: calc(100vw - 32px); right: 16px; bottom: 84px; }
+      .action-btn-row { grid-template-columns: 1fr; }
+      .stat-val { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Header -->
+    <header>
+      <div class="logo-area">
+        <div class="logo-icon">🔥</div>
+        <div class="logo-text">
+          <h1>Physics Practice</h1>
+          <p>Thermodynamics</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggleBtn" title="Toggle Dark/Light Mode">
+          <span id="themeIcon">☀️</span>
+        </button>
+        <button class="icon-btn" id="formulaSheetBtn">
+          <span>📐 Formulas</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scoreboard -->
+    <div class="scoreboard">
+      <div class="stat-box">
+        <span class="stat-label">Score</span>
+        <span class="stat-val" id="statScore">0</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Streak</span>
+        <span class="stat-val stat-streak" id="statStreak">0 🔥</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Last Score</span>
+        <span class="stat-val" id="statLastScore">-</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">High Score</span>
+        <span class="stat-val" id="statHighScore">0</span>
+      </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-card">
+      <div class="control-row">
+        <span class="control-label">Game Mode:</span>
+        <div class="segmented-control" id="modeSelector">
+          <button class="seg-btn" data-mode="5">5 Qs</button>
+          <button class="seg-btn active" data-mode="10">10 Qs</button>
+          <button class="seg-btn" data-mode="15">15 Qs</button>
+          <button class="seg-btn" data-mode="endless">Endless</button>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Topic Filter:</span>
+        <select class="topic-dropdown" id="topicDropdown">
+          <option value="all" selected>🎲 Random Mixture (All Chapter 15 Topics)</option>
+          <option value="first_law">15.1 First Law of Thermodynamics (ΔU = Q - W)</option>
+          <option value="processes">15.2 Thermodynamic Processes (Isobaric, Isochoric, Isothermal, Adiabatic)</option>
+          <option value="cyclic">15.2 Cyclic Work & Rectangular Cycles</option>
+          <option value="heat_engines">15.3 Heat Engines & Otto Cycle</option>
+          <option value="carnot">15.4 Carnot Cycle & Reversible Limits</option>
+          <option value="heat_pumps">15.5 Heat Pumps & Refrigerators (COP)</option>
+          <option value="entropy">15.6 Entropy, Phase Changes & Lost Work</option>
+          <option value="statistical">15.7 Statistical Entropy & Multiplicity</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Problem Card -->
+    <div class="problem-card" id="problemCard">
+      <div class="problem-meta">
+        <span class="topic-badge" id="topicBadge">Topic Name</span>
+        <span class="variable-badge" id="variableBadge">Solving for Target</span>
+        <span class="q-progress" id="questionProgress">Question 1 of 10</span>
+      </div>
+
+      <div class="problem-prompt" id="problemPrompt">
+        Loading problem...
+      </div>
+
+      <div class="param-box" id="paramBox">
+        <!-- Dynamic Parameter Badges -->
+      </div>
+
+      <div class="answer-section">
+        <div class="input-row">
+          <div class="answer-input-container">
+            <input type="number" step="any" class="answer-input" id="answerInput" placeholder="Enter calculated value" autocomplete="off">
+            <span class="unit-tag" id="unitTag">J</span>
+          </div>
+        </div>
+        <div class="action-btn-row">
+          <button class="submit-btn" id="submitBtn">Submit Answer</button>
+          <button class="skip-btn" id="skipBtn">Skip</button>
+        </div>
+      </div>
+
+      <!-- Solution Container (Locked until submitted) -->
+      <div class="solution-box" id="solutionBox">
+        <div class="result-badge" id="resultBadge">
+          <span id="resultIcon">✓</span>
+          <span id="resultText">Correct!</span>
+        </div>
+        <div id="userFeedback" style="font-size:0.88rem; color:var(--text-muted); margin-bottom:6px;"></div>
+        
+        <div style="font-weight:700; font-size:0.85rem; color:var(--primary); margin-top:8px;">
+          📖 Step-by-Step Derivation & Solution:
+        </div>
+        <div class="solution-steps" id="solutionSteps">
+          <!-- KaTeX math and explanation rendered here -->
+        </div>
+
+        <button class="next-problem-btn" id="nextProblemBtn">Next Problem →</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Floating Calculator Trigger -->
+  <button class="floating-calc-btn" id="calcToggleBtn" title="Scientific Calculator">
+    🧮
+  </button>
+
+  <!-- Scientific Calculator Window -->
+  <div class="calc-modal" id="calcModal">
+    <div class="calc-header">
+      <span>SCIENTIFIC CALCULATOR</span>
+      <button class="calc-close" id="calcCloseBtn">✕</button>
+    </div>
+    <div class="calc-display">
+      <div class="calc-formula" id="calcFormula"></div>
+      <div class="calc-main-num" id="calcDisplay">0</div>
+    </div>
+    <div class="calc-grid">
+      <!-- Row 1 -->
+      <button class="calc-btn fn" data-fn="deg-rad" id="calcDegRad">DEG</button>
+      <button class="calc-btn fn" data-fn="sin">sin</button>
+      <button class="calc-btn fn" data-fn="cos">cos</button>
+      <button class="calc-btn fn" data-fn="tan">tan</button>
+      <!-- Row 2 -->
+      <button class="calc-btn fn" data-fn="ln">ln</button>
+      <button class="calc-btn fn" data-fn="log">log₁₀</button>
+      <button class="calc-btn fn" data-fn="sqrt">√</button>
+      <button class="calc-btn fn" data-fn="pow">xʸ</button>
+      <!-- Row 3 -->
+      <button class="calc-btn fn" data-fn="pi">π</button>
+      <button class="calc-btn fn" data-fn="e">e</button>
+      <button class="calc-btn fn" data-fn="paren-open">(</button>
+      <button class="calc-btn fn" data-fn="paren-close">)</button>
+      <!-- Row 4 -->
+      <button class="calc-btn action" data-action="clear">AC</button>
+      <button class="calc-btn action" data-action="backspace">⌫</button>
+      <button class="calc-btn fn" data-fn="exp">EE</button>
+      <button class="calc-btn op" data-op="/">÷</button>
+      <!-- Row 5 -->
+      <button class="calc-btn num" data-val="7">7</button>
+      <button class="calc-btn num" data-val="8">8</button>
+      <button class="calc-btn num" data-val="9">9</button>
+      <button class="calc-btn op" data-op="*">×</button>
+      <!-- Row 6 -->
+      <button class="calc-btn num" data-val="4">4</button>
+      <button class="calc-btn num" data-val="5">5</button>
+      <button class="calc-btn num" data-val="6">6</button>
+      <button class="calc-btn op" data-op="-">−</button>
+      <!-- Row 7 -->
+      <button class="calc-btn num" data-val="1">1</button>
+      <button class="calc-btn num" data-val="2">2</button>
+      <button class="calc-btn num" data-val="3">3</button>
+      <button class="calc-btn op" data-op="+">+</button>
+      <!-- Row 8 -->
+      <button class="calc-btn num" data-val="0">0</button>
+      <button class="calc-btn num" data-val=".">.</button>
+      <button class="calc-btn fn" data-fn="neg">±</button>
+      <button class="calc-btn op" data-action="equals" style="background:var(--primary);">=</button>
+    </div>
+    <div class="calc-insert-row">
+      <button class="calc-insert-btn" id="calcInsertBtn">📥 Use in Answer Box</button>
+    </div>
+  </div>
+
+  <!-- Formula Sheet Modal -->
+  <div class="modal-overlay" id="formulaModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📐 Chapter 15 Reference Formulas</h2>
+        <button class="icon-btn" id="closeFormulaModal">✕</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="formula-section">
+          <h3>1. First Law of Thermodynamics</h3>
+          <p>Closed system energy accounting (system-work convention):</p>
+          $$\Delta U = Q - W$$
+          <p><small>• $Q > 0$: heat enters system; $W > 0$: work done by system on surroundings.<br>
+          • Note: chemistry convention uses $w = -W$, giving $\Delta U = q + w$.</small></p>
+        </div>
+
+        <div class="formula-section">
+          <h3>2. Work & Ideal Gas Specific Heats</h3>
+          <p>Pressure-volume work:</p>
+          $$W = \int_{V_i}^{V_f} p_{\text{ext}}\,dV \quad \xrightarrow{\text{isobaric}} \quad W = p\,\Delta V = nR\,\Delta T$$
+          <p>Monatomic ideal gas capacities:</p>
+          $$C_V = \frac{3}{2}R, \quad C_P = \frac{5}{2}R, \quad \gamma = \frac{C_P}{C_V} = \frac{5}{3} \approx 1.667, \quad \Delta U = nC_V\Delta T$$
+          $$R = 8.314\,\text{J}/(\text{mol}\cdot\text{K})$$
+        </div>
+
+        <div class="formula-section">
+          <h3>3. Specialized Ideal Gas Processes</h3>
+          <p><strong>Isochoric ($V = \text{const}$):</strong> $W = 0, \; Q = \Delta U = nC_V\Delta T$</p>
+          <p><strong>Reversible Isothermal ($T = \text{const}$):</strong> $\Delta U = 0, \; Q = W = nRT \ln\left(\frac{V_f}{V_i}\right)$</p>
+          <p><strong>Reversible Adiabatic ($Q = 0$):</strong></p>
+          $$pV^\gamma = \text{const}, \quad TV^{\gamma-1} = \text{const}, \quad W = -\Delta U = \frac{p_iV_i - p_fV_f}{\gamma - 1} = nC_V(T_i - T_f)$$
+          <p><strong>Rectangular $p$-$V$ Cycle:</strong> $W_{\text{net}} = (p_h - p_l)(V_2 - V_1)$ (clockwise = positive work)</p>
+        </div>
+
+        <div class="formula-section">
+          <h3>4. Heat Engines & Otto Cycle</h3>
+          $$\Delta U_{\text{cycle}} = 0 \implies W_{\text{out}} = Q_h - Q_c$$
+          $$\eta = \frac{W_{\text{out}}}{Q_h} = 1 - \frac{Q_c}{Q_h}$$
+          <p>Ideal Otto Cycle (compression ratio $r = V_1/V_2$):</p>
+          $$\eta_{\text{Otto}} = 1 - \frac{1}{r^{\gamma-1}}$$
+        </div>
+
+        <div class="formula-section">
+          <h3>5. Carnot Limit & Second Law</h3>
+          <p>Maximum possible efficiency between reservoirs $T_h$ and $T_c$ (Kelvin absolute temperatures):</p>
+          $$\eta_{\text{C}} = 1 - \frac{T_c}{T_h} = \frac{T_h - T_c}{T_h}, \quad \frac{Q_c}{Q_h} = \frac{T_c}{T_h}$$
+        </div>
+
+        <div class="formula-section">
+          <h3>6. Heat Pumps & Refrigerators (COP)</h3>
+          $$Q_h = Q_c + W_{\text{in}}$$
+          $$\text{COP}_{\text{R}} = \frac{Q_c}{W_{\text{in}}}, \quad \text{COP}_{\text{HP}} = \frac{Q_h}{W_{\text{in}}} = \text{COP}_{\text{R}} + 1$$
+          <p>Carnot theoretical upper limits:</p>
+          $$\text{COP}_{\text{R,C}} = \frac{T_c}{T_h - T_c}, \quad \text{COP}_{\text{HP,C}} = \frac{T_h}{T_h - T_c}$$
+        </div>
+
+        <div class="formula-section">
+          <h3>7. Entropy, Phase Transitions & Exergy</h3>
+          $$\Delta S = \int \frac{\delta Q_{\text{rev}}}{T}$$
+          <p>• Isothermal reservoir transfer: $\Delta S = \frac{Q}{T}$</p>
+          <p>• Heating body ($c = \text{const}$): $\Delta S = mc\ln\left(\frac{T_f}{T_i}\right)$</p>
+          <p>• Phase change ($L_f = 334{,}000\,\text{J/kg}$): $\Delta S = \frac{mL}{T_{\text{tr}}}$</p>
+          <p>• Ideal gas: $\Delta S = nC_V\ln\left(\frac{T_f}{T_i}\right) + nR\ln\left(\frac{V_f}{V_i}\right)$</p>
+          <p>• Lost work potential (Gouy-Stodola): $W_{\text{lost}} = T_0 S_{\text{gen}}$</p>
+        </div>
+
+        <div class="formula-section">
+          <h3>8. Statistical Multiplicity</h3>
+          $$S = k_B \ln \Omega, \quad k_B = 1.380649\times 10^{-23}\,\text{J/K}$$
+          $$\Omega(h) = \binom{N}{h} = \frac{N!}{h!(N-h)!}, \quad P(h) = \frac{\Omega(h)}{2^N}$$
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- End of Set Summary Modal -->
+  <div class="modal-overlay" id="summaryModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🎉 Round Complete!</h2>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <p>Outstanding job completing your problem set!</p>
+        <div class="summary-stat-grid">
+          <div class="summary-card">
+            <div class="summary-val" id="sumFinalScore">0</div>
+            <div class="summary-lbl">Points Earned</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-val" id="sumAccuracy">0%</div>
+            <div class="summary-lbl">Accuracy</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-val" id="sumCorrectCount">0/10</div>
+            <div class="summary-lbl">Problems Solved</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-val" id="sumMaxStreak">0 🔥</div>
+            <div class="summary-lbl">Max Streak</div>
+          </div>
+        </div>
+        <button class="next-problem-btn" id="startNewRoundBtn">Start New Round</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Global State & Persistence ---
+    const State = {
+      score: 0,
+      streak: 0,
+      maxStreak: 0,
+      lastScore: localStorage.getItem('thermo_last_score') || '-',
+      highScore: parseInt(localStorage.getItem('thermo_high_score') || '0', 10),
+      gameMode: '10', // '5', '10', '15', 'endless'
+      topicFilter: 'all',
+      currentQuestionIndex: 0,
+      totalQuestions: 10,
+      correctInRound: 0,
+      currentProblem: null,
+      isAnswerSubmitted: false,
+      historyPool: [] // IDs used in current round to avoid repetition
+    };
+
+    // --- Fundamental Physics Constants (Chapter 15) ---
+    const R_GAS = 8.31446;
+    const K_BOLTZ = 1.380649e-23;
+
+    function randBetween(min, max, decimals = 1) {
+      const val = min + Math.random() * (max - min);
+      return Number(val.toFixed(decimals));
+    }
+
+    function randInt(min, max) {
+      return Math.floor(min + Math.random() * (max - min + 1));
+    }
+
+    function nCr(n, r) {
+      if (r < 0 || r > n) return 0;
+      if (r === 0 || r === n) return 1;
+      let c = 1;
+      for (let i = 1; i <= r; i++) {
+        c = c * (n - (r - i)) / i;
+      }
+      return Math.round(c);
+    }
+
+    // --- Comprehensive Problem Templates Catalog (Switching Target Variables) ---
+    const ProblemCatalog = [
+      
+      // 1. First Law of Thermodynamics: ΔU = Q - W
+      {
+        id: 'first_law_basic',
+        topic: 'first_law',
+        topicName: 'First Law of Thermodynamics',
+        generate() {
+          const variations = ['deltaU', 'Q', 'W'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const Q = randBetween(300, 1800, 0); // J
+          const W = randBetween(100, Q - 50, 0); // J
+          const deltaU = Q - W;
+
+          if (target === 'deltaU') {
+            return {
+              targetVar: 'ΔU',
+              targetUnit: 'J',
+              prompt: `A thermodynamic system absorbs <strong>${Q} J</strong> of heat while performing <strong>${W} J</strong> of work on its surroundings. Calculate the change in internal energy (\\(\\Delta U\\)) of the system.`,
+              params: [
+                { name: 'Heat Input (Q)', value: `${Q} J` },
+                { name: 'Work Done (W)', value: `${W} J` },
+                { name: 'Target Variable', value: 'ΔU' }
+              ],
+              answer: deltaU,
+              solutionKaTeX: `
+              Using the first law of thermodynamics (system work convention):
+              $$\\Delta U = Q - W$$
+              Substituting the given values:
+              $$\\Delta U = ${Q}\\,\\text{J} - ${W}\\,\\text{J} = ${deltaU}\\,\\text{J}$$
+              The system gains $+${deltaU}\\,\\text{J}$ of internal energy.`
+            };
+          } else if (target === 'Q') {
+            return {
+              targetVar: 'Q',
+              targetUnit: 'J',
+              prompt: `A gas cylinder expands and performs <strong>${W} J</strong> of work against a piston. Diagnostic sensors record an internal energy increase of <strong>${deltaU} J</strong>. Determine the total heat (\\(Q\\)) absorbed by the gas.`,
+              params: [
+                { name: 'Work Done (W)', value: `${W} J` },
+                { name: 'Change in Internal Energy (ΔU)', value: `${deltaU} J` },
+                { name: 'Target Variable', value: 'Q' }
+              ],
+              answer: Q,
+              solutionKaTeX: `
+              Rearranging the first law of thermodynamics:
+              $$\\Delta U = Q - W \\implies Q = \\Delta U + W$$
+              Substituting the parameters:
+              $$Q = ${deltaU}\\,\\text{J} + ${W}\\,\\text{J} = ${Q}\\,\\text{J}$$
+              The gas absorbed $+${Q}\\,\\text{J}$ of heat.`
+            };
+          } else {
+            return {
+              targetVar: 'W',
+              targetUnit: 'J',
+              prompt: `A system absorbs <strong>${Q} J</strong> of heat from a thermal bath. Its internal energy increases by <strong>${deltaU} J</strong>. Find the work (\\(W\\)) performed by the system.`,
+              params: [
+                { name: 'Heat Input (Q)', value: `${Q} J` },
+                { name: 'Internal Energy Gain (ΔU)', value: `${deltaU} J` },
+                { name: 'Target Variable', value: 'W' }
+              ],
+              answer: W,
+              solutionKaTeX: `
+              Solving for mechanical work done by the system:
+              $$\\Delta U = Q - W \\implies W = Q - \\Delta U$$
+              Substituting:
+              $$W = ${Q}\\,\\text{J} - (${deltaU}\\,\\text{J}) = ${W}\\,\\text{J}$$
+              The system performed $${W}\\,\\text{J}$ of work.`
+            };
+          }
+        }
+      },
+
+      // 2. Isobaric Expansion: W = p ΔV
+      {
+        id: 'isobaric_expansion',
+        topic: 'processes',
+        topicName: 'Isobaric Process',
+        generate() {
+          const variations = ['W', 'p', 'deltaV'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const p = randBetween(100, 500, 0); // kPa
+          const pPa = p * 1000;
+          const V1 = randBetween(1.0, 4.0, 2); // L
+          const deltaV_L = randBetween(1.5, 5.0, 2); // L
+          const V2 = Number((V1 + deltaV_L).toFixed(2));
+          const deltaV_m3 = deltaV_L * 1e-3;
+          const W = Number((pPa * deltaV_m3).toFixed(2)); // J
+
+          if (target === 'W') {
+            return {
+              targetVar: 'W',
+              targetUnit: 'J',
+              prompt: `An ideal gas expands isobarically at a constant pressure of <strong>${p} kPa</strong> from <strong>${V1} L</strong> to <strong>${V2} L</strong>. Calculate the work done by the gas (\\(W\\)) in Joules.`,
+              params: [
+                { name: 'Pressure (p)', value: `${p} kPa` },
+                { name: 'Initial Volume (V₁)', value: `${V1} L` },
+                { name: 'Final Volume (V₂)', value: `${V2} L` },
+                { name: 'Target Variable', value: 'W' }
+              ],
+              answer: W,
+              solutionKaTeX: `
+              For an isobaric (constant-pressure) process:
+              $$W = p\\,\\Delta V = p(V_2 - V_1)$$
+              Convert to SI units:
+              $$p = ${p}\\,\\text{kPa} = ${pPa}\\,\\text{Pa}$$
+              $$\\Delta V = (${V2} - ${V1})\\,\\text{L} = ${deltaV_L}\\,\\text{L} = ${deltaV_m3}\\,\\text{m}^3$$
+              $$W = (${pPa}\\,\\text{Pa})(${deltaV_m3}\\,\\text{m}^3) = ${W}\\,\\text{J}$$`
+            };
+          } else if (target === 'p') {
+            return {
+              targetVar: 'p',
+              targetUnit: 'kPa',
+              prompt: `A gas expands at constant pressure by <strong>${deltaV_L} L</strong>, performing <strong>${W} J</strong> of work. Find the pressure (\\(p\\)) in <strong>kPa</strong>.`,
+              params: [
+                { name: 'Volume Change (ΔV)', value: `${deltaV_L} L` },
+                { name: 'Work Done (W)', value: `${W} J` },
+                { name: 'Target Variable', value: 'p' }
+              ],
+              answer: p,
+              solutionKaTeX: `
+              Using $W = p\\,\\Delta V \\implies p = \\frac{W}{\\Delta V}$:
+              $$\\Delta V = ${deltaV_L}\\times 10^{-3}\\,\\text{m}^3$$
+              $$p = \\frac{${W}\\,\\text{J}}{${deltaV_m3}\\,\\text{m}^3} = ${pPa}\\,\\text{Pa} = ${p}\\,\\text{kPa}$$`
+            };
+          } else {
+            return {
+              targetVar: 'ΔV',
+              targetUnit: 'L',
+              prompt: `A gas expands against a constant pressure of <strong>${p} kPa</strong>, generating <strong>${W} J</strong> of work. Find the volume increase (\\(\\Delta V\\)) in <strong>Litres</strong>.`,
+              params: [
+                { name: 'Constant Pressure (p)', value: `${p} kPa` },
+                { name: 'Work Done (W)', value: `${W} J` },
+                { name: 'Target Variable', value: 'ΔV' }
+              ],
+              answer: deltaV_L,
+              solutionKaTeX: `
+              Rearranging for volume expansion:
+              $$\\Delta V = \\frac{W}{p} = \\frac{${W}\\,\\text{J}}{${pPa}\\,\\text{Pa}} = ${deltaV_m3}\\,\\text{m}^3$$
+              Converting to Litres ($1\\,\\text{m}^3 = 1000\\,\\text{L}$):
+              $$\\Delta V = ${deltaV_L}\\,\\text{L}$$`
+            };
+          }
+        }
+      },
+
+      // 3. Isochoric Monatomic Gas: ΔU = n C_v ΔT
+      {
+        id: 'isochoric_monatomic',
+        topic: 'processes',
+        topicName: 'Isochoric Process & Internal Energy',
+        generate() {
+          const variations = ['deltaT', 'deltaU', 'n'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const n = randBetween(1.0, 4.0, 1);
+          const deltaT = randBetween(20, 120, 1); // K
+          const Cv = 1.5 * R_GAS;
+          const deltaU = Number((n * Cv * deltaT).toFixed(1));
+
+          if (target === 'deltaU') {
+            return {
+              targetVar: 'ΔU',
+              targetUnit: 'J',
+              prompt: `A rigid sealed vessel holds <strong>${n} mol</strong> of a monatomic ideal gas (\\(C_V = \\frac{3}{2}R\\)). Heat is supplied, raising its temperature by <strong>${deltaT} K</strong>. Find the change in internal energy (\\(\\Delta U\\)).`,
+              params: [
+                { name: 'Amount (n)', value: `${n} mol` },
+                { name: 'Temp Rise (ΔT)', value: `${deltaT} K` },
+                { name: 'Molar Capacity', value: 'Cv = 1.5 R' },
+                { name: 'Target Variable', value: 'ΔU' }
+              ],
+              answer: deltaU,
+              solutionKaTeX: `
+              In a rigid vessel, volume is constant ($dV = 0 \\implies W = 0$).
+              For a monatomic ideal gas:
+              $$C_V = \\frac{3}{2}R = 1.5\\times 8.31446 = 12.472\\,\\text{J}/(\\text{mol}\\cdot\\text{K})$$
+              $$\\Delta U = nC_V\\Delta T = (${n}\\,\\text{mol})(12.472\\,\\text{J}/(\\text{mol}\\cdot\\text{K}))(${deltaT}\\,\\text{K}) = ${deltaU}\\,\\text{J}$$`
+            };
+          } else if (target === 'deltaT') {
+            return {
+              targetVar: 'ΔT',
+              targetUnit: 'K',
+              prompt: `A rigid vessel contains <strong>${n} mol</strong> of monatomic ideal gas. It absorbs <strong>${deltaU} J</strong> of heat. What is the resulting temperature increase (\\(\\Delta T\\)) in Kelvin?`,
+              params: [
+                { name: 'Amount (n)', value: `${n} mol` },
+                { name: 'Heat Added (Q = ΔU)', value: `${deltaU} J` },
+                { name: 'Target Variable', value: 'ΔT' }
+              ],
+              answer: deltaT,
+              solutionKaTeX: `
+              Since $W = 0$, $\\Delta U = Q = ${deltaU}\\,\\text{J}$.
+              $$\\Delta U = nC_V\\Delta T \\implies \\Delta T = \\frac{\\Delta U}{nC_V}$$
+              $$\\Delta T = \\frac{${deltaU}}{(${n})(12.472)} = ${deltaT}\\,\\text{K}$$`
+            };
+          } else {
+            return {
+              targetVar: 'n',
+              targetUnit: 'mol',
+              prompt: `A sample of monatomic ideal gas in a rigid container warms by <strong>${deltaT} K</strong> upon absorbing <strong>${deltaU} J</strong> of heat. How many moles (\\(n\\)) of gas are present?`,
+              params: [
+                { name: 'Heat Absorbed (ΔU)', value: `${deltaU} J` },
+                { name: 'Temp Rise (ΔT)', value: `${deltaT} K` },
+                { name: 'Target Variable', value: 'n' }
+              ],
+              answer: n,
+              solutionKaTeX: `
+              $$n = \\frac{\\Delta U}{C_V\\Delta T} = \\frac{${deltaU}}{(1.5\\times 8.31446)(${deltaT})} = ${n}\\,\\text{mol}$$`
+            };
+          }
+        }
+      },
+
+      // 4. Reversible Isothermal Process: W = n R T ln(Vf / Vi)
+      {
+        id: 'isothermal_expansion',
+        topic: 'processes',
+        topicName: 'Reversible Isothermal Process',
+        generate() {
+          const variations = ['W', 'T', 'ratio'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const n = randBetween(1.0, 3.0, 1);
+          const T = randBetween(280, 450, 0); // K
+          const ratio = randBetween(1.5, 4.0, 2); // Vf / Vi
+          const W = Number((n * R_GAS * T * Math.log(ratio)).toFixed(1));
+
+          if (target === 'W') {
+            return {
+              targetVar: 'W',
+              targetUnit: 'J',
+              prompt: `A sample of <strong>${n} mol</strong> of an ideal gas expands reversibly and isothermally at <strong>${T} K</strong> until its volume ratio \\(V_f / V_i = ${ratio}\\). Calculate the work done by the gas (\\(W\\)) in Joules.`,
+              params: [
+                { name: 'Moles (n)', value: `${n} mol` },
+                { name: 'Temperature (T)', value: `${T} K` },
+                { name: 'Volume Ratio (Vf/Vi)', value: `${ratio}` },
+                { name: 'Target Variable', value: 'W' }
+              ],
+              answer: W,
+              solutionKaTeX: `
+              For a reversible isothermal process of an ideal gas (where $\\Delta U = 0$):
+              $$W = nRT\\ln\\left(\\frac{V_f}{V_i}\\right)$$
+              $$W = (${n})(${R_GAS})(${T})\\ln(${ratio})$$
+              $$\\ln(${ratio}) \\approx ${(Math.log(ratio)).toFixed(4)}$$
+              $$W = (${(n * R_GAS * T).toFixed(2)})(${(Math.log(ratio)).toFixed(4)}) = ${W}\\,\\text{J}$$`
+            };
+          } else if (target === 'T') {
+            return {
+              targetVar: 'T',
+              targetUnit: 'K',
+              prompt: `When <strong>${n} mol</strong> of ideal gas undergo reversible isothermal expansion with volume ratio \\(V_f / V_i = ${ratio}\\), the gas performs <strong>${W} J</strong> of work. Find the temperature (\\(T\\)) in Kelvin.`,
+              params: [
+                { name: 'Moles (n)', value: `${n} mol` },
+                { name: 'Work Done (W)', value: `${W} J` },
+                { name: 'Volume Ratio (Vf/Vi)', value: `${ratio}` },
+                { name: 'Target Variable', value: 'T' }
+              ],
+              answer: T,
+              solutionKaTeX: `
+              $$T = \\frac{W}{nR\\ln(V_f/V_i)} = \\frac{${W}}{(${n})(${R_GAS})\\ln(${ratio})} = ${T}\\,\\text{K}$$`
+            };
+          } else {
+            return {
+              targetVar: 'Vf / Vi',
+              targetUnit: 'ratio',
+              prompt: `At <strong>${T} K</strong>, <strong>${n} mol</strong> of ideal gas perform <strong>${W} J</strong> of work during reversible isothermal expansion. Determine the volume expansion ratio (\\(V_f / V_i\\)).`,
+              params: [
+                { name: 'Temperature (T)', value: `${T} K` },
+                { name: 'Moles (n)', value: `${n} mol` },
+                { name: 'Work (W)', value: `${W} J` },
+                { name: 'Target Variable', value: 'Vf / Vi' }
+              ],
+              answer: ratio,
+              solutionKaTeX: `
+              $$\\ln\\left(\\frac{V_f}{V_i}\\right) = \\frac{W}{nRT} = \\frac{${W}}{(${n})(${R_GAS})(${T})} = ${(W / (n * R_GAS * T)).toFixed(4)}$$
+              $$\\frac{V_f}{V_i} = e^{${(W / (n * R_GAS * T)).toFixed(4)}} = ${ratio}$$`
+            };
+          }
+        }
+      },
+
+      // 5. Cyclic Work (Rectangular p-V Cycle): W_net = (ph - pl)(V2 - V1)
+      {
+        id: 'cyclic_rectangular',
+        topic: 'cyclic',
+        topicName: 'Cyclic Work on p-V Diagram',
+        generate() {
+          const variations = ['W_net', 'ph', 'deltaV'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const pl = randBetween(100, 200, 0); // kPa
+          const deltaP = randBetween(150, 400, 0); // kPa
+          const ph = pl + deltaP; // kPa
+          const V1 = randBetween(1.0, 3.0, 1); // L
+          const deltaV_L = randBetween(1.5, 5.0, 1); // L
+          const V2 = Number((V1 + deltaV_L).toFixed(1)); // L
+          const deltaV_m3 = deltaV_L * 1e-3;
+          const W_net = deltaP * deltaV_L; // 1 kPa * 1 L = 1 J
+
+          if (target === 'W_net') {
+            return {
+              targetVar: 'W_net',
+              targetUnit: 'J',
+              prompt: `A gas undergoes a clockwise rectangular thermodynamic cycle. The high pressure is <strong>${ph} kPa</strong>, low pressure is <strong>${pl} kPa</strong>, initial volume is <strong>${V1} L</strong>, and expanded volume is <strong>${V2} L</strong>. Calculate the net work (\\(W_{\\text{net}}\\)) done per cycle in Joules.`,
+              params: [
+                { name: 'High Pressure (p_h)', value: `${ph} kPa` },
+                { name: 'Low Pressure (p_l)', value: `${pl} kPa` },
+                { name: 'Volume Range', value: `${V1} L to ${V2} L` },
+                { name: 'Direction', value: 'Clockwise' }
+              ],
+              answer: W_net,
+              solutionKaTeX: `
+              For a clockwise rectangular cycle on a $p$-$V$ diagram:
+              $$W_{\\text{net}} = (p_h - p_l)(V_2 - V_1)$$
+              Note that $1\\,\\text{kPa}\\cdot\\text{L} = 1\\,\\text{J}$.
+              $$\\Delta p = ${ph} - ${pl} = ${deltaP}\\,\\text{kPa} = ${deltaP * 1000}\\,\\text{Pa}$$
+              $$\\Delta V = ${V2} - ${V1} = ${deltaV_L}\\,\\text{L} = ${deltaV_m3}\\,\\text{m}^3$$
+              $$W_{\\text{net}} = (${deltaP * 1000}\\,\\text{Pa})(${deltaV_m3}\\,\\text{m}^3) = ${W_net}\\,\\text{J}$$`
+            };
+          } else if (target === 'ph') {
+            return {
+              targetVar: 'p_h',
+              targetUnit: 'kPa',
+              prompt: `A closed clockwise rectangular cycle generates <strong>${W_net} J</strong> of net work. If the minimum pressure is <strong>${pl} kPa</strong> and the volume spans from <strong>${V1} L</strong> to <strong>${V2} L</strong>, find the maximum pressure (\\(p_h\\)) in <strong>kPa</strong>.`,
+              params: [
+                { name: 'Net Work (W_net)', value: `${W_net} J` },
+                { name: 'Low Pressure (p_l)', value: `${pl} kPa` },
+                { name: 'Volume Range', value: `${V1} L to ${V2} L` },
+                { name: 'Target Variable', value: 'p_h' }
+              ],
+              answer: ph,
+              solutionKaTeX: `
+              $$\\Delta p = \\frac{W_{\\text{net}}}{\\Delta V} = \\frac{${W_net}\\,\\text{J}}{${deltaV_L}\\times 10^{-3}\\,\\text{m}^3} = ${deltaP * 1000}\\,\\text{Pa} = ${deltaP}\\,\\text{kPa}$$
+              $$p_h = p_l + \\Delta p = ${pl} + ${deltaP} = ${ph}\\,\\text{kPa}$$`
+            };
+          } else {
+            return {
+              targetVar: 'ΔV',
+              targetUnit: 'L',
+              prompt: `A rectangular cycle between pressures of <strong>${ph} kPa</strong> and <strong>${pl} kPa</strong> produces <strong>${W_net} J</strong> of net work. What is the swept volume change (\\(\\Delta V = V_2 - V_1\\)) in <strong>Litres</strong>?`,
+              params: [
+                { name: 'High Pressure (p_h)', value: `${ph} kPa` },
+                { name: 'Low Pressure (p_l)', value: `${pl} kPa` },
+                { name: 'Net Work (W_net)', value: `${W_net} J` },
+                { name: 'Target Variable', value: 'ΔV' }
+              ],
+              answer: deltaV_L,
+              solutionKaTeX: `
+              $$\\Delta p = ${ph} - ${pl} = ${deltaP}\\,\\text{kPa}$$
+              $$\\Delta V = \\frac{W_{\\text{net}}}{\\Delta p} = \\frac{${W_net}\\,\\text{J}}{${deltaP}\\times 10^3\\,\\text{Pa}} = ${deltaV_m3}\\,\\text{m}^3 = ${deltaV_L}\\,\\text{L}$$`
+            };
+          }
+        }
+      },
+
+      // 6. Heat Engine Energy Balance: η = W_out / Qh = 1 - Qc / Qh
+      {
+        id: 'heat_engine_basic',
+        topic: 'heat_engines',
+        topicName: 'Heat Engine Energy Balance',
+        generate() {
+          const variations = ['eta', 'W_out', 'Qc'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const Qh = randBetween(800, 3000, 0); // J
+          const etaPercent = randBetween(25, 48, 1);
+          const eta = Number((etaPercent / 100).toFixed(4));
+          const W_out = Number((Qh * eta).toFixed(1));
+          const Qc = Number((Qh - W_out).toFixed(1));
+
+          if (target === 'eta') {
+            return {
+              targetVar: 'η (%)',
+              targetUnit: '%',
+              prompt: `A heat engine absorbs <strong>${Qh} J</strong> of heat from a hot reservoir each cycle and exhausts <strong>${Qc} J</strong> into a cold reservoir. Calculate its thermal efficiency (\\(\\eta\\)) as a percentage.`,
+              params: [
+                { name: 'Heat Input (Q_h)', value: `${Qh} J` },
+                { name: 'Heat Rejected (Q_c)', value: `${Qc} J` },
+                { name: 'Target Variable', value: 'Efficiency (η)' }
+              ],
+              answer: etaPercent,
+              solutionKaTeX: `
+              Cycle work: $W_{\\text{out}} = Q_h - Q_c = ${Qh}\\,\\text{J} - ${Qc}\\,\\text{J} = ${W_out}\\,\\text{J}$.
+              Efficiency:
+              $$\\eta = \\frac{W_{\\text{out}}}{Q_h} = 1 - \\frac{Q_c}{Q_h} = 1 - \\frac{${Qc}}{${Qh}} = ${eta}$$
+              $$\\eta = ${etaPercent}\\%$$`
+            };
+          } else if (target === 'W_out') {
+            return {
+              targetVar: 'W_out',
+              targetUnit: 'J',
+              prompt: `An engine operates at <strong>${etaPercent}%</strong> efficiency while drawing <strong>${Qh} J</strong> of heat from its combustion chamber per cycle. How much work (\\(W_{\\text{out}}\\)) is produced?`,
+              params: [
+                { name: 'Heat Input (Q_h)', value: `${Qh} J` },
+                { name: 'Efficiency (η)', value: `${etaPercent}%` },
+                { name: 'Target Variable', value: 'W_out' }
+              ],
+              answer: W_out,
+              solutionKaTeX: `
+              $$W_{\\text{out}} = \\eta\\, Q_h = (${eta})(${Qh}\\,\\text{J}) = ${W_out}\\,\\text{J}$$`
+            };
+          } else {
+            return {
+              targetVar: 'Q_c',
+              targetUnit: 'J',
+              prompt: `A heat engine with an efficiency of <strong>${etaPercent}%</strong> absorbs <strong>${Qh} J</strong> from the heat source. What quantity of waste heat (\\(Q_c\\)) is rejected to the cold sink?`,
+              params: [
+                { name: 'Heat Input (Q_h)', value: `${Qh} J` },
+                { name: 'Efficiency (η)', value: `${etaPercent}%` },
+                { name: 'Target Variable', value: 'Q_c' }
+              ],
+              answer: Qc,
+              solutionKaTeX: `
+              $$W_{\\text{out}} = \\eta\\, Q_h = (${eta})(${Qh}) = ${W_out}\\,\\text{J}$$
+              $$Q_c = Q_h - W_{\\text{out}} = ${Qh} - ${W_out} = ${Qc}\\,\\text{J}$$`
+            };
+          }
+        }
+      },
+
+      // 7. Otto Cycle: η_Otto = 1 - 1 / r^(γ-1)
+      {
+        id: 'otto_cycle',
+        topic: 'heat_engines',
+        topicName: 'Ideal Otto Cycle Efficiency',
+        generate() {
+          const variations = ['eta_otto', 'r'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const r = randBetween(6.0, 11.0, 1);
+          const gamma = 1.40;
+          const rPow = Math.pow(r, 0.40);
+          const eta = Number((1 - 1 / rPow).toFixed(4));
+          const etaPercent = Number((eta * 100).toFixed(2));
+
+          if (target === 'eta_otto') {
+            return {
+              targetVar: 'η_Otto (%)',
+              targetUnit: '%',
+              prompt: `An internal combustion engine following an ideal air-standard Otto cycle has a compression ratio \\(r = ${r}\\). Assuming \\(\\gamma = 1.40\\), calculate the ideal thermal efficiency (\\(\\eta_{\\text{Otto}}\\) in %).`,
+              params: [
+                { name: 'Compression Ratio (r)', value: `${r}` },
+                { name: 'Specific Heat Ratio (γ)', value: '1.40' },
+                { name: 'Target Variable', value: 'η_Otto (%)' }
+              ],
+              answer: etaPercent,
+              solutionKaTeX: `
+              $$\\eta_{\\text{Otto}} = 1 - \\frac{1}{r^{\\gamma - 1}}$$
+              With $\\gamma - 1 = 0.40$:
+              $$r^{0.40} = (${r})^{0.40} \\approx ${rPow.toFixed(4)}$$
+              $$\\eta_{\\text{Otto}} = 1 - \\frac{1}{${rPow.toFixed(4)}} = ${eta} \\implies ${etaPercent}\\%$$`
+            };
+          } else {
+            return {
+              targetVar: 'r',
+              targetUnit: 'ratio',
+              prompt: `An engine following an ideal Otto cycle (\\(\\gamma = 1.40\\)) achieves a theoretical efficiency of <strong>${etaPercent}%</strong>. Determine the required compression ratio (\\(r\\)).`,
+              params: [
+                { name: 'Efficiency', value: `${etaPercent}%` },
+                { name: 'Specific Heat Ratio (γ)', value: '1.40' },
+                { name: 'Target Variable', value: 'Compression Ratio (r)' }
+              ],
+              answer: r,
+              solutionKaTeX: `
+              $$r^{\\gamma - 1} = \\frac{1}{1 - \\eta} = \\frac{1}{1 - ${eta}} = ${rPow.toFixed(4)}$$
+              $$r = (${rPow.toFixed(4)})^{1/0.40} = (${rPow.toFixed(4)})^{2.5} = ${r}$$`
+            };
+          }
+        }
+      },
+
+      // 8. Carnot Efficiency: η_C = 1 - Tc / Th
+      {
+        id: 'carnot_efficiency',
+        topic: 'carnot',
+        topicName: 'Carnot Reversible Efficiency',
+        generate() {
+          const variations = ['eta_C', 'Th', 'Tc'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const Tc_C = randBetween(15, 45, 0); // °C
+          const Th_C = randBetween(300, 650, 0); // °C
+          const Tc = Tc_C + 273.15;
+          const Th = Th_C + 273.15;
+          const etaC = Number((1 - Tc / Th).toFixed(4));
+          const etaC_Percent = Number((etaC * 100).toFixed(2));
+
+          if (target === 'eta_C') {
+            return {
+              targetVar: 'η_C (%)',
+              targetUnit: '%',
+              prompt: `A Carnot engine operates between a hot reservoir at <strong>${Th_C}°C</strong> and a cooling reservoir at <strong>${Tc_C}°C</strong>. Find the maximum theoretical Carnot efficiency (\\(\\eta_{\\text{C}}\\) as a %).`,
+              params: [
+                { name: 'Hot Reservoir (T_h)', value: `${Th_C}°C` },
+                { name: 'Cold Reservoir (T_c)', value: `${Tc_C}°C` },
+                { name: 'Engine Type', value: 'Reversible Carnot' },
+                { name: 'Target Variable', value: 'η_C (%)' }
+              ],
+              answer: etaC_Percent,
+              solutionKaTeX: `
+              Convert to Kelvin:
+              $$T_h = ${Th_C} + 273.15 = ${Th.toFixed(2)}\\,\\text{K}$$
+              $$T_c = ${Tc_C} + 273.15 = ${Tc.toFixed(2)}\\,\\text{K}$$
+              $$\\eta_{\\text{C}} = 1 - \\frac{T_c}{T_h} = 1 - \\frac{${Tc.toFixed(2)}}{${Th.toFixed(2)}} = ${etaC} \\implies ${etaC_Percent}\\%$$`
+            };
+          } else if (target === 'Th') {
+            return {
+              targetVar: 'T_h',
+              targetUnit: 'K',
+              prompt: `A Carnot engine exhausts heat to a cold reservoir at <strong>${Tc.toFixed(1)} K</strong> (${Tc_C}°C) and has a Carnot efficiency of <strong>${etaC_Percent}%</strong>. Find the hot reservoir temperature (\\(T_h\\)) in Kelvin.`,
+              params: [
+                { name: 'Carnot Efficiency (η_C)', value: `${etaC_Percent}%` },
+                { name: 'Cold Reservoir (T_c)', value: `${Tc.toFixed(1)} K` },
+                { name: 'Target Variable', value: 'T_h' }
+              ],
+              answer: Number(Th.toFixed(1)),
+              solutionKaTeX: `
+              $$T_h = \\frac{T_c}{1 - \\eta_{\\text{C}}} = \\frac{${Tc.toFixed(2)}}{1 - ${etaC}} = ${Th.toFixed(1)}\\,\\text{K}$$`
+            };
+          } else {
+            return {
+              targetVar: 'T_c',
+              targetUnit: 'K',
+              prompt: `A heat engine operating from a hot source at <strong>${Th.toFixed(1)} K</strong> (${Th_C}°C) has a Carnot limit of <strong>${etaC_Percent}%</strong>. What is the cold reservoir temperature (\\(T_c\\)) in Kelvin?`,
+              params: [
+                { name: 'Hot Temp (T_h)', value: `${Th.toFixed(1)} K` },
+                { name: 'Carnot Limit (η_C)', value: `${etaC_Percent}%` },
+                { name: 'Target Variable', value: 'T_c' }
+              ],
+              answer: Number(Tc.toFixed(1)),
+              solutionKaTeX: `
+              $$T_c = T_h(1 - \\eta_{\\text{C}}) = (${Th.toFixed(2)})(1 - ${etaC}) = ${Tc.toFixed(1)}\\,\\text{K}$$`
+            };
+          }
+        }
+      },
+
+      // 9. Refrigerator & Heat Pump COP: COP_R = Qc / Win, COP_HP = Qh / Win
+      {
+        id: 'cop_refrig_hp',
+        topic: 'heat_pumps',
+        topicName: 'Heat Pumps & Refrigerators',
+        generate() {
+          const variations = ['cop_r', 'cop_hp', 'Win', 'Qc'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const Win = randBetween(80, 400, 0); // J or kW
+          const copR = randBetween(2.2, 4.8, 1);
+          const copHP = Number((copR + 1).toFixed(1));
+          const Qc = Number((Win * copR).toFixed(1));
+          const Qh = Number((Qc + Win).toFixed(1));
+
+          if (target === 'cop_r') {
+            return {
+              targetVar: 'COP_R',
+              targetUnit: 'ratio',
+              prompt: `A refrigerator compressor uses <strong>${Win} J</strong> of electrical work to remove <strong>${Qc} J</strong> of heat from its cold interior compartment. Calculate its cooling coefficient of performance (\\(\\text{COP}_{\\text{R}}\\)).`,
+              params: [
+                { name: 'Heat Removed (Q_c)', value: `${Qc} J` },
+                { name: 'Work Input (W_in)', value: `${Win} J` },
+                { name: 'Target Variable', value: 'COP_R' }
+              ],
+              answer: copR,
+              solutionKaTeX: `
+              $$\\text{COP}_{\\text{R}} = \\frac{Q_c}{W_{\\text{in}}} = \\frac{${Qc}\\,\\text{J}}{${Win}\\,\\text{J}} = ${copR}$$`
+            };
+          } else if (target === 'cop_hp') {
+            return {
+              targetVar: 'COP_HP',
+              targetUnit: 'ratio',
+              prompt: `A residential heat pump requires <strong>${Win} kJ</strong> of electrical work input and discharges <strong>${Qh} kJ</strong> of heat into the house. Determine its heating coefficient of performance (\\(\\text{COP}_{\\text{HP}}\\)).`,
+              params: [
+                { name: 'Heat Delivered (Q_h)', value: `${Qh} kJ` },
+                { name: 'Work Input (W_in)', value: `${Win} kJ` },
+                { name: 'Target Variable', value: 'COP_HP' }
+              ],
+              answer: copHP,
+              solutionKaTeX: `
+              $$\\text{COP}_{\\text{HP}} = \\frac{Q_h}{W_{\\text{in}}} = \\frac{${Qh}\\,\\text{kJ}}{${Win}\\,\\text{kJ}} = ${copHP}$$
+              Notice that $\\text{COP}_{\\text{HP}} = \\text{COP}_{\\text{R}} + 1$.`
+            };
+          } else if (target === 'Win') {
+            return {
+              targetVar: 'W_in',
+              targetUnit: 'J',
+              prompt: `A cooling unit has \\(\\text{COP}_{\\text{R}} = ${copR}\\). In order to extract <strong>${Qc} J</strong> of heat from a cold room, how much work (\\(W_{\\text{in}}\\)) in Joules is required?`,
+              params: [
+                { name: 'Heat Removed (Q_c)', value: `${Qc} J` },
+                { name: 'COP_R', value: `${copR}` },
+                { name: 'Target Variable', value: 'W_in' }
+              ],
+              answer: Win,
+              solutionKaTeX: `
+              $$W_{\\text{in}} = \\frac{Q_c}{\\text{COP}_{\\text{R}}} = \\frac{${Qc}\\,\\text{J}}{${copR}} = ${Win}\\,\\text{J}$$`
+            };
+          } else {
+            return {
+              targetVar: 'Q_c',
+              targetUnit: 'J',
+              prompt: `A refrigeration unit with \\(\\text{COP}_{\\text{R}} = ${copR}\\) consumes <strong>${Win} J</strong> of work. How much heat (\\(Q_c\\)) is extracted from the interior?`,
+              params: [
+                { name: 'Work Input (W_in)', value: `${Win} J` },
+                { name: 'COP_R', value: `${copR}` },
+                { name: 'Target Variable', value: 'Q_c' }
+              ],
+              answer: Qc,
+              solutionKaTeX: `
+              $$Q_c = \\text{COP}_{\\text{R}} \\times W_{\\text{in}} = (${copR})(${Win}\\,\\text{J}) = ${Qc}\\,\\text{J}$$`
+            };
+          }
+        }
+      },
+
+      // 10. Carnot COP Upper Bounds
+      {
+        id: 'carnot_cop_limits',
+        topic: 'heat_pumps',
+        topicName: 'Carnot COP Limits',
+        generate() {
+          const variations = ['cop_r_c', 'cop_hp_c'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const Tc_C = randBetween(-15, 5, 0); // °C
+          const Th_C = randBetween(20, 35, 0); // °C
+          const Tc = Tc_C + 273.15;
+          const Th = Th_C + 273.15;
+          const deltaT = Number((Th - Tc).toFixed(2));
+          const copRC = Number((Tc / deltaT).toFixed(2));
+          const copHPC = Number((Th / deltaT).toFixed(2));
+
+          if (target === 'cop_r_c') {
+            return {
+              targetVar: 'COP_R,C',
+              targetUnit: 'ratio',
+              prompt: `Find the maximum Carnot cooling coefficient of performance (\\(\\text{COP}_{\\text{R,C}}\\)) for a refrigerator keeping food at <strong>${Tc_C}°C</strong> in a room at <strong>${Th_C}°C</strong>.`,
+              params: [
+                { name: 'Inside Temp (T_c)', value: `${Tc_C}°C` },
+                { name: 'Room Temp (T_h)', value: `${Th_C}°C` },
+                { name: 'Target Variable', value: 'COP_R,C' }
+              ],
+              answer: copRC,
+              solutionKaTeX: `
+              $$T_c = ${Tc_C} + 273.15 = ${Tc.toFixed(2)}\\,\\text{K}$$
+              $$T_h = ${Th_C} + 273.15 = ${Th.toFixed(2)}\\,\\text{K}$$
+              $$\\text{COP}_{\\text{R,C}} = \\frac{T_c}{T_h - T_c} = \\frac{${Tc.toFixed(2)}}{${deltaT}} = ${copRC}$$`
+            };
+          } else {
+            return {
+              targetVar: 'COP_HP,C',
+              targetUnit: 'ratio',
+              prompt: `Calculate the Carnot theoretical maximum heating COP (\\(\\text{COP}_{\\text{HP,C}}\\)) for a heat pump warming a building to <strong>${Th_C}°C</strong> from outdoor ambient air at <strong>${Tc_C}°C</strong>.`,
+              params: [
+                { name: 'Outdoor Temp (T_c)', value: `${Tc_C}°C` },
+                { name: 'Indoor Temp (T_h)', value: `${Th_C}°C` },
+                { name: 'Target Variable', value: 'COP_HP,C' }
+              ],
+              answer: copHPC,
+              solutionKaTeX: `
+              $$\\text{COP}_{\\text{HP,C}} = \\frac{T_h}{T_h - T_c} = \\frac{${Th.toFixed(2)}}{${deltaT}} = ${copHPC}$$`
+            };
+          }
+        }
+      },
+
+      // 11. Reservoir Heat Transfer Entropy Change
+      {
+        id: 'entropy_reservoirs',
+        topic: 'entropy',
+        topicName: 'Entropy Generation Between Reservoirs',
+        generate() {
+          const variations = ['deltaS_univ', 'Q'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const Th = randBetween(400, 750, 0); // K
+          const Tc = randBetween(240, 320, 0); // K
+          const Q = randBetween(1000, 6000, 0); // J
+          const dSh = -Q / Th;
+          const dSc = Q / Tc;
+          const dS_univ = Number((dSc + dSh).toFixed(4));
+
+          if (target === 'deltaS_univ') {
+            return {
+              targetVar: 'ΔS_univ',
+              targetUnit: 'J/K',
+              prompt: `A heat quantity of <strong>${Q} J</strong> conducts directly from a hot reservoir at <strong>${Th} K</strong> into a cold reservoir at <strong>${Tc} K</strong>. Find the total entropy generated in the universe (\\(\\Delta S_{\\text{univ}}\\)) in J/K.`,
+              params: [
+                { name: 'Heat Transferred (Q)', value: `${Q} J` },
+                { name: 'Hot Reservoir (T_h)', value: `${Th} K` },
+                { name: 'Cold Reservoir (T_c)', value: `${Tc} K` },
+                { name: 'Target Variable', value: 'ΔS_univ' }
+              ],
+              answer: dS_univ,
+              solutionKaTeX: `
+              $$\\Delta S_h = -\\frac{Q}{T_h} = -\\frac{${Q}}{${Th}} = ${(dSh).toFixed(4)}\\,\\text{J/K}$$
+              $$\\Delta S_c = +\\frac{Q}{T_c} = +\\frac{${Q}}{${Tc}} = +${(dSc).toFixed(4)}\\,\\text{J/K}$$
+              $$\\Delta S_{\\text{univ}} = \\Delta S_h + \\Delta S_c = ${dS_univ}\\,\\text{J/K} > 0$$`
+            };
+          } else {
+            return {
+              targetVar: 'Q',
+              targetUnit: 'J',
+              prompt: `When heat transfers directly between reservoirs at <strong>${Th} K</strong> and <strong>${Tc} K</strong>, <strong>${dS_univ} J/K</strong> of total entropy is generated. What amount of heat (\\(Q\\)) was transferred in Joules?`,
+              params: [
+                { name: 'Total Entropy Generated', value: `${dS_univ} J/K` },
+                { name: 'Hot Reservoir (T_h)', value: `${Th} K` },
+                { name: 'Cold Reservoir (T_c)', value: `${Tc} K` },
+                { name: 'Target Variable', value: 'Q' }
+              ],
+              answer: Q,
+              solutionKaTeX: `
+              $$\\Delta S_{\\text{univ}} = Q\\left(\\frac{1}{T_c} - \\frac{1}{T_h}\\right)$$
+              $$Q = \\frac{${dS_univ}}{\\frac{1}{${Tc}} - \\frac{1}{${Th}}} = ${Q}\\,\\text{J}$$`
+            };
+          }
+        }
+      },
+
+      // 12. Entropy of Phase Transition: ΔS = mL / T_tr
+      {
+        id: 'entropy_phase_change',
+        topic: 'entropy',
+        topicName: 'Entropy of Phase Change (Melting)',
+        generate() {
+          const variations = ['deltaS', 'm'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const m = randBetween(0.2, 2.5, 2); // kg
+          const T_tr = 273.15; // K
+          const Lf = 334000; // J/kg
+          const Q = m * Lf;
+          const deltaS = Number((Q / T_tr).toFixed(2));
+
+          if (target === 'deltaS') {
+            return {
+              targetVar: 'ΔS',
+              targetUnit: 'J/K',
+              prompt: `A block of ice with mass <strong>${m} kg</strong> melts into liquid water at <strong>0°C (273.15 K)</strong>. Taking \\(L_f = 3.34\\times 10^5\\,\\text{J/kg}\\), calculate the entropy change (\\(\\Delta S\\)) of the water in J/K.`,
+              params: [
+                { name: 'Ice Mass (m)', value: `${m} kg` },
+                { name: 'Transition Temp (T_tr)', value: '273.15 K' },
+                { name: 'Latent Heat (L_f)', value: '334,000 J/kg' },
+                { name: 'Target Variable', value: 'ΔS' }
+              ],
+              answer: deltaS,
+              solutionKaTeX: `
+              $$Q = mL_f = (${m}\\,\\text{kg})(334{,}000\\,\\text{J/kg}) = ${Q.toFixed(0)}\\,\\text{J}$$
+              $$\\Delta S_{\\text{ice}\\to\\text{water}} = \\frac{Q}{T_{\\text{tr}}} = \\frac{${Q.toFixed(0)}\\,\\text{J}}{273.15\\,\\text{K}} = ${deltaS}\\,\\text{J/K}$$`
+            };
+          } else {
+            return {
+              targetVar: 'm',
+              targetUnit: 'kg',
+              prompt: `During melting at <strong>0°C (273.15 K)</strong>, ice gains <strong>${deltaS} J/K</strong> of entropy. Using \\(L_f = 3.34\\times 10^5\\,\\text{J/kg}\\), find the mass of melted ice (\\(m\\)) in kg.`,
+              params: [
+                { name: 'Entropy Change (ΔS)', value: `${deltaS} J/K` },
+                { name: 'Transition Temp (T_tr)', value: '273.15 K' },
+                { name: 'Latent Heat (L_f)', value: '334,000 J/kg' },
+                { name: 'Target Variable', value: 'm' }
+              ],
+              answer: m,
+              solutionKaTeX: `
+              $$m = \\frac{\\Delta S\\cdot T_{\\text{tr}}}{L_f} = \\frac{(${deltaS})(${T_tr})}{334{,}000} = ${m}\\,\\text{kg}$$`
+            };
+          }
+        }
+      },
+
+      // 13. Lost Work Potential (Exergy Destruction): W_lost = T0 * S_gen
+      {
+        id: 'lost_work_gouy_stodola',
+        topic: 'entropy',
+        topicName: 'Unavailable Work & Gouy-Stodola Relation',
+        generate() {
+          const variations = ['W_lost', 'S_gen', 'T0'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const T0 = randBetween(270, 310, 0); // K
+          const S_gen = randBetween(2.0, 15.0, 2); // J/K
+          const W_lost = Number((T0 * S_gen).toFixed(1)); // J
+
+          if (target === 'W_lost') {
+            return {
+              targetVar: 'W_lost',
+              targetUnit: 'J',
+              prompt: `An irreversible cycle generates <strong>${S_gen} J/K</strong> of entropy. If the surrounding reference environment is at <strong>${T0} K</strong>, calculate the lost work potential (\\(W_{\\text{lost}}\\)) in Joules.`,
+              params: [
+                { name: 'Entropy Generated (S_gen)', value: `${S_gen} J/K` },
+                { name: 'Environment Temp (T₀)', value: `${T0} K` },
+                { name: 'Target Variable', value: 'W_lost' }
+              ],
+              answer: W_lost,
+              solutionKaTeX: `
+              Using the Gouy-Stodola relation:
+              $$W_{\\text{lost}} = T_0 S_{\\text{gen}} = (${T0}\\,\\text{K})(${S_gen}\\,\\text{J/K}) = ${W_lost}\\,\\text{J}$$`
+            };
+          } else if (target === 'S_gen') {
+            return {
+              targetVar: 'S_gen',
+              targetUnit: 'J/K',
+              prompt: `In an environment at <strong>${T0} K</strong>, an engine loses <strong>${W_lost} J</strong> of available work due to irreversibilities. Find the entropy generated (\\(S_{\\text{gen}}\\)) in J/K.`,
+              params: [
+                { name: 'Lost Work (W_lost)', value: `${W_lost} J` },
+                { name: 'Environment Temp (T₀)', value: `${T0} K` },
+                { name: 'Target Variable', value: 'S_gen' }
+              ],
+              answer: S_gen,
+              solutionKaTeX: `
+              $$S_{\\text{gen}} = \\frac{W_{\\text{lost}}}{T_0} = \\frac{${W_lost}\\,\\text{J}}{${T0}\\,\\text{K}} = ${S_gen}\\,\\text{J/K}$$`
+            };
+          } else {
+            return {
+              targetVar: 'T₀',
+              targetUnit: 'K',
+              prompt: `A process producing <strong>${S_gen} J/K</strong> of entropy destroys <strong>${W_lost} J</strong> of work potential. What is the reference temperature (\\(T_0\\)) in Kelvin?`,
+              params: [
+                { name: 'Lost Work (W_lost)', value: `${W_lost} J` },
+                { name: 'Entropy Generated (S_gen)', value: `${S_gen} J/K` },
+                { name: 'Target Variable', value: 'T₀' }
+              ],
+              answer: T0,
+              solutionKaTeX: `
+              $$T_0 = \\frac{W_{\\text{lost}}}{S_{\\text{gen}}} = \\frac{${W_lost}}{${S_gen}} = ${T0}\\,\\text{K}$$`
+            };
+          }
+        }
+      },
+
+      // 14. Statistical Multiplicity of Coins
+      {
+        id: 'statistical_coins',
+        topic: 'statistical',
+        topicName: 'Statistical Multiplicity (Coin Toss Model)',
+        generate() {
+          const variations = ['Omega', 'Prob'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const N = randInt(4, 7);
+          const h = randInt(1, N - 1);
+          const totalMicrostates = Math.pow(2, N);
+          const Omega = nCr(N, h);
+          const prob = Number((Omega / totalMicrostates).toFixed(5));
+
+          if (target === 'Omega') {
+            return {
+              targetVar: 'Ω',
+              targetUnit: 'microstates',
+              prompt: `Consider <strong>${N} fair, distinguishable coins</strong> tossed together. Calculate the multiplicity (\\(\\Omega\\)) of the macrostate corresponding to obtaining exactly <strong>${h} heads</strong>.`,
+              params: [
+                { name: 'Total Coins (N)', value: `${N}` },
+                { name: 'Number of Heads (h)', value: `${h}` },
+                { name: 'Target Variable', value: 'Multiplicity (Ω)' }
+              ],
+              answer: Omega,
+              solutionKaTeX: `
+              $$\\Omega(h) = \\binom{N}{h} = \\frac{N!}{h!(N - h)!} = \\frac{${N}!}{${h}!(${N - h})!} = ${Omega}$$`
+            };
+          } else {
+            return {
+              targetVar: 'Probability',
+              targetUnit: 'decimal',
+              prompt: `For <strong>${N} fair coins</strong>, what is the probability (in decimal) of obtaining the macrostate with exactly <strong>${h} heads</strong>?`,
+              params: [
+                { name: 'Total Coins (N)', value: `${N}` },
+                { name: 'Target Heads (h)', value: `${h}` },
+                { name: 'Target Variable', value: 'Probability P(h)' }
+              ],
+              answer: prob,
+              solutionKaTeX: `
+              Total microstates: $2^N = 2^{${N}} = ${totalMicrostates}$.
+              Multiplicity: $\\Omega = \\binom{${N}}{${h}} = ${Omega}$.
+              $$P(h) = \\frac{\\Omega(h)}{2^N} = \\frac{${Omega}}{${totalMicrostates}} = ${prob}$$`
+            };
+          }
+        }
+      },
+
+      // 15. Boltzmann Entropy: ΔS = k_B ln(Ωf / Ωi)
+      {
+        id: 'boltzmann_entropy_multiplicity',
+        topic: 'statistical',
+        topicName: 'Boltzmann Entropy & Multiplicity Ratio',
+        generate() {
+          const variations = ['deltaS', 'ratio'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const ratio = randBetween(2.0, 10.0, 1);
+          const deltaS_scaled = Number((K_BOLTZ * Math.log(ratio) * 1e23).toFixed(3));
+
+          if (target === 'deltaS') {
+            return {
+              targetVar: 'ΔS (×10⁻²³ J/K)',
+              targetUnit: '×10⁻²³ J/K',
+              prompt: `A microscopic system changes from multiplicity \\(\\Omega_i\\) to \\(\\Omega_f\\) with multiplicity ratio \\(\\Omega_f / \\Omega_i = ${ratio}\\). With \\(k_B = 1.38065\\times 10^{-23}\\,\\text{J/K}\\), calculate \\(\\Delta S\\) in units of <strong>10⁻²³ J/K</strong>.`,
+              params: [
+                { name: 'Multiplicity Ratio (Ωf / Ωi)', value: `${ratio}` },
+                { name: 'kB', value: '1.38065 × 10⁻²³ J/K' },
+                { name: 'Target Variable', value: 'ΔS (in 10⁻²³ J/K)' }
+              ],
+              answer: deltaS_scaled,
+              solutionKaTeX: `
+              $$\\Delta S = k_B\\ln\\left(\\frac{\\Omega_f}{\\Omega_i}\\right) = (1.38065\\times 10^{-23})\\ln(${ratio})$$
+              $$\\ln(${ratio}) \\approx ${(Math.log(ratio)).toFixed(4)}$$
+              $$\\Delta S = ${deltaS_scaled}\\times 10^{-23}\\,\\text{J/K}$$`
+            };
+          } else {
+            return {
+              targetVar: 'Ωf / Ωi',
+              targetUnit: 'ratio',
+              prompt: `A system gains <strong>${deltaS_scaled} × 10⁻²³ J/K</strong> of entropy. Find the ratio of accessible microstates (\\(\\Omega_f / \\Omega_i\\)).`,
+              params: [
+                { name: 'Entropy Gain (ΔS)', value: `${deltaS_scaled} × 10⁻²³ J/K` },
+                { name: 'kB', value: '1.38065 × 10⁻²³ J/K' },
+                { name: 'Target Variable', value: 'Multiplicity Ratio' }
+              ],
+              answer: ratio,
+              solutionKaTeX: `
+              $$\\frac{\\Omega_f}{\\Omega_i} = e^{\\Delta S / k_B} = e^{${(deltaS_scaled / 1.38065).toFixed(4)}} = ${ratio}$$`
+            };
+          }
+        }
+      },
+
+      // 16. General Ideal Gas Entropy Change
+      {
+        id: 'ideal_gas_entropy_general',
+        topic: 'entropy',
+        topicName: 'Entropy Change of Ideal Gas',
+        generate() {
+          const variations = ['isothermal', 'isochoric'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const n = randBetween(1.0, 3.0, 1);
+          
+          if (target === 'isothermal') {
+            const ratioV = randBetween(1.5, 4.0, 1);
+            const dS = Number((n * R_GAS * Math.log(ratioV)).toFixed(2));
+            return {
+              targetVar: 'ΔS',
+              targetUnit: 'J/K',
+              prompt: `A sample of <strong>${n} mol</strong> of an ideal gas expands isothermally (constant \\(T\\)) so its volume increases by a factor of <strong>${ratioV}</strong> (\\(V_f / V_i = ${ratioV}\\)). Find the entropy change (\\(\\Delta S\\)) in J/K.`,
+              params: [
+                { name: 'Amount (n)', value: `${n} mol` },
+                { name: 'Volume Ratio (Vf/Vi)', value: `${ratioV}` },
+                { name: 'Condition', value: 'Isothermal (ΔT = 0)' },
+                { name: 'Target Variable', value: 'ΔS' }
+              ],
+              answer: dS,
+              solutionKaTeX: `
+              For an isothermal ideal gas expansion:
+              $$\\Delta S = nR\\ln\\left(\\frac{V_f}{V_i}\\right) = (${n})(8.31446)\\ln(${ratioV}) = ${dS}\\,\\text{J/K}$$`
+            };
+          } else {
+            const ratioT = randBetween(1.2, 2.5, 2);
+            const Cv = 1.5 * R_GAS;
+            const dS = Number((n * Cv * Math.log(ratioT)).toFixed(2));
+            return {
+              targetVar: 'ΔS',
+              targetUnit: 'J/K',
+              prompt: `A monatomic ideal gas (\\(n = ${n}\\,\\text{mol}\\), \\(C_V = 1.5R\\)) in a rigid tank is heated until \\(T_f / T_i = ${ratioT}\\). Find the entropy change (\\(\\Delta S\\)) in J/K.`,
+              params: [
+                { name: 'Amount (n)', value: `${n} mol` },
+                { name: 'Temp Ratio (Tf/Ti)', value: `${ratioT}` },
+                { name: 'Condition', value: 'Isochoric (ΔV = 0)' },
+                { name: 'Target Variable', value: 'ΔS' }
+              ],
+              answer: dS,
+              solutionKaTeX: `
+              For an isochoric ideal gas heating:
+              $$\\Delta S = nC_V\\ln\\left(\\frac{T_f}{T_i}\\right) = (${n})(1.5\\times 8.31446)\\ln(${ratioT}) = ${dS}\\,\\text{J/K}$$`
+            };
+          }
+        }
+      }
+
+    ];
+
+    // --- Scoreboard & UI Helpers ---
+    function updateScoreboardUI() {
+      document.getElementById('statScore').textContent = State.score;
+      document.getElementById('statStreak').textContent = `${State.streak} 🔥`;
+      document.getElementById('statLastScore').textContent = State.lastScore;
+      document.getElementById('statHighScore').textContent = State.highScore;
+    }
+
+    function renderKaTeXMath() {
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\]', display: true}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    function getEligibleTemplates() {
+      if (State.topicFilter === 'all') {
+        return ProblemCatalog;
+      }
+      return ProblemCatalog.filter(p => p.topic === State.topicFilter);
+    }
+
+    function loadNextProblem() {
+      State.isAnswerSubmitted = false;
+      document.getElementById('solutionBox').style.display = 'none';
+      document.getElementById('submitBtn').style.display = 'block';
+      document.getElementById('skipBtn').style.display = 'block';
+      document.getElementById('answerInput').value = '';
+      document.getElementById('answerInput').disabled = false;
+      document.getElementById('answerInput').focus();
+
+      if (State.gameMode !== 'endless') {
+        const limit = parseInt(State.gameMode, 10);
+        if (State.currentQuestionIndex >= limit) {
+          showRoundSummary();
+          return;
+        }
+      }
+
+      State.currentQuestionIndex++;
+      const progressText = State.gameMode === 'endless' 
+        ? `Question ${State.currentQuestionIndex}` 
+        : `Question ${State.currentQuestionIndex} of ${State.gameMode}`;
+      document.getElementById('questionProgress').textContent = progressText;
+
+      // Select without repetition in the current set
+      let eligible = getEligibleTemplates();
+      let available = eligible.filter(t => !State.historyPool.includes(t.id));
+
+      if (available.length === 0) {
+        State.historyPool = [];
+        available = eligible;
+      }
+
+      const template = available[randInt(0, available.length - 1)];
+      State.historyPool.push(template.id);
+
+      const generated = template.generate();
+      State.currentProblem = {
+        templateId: template.id,
+        topicName: template.topicName,
+        ...generated
+      };
+
+      document.getElementById('topicBadge').textContent = State.currentProblem.topicName;
+      document.getElementById('variableBadge').textContent = `Target: ${State.currentProblem.targetVar}`;
+      document.getElementById('problemPrompt').innerHTML = State.currentProblem.prompt;
+      document.getElementById('unitTag').textContent = State.currentProblem.targetUnit;
+
+      const paramBox = document.getElementById('paramBox');
+      paramBox.innerHTML = '';
+      State.currentProblem.params.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'param-item';
+        item.innerHTML = `<span class="param-name">${p.name}</span><span class="param-value">${p.value}</span>`;
+        paramBox.appendChild(item);
+      });
+
+      renderKaTeXMath();
+    }
+
+    function checkAnswer() {
+      if (State.isAnswerSubmitted) return;
+
+      const userValStr = document.getElementById('answerInput').value.trim();
+      if (!userValStr) {
+        alert('Please enter your calculated answer before submitting.');
+        return;
+      }
+
+      const userVal = parseFloat(userValStr);
+      if (isNaN(userVal)) {
+        alert('Please enter a valid numeric answer.');
+        return;
+      }
+
+      State.isAnswerSubmitted = true;
+      document.getElementById('answerInput').disabled = true;
+      document.getElementById('submitBtn').style.display = 'none';
+      document.getElementById('skipBtn').style.display = 'none';
+
+      const correctVal = State.currentProblem.answer;
+      const relError = Math.abs((userVal - correctVal) / (correctVal !== 0 ? correctVal : 1));
+      const absError = Math.abs(userVal - correctVal);
+      const isCorrect = relError <= 0.035 || absError <= 0.05;
+
+      const solBox = document.getElementById('solutionBox');
+      const resBadge = document.getElementById('resultBadge');
+      const resIcon = document.getElementById('resultIcon');
+      const resText = document.getElementById('resultText');
+      const feedback = document.getElementById('userFeedback');
+
+      solBox.style.display = 'block';
+
+      if (isCorrect) {
+        solBox.className = 'solution-box correct';
+        resBadge.className = 'result-badge correct';
+        resIcon.textContent = '✓';
+        resText.textContent = 'Correct Answer!';
+        feedback.innerHTML = `Your answer: <strong>${userVal} ${State.currentProblem.targetUnit}</strong> matches expected value <strong>${correctVal} ${State.currentProblem.targetUnit}</strong>.`;
+        
+        State.score += 10;
+        State.streak++;
+        State.correctInRound++;
+        if (State.streak > State.maxStreak) {
+          State.maxStreak = State.streak;
+        }
+        if (State.score > State.highScore) {
+          State.highScore = State.score;
+          localStorage.setItem('thermo_high_score', State.highScore);
+        }
+      } else {
+        solBox.className = 'solution-box incorrect';
+        resBadge.className = 'result-badge incorrect';
+        resIcon.textContent = '✗';
+        resText.textContent = 'Incorrect';
+        feedback.innerHTML = `Your answer: <strong>${userVal} ${State.currentProblem.targetUnit}</strong>. Expected: <strong>${correctVal} ${State.currentProblem.targetUnit}</strong>.`;
+        State.streak = 0;
+      }
+
+      updateScoreboardUI();
+      document.getElementById('solutionSteps').innerHTML = State.currentProblem.solutionKaTeX;
+      renderKaTeXMath();
+    }
+
+    function skipProblem() {
+      if (State.isAnswerSubmitted) return;
+      State.isAnswerSubmitted = true;
+      document.getElementById('answerInput').disabled = true;
+      document.getElementById('submitBtn').style.display = 'none';
+      document.getElementById('skipBtn').style.display = 'none';
+      State.streak = 0;
+      updateScoreboardUI();
+
+      const solBox = document.getElementById('solutionBox');
+      solBox.className = 'solution-box incorrect';
+      document.getElementById('resultBadge').className = 'result-badge incorrect';
+      document.getElementById('resultIcon').textContent = '⏭';
+      document.getElementById('resultText').textContent = 'Problem Skipped';
+      document.getElementById('userFeedback').innerHTML = `Correct answer: <strong>${State.currentProblem.answer} ${State.currentProblem.targetUnit}</strong>.`;
+      solBox.style.display = 'block';
+
+      document.getElementById('solutionSteps').innerHTML = State.currentProblem.solutionKaTeX;
+      renderKaTeXMath();
+    }
+
+    function showRoundSummary() {
+      const modal = document.getElementById('summaryModal');
+      document.getElementById('sumFinalScore').textContent = State.score;
+      const total = parseInt(State.gameMode, 10);
+      const acc = total > 0 ? Math.round((State.correctInRound / total) * 100) : 0;
+      document.getElementById('sumAccuracy').textContent = `${acc}%`;
+      document.getElementById('sumCorrectCount').textContent = `${State.correctInRound} / ${total}`;
+      document.getElementById('sumMaxStreak').textContent = `${State.maxStreak} 🔥`;
+
+      State.lastScore = State.score;
+      localStorage.setItem('thermo_last_score', State.lastScore);
+      updateScoreboardUI();
+
+      modal.style.display = 'flex';
+    }
+
+    function resetRound() {
+      State.score = 0;
+      State.streak = 0;
+      State.maxStreak = 0;
+      State.correctInRound = 0;
+      State.currentQuestionIndex = 0;
+      State.historyPool = [];
+      updateScoreboardUI();
+      document.getElementById('summaryModal').style.display = 'none';
+      loadNextProblem();
+    }
+
+    // --- Scientific Calculator Engine ---
+    const Calc = {
+      display: '0',
+      formula: '',
+      isDegree: true,
+
+      updateUI() {
+        document.getElementById('calcDisplay').textContent = this.display;
+        document.getElementById('calcFormula').textContent = this.formula;
+        document.getElementById('calcDegRad').textContent = this.isDegree ? 'DEG' : 'RAD';
+      },
+
+      appendNum(n) {
+        if (this.display === '0' && n !== '.') {
+          this.display = n;
+        } else {
+          this.display += n;
+        }
+        this.updateUI();
+      },
+
+      appendOp(op) {
+        this.formula += (this.formula ? ' ' : '') + this.display + ' ' + op;
+        this.display = '0';
+        this.updateUI();
+      },
+
+      applyFn(fn) {
+        let val = parseFloat(this.display);
+        if (isNaN(val)) val = 0;
+
+        switch (fn) {
+          case 'deg-rad':
+            this.isDegree = !this.isDegree;
+            break;
+          case 'sin':
+            const sinRad = this.isDegree ? val * (Math.PI / 180) : val;
+            this.display = String(Number(Math.sin(sinRad).toFixed(8)));
+            break;
+          case 'cos':
+            const cosRad = this.isDegree ? val * (Math.PI / 180) : val;
+            this.display = String(Number(Math.cos(cosRad).toFixed(8)));
+            break;
+          case 'tan':
+            const tanRad = this.isDegree ? val * (Math.PI / 180) : val;
+            this.display = String(Number(Math.tan(tanRad).toFixed(8)));
+            break;
+          case 'ln':
+            if (val <= 0) this.display = 'Error';
+            else this.display = String(Number(Math.log(val).toFixed(8)));
+            break;
+          case 'log':
+            if (val <= 0) this.display = 'Error';
+            else this.display = String(Number(Math.log10(val).toFixed(8)));
+            break;
+          case 'sqrt':
+            if (val < 0) this.display = 'Error';
+            else this.display = String(Number(Math.sqrt(val).toFixed(8)));
+            break;
+          case 'pow':
+            this.formula += ` ${val} ^`;
+            this.display = '0';
+            break;
+          case 'pi':
+            this.display = String(Math.PI);
+            break;
+          case 'e':
+            this.display = String(Math.E);
+            break;
+          case 'paren-open':
+            this.formula += ' (';
+            break;
+          case 'paren-close':
+            this.formula += ` ${this.display} )`;
+            this.display = '0';
+            break;
+          case 'exp':
+            this.display += 'e';
+            break;
+          case 'neg':
+            this.display = String(-parseFloat(this.display));
+            break;
+        }
+        this.updateUI();
+      },
+
+      clear() {
+        this.display = '0';
+        this.formula = '';
+        this.updateUI();
+      },
+
+      backspace() {
+        if (this.display.length > 1) {
+          this.display = this.display.slice(0, -1);
+        } else {
+          this.display = '0';
+        }
+        this.updateUI();
+      },
+
+      evaluate() {
+        try {
+          let expr = (this.formula + ' ' + this.display).trim();
+          expr = expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/\^/g, '**');
+          if (/^[0-9+\-*/().\seE]+$/.test(expr)) {
+            const res = Function(`"use strict"; return (${expr});`)();
+            this.formula = '';
+            this.display = String(Number(res.toFixed(8)));
+          } else {
+            this.display = 'Error';
+          }
+        } catch (e) {
+          this.display = 'Error';
+        }
+        this.updateUI();
+      }
+    };
+
+    // --- DOM Event Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+      // Theme Toggle (Dark default)
+      const themeBtn = document.getElementById('themeToggleBtn');
+      const themeIcon = document.getElementById('themeIcon');
+      themeBtn.addEventListener('click', () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+          document.documentElement.setAttribute('data-theme', 'light');
+          themeIcon.textContent = '🌙';
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          themeIcon.textContent = '☀️';
+        }
+      });
+
+      // Mode Selector buttons
+      document.querySelectorAll('#modeSelector .seg-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#modeSelector .seg-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          State.gameMode = btn.getAttribute('data-mode');
+          resetRound();
+        });
+      });
+
+      // Topic Filter Dropdown
+      document.getElementById('topicDropdown').addEventListener('change', (e) => {
+        State.topicFilter = e.target.value;
+        resetRound();
+      });
+
+      // Submit & Skip
+      document.getElementById('submitBtn').addEventListener('click', checkAnswer);
+      document.getElementById('skipBtn').addEventListener('click', skipProblem);
+      document.getElementById('nextProblemBtn').addEventListener('click', loadNextProblem);
+      document.getElementById('startNewRoundBtn').addEventListener('click', resetRound);
+
+      // Answer Input Keyboard Listener
+      document.getElementById('answerInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          if (!State.isAnswerSubmitted) {
+            checkAnswer();
+          } else {
+            loadNextProblem();
+          }
+        }
+      });
+
+      // Formula Modal
+      const formulaModal = document.getElementById('formulaModal');
+      document.getElementById('formulaSheetBtn').addEventListener('click', () => {
+        formulaModal.style.display = 'flex';
+        renderKaTeXMath();
+      });
+      document.getElementById('closeFormulaModal').addEventListener('click', () => {
+        formulaModal.style.display = 'none';
+      });
+      formulaModal.addEventListener('click', (e) => {
+        if (e.target === formulaModal) formulaModal.style.display = 'none';
+      });
+
+      // Calculator Trigger & Modal
+      const calcModal = document.getElementById('calcModal');
+      document.getElementById('calcToggleBtn').addEventListener('click', () => {
+        calcModal.style.display = (calcModal.style.display === 'flex' ? 'none' : 'flex');
+      });
+      document.getElementById('calcCloseBtn').addEventListener('click', () => {
+        calcModal.style.display = 'none';
+      });
+
+      // Calculator Keys
+      document.querySelectorAll('.calc-btn.num').forEach(b => {
+        b.addEventListener('click', () => Calc.appendNum(b.getAttribute('data-val')));
+      });
+      document.querySelectorAll('.calc-btn.op').forEach(b => {
+        if (b.getAttribute('data-action') === 'equals') {
+          b.addEventListener('click', () => Calc.evaluate());
+        } else {
+          b.addEventListener('click', () => Calc.appendOp(b.getAttribute('data-op')));
+        }
+      });
+      document.querySelectorAll('.calc-btn.fn').forEach(b => {
+        b.addEventListener('click', () => Calc.applyFn(b.getAttribute('data-fn')));
+      });
+      document.querySelectorAll('.calc-btn.action').forEach(b => {
+        const act = b.getAttribute('data-action');
+        if (act === 'clear') b.addEventListener('click', () => Calc.clear());
+        if (act === 'backspace') b.addEventListener('click', () => Calc.backspace());
+      });
+
+      // Transfer Calculator Result into Answer Input
+      document.getElementById('calcInsertBtn').addEventListener('click', () => {
+        const val = Calc.display;
+        if (val && val !== 'Error') {
+          document.getElementById('answerInput').value = val;
+          document.getElementById('answerInput').focus();
+        }
+      });
+
+      // Initial Start
+      updateScoreboardUI();
+      loadNextProblem();
+    });
+  </script>
+</body>
+</html>
