@@ -1,0 +1,2596 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Electric Current, Resistance & Circuits Practice | Chapter 20</title>
+  
+  <!-- KaTeX CSS & JS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #151c2c;
+      --card-border: #2a364f;
+      --text: #e6edf3;
+      --text-muted: #8b98a9;
+      --primary: #f59e0b; /* Amber current glow */
+      --primary-hover: #d97706;
+      --primary-light: rgba(245, 158, 11, 0.15);
+      --success: #34d399;
+      --success-bg: rgba(52, 211, 153, 0.15);
+      --danger: #f87171;
+      --danger-bg: rgba(248, 113, 113, 0.15);
+      --accent: #38bdf8;
+      --accent-bg: rgba(56, 189, 248, 0.12);
+      --input-bg: #0b0f19;
+      --shadow: 0 8px 24px rgba(0,0,0,0.5);
+      --calc-btn: #1e293b;
+      --calc-btn-hover: #334155;
+      --calc-op: #d97706;
+      --calc-fn: #334155;
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #d97706;
+      --primary-hover: #b45309;
+      --primary-light: rgba(217, 119, 6, 0.12);
+      --success: #059669;
+      --success-bg: rgba(5, 150, 105, 0.12);
+      --danger: #dc2626;
+      --danger-bg: rgba(220, 38, 38, 0.12);
+      --accent: #0284c7;
+      --accent-bg: rgba(2, 132, 199, 0.1);
+      --input-bg: #f1f5f9;
+      --shadow: 0 4px 16px rgba(0,0,0,0.08);
+      --calc-btn: #e2e8f0;
+      --calc-btn-hover: #cbd5e1;
+      --calc-op: #d97706;
+      --calc-fn: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      line-height: 1.5;
+      transition: background-color 0.25s, color 0.25s;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 760px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-bottom: 90px;
+    }
+
+    /* Header & Top Bar */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      font-size: 1.7rem;
+    }
+
+    .logo-text h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .logo-text p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 7px 11px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Scoreboard */
+    .scoreboard {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .stat-val {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .stat-streak {
+      color: #f59e0b;
+    }
+
+    /* Controls Bar: Mode & Topic Selector */
+    .controls-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .control-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .segmented-control {
+      display: flex;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .seg-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .seg-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    select.topic-dropdown {
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.82rem;
+      outline: none;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    /* Main Problem Card */
+    .problem-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px 16px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .problem-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 10px;
+    }
+
+    .topic-badge {
+      background: var(--accent-bg);
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .variable-badge {
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .q-progress {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .problem-prompt {
+      font-size: 1.02rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .problem-prompt strong {
+      color: var(--primary);
+    }
+
+    /* Parameter Box */
+    .param-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .param-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .param-name {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .param-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* Input & Submission */
+    .answer-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--card-border);
+      padding-top: 14px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .answer-input-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .answer-input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 1.15rem;
+      font-weight: 700;
+      padding: 10px 12px;
+      padding-right: 65px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .answer-input:focus {
+      border-color: var(--primary);
+    }
+
+    .unit-tag {
+      position: absolute;
+      right: 12px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+      pointer-events: none;
+    }
+
+    .action-btn-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 8px;
+    }
+
+    .submit-btn {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .submit-btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .submit-btn:active {
+      transform: scale(0.98);
+    }
+
+    .skip-btn {
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 12px;
+      cursor: pointer;
+    }
+
+    .skip-btn:hover {
+      border-color: var(--text-muted);
+    }
+
+    /* Solution Box (Locked until submitted) */
+    .solution-box {
+      margin-top: 8px;
+      border-radius: 12px;
+      padding: 14px;
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .solution-box.correct {
+      background: var(--success-bg);
+      border: 1px solid var(--success);
+    }
+
+    .solution-box.incorrect {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger);
+    }
+
+    .result-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .result-badge.correct { color: var(--success); }
+    .result-badge.incorrect { color: var(--danger); }
+
+    .solution-steps {
+      font-size: 0.92rem;
+      line-height: 1.6;
+      margin-top: 8px;
+      color: var(--text);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .next-problem-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .next-problem-btn:hover {
+      opacity: 0.92;
+    }
+
+    /* Standard floating scientific calculator (reusable widget) */
+    .calc, .fab {
+      --panel: var(--card-bg); --panel2: var(--calc-btn); --line: var(--card-border); --ink: var(--text); --muted: var(--text-muted);
+      --amber: var(--primary); --amber-ink: #1a1000; --teal: var(--accent); --teal-ink: #04202b; --bad: var(--danger);
+    }
+    [data-theme="light"] .calc, [data-theme="light"] .fab { --amber-ink: #ffffff; --teal-ink: #ffffff; }
+    .fab { position: fixed; right: 14px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: 58px; height: 58px; border-radius: 50%; border: 0; background: var(--amber); color: var(--amber-ink); box-shadow: var(--shadow); z-index: 50; display: grid; place-items: center; touch-action: manipulation; cursor: pointer; }
+    .fab svg { width: 28px; height: 28px; }
+    .calc { position: fixed; z-index: 55; right: 12px; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); width: min(330px, calc(100vw - 24px)); background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); user-select: none; -webkit-user-select: none; overflow: hidden; }
+    .calc[hidden] { display: none; }
+    .calc-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 6px 12px; background: var(--panel2); cursor: grab; touch-action: none; font-size: 12.5px; color: var(--muted); }
+    .calc-head:active { cursor: grabbing; }
+    .calc-head .grip { display: flex; gap: 8px; align-items: center; }
+    .calc-head .dots { letter-spacing: 2px; }
+    .calc-head button { width: 38px; height: 38px; border: 0; background: transparent; color: var(--ink); border-radius: 8px; font-size: 20px; line-height: 1; cursor: pointer; }
+    .disp { padding: 10px 14px 6px; text-align: right; min-height: 92px; display: flex; flex-direction: column; justify-content: flex-end; }
+    .disp .expr { font-size: 15px; color: var(--muted); min-height: 22px; overflow-x: auto; white-space: nowrap; direction: rtl; text-align: left; }
+    .disp .expr span { direction: ltr; unicode-bidi: plaintext; }
+    .disp .res { font-size: 30px; font-weight: 600; overflow-x: auto; white-space: nowrap; line-height: 1.25; }
+    .disp .res.err { color: var(--bad); font-size: 18px; }
+    .disp .meta { font-size: 11.5px; color: var(--muted); display: flex; justify-content: space-between; }
+    .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 8px 10px 10px; }
+    .keys button { min-height: 46px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); color: var(--ink); font-size: 16px; padding: 0; touch-action: manipulation; cursor: pointer; }
+    .keys button:active { transform: translateY(1px); filter: brightness(1.15); }
+    .keys .fn { font-size: 13.5px; color: var(--teal); }
+    .keys .op { color: var(--amber); font-weight: 600; }
+    .keys .eq { background: var(--amber); color: var(--amber-ink); border-color: var(--amber); font-weight: 700; }
+    .keys .clr { color: var(--bad); }
+    .keys .on { background: var(--teal); color: var(--teal-ink); border-color: var(--teal); }
+    .calc-foot { padding: 0 10px 10px; }
+    .calc-foot .btn { width: 100%; min-height: 42px; font-size: 13.5px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); color: var(--ink); cursor: pointer; }
+    .calc-foot .btn.teal { background: var(--teal); border-color: var(--teal); color: var(--teal-ink); font-weight: 600; }
+
+    /* Modal (Formula Sheet & Results) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow);
+      animation: popIn 0.25s ease-out;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .modal-header h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .formula-section {
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .formula-section h3 {
+      font-size: 0.92rem;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    /* Summary Modal styling */
+    .summary-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .summary-card {
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .summary-val {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .summary-lbl {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    /* KaTeX equation display adjustments */
+    .katex-display {
+      margin: 0.5em 0 !important;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 4px 0;
+    }
+
+    @media (max-width: 480px) {
+      .app-container { padding-bottom: 110px; }
+      .action-btn-row { grid-template-columns: 1fr; }
+      .stat-val { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Header -->
+    <header>
+      <div class="logo-area">
+        <div class="logo-icon">⚡</div>
+        <div class="logo-text">
+          <h1>CurrentMaster 20</h1>
+          <p>Electric Current, Resistance & Circuits Practice</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggleBtn" title="Toggle Dark/Light Mode">
+          <span id="themeIcon">☀️</span>
+        </button>
+        <button class="icon-btn" id="formulaSheetBtn">
+          <span>📖 Formulas</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scoreboard -->
+    <div class="scoreboard">
+      <div class="stat-box">
+        <span class="stat-label">Score</span>
+        <span class="stat-val" id="statScore">0</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Streak</span>
+        <span class="stat-val stat-streak" id="statStreak">0 ⚡</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Last Score</span>
+        <span class="stat-val" id="statLastScore">-</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">High Score</span>
+        <span class="stat-val" id="statHighScore">0</span>
+      </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-card">
+      <div class="control-row">
+        <span class="control-label">Game Mode:</span>
+        <div class="segmented-control" id="modeSelector">
+          <button class="seg-btn" data-mode="5">5 Qs</button>
+          <button class="seg-btn active" data-mode="10">10 Qs</button>
+          <button class="seg-btn" data-mode="15">15 Qs</button>
+          <button class="seg-btn" data-mode="endless">Endless</button>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Topic Filter:</span>
+        <select class="topic-dropdown" id="topicDropdown">
+          <option value="all" selected>🎲 Random Mixture (All Chapter 20 Topics)</option>
+          <option value="current_drift">20.1 Current, Charge Flow & Carrier Drift Velocity</option>
+          <option value="ohms_law">20.2 Ohm's Law & Simple Series Circuits</option>
+          <option value="resistance_temp">20.3 Resistance, Resistivity & Temperature Effects</option>
+          <option value="power_energy">20.4 Electric Power, Energy Use & Utility Cost</option>
+          <option value="ac_circuits">20.5 Sinusoidal AC, Peak/RMS & High-Voltage Transmission</option>
+          <option value="hazards">20.6 Electrical Safety, Thermal & Shock Hazards</option>
+          <option value="biology_ecg">20.7 Biological Current, Axon Capacitance & ECG Leads</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Problem Card -->
+    <div class="problem-card" id="problemCard">
+      <div class="problem-meta">
+        <span class="topic-badge" id="topicBadge">Topic Name</span>
+        <span class="variable-badge" id="variableBadge">Target</span>
+        <span class="q-progress" id="questionProgress">Question 1 of 10</span>
+      </div>
+
+      <div class="problem-prompt" id="problemPrompt">
+        Loading problem...
+      </div>
+
+      <div class="param-box" id="paramBox">
+        <!-- Dynamic Parameter Badges -->
+      </div>
+
+      <div class="answer-section">
+        <div class="input-row">
+          <div class="answer-input-container">
+            <input type="number" step="any" class="answer-input" id="answerInput" placeholder="Enter calculated value" autocomplete="off">
+            <span class="unit-tag" id="unitTag">A</span>
+          </div>
+        </div>
+        <div class="action-btn-row">
+          <button class="submit-btn" id="submitBtn">Submit Answer</button>
+          <button class="skip-btn" id="skipBtn">Skip</button>
+        </div>
+      </div>
+
+      <!-- Solution Container (Locked until submitted) -->
+      <div class="solution-box" id="solutionBox">
+        <div class="result-badge" id="resultBadge">
+          <span id="resultIcon">✓</span>
+          <span id="resultText">Correct!</span>
+        </div>
+        <div id="userFeedback" style="font-size:0.88rem; color:var(--text-muted); margin-bottom:6px;"></div>
+        
+        <div style="font-weight:700; font-size:0.85rem; color:var(--primary); margin-top:8px;">
+          📖 Step-by-Step Derivation & Solution:
+        </div>
+        <div class="solution-steps" id="solutionSteps">
+          <!-- KaTeX math and explanation rendered here -->
+        </div>
+
+        <button class="next-problem-btn" id="nextProblemBtn">Next Problem →</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Floating Scientific Calculator (standard widget) -->
+  <button class="fab" id="fab" type="button" aria-label="Open calculator"></button>
+  <div class="calc" id="calc" role="dialog" aria-label="Calculator" hidden></div>
+
+  <!-- Formula Sheet Modal -->
+  <div class="modal-overlay" id="formulaModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📐 Chapter 20 Reference Formulas & Constants</h2>
+        <button class="icon-btn" id="closeFormulaModal">✕</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="formula-section">
+          <h3>1. Fundamental Physical Constants</h3>
+          $$\begin{aligned}
+            e &= 1.602 \times 10^{-19}\,\text{C} \\
+            N_A &= 6.022 \times 10^{23}\,\text{mol}^{-1} \\
+            \varepsilon_0 &\approx 8.854 \times 10^{-12}\,\text{F/m}
+          \end{aligned}$$
+        </div>
+
+        <div class="formula-section">
+          <h3>2. Electric Current & Carrier Drift</h3>
+          $$I_{\text{avg}} = \frac{\Delta Q}{\Delta t}, \quad i(t) = \frac{dQ}{dt}, \quad \dot N = \frac{|I|}{z e}$$
+          $$|I| = n |q| A v_d \quad \implies \quad v_d = \frac{I}{n e A} \quad (A = \frac{\pi D^2}{4})$$
+        </div>
+
+        <div class="formula-section">
+          <h3>3. Ohm's Law & Simple Circuits</h3>
+          $$V = I R, \quad I = \frac{V}{R}, \quad R = \frac{V}{I}$$
+          <p><small>• Single-loop series resistance: $R_{\text{total}} = R_L + R_{\text{line}}$</small></p>
+        </div>
+
+        <div class="formula-section">
+          <h3>4. Resistance, Resistivity & Temperature</h3>
+          $$R = \frac{\rho L}{A} = \frac{4\rho L}{\pi D^2}, \quad \text{Stretched wire (constant Vol): } R_f = s^2 R_i$$
+          $$R(T) = R_0 [1 + \alpha(T - T_0)], \quad T = T_0 + \frac{R/R_0 - 1}{\alpha}$$
+        </div>
+
+        <div class="formula-section">
+          <h3>5. Electric Power & Energy Economics</h3>
+          $$P = V I = I^2 R = \frac{V^2}{R}, \quad \mathcal{E} = P \cdot t$$
+          $$1\,\text{kWh} = 3.60 \times 10^6\,\text{J}, \quad \text{Cost} = \mathcal{E}_{\text{kWh}} \times \text{Rate}_{\$/\text{kWh}}$$
+        </div>
+
+        <div class="formula-section">
+          <h3>6. Alternating Current & High-Voltage Transmission</h3>
+          $$V_{\text{rms}} = \frac{V_0}{\sqrt{2}}, \quad I_{\text{rms}} = \frac{I_0}{\sqrt{2}}, \quad P_{\text{avg}} = V_{\text{rms}} I_{\text{rms}} = \frac{V_{\text{rms}}^2}{R}$$
+          $$\text{Line power loss: } P_{\text{loss}} = I^2 R_{\text{line}} = \frac{P^2 R_{\text{line}}}{V_{\text{trans}}^2}$$
+        </div>
+
+        <div class="formula-section">
+          <h3>7. Electrical Safety & Biological Current</h3>
+          $$\text{Degraded contact heating: } P_{\text{contact}} = I^2 R_{\text{contact}}, \quad \Delta T = \frac{P t}{m c}$$
+          $$\text{Axon membrane field: } E = \frac{|V_m|}{d}, \quad \text{Patch charge: } \Delta Q = C_m \Delta V_m$$
+          $$\text{ECG Limb-Lead Identity: } V_{II} = V_I + V_{III}, \quad \text{Heart Rate (BPM)} = \frac{60}{T_{RR}}$$
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- End of Set Summary Modal -->
+  <div class="modal-overlay" id="summaryModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🎉 Round Complete!</h2>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <p>Outstanding job completing your electric current & circuit problem set!</p>
+        <div class="summary-stat-grid">
+          <div class="summary-card">
+            <div class="summary-val" id="sumFinalScore">0</div>
+            <div class="summary-lbl">Points Earned</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-val" id="sumAccuracy">0%</div>
+            <div class="summary-lbl">Accuracy</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-val" id="sumCorrectCount">0/10</div>
+            <div class="summary-lbl">Problems Solved</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-val" id="sumMaxStreak">0 ⚡</div>
+            <div class="summary-lbl">Max Streak</div>
+          </div>
+        </div>
+        <button class="next-problem-btn" id="startNewRoundBtn">Start New Round</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Global State & Persistence ---
+    const State = {
+      score: 0,
+      streak: 0,
+      maxStreak: 0,
+      lastScore: localStorage.getItem('current_last_score') || '-',
+      highScore: parseInt(localStorage.getItem('current_high_score') || '0', 10),
+      gameMode: '10', // '5', '10', '15', 'endless'
+      topicFilter: 'all',
+      currentQuestionIndex: 0,
+      totalQuestions: 10,
+      correctInRound: 0,
+      currentProblem: null,
+      isAnswerSubmitted: false,
+      historyPool: [] // IDs used in current set to avoid repetition
+    };
+
+    // --- Fundamental Physics Constants (Chapter 20) ---
+    const E_CHARGE = 1.602176634e-19; // C
+    const N_AVOGADRO = 6.02214076e23; // mol^-1
+    const EPSILON_0 = 8.854187817e-12; // F/m
+    const RHO_COPPER = 1.68e-8; // Ohm m at 20°C
+    const ALPHA_COPPER = 3.9e-3; // K^-1 at 20°C
+    const CW_WATER = 4186; // J/(kg K)
+
+    function formatSci(num, sigFigs = 3) {
+      if (num === 0 || !isFinite(num)) return '0';
+      const absVal = Math.abs(num);
+      if (absVal >= 0.01 && absVal < 10000) {
+        return Number(num.toPrecision(sigFigs)).toString();
+      }
+      const expStr = num.toExponential(sigFigs - 1);
+      const parts = expStr.split('e');
+      const mantissa = parts[0];
+      const exponent = parseInt(parts[1], 10);
+      return `${mantissa} \\times 10^{${exponent}}`;
+    }
+
+    function formatSciText(num, sigFigs = 3) {
+      if (num === 0 || !isFinite(num)) return '0';
+      const absVal = Math.abs(num);
+      if (absVal >= 0.01 && absVal < 10000) {
+        return Number(num.toPrecision(sigFigs)).toString();
+      }
+      const expStr = num.toExponential(sigFigs - 1);
+      const parts = expStr.split('e');
+      const mantissa = parts[0];
+      const exponent = parseInt(parts[1], 10);
+      return `\\(${mantissa} \\times 10^{${exponent}}\\)`;
+    }
+
+    function randBetween(min, max, decimals = 1) {
+      const val = min + Math.random() * (max - min);
+      return Number(val.toFixed(decimals));
+    }
+
+    function randFloat(min, max, decimals = 1) {
+      return randBetween(min, max, decimals);
+    }
+
+    function randInt(min, max) {
+      return Math.floor(min + Math.random() * (max - min + 1));
+    }
+
+    // --- Comprehensive Problem Templates Catalog (20 Templates with Switching Variables) ---
+    var ProblemCatalog = [
+      
+      // 1. Current, Charge & Time (I = ΔQ / Δt)
+      {
+        id: 'current_charge_time',
+        topic: 'current_drift',
+        topicName: 'Current, Charge & Time',
+        generate() {
+          const variations = ['I', 'Q', 't'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const Q_C = randBetween(100, 900, 0); // C
+          const t_s = randBetween(2.0, 10.0, 1); // s
+          const I_A = Number((Q_C / t_s).toFixed(2));
+
+          if (target === 'I') {
+            return {
+              targetVar: 'I',
+              targetUnit: 'A',
+              prompt: `An electric starter motor draws a total charge of <strong>\\(${Q_C}\\,\\text{C}\\)</strong> across its terminals during an elapsed time of <strong>\\(${t_s}\\,\\text{s}\\)</strong>. Calculate the average electric current (\\(I\\)) in Amperes.`,
+              params: [
+                { name: 'Transferred Charge (Q)', value: `${Q_C} C` },
+                { name: 'Elapsed Time (t)', value: `${t_s} s` },
+                { name: 'Target Variable', value: 'Current I (A)' }
+              ],
+              answer: I_A,
+              solutionKaTeX: `
+              Using the definition of average electric current:
+              $$I_{\\text{avg}} = \\frac{\\Delta Q}{\\Delta t}$$
+              Substituting the given parameters:
+              $$I = \\frac{${Q_C}\\,\\text{C}}{${t_s}\\,\\text{s}} = ${I_A}\\,\\text{A}$$`
+            };
+          } else if (target === 'Q') {
+            return {
+              targetVar: 'Q',
+              targetUnit: 'C',
+              prompt: `A circuit operates at a steady current of <strong>\\(${I_A}\\,\\text{A}\\)</strong> for a duration of <strong>\\(${t_s}\\,\\text{s}\\)</strong>. Determine the total net charge (\\(Q\\)) in Coulombs passing through the cross-section.`,
+              params: [
+                { name: 'Electric Current (I)', value: `${I_A} A` },
+                { name: 'Duration (t)', value: `${t_s} s` },
+                { name: 'Target Variable', value: 'Total Charge Q (C)' }
+              ],
+              answer: Q_C,
+              solutionKaTeX: `
+              Rearranging the current formula for total charge:
+              $$\\Delta Q = I \\cdot \\Delta t$$
+              $$\\Delta Q = (${I_A}\\,\\text{A})(${t_s}\\,\\text{s}) = ${Q_C}\\,\\text{C}$$`
+            };
+          } else {
+            return {
+              targetVar: 't',
+              targetUnit: 's',
+              prompt: `How many seconds (\\(t\\)) are required for a steady current of <strong>\\(${I_A}\\,\\text{A}\\)</strong> to transport <strong>\\(${Q_C}\\,\\text{C}\\)</strong> of electric charge?`,
+              params: [
+                { name: 'Electric Current (I)', value: `${I_A} A` },
+                { name: 'Required Charge (Q)', value: `${Q_C} C` },
+                { name: 'Target Variable', value: 'Elapsed Time t (s)' }
+              ],
+              answer: t_s,
+              solutionKaTeX: `
+              Solving for time:
+              $$\\Delta t = \\frac{\\Delta Q}{I} = \\frac{${Q_C}\\,\\text{C}}{${I_A}\\,\\text{A}} = ${t_s}\\,\\text{s}$$`
+            };
+          }
+        }
+      },
+
+      // 2. Electron Throughput Rate (dN/dt = I / e)
+      {
+        id: 'electron_throughput_rate',
+        topic: 'current_drift',
+        topicName: 'Particle Flow & Electron Throughput',
+        generate() {
+          const variations = ['N_rate', 'I'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const I_A = randBetween(1.5, 12.0, 1); // A
+          const N_rate = Number((I_A / E_CHARGE).toPrecision(3)); // s^-1
+
+          if (target === 'N_rate') {
+            return {
+              targetVar: 'dN/dt',
+              targetUnit: 'electrons/s',
+              prompt: `A conductor carries a steady current of <strong>\\(${I_A}\\,\\text{A}\\)</strong>. Taking the elementary charge as \\(e = 1.602 \\times 10^{-19}\\,\\text{C}\\), calculate the rate of electron throughput (\\(dN/dt\\)) passing a cross-section in <strong>electrons per second</strong>.`,
+              params: [
+                { name: 'Current (I)', value: `${I_A} A` },
+                { name: 'Elementary Charge (e)', value: `${formatSciText(E_CHARGE)} C` },
+                { name: 'Target Variable', value: 'Electron Rate dN/dt (s⁻¹)' }
+              ],
+              answer: N_rate,
+              solutionKaTeX: `
+              The rate of electron flow through a cross-section is:
+              $$\\frac{dN}{dt} = \\frac{I}{e}$$
+              $$\\frac{dN}{dt} = \\frac{${I_A}\\,\\text{A}}{${formatSci(E_CHARGE)}\\,\\text{C}} = ${formatSci(N_rate)}\\,\\text{electrons/s}$$`
+            };
+          } else {
+            return {
+              targetVar: 'I',
+              targetUnit: 'A',
+              prompt: `An electron beam or conductor delivers electrons at a rate of <strong>\\(${formatSci(N_rate)}\\text{ electrons/s}\\)</strong>. Find the corresponding conventional electric current (\\(I\\)) in Amperes.`,
+              params: [
+                { name: 'Electron Throughput', value: `${formatSciText(N_rate)} s⁻¹` },
+                { name: 'Elementary Charge (e)', value: `${formatSciText(E_CHARGE)} C` },
+                { name: 'Target Variable', value: 'Electric Current I (A)' }
+              ],
+              answer: I_A,
+              solutionKaTeX: `$$I = \\frac{dN}{dt} \\cdot e = (${formatSci(N_rate)})(${formatSci(E_CHARGE)}\\,\\text{C}) = ${I_A}\\,\\text{A}$$`
+            };
+          }
+        }
+      },
+
+      // 3. Time-Dependent Current Integration (i(t) = I0 + a t)
+      {
+        id: 'time_dependent_current',
+        topic: 'current_drift',
+        topicName: 'Time-Dependent Current Integration',
+        generate() {
+          const variations = ['Q_tot', 'I_avg'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const I0 = randBetween(1.0, 4.0, 1); // A
+          const alpha = randBetween(1.0, 5.0, 1); // A/s
+          const duration = randBetween(2.0, 6.0, 1); // s
+          const Q_tot = Number((I0 * duration + 0.5 * alpha * duration * duration).toFixed(2));
+          const I_avg = Number((Q_tot / duration).toFixed(2));
+
+          if (target === 'Q_tot') {
+            return {
+              targetVar: 'Q_tot',
+              targetUnit: 'C',
+              prompt: `A current pulse increases linearly according to \\(i(t) = ${I0} + ${alpha} t\\) (where \\(i\\) is in Amperes and \\(t\\) in seconds). Calculate the total charge (\\(Q\\)) in Coulombs delivered between \\(t = 0\\) and \\(t = ${duration}\\,\\text{s}\\).`,
+              params: [
+                { name: 'Initial Current (I₀)', value: `${I0} A` },
+                { name: 'Ramp Rate (α)', value: `${alpha} A/s` },
+                { name: 'Duration (t)', value: `${duration} s` },
+                { name: 'Target Variable', value: 'Total Charge Q (C)' }
+              ],
+              answer: Q_tot,
+              solutionKaTeX: `
+              Integrate the instantaneous current over time:
+              $$Q = \\int_{0}^{${duration}} (${I0} + ${alpha} t)\\,dt = \\left[ ${I0} t + \\frac{${alpha}}{2} t^2 \\right]_{0}^{${duration}}$$
+              $$Q = (${I0})(${duration}) + 0.5 (${alpha})(${duration})^2 = ${(I0*duration).toFixed(2)} + ${(0.5*alpha*duration*duration).toFixed(2)} = ${Q_tot}\\,\\text{C}$$`
+            };
+          } else {
+            return {
+              targetVar: 'I_avg',
+              targetUnit: 'A',
+              prompt: `For the linearly ramping current \\(i(t) = ${I0} + ${alpha} t\\) acting over duration \\(t = ${duration}\\,\\text{s}\\), find the average current (\\(I_{\\text{avg}}\\)) in Amperes over the interval.`,
+              params: [
+                { name: 'Current Function', value: `i(t) = ${I0} + ${alpha}t A` },
+                { name: 'Interval', value: `0 to ${duration} s` },
+                { name: 'Target Variable', value: 'Average Current I_avg (A)' }
+              ],
+              answer: I_avg,
+              solutionKaTeX: `
+              $$Q_{\\text{tot}} = \\int_{0}^{${duration}} (${I0} + ${alpha}t)\\,dt = ${Q_tot}\\,\\text{C}$$
+              $$I_{\\text{avg}} = \\frac{Q_{\\text{tot}}}{\\Delta t} = \\frac{${Q_tot}\\,\\text{C}}{${duration}\\,\\text{s}} = ${I_avg}\\,\\text{A}$$`
+            };
+          }
+        }
+      },
+
+      // 4. Drift Velocity in Copper Wire (I = n e A v_d)
+      {
+        id: 'drift_velocity_copper',
+        topic: 'current_drift',
+        topicName: 'Drift Velocity in Conductor',
+        generate() {
+          const variations = ['v_d', 'I', 'D_mm'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const D_mm = randBetween(1.2, 3.0, 1); // mm
+          const D_m = D_mm * 1e-3;
+          const A_m2 = (Math.PI * D_m * D_m) / 4;
+          const I_A = randBetween(2.0, 10.0, 1); // A
+          const n_Cu = 8.49e28; // m^-3
+          const vd_m_s = I_A / (n_Cu * E_CHARGE * A_m2);
+          const vd_mm_s = Number((vd_m_s * 1000).toFixed(4)); // mm/s
+
+          if (target === 'v_d') {
+            return {
+              targetVar: 'v_d',
+              targetUnit: 'mm/s',
+              prompt: `A copper wire with diameter \\(D = ${D_mm}\\,\\text{mm}\\) carries a current \\(I = ${I_A}\\,\\text{A}\\). Assuming a conduction electron density \\(n = 8.49 \\times 10^{28}\\,\\text{m}^{-3}\\), calculate the electron drift speed (\\(v_d\\)) in <strong>mm/s</strong>.`,
+              params: [
+                { name: 'Wire Diameter (D)', value: `${D_mm} mm` },
+                { name: 'Current (I)', value: `${I_A} A` },
+                { name: 'Carrier Density (n)', value: '8.49 × 10²⁸ m⁻³' },
+                { name: 'Target Variable', value: 'Drift Speed v_d (mm/s)' }
+              ],
+              answer: vd_mm_s,
+              solutionKaTeX: `
+              Calculate cross-sectional area:
+              $$A = \\frac{\\pi D^2}{4} = \\frac{\\pi (${formatSci(D_m)}\\,\\text{m})^2}{4} = ${formatSci(A_m2)}\\,\\text{m}^2$$
+              Apply the drift speed formula:
+              $$v_d = \\frac{I}{n e A} = \\frac{${I_A}}{(${formatSci(n_Cu)})(${formatSci(E_CHARGE)})(${formatSci(A_m2)})} = ${formatSci(vd_m_s)}\\,\\text{m/s}$$
+              Convert to mm/s:
+              $$v_d = ${vd_mm_s}\\,\\text{mm/s}$$`
+            };
+          } else if (target === 'I') {
+            return {
+              targetVar: 'I',
+              targetUnit: 'A',
+              prompt: `In a copper wire (\\(D = ${D_mm}\\,\\text{mm}\\)), electrons drift at speed \\(v_d = ${vd_mm_s}\\,\\text{mm/s}\\). Determine the total current (\\(I\\)) in Amperes.`,
+              params: [
+                { name: 'Wire Diameter (D)', value: `${D_mm} mm` },
+                { name: 'Drift Speed (v_d)', value: `${vd_mm_s} mm/s` },
+                { name: 'Carrier Density (n)', value: '8.49 × 10²⁸ m⁻³' },
+                { name: 'Target Variable', value: 'Current I (A)' }
+              ],
+              answer: I_A,
+              solutionKaTeX: `
+              $$I = n e A v_d = (${formatSci(n_Cu)})(${formatSci(E_CHARGE)})(${formatSci(A_m2)})(${formatSci(vd_m_s)}) = ${I_A}\\,\\text{A}$$`
+            };
+          } else {
+            return {
+              targetVar: 'D',
+              targetUnit: 'mm',
+              prompt: `A copper wire carrying \\(${I_A}\\,\\text{A}\\) maintains an electron drift speed of \\(v_d = ${vd_mm_s}\\,\\text{mm/s}\\). Find the wire diameter (\\(D\\)) in <strong>mm</strong>.`,
+              params: [
+                { name: 'Current (I)', value: `${I_A} A` },
+                { name: 'Drift Speed (v_d)', value: `${vd_mm_s} mm/s` },
+                { name: 'Target Variable', value: 'Wire Diameter D (mm)' }
+              ],
+              answer: D_mm,
+              solutionKaTeX: `
+              $$A = \\frac{I}{n e v_d} = ${formatSci(A_m2)}\\,\\text{m}^2 \\implies D = \\sqrt{\\frac{4 A}{\\pi}} = ${D_mm}\\,\\text{mm}$$`
+            };
+          }
+        }
+      },
+
+      // 5. Electron Drift Time vs Distance (t_drift = L / vd)
+      {
+        id: 'drift_time_distance',
+        topic: 'current_drift',
+        topicName: 'Drift Travel Time',
+        generate() {
+          const variations = ['t_hours', 'L_m'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const vd_mm_s = randBetween(0.08, 0.25, 3); // mm/s
+          const vd_m_s = vd_mm_s * 1e-3;
+          const L_m = randBetween(1.0, 5.0, 1); // m
+          const t_s = L_m / vd_m_s;
+          const t_hours = Number((t_s / 3600).toFixed(2));
+
+          if (target === 't_hours') {
+            return {
+              targetVar: 't_drift',
+              targetUnit: 'hours',
+              prompt: `Electrons drift through a wire at an average speed \\(v_d = ${vd_mm_s}\\,\\text{mm/s}\\). How many <strong>hours</strong> (\\(t\\)) does it take an electron to drift a net displacement of \\(L = ${L_m}\\,\\text{m}\\)?`,
+              params: [
+                { name: 'Drift Speed (v_d)', value: `${vd_mm_s} mm/s` },
+                { name: 'Displacement (L)', value: `${L_m} m` },
+                { name: 'Target Variable', value: 'Drift Time (hours)' }
+              ],
+              answer: t_hours,
+              solutionKaTeX: `
+              $$t = \\frac{L}{v_d} = \\frac{${L_m}\\,\\text{m}}{${formatSci(vd_m_s)}\\,\\text{m/s}} = ${formatSci(t_s)}\\,\\text{s}$$
+              Convert seconds to hours ($1\\,\\text{h} = 3600\\,\\text{s}$):
+              $$t = \\frac{${formatSci(t_s)}}{3600} = ${t_hours}\\,\\text{hours}$$`
+            };
+          } else {
+            return {
+              targetVar: 'L',
+              targetUnit: 'm',
+              prompt: `An electron drifting at \\(v_d = ${vd_mm_s}\\,\\text{mm/s}\\) travels for \\(t = ${t_hours}\\,\\text{hours}\\). Calculate the total drift displacement (\\(L\\)) in meters.`,
+              params: [
+                { name: 'Drift Speed (v_d)', value: `${vd_mm_s} mm/s` },
+                { name: 'Time (t)', value: `${t_hours} hours` },
+                { name: 'Target Variable', value: 'Displacement L (m)' }
+              ],
+              answer: L_m,
+              solutionKaTeX: `
+              $$t = (${t_hours})(3600\\,\\text{s/h}) = ${formatSci(t_s)}\\,\\text{s}$$
+              $$L = v_d \\cdot t = (${formatSci(vd_m_s)})(${formatSci(t_s)}) = ${L_m}\\,\\text{m}$$`
+            };
+          }
+        }
+      },
+
+      // 6. Basic Ohm's Law (V = I R)
+      {
+        id: 'ohms_law_basic',
+        topic: 'ohms_law',
+        topicName: "Ohm's Law Basic Pair",
+        generate() {
+          const variations = ['R', 'I', 'V'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const V_volts = randBetween(6.0, 48.0, 1); // V
+          const I_amps = randBetween(0.4, 4.0, 2); // A
+          const R_ohms = Number((V_volts / I_amps).toFixed(2));
+
+          if (target === 'R') {
+            return {
+              targetVar: 'R',
+              targetUnit: 'Ω',
+              prompt: `An electrical component operates with a potential difference of <strong>\\(${V_volts}\\,\\text{V}\\)</strong> across its terminals while drawing <strong>\\(${I_amps}\\,\\text{A}\\)</strong> of current. Calculate its operating resistance (\\(R\\)) in Ohms (\\(\\Omega\\)).`,
+              params: [
+                { name: 'Voltage (V)', value: `${V_volts} V` },
+                { name: 'Current (I)', value: `${I_amps} A` },
+                { name: 'Target Variable', value: 'Resistance R (Ω)' }
+              ],
+              answer: R_ohms,
+              solutionKaTeX: `
+              Applying Ohm's law ($V = I R$):
+              $$R = \\frac{V}{I} = \\frac{${V_volts}\\,\\text{V}}{${I_amps}\\,\\text{A}} = ${R_ohms}\\,\\Omega$$`
+            };
+          } else if (target === 'I') {
+            return {
+              targetVar: 'I',
+              targetUnit: 'A',
+              prompt: `A resistor with resistance \\(R = ${R_ohms}\\,\\Omega\\) is connected to a \\(${V_volts}\\,\\text{V}\\) power supply. Determine the current (\\(I\\)) in Amperes.`,
+              params: [
+                { name: 'Voltage (V)', value: `${V_volts} V` },
+                { name: 'Resistance (R)', value: `${R_ohms} Ω` },
+                { name: 'Target Variable', value: 'Current I (A)' }
+              ],
+              answer: I_amps,
+              solutionKaTeX: `$$I = \\frac{V}{R} = \\frac{${V_volts}\\,\\text{V}}{${R_ohms}\\,\\Omega} = ${I_amps}\\,\\text{A}$$`
+            };
+          } else {
+            return {
+              targetVar: 'V',
+              targetUnit: 'V',
+              prompt: `A current of \\(${I_amps}\\,\\text{A}\\) flows through an ohmic element of resistance \\(R = ${R_ohms}\\,\\Omega\\). Find the voltage drop (\\(V\\)) across the resistor.`,
+              params: [
+                { name: 'Current (I)', value: `${I_amps} A` },
+                { name: 'Resistance (R)', value: `${R_ohms} Ω` },
+                { name: 'Target Variable', value: 'Voltage V (V)' }
+              ],
+              answer: V_volts,
+              solutionKaTeX: `$$V = I \\cdot R = (${I_amps}\\,\\text{A})(${R_ohms}\\,\\Omega) = ${V_volts}\\,\\text{V}$$`
+            };
+          }
+        }
+      },
+
+      // 7. Headlight Charge & Energy Throughput
+      {
+        id: 'headlight_throughput',
+        topic: 'ohms_law',
+        topicName: 'Headlight Operating Resistance & Charge',
+        generate() {
+          const variations = ['R', 'Q_tot', 'N_e'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const V = 12.0; // V
+          const I = randBetween(2.0, 5.0, 1); // A
+          const t_min = randInt(5, 30); // min
+          const t_s = t_min * 60;
+          const R = Number((V / I).toFixed(2));
+          const Q_tot = Number((I * t_s).toFixed(1));
+          const N_e = Number((Q_tot / E_CHARGE).toPrecision(3));
+
+          if (target === 'R') {
+            return {
+              targetVar: 'R',
+              targetUnit: 'Ω',
+              prompt: `An automotive lamp draws \\(${I}\\,\\text{A}\\) from a \\(12.0\\,\\text{V}\\) battery. Calculate its hot operating resistance (\\(R\\)) in Ohms.`,
+              params: [
+                { name: 'Battery Voltage', value: '12.0 V' },
+                { name: 'Current (I)', value: `${I} A` },
+                { name: 'Target Variable', value: 'Operating Resistance R (Ω)' }
+              ],
+              answer: R,
+              solutionKaTeX: `$$R = \\frac{V}{I} = \\frac{12.0\\,\\text{V}}{${I}\\,\\text{A}} = ${R}\\,\\Omega$$`
+            };
+          } else if (target === 'Q_tot') {
+            return {
+              targetVar: 'Q',
+              targetUnit: 'C',
+              prompt: `The headlight draws \\(${I}\\,\\text{A}\\) from a \\(12.0\\,\\text{V}\\) source for \\(${t_min}\\,\\text{minutes}\\). Calculate the total charge (\\(Q\\)) in Coulombs transported through the lamp.`,
+              params: [
+                { name: 'Current (I)', value: `${I} A` },
+                { name: 'Operating Time', value: `${t_min} min` },
+                { name: 'Target Variable', value: 'Total Charge Q (C)' }
+              ],
+              answer: Q_tot,
+              solutionKaTeX: `
+              Convert time to seconds: $t = (${t_min})(60\\,\\text{s}) = ${t_s}\\,\\text{s}$.
+              $$Q = I \\cdot t = (${I}\\,\\text{A})(${t_s}\\,\\text{s}) = ${Q_tot}\\,\\text{C}$$`
+            };
+          } else {
+            return {
+              targetVar: 'N_e',
+              targetUnit: 'electrons',
+              prompt: `When operating at \\(${I}\\,\\text{A}\\) for \\(${t_min}\\,\\text{minutes}\\), how many electrons (\\(N\\)) pass through the headlight filament?`,
+              params: [
+                { name: 'Current (I)', value: `${I} A` },
+                { name: 'Time', value: `${t_min} min` },
+                { name: 'Target Variable', value: 'Electron Count N' }
+              ],
+              answer: N_e,
+              solutionKaTeX: `
+              $$Q = I \\cdot t = (${I})(${t_s}) = ${Q_tot}\\,\\text{C}$$
+              $$N = \\frac{Q}{e} = \\frac{${Q_tot}\\,\\text{C}}{${formatSci(E_CHARGE)}\\,\\text{C}} = ${formatSci(N_e)}\\,\\text{electrons}$$`
+            };
+          }
+        }
+      },
+
+      // 8. Series Wire and Load Resistance (V_L = I * R_L, V_w = I * R_w)
+      {
+        id: 'series_wire_and_load',
+        topic: 'ohms_law',
+        topicName: 'Series Wire & Load Drop',
+        generate() {
+          const variations = ['V_L', 'I', 'V_wire'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const Vs = randBetween(12.0, 36.0, 0); // V
+          const Rw = randBetween(0.2, 0.8, 2); // Wire resistance (outgoing + return)
+          const RL = randBetween(4.0, 10.0, 1); // Load resistance
+          const Rtot = RL + Rw;
+          const I = Number((Vs / Rtot).toFixed(3));
+          const VL = Number((I * RL).toFixed(2));
+          const Vwire = Number((I * Rw).toFixed(2));
+
+          if (target === 'V_L') {
+            return {
+              targetVar: 'V_load',
+              targetUnit: 'V',
+              prompt: `A power supply with terminal voltage \\(V_s = ${Vs}\\,\\text{V}\\) is connected to a load \\(R_L = ${RL}\\,\\Omega\\) using connecting wires with combined resistance \\(R_w = ${Rw}\\,\\Omega\\). Calculate the actual voltage drop (\\(V_L\\)) delivered across the load.`,
+              params: [
+                { name: 'Source Voltage (Vs)', value: `${Vs} V` },
+                { name: 'Load Resistance (RL)', value: `${RL} Ω` },
+                { name: 'Wire Resistance (Rw)', value: `${Rw} Ω` },
+                { name: 'Target Variable', value: 'Load Voltage VL (V)' }
+              ],
+              answer: VL,
+              solutionKaTeX: `
+              Calculate total loop resistance:
+              $$R_{\\text{total}} = R_L + R_w = ${RL} + ${Rw} = ${Rtot.toFixed(2)}\\,\\Omega$$
+              Find total circuit current:
+              $$I = \\frac{V_s}{R_{\\text{total}}} = \\frac{${Vs}}{${Rtot.toFixed(2)}} = ${I}\\,\\text{A}$$
+              Determine load voltage drop:
+              $$V_L = I \\cdot R_L = (${I}\\,\\text{A})(${RL}\\,\\Omega) = ${VL}\\,\\text{V}$$`
+            };
+          } else if (target === 'I') {
+            return {
+              targetVar: 'I',
+              targetUnit: 'A',
+              prompt: `A \\(${Vs}\\,\\text{V}\\) source drives a series loop consisting of load \\(R_L = ${RL}\\,\\Omega\\) and wire resistance \\(R_w = ${Rw}\\,\\Omega\\). Calculate the loop current (\\(I\\)) in Amperes.`,
+              params: [
+                { name: 'Source Voltage (Vs)', value: `${Vs} V` },
+                { name: 'Load (RL)', value: `${RL} Ω` },
+                { name: 'Wires (Rw)', value: `${Rw} Ω` },
+                { name: 'Target Variable', value: 'Circuit Current I (A)' }
+              ],
+              answer: I,
+              solutionKaTeX: `$$I = \\frac{V_s}{R_L + R_w} = \\frac{${Vs}}{${RL} + ${Rw}} = ${I}\\,\\text{A}$$`
+            };
+          } else {
+            return {
+              targetVar: 'V_wire',
+              targetUnit: 'V',
+              prompt: `In the same series circuit (\\(V_s = ${Vs}\\,\\text{V}\\), \\(R_L = ${RL}\\,\\Omega\\), \\(R_w = ${Rw}\\,\\Omega\\)), find the voltage wasted along the connecting wires (\\(V_w\\)).`,
+              params: [
+                { name: 'Source Voltage', value: `${Vs} V` },
+                { name: 'Wire Resistance', value: `${Rw} Ω` },
+                { name: 'Target Variable', value: 'Wire Voltage Drop V_w (V)' }
+              ],
+              answer: Vwire,
+              solutionKaTeX: `$$V_w = I \\cdot R_w = (${I}\\,\\text{A})(${Rw}\\,\\Omega) = ${Vwire}\\,\\text{V}$$`
+            };
+          }
+        }
+      },
+
+      // 9. Resistance from Geometry and Resistivity (R = rho * L / A)
+      {
+        id: 'wire_resistivity_geometry',
+        topic: 'resistance_temp',
+        topicName: 'Resistivity & Wire Geometry',
+        generate() {
+          const variations = ['R', 'L', 'D_mm'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const rho = 1.68e-8; // Copper ohm m
+          const L_m = randBetween(10.0, 50.0, 0); // m
+          const D_mm = randBetween(1.0, 3.0, 1); // mm
+          const D_m = D_mm * 0.001;
+          const A_m2 = (Math.PI * D_m * D_m) / 4;
+          const R_ohms = Number(((rho * L_m) / A_m2).toFixed(3));
+
+          if (target === 'R') {
+            return {
+              targetVar: 'R',
+              targetUnit: 'Ω',
+              prompt: `A uniform copper wire (resistivity \\(\\rho = 1.68 \\times 10^{-8}\\,\\Omega\\cdot\\text{m}\\)) has length \\(L = ${L_m}\\,\\text{m}\\) and diameter \\(D = ${D_mm}\\,\\text{mm}\\). Calculate its electrical resistance (\\(R\\)) in Ohms.`,
+              params: [
+                { name: 'Resistivity (ρ)', value: '1.68 × 10⁻⁸ Ω·m' },
+                { name: 'Length (L)', value: `${L_m} m` },
+                { name: 'Diameter (D)', value: `${D_mm} mm` },
+                { name: 'Target Variable', value: 'Resistance R (Ω)' }
+              ],
+              answer: R_ohms,
+              solutionKaTeX: `
+              Calculate cross-sectional area:
+              $$A = \\frac{\\pi D^2}{4} = \\frac{\\pi (${formatSci(D_m)})^2}{4} = ${formatSci(A_m2)}\\,\\text{m}^2$$
+              Apply Archie's/Fourier's geometry resistance law:
+              $$R = \\rho \\frac{L}{A} = (1.68 \\times 10^{-8}) \\frac{${L_m}}{${formatSci(A_m2)}} = ${R_ohms}\\,\\Omega$$`
+            };
+          } else if (target === 'L') {
+            return {
+              targetVar: 'L',
+              targetUnit: 'm',
+              prompt: `How many meters (\\(L\\)) of copper wire (\\(D = ${D_mm}\\,\\text{mm}\\), \\(\\rho = 1.68 \\times 10^{-8}\\,\\Omega\\cdot\\text{m}\\)) are required to produce a total resistance of \\(R = ${R_ohms}\\,\\Omega\\)?`,
+              params: [
+                { name: 'Target Resistance (R)', value: `${R_ohms} Ω` },
+                { name: 'Diameter (D)', value: `${D_mm} mm` },
+                { name: 'Target Variable', value: 'Wire Length L (m)' }
+              ],
+              answer: L_m,
+              solutionKaTeX: `$$L = \\frac{R \\cdot A}{\\rho} = \\frac{(${R_ohms})(${formatSci(A_m2)})}{1.68 \\times 10^{-8}} = ${L_m}\\,\\text{m}$$`
+            };
+          } else {
+            return {
+              targetVar: 'D',
+              targetUnit: 'mm',
+              prompt: `A copper wire of length \\(L = ${L_m}\\,\\text{m}\\) has a measured resistance of \\(R = ${R_ohms}\\,\\Omega\\). Determine the wire diameter (\\(D\\)) in <strong>mm</strong>.`,
+              params: [
+                { name: 'Length (L)', value: `${L_m} m` },
+                { name: 'Resistance (R)', value: `${R_ohms} Ω` },
+                { name: 'Target Variable', value: 'Wire Diameter D (mm)' }
+              ],
+              answer: D_mm,
+              solutionKaTeX: `
+              $$A = \\frac{\\rho L}{R} = \\frac{(1.68 \\times 10^{-8})(${L_m})}{${R_ohms}} = ${formatSci(A_m2)}\\,\\text{m}^2$$
+              $$D = \\sqrt{\\frac{4 A}{\\pi}} = ${D_mm}\\,\\text{mm}$$`
+            };
+          }
+        }
+      },
+
+      // 10. Wire Stretching at Constant Volume (Rf = s^2 * Ri)
+      {
+        id: 'wire_stretching_volume',
+        topic: 'resistance_temp',
+        topicName: 'Wire Stretching & Constant Volume',
+        generate() {
+          const variations = ['R_f', 's_factor'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const Ri = randBetween(0.5, 4.0, 1); // initial ohms
+          const s = randInt(2, 5); // stretch factor
+          const Rf = Number((Ri * s * s).toFixed(2));
+
+          if (target === 'R_f') {
+            return {
+              targetVar: 'R_f',
+              targetUnit: 'Ω',
+              prompt: `A uniform metal wire with initial resistance \\(R_i = ${Ri}\\,\\Omega\\) is drawn through a die so its length is increased by a factor of <strong>\\(${s}\\)</strong> (\\(L_f = ${s} L_i\\)). Assuming volume and resistivity remain unchanged, calculate the new resistance (\\(R_f\\)) in Ohms.`,
+              params: [
+                { name: 'Initial Resistance (Ri)', value: `${Ri} Ω` },
+                { name: 'Stretch Factor (s)', value: `${s}×` },
+                { name: 'Target Variable', value: 'Final Resistance Rf (Ω)' }
+              ],
+              answer: Rf,
+              solutionKaTeX: `
+              Because volume is conserved ($V = A_i L_i = A_f L_f$), increasing length by factor $s$ reduces area by $1/s$:
+              $$A_f = \\frac{A_i}{s}$$
+              Substitute into $R = \\rho \\frac{L}{A}$:
+              $$R_f = \\rho \\frac{s L_i}{A_i / s} = s^2 \\cdot \\left(\\rho \\frac{L_i}{A_i}\\right) = s^2 R_i$$
+              $$R_f = (${s})^2 \\times ${Ri}\\,\\Omega = ${s*s} \\times ${Ri} = ${Rf}\\,\\Omega$$`
+            };
+          } else {
+            return {
+              targetVar: 's',
+              targetUnit: 'factor',
+              prompt: `A wire with initial resistance \\(R_i = ${Ri}\\,\\Omega\\) is stretched at constant volume until its resistance increases to \\(R_f = ${Rf}\\,\\Omega\\). By what numerical factor (\\(s = L_f / L_i\\)) was its length increased?`,
+              params: [
+                { name: 'Initial Resistance', value: `${Ri} Ω` },
+                { name: 'Final Resistance', value: `${Rf} Ω` },
+                { name: 'Target Variable', value: 'Stretch Factor s (Lf/Li)' }
+              ],
+              answer: s,
+              solutionKaTeX: `$$s = \\sqrt{\\frac{R_f}{R_i}} = \\sqrt{\\frac{${Rf}}{${Ri}}} = \\sqrt{${s*s}} = ${s}$$`
+            };
+          }
+        }
+      },
+
+      // 11. Temperature Dependence of Resistance (R(T) = R0 [1 + alpha (T - T0)])
+      {
+        id: 'temperature_resistance_linear',
+        topic: 'resistance_temp',
+        topicName: 'Temperature Dependence of Resistance',
+        generate() {
+          const variations = ['R_T', 'T_final', 'alpha'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const R0 = randBetween(4.0, 20.0, 1); // Ω at 20°C
+          const T0 = 20.0; // °C
+          const alpha = 3.9e-3; // Copper/aluminum approx
+          const T_final = randBetween(60.0, 120.0, 0); // °C
+          const dT = T_final - T0;
+          const R_T = Number((R0 * (1 + alpha * dT)).toFixed(2));
+
+          if (target === 'R_T') {
+            return {
+              targetVar: 'R(T)',
+              targetUnit: 'Ω',
+              prompt: `A metallic resistor has resistance \\(R_0 = ${R0}\\,\\Omega\\) at reference temperature \\(T_0 = 20.0^\\circ\\text{C}\\). Assuming a temperature coefficient \\(\\alpha = 3.90 \\times 10^{-3}\\,\\text{K}^{-1}\\), calculate its resistance (\\(R\\)) in Ohms when heated to <strong>\\(${T_final}^\\circ\\text{C}\\)</strong>.`,
+              params: [
+                { name: 'Reference R₀ (20°C)', value: `${R0} Ω` },
+                { name: 'Target Temperature', value: `${T_final}°C` },
+                { name: 'Temp Coefficient (α)', value: '3.90 × 10⁻³ K⁻¹' },
+                { name: 'Target Variable', value: 'Resistance R(T) (Ω)' }
+              ],
+              answer: R_T,
+              solutionKaTeX: `
+              Applying the linear temperature model for resistance:
+              $$R(T) = R_0 [1 + \\alpha (T - T_0)]$$
+              $$\\Delta T = ${T_final} - 20.0 = ${dT}\\,\\text{K}$$
+              $$R(T) = ${R0} \\cdot [1 + (3.90 \\times 10^{-3})(${dT})] = ${R0} \\cdot [1 + ${(alpha*dT).toFixed(4)}] = ${R_T}\\,\\Omega$$`
+            };
+          } else if (target === 'T_final') {
+            return {
+              targetVar: 'T',
+              targetUnit: '°C',
+              prompt: `A copper resistor (\\(R_0 = ${R0}\\,\\Omega\\) at \\(20^\\circ\\text{C}\\), \\(\\alpha = 3.90 \\times 10^{-3}\\,\\text{K}^{-1}\\)) is measured to have a resistance of \\(R = ${R_T}\\,\\Omega\\). Find its operating temperature (\\(T\\)) in <strong>°C</strong>.`,
+              params: [
+                { name: 'Initial R₀', value: `${R0} Ω` },
+                { name: 'Measured R', value: `${R_T} Ω` },
+                { name: 'Target Variable', value: 'Temperature T (°C)' }
+              ],
+              answer: T_final,
+              solutionKaTeX: `
+              $$\\Delta T = \\frac{R / R_0 - 1}{\\alpha} = \\frac{${R_T} / ${R0} - 1}{3.90 \\times 10^{-3}} = \\frac{${(R_T/R0 - 1).toFixed(4)}}{3.90 \\times 10^{-3}} = ${dT}\\,\\text{K}$$
+              $$T = T_0 + \\Delta T = 20.0 + ${dT} = ${T_final}^\\circ\\text{C}$$`
+            };
+          } else {
+            return {
+              targetVar: 'α',
+              targetUnit: 'K⁻¹',
+              prompt: `A resistor (\\(R_0 = ${R0}\\,\\Omega\\) at \\(20^\\circ\\text{C}\\)) warms to \\(${T_final}^\\circ\\text{C}\\) and its resistance rises to \\(${R_T}\\,\\Omega\\). Calculate its temperature coefficient (\\(\\alpha\\)) as a coefficient times <strong>\\(10^{-3}\\,\\text{K}^{-1}\\)</strong>.`,
+              params: [
+                { name: 'Initial R₀', value: `${R0} Ω` },
+                { name: 'Final R', value: `${R_T} Ω` },
+                { name: 'Temp Change (ΔT)', value: `${dT} K` },
+                { name: 'Target Variable', value: 'Coefficient α (in 10⁻³ K⁻¹)' }
+              ],
+              answer: 3.90,
+              solutionKaTeX: `
+              $$\\alpha = \\frac{R/R_0 - 1}{T - T_0} = \\frac{${R_T}/${R0} - 1}{${dT}} = 3.90 \\times 10^{-3}\\,\\text{K}^{-1}$$`
+            };
+          }
+        }
+      },
+
+      // 12. Resistance Thermometer & Thermistor
+      {
+        id: 'resistance_thermometer_calibration',
+        topic: 'resistance_temp',
+        topicName: 'Resistance Thermometer Calibration',
+        generate() {
+          const variations = ['T_meas', 'R_meas'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const R0 = 100.0; // Ω at 0°C
+          const alpha = 3.85e-3; // Platinum RTD
+          const T_meas = randBetween(30.0, 85.0, 1); // °C
+          const R_meas = Number((R0 * (1 + alpha * T_meas)).toFixed(2));
+
+          if (target === 'T_meas') {
+            return {
+              targetVar: 'T',
+              targetUnit: '°C',
+              prompt: `A platinum resistance thermometer has \\(R_0 = 100.0\\,\\Omega\\) at \\(0.00^\\circ\\text{C}\\) and \\(\\alpha = 3.85 \\times 10^{-3}\\,\\text{K}^{-1}\\). When submerged in an oven, its measured resistance is <strong>\\(${R_meas}\\,\\Omega\\)</strong>. Determine the oven temperature (\\(T\\)) in <strong>°C</strong>.`,
+              params: [
+                { name: 'Ice Point R₀ (0°C)', value: '100.0 Ω' },
+                { name: 'Measured R', value: `${R_meas} Ω` },
+                { name: 'RTD Coefficient (α)', value: '3.85 × 10⁻³ K⁻¹' },
+                { name: 'Target Variable', value: 'Oven Temp T (°C)' }
+              ],
+              answer: T_meas,
+              solutionKaTeX: `
+              Using $T = T_0 + \\frac{R/R_0 - 1}{\\alpha}$ with $T_0 = 0^\\circ\\text{C}$:
+              $$T = \\frac{${R_meas} / 100.0 - 1}{3.85 \\times 10^{-3}} = \\frac{${(R_meas/100 - 1).toFixed(4)}}{0.00385} = ${T_meas}^\\circ\\text{C}$$`
+            };
+          } else {
+            return {
+              targetVar: 'R',
+              targetUnit: 'Ω',
+              prompt: `Find the expected resistance (\\(R\\)) of the platinum thermometer (\\(R_0 = 100.0\\,\\Omega\\) at \\(0^\\circ\\text{C}\\)) at a temperature of \\(T = ${T_meas}^\\circ\\text{C}\\).`,
+              params: [
+                { name: 'Reference R₀', value: '100.0 Ω' },
+                { name: 'Temperature (T)', value: `${T_meas}°C` },
+                { name: 'Target Variable', value: 'Resistance R (Ω)' }
+              ],
+              answer: R_meas,
+              solutionKaTeX: `$$R = R_0 [1 + \\alpha T] = 100.0 [1 + (0.00385)(${T_meas})] = ${R_meas}\\,\\Omega$$`
+            };
+          }
+        }
+      },
+
+      // 13. Resistor Power Relations (P = VI = I^2 R = V^2 / R)
+      {
+        id: 'resistor_power_dc',
+        topic: 'power_energy',
+        topicName: 'DC Power & Resistor Dissipation',
+        generate() {
+          const variations = ['P', 'I', 'V'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const V = randBetween(12.0, 120.0, 0); // V
+          const R = randBetween(10.0, 60.0, 0); // Ω
+          const I = Number((V / R).toFixed(2));
+          const P_watts = Number(((V * V) / R).toFixed(1));
+
+          if (target === 'P') {
+            return {
+              targetVar: 'P',
+              targetUnit: 'W',
+              prompt: `A heating element with resistance \\(R = ${R}\\,\\Omega\\) is connected to a \\(${V}\\,\\text{V}\\) DC power line. Calculate the electric power (\\(P\\)) dissipated as heat in Watts.`,
+              params: [
+                { name: 'Voltage (V)', value: `${V} V` },
+                { name: 'Resistance (R)', value: `${R} Ω` },
+                { name: 'Target Variable', value: 'Power P (W)' }
+              ],
+              answer: P_watts,
+              solutionKaTeX: `
+              Using $P = \\frac{V^2}{R}$:
+              $$P = \\frac{(${V})^2}{${R}} = \\frac{${V*V}}{${R}} = ${P_watts}\\,\\text{W}$$`
+            };
+          } else if (target === 'I') {
+            return {
+              targetVar: 'I',
+              targetUnit: 'A',
+              prompt: `A resistor with \\(R = ${R}\\,\\Omega\\) dissipates \\(P = ${P_watts}\\,\\text{W}\\) of power. Determine the electric current (\\(I\\)) flowing through it in Amperes.`,
+              params: [
+                { name: 'Power (P)', value: `${P_watts} W` },
+                { name: 'Resistance (R)', value: `${R} Ω` },
+                { name: 'Target Variable', value: 'Current I (A)' }
+              ],
+              answer: I,
+              solutionKaTeX: `
+              From $P = I^2 R \\implies I = \\sqrt{\\frac{P}{R}}$:
+              $$I = \\sqrt{\\frac{${P_watts}}{${R}}} = ${I}\\,\\text{A}$$`
+            };
+          } else {
+            return {
+              targetVar: 'V',
+              targetUnit: 'V',
+              prompt: `What voltage (\\(V\\)) must be applied across a resistor \\(R = ${R}\\,\\Omega\\) to generate \\(P = ${P_watts}\\,\\text{W}\\) of dissipation?`,
+              params: [
+                { name: 'Power (P)', value: `${P_watts} W` },
+                { name: 'Resistance (R)', value: `${R} Ω` },
+                { name: 'Target Variable', value: 'Voltage V (V)' }
+              ],
+              answer: V,
+              solutionKaTeX: `
+              From $P = \\frac{V^2}{R} \\implies V = \\sqrt{P \\cdot R}$:
+              $$V = \\sqrt{(${P_watts})(${R})} = ${V}\\,\\text{V}$$`
+            };
+          }
+        }
+      },
+
+      // 14. Appliance Energy Use & Utility Cost (E = P * t, Cost = E_kWh * rate)
+      {
+        id: 'appliance_energy_cost',
+        topic: 'power_energy',
+        topicName: 'Appliance Energy & Utility Cost',
+        generate() {
+          const variations = ['Cost', 'E_kWh', 'hours'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const P_kW = randBetween(1.0, 3.0, 1); // kW
+          const hours_per_day = randBetween(2.0, 6.0, 1); // h
+          const days = 30;
+          const total_hours = hours_per_day * days;
+          const E_kWh = Number((P_kW * total_hours).toFixed(1));
+          const rate = 0.15; // $0.15 / kWh
+          const cost_dollars = Number((E_kWh * rate).toFixed(2));
+
+          if (target === 'Cost') {
+            return {
+              targetVar: 'Cost',
+              targetUnit: '$',
+              prompt: `A \\(${P_kW}\\,\\text{kW}\\) space heater runs for an average of \\(${hours_per_day}\\,\\text{hours/day}\\) over a 30-day billing cycle. At an electric utility rate of <strong>\\(\\$0.15 / \\text{kWh}\\)</strong>, calculate the total energy cost in dollars.`,
+              params: [
+                { name: 'Power Rating (P)', value: `${P_kW} kW` },
+                { name: 'Usage', value: `${hours_per_day} h/day × 30 days` },
+                { name: 'Electricity Rate', value: '$0.15 / kWh' },
+                { name: 'Target Variable', value: 'Total Cost ($)' }
+              ],
+              answer: cost_dollars,
+              solutionKaTeX: `
+              Calculate total operating hours: $t = (${hours_per_day}) \\times 30 = ${total_hours}\\,\\text{hours}$.
+              Calculate energy in kWh:
+              $$\\mathcal{E} = P \\cdot t = (${P_kW}\\,\\text{kW})(${total_hours}\\,\\text{h}) = ${E_kWh}\\,\\text{kWh}$$
+              Calculate total energy cost:
+              $$\\text{Cost} = (${E_kWh}\\,\\text{kWh}) \\times \\$0.15/\\text{kWh} = \\$${cost_dollars}$$`
+            };
+          } else if (target === 'E_kWh') {
+            return {
+              targetVar: 'E_kWh',
+              targetUnit: 'kWh',
+              prompt: `An electrical appliance running at \\(${P_kW}\\,\\text{kW}\\) operates for a total of \\(${total_hours}\\,\\text{hours}\\). Calculate the total energy consumed in kilowatt-hours (kWh).`,
+              params: [
+                { name: 'Power (P)', value: `${P_kW} kW` },
+                { name: 'Operating Time', value: `${total_hours} h` },
+                { name: 'Target Variable', value: 'Energy E (kWh)' }
+              ],
+              answer: E_kWh,
+              solutionKaTeX: `$$\\mathcal{E} = P \\cdot t = (${P_kW}\\,\\text{kW})(${total_hours}\\,\\text{h}) = ${E_kWh}\\,\\text{kWh}$$`
+            };
+          } else {
+            return {
+              targetVar: 'hours/day',
+              targetUnit: 'h/day',
+              prompt: `A \\(${P_kW}\\,\\text{kW}\\) heater generates a 30-day electric bill of \\(\\$${cost_dollars}\\) at a rate of \\(\\$0.15/\\text{kWh}\\). How many hours per day was the heater running?`,
+              params: [
+                { name: 'Total Cost', value: `$${cost_dollars}` },
+                { name: 'Power Rating', value: `${P_kW} kW` },
+                { name: 'Target Variable', value: 'Daily Usage (h/day)' }
+              ],
+              answer: hours_per_day,
+              solutionKaTeX: `
+              $$\\mathcal{E}_{\\text{kWh}} = \\frac{\\text{Cost}}{\\text{Rate}} = \\frac{\\$${cost_dollars}}{\\$0.15} = ${E_kWh}\\,\\text{kWh}$$
+              $$t_{\\text{total}} = \\frac{${E_kWh}}{${P_kW}} = ${total_hours}\\,\\text{hours} \\implies \\text{Daily Usage} = \\frac{${total_hours}}{30} = ${hours_per_day}\\,\\text{h/day}$$`
+            };
+          }
+        }
+      },
+
+      // 15. Source Power vs Line Loss vs Efficiency
+      {
+        id: 'source_power_wire_loss',
+        topic: 'power_energy',
+        topicName: 'Source Power & Wire Loss Efficiency',
+        generate() {
+          const variations = ['P_loss', 'efficiency'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const Vs = 24.0; // V
+          const Rw = randBetween(0.2, 0.6, 2); // Ω
+          const RL = randBetween(3.0, 8.0, 1); // Ω
+          const Rtot = RL + Rw;
+          const I = Vs / Rtot;
+          const Ps = Vs * I;
+          const Ploss = Number((I * I * Rw).toFixed(2));
+          const PL = I * I * RL;
+          const eff = Number(((PL / Ps) * 100).toFixed(1));
+
+          if (target === 'P_loss') {
+            return {
+              targetVar: 'P_loss',
+              targetUnit: 'W',
+              prompt: `A \\(${Vs}\\,\\text{V}\\) supply drives a load \\(R_L = ${RL}\\,\\Omega\\) via connecting wires with total resistance \\(R_w = ${Rw}\\,\\Omega\\). Calculate the power lost as heat along the wires (\\(P_{\\text{loss}}\\)) in Watts.`,
+              params: [
+                { name: 'Supply Voltage', value: `${Vs} V` },
+                { name: 'Load Resistance', value: `${RL} Ω` },
+                { name: 'Wire Resistance', value: `${Rw} Ω` },
+                { name: 'Target Variable', value: 'Wire Power Loss (W)' }
+              ],
+              answer: Ploss,
+              solutionKaTeX: `
+              Loop current: $I = \\frac{${Vs}}{${RL} + ${Rw}} = ${I.toFixed(2)}\\,\\text{A}$.
+              $$P_{\\text{loss}} = I^2 R_w = (${I.toFixed(2)})^2 (${Rw}) = ${Ploss}\\,\\text{W}$$`
+            };
+          } else {
+            return {
+              targetVar: 'efficiency',
+              targetUnit: '%',
+              prompt: `For the same supply and circuit (\\(V_s = ${Vs}\\,\\text{V}\\), \\(R_L = ${RL}\\,\\Omega\\), \\(R_w = ${Rw}\\,\\Omega\\)), calculate the power delivery efficiency (\\(\\eta = P_{\\text{load}} / P_{\\text{source}} \\times 100\\%\\)).`,
+              params: [
+                { name: 'Load (RL)', value: `${RL} Ω` },
+                { name: 'Wire (Rw)', value: `${Rw} Ω` },
+                { name: 'Target Variable', value: 'Efficiency η (%)' }
+              ],
+              answer: eff,
+              solutionKaTeX: `
+              $$P_{\\text{source}} = V_s I = (${Vs})(${I.toFixed(2)}) = ${Ps.toFixed(2)}\\,\\text{W}$$
+              $$P_{\\text{load}} = I^2 R_L = (${I.toFixed(2)})^2 (${RL}) = ${PL.toFixed(2)}\\,\\text{W}$$
+              $$\\eta = \\frac{${PL.toFixed(2)}}{${Ps.toFixed(2)}} \\times 100\\% = ${eff}\\%$$`
+            };
+          }
+        }
+      },
+
+      // 16. Sinusoidal AC Voltage & Power (V_rms = V0 / sqrt(2))
+      {
+        id: 'ac_sinusoidal_peak_rms',
+        topic: 'ac_circuits',
+        topicName: 'Sinusoidal AC Peak & RMS Values',
+        generate() {
+          const variations = ['V0', 'V_rms', 'P_avg'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const V_rms = randInt(110, 240); // V
+          const V0 = Number((V_rms * Math.SQRT2).toFixed(1));
+          const R = randInt(20, 80); // Ω
+          const P_avg = Number(((V_rms * V_rms) / R).toFixed(1));
+
+          if (target === 'V0') {
+            return {
+              targetVar: 'V₀',
+              targetUnit: 'V',
+              prompt: `A wall outlet provides a sinusoidal AC voltage with an RMS value of <strong>\\(${V_rms}\\,\\text{V}\\)</strong>. Calculate the peak voltage amplitude (\\(V_0\\)) in Volts.`,
+              params: [
+                { name: 'RMS Voltage (V_rms)', value: `${V_rms} V` },
+                { name: 'Waveform', value: 'Sinusoidal AC' },
+                { name: 'Target Variable', value: 'Peak Voltage V₀ (V)' }
+              ],
+              answer: V0,
+              solutionKaTeX: `
+              For a sinusoidal AC waveform:
+              $$V_0 = \\sqrt{2} \\cdot V_{\\text{rms}} = \\sqrt{2} \\times ${V_rms}\\,\\text{V} = ${V0}\\,\\text{V}$$`
+            };
+          } else if (target === 'V_rms') {
+            return {
+              targetVar: 'V_rms',
+              targetUnit: 'V',
+              prompt: `An AC generator output peaks at \\(V_0 = ${V0}\\,\\text{V}\\). What is the effective root-mean-square voltage (\\(V_{\\text{rms}}\\)) in Volts?`,
+              params: [
+                { name: 'Peak Voltage (V₀)', value: `${V0} V` },
+                { name: 'Target Variable', value: 'RMS Voltage V_rms (V)' }
+              ],
+              answer: V_rms,
+              solutionKaTeX: `$$V_{\\text{rms}} = \\frac{V_0}{\\sqrt{2}} = \\frac{${V0}}{\\sqrt{2}} = ${V_rms}\\,\\text{V}$$`
+            };
+          } else {
+            return {
+              targetVar: 'P_avg',
+              targetUnit: 'W',
+              prompt: `A pure resistor \\(R = ${R}\\,\\Omega\\) is connected across a sinusoidal AC line with \\(V_{\\text{rms}} = ${V_rms}\\,\\text{V}\\). Calculate the average power dissipation (\\(P_{\\text{avg}}\\)) in Watts.`,
+              params: [
+                { name: 'RMS Voltage', value: `${V_rms} V` },
+                { name: 'Resistance (R)', value: `${R} Ω` },
+                { name: 'Target Variable', value: 'Average Power P_avg (W)' }
+              ],
+              answer: P_avg,
+              solutionKaTeX: `$$P_{\\text{avg}} = \\frac{V_{\\text{rms}}^2}{R} = \\frac{(${V_rms})^2}{${R}} = ${P_avg}\\,\\text{W}$$`
+            };
+          }
+        }
+      },
+
+      // 17. High Voltage Transmission Line Losses (P_loss = P^2 * R / V^2)
+      {
+        id: 'high_voltage_transmission_loss',
+        topic: 'ac_circuits',
+        topicName: 'High-Voltage Transmission Line Loss',
+        generate() {
+          const variations = ['P_loss', 'percent_loss'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const P_gen_MW = randBetween(50, 200, 0); // MW
+          const P_gen_W = P_gen_MW * 1e6;
+          const V_trans_kV = randInt(100, 500); // kV
+          const V_trans_V = V_trans_kV * 1000;
+          const R_line = randFloat(0.5, 3.0, 1); // Ω
+          const I_line = P_gen_W / V_trans_V;
+          const Ploss_W = I_line * I_line * R_line;
+          const Ploss_MW = Number((Ploss_W / 1e6).toFixed(3));
+          const pct_loss = Number(((Ploss_W / P_gen_W) * 100).toFixed(2));
+
+          if (target === 'P_loss') {
+            return {
+              targetVar: 'P_loss',
+              targetUnit: 'MW',
+              prompt: `A power station transmits \\(${P_gen_MW}\\,\\text{MW}\\) of power over a transmission line with total resistance \\(R_{\\text{line}} = ${R_line}\\,\\Omega\\) at a stepped-up voltage of <strong>\\(${V_trans_kV}\\,\\text{kV}\\)</strong>. Calculate the power lost to line resistance in <strong>Megawatts (MW)</strong>.`,
+              params: [
+                { name: 'Transmitted Power (P)', value: `${P_gen_MW} MW` },
+                { name: 'Transmission Voltage', value: `${V_trans_kV} kV` },
+                { name: 'Line Resistance', value: `${R_line} Ω` },
+                { name: 'Target Variable', value: 'Line Power Loss (MW)' }
+              ],
+              answer: Ploss_MW,
+              solutionKaTeX: `
+              Calculate transmission current:
+              $$I = \\frac{P}{V} = \\frac{${formatSci(P_gen_W)}\\,\\text{W}}{${formatSci(V_trans_V)}\\,\\text{V}} = ${I_line.toFixed(1)}\\,\\text{A}$$
+              Calculate line loss ($P_{\\text{loss}} = I^2 R_{\\text{line}}$):
+              $$P_{\\text{loss}} = (${I_line.toFixed(1)})^2 (${R_line}\\,\\Omega) = ${formatSci(Ploss_W)}\\,\\text{W} = ${Ploss_MW}\\,\\text{MW}$$`
+            };
+          } else {
+            return {
+              targetVar: '% loss',
+              targetUnit: '%',
+              prompt: `For the transmission line above (\\(P = ${P_gen_MW}\\,\\text{MW}\\), \\(V = ${V_trans_kV}\\,\\text{kV}\\), \\(R_{\\text{line}} = ${R_line}\\,\\Omega\\)), what percentage of the generated power is lost in transit?`,
+              params: [
+                { name: 'Power & Voltage', value: `${P_gen_MW} MW @ ${V_trans_kV} kV` },
+                { name: 'Line Resistance', value: `${R_line} Ω` },
+                { name: 'Target Variable', value: 'Percentage Loss (%)' }
+              ],
+              answer: pct_loss,
+              solutionKaTeX: `
+              $$\\%\\,\\text{loss} = \\frac{P_{\\text{loss}}}{P} \\times 100\\% = \\frac{${Ploss_MW}\\,\\text{MW}}{${P_gen_MW}\\,\\text{MW}} \\times 100\\% = ${pct_loss}\\%$$`
+            };
+          }
+        }
+      },
+
+      // 18. Degraded Contact Heating (P = I^2 * R, ΔT = P * t / (m c))
+      {
+        id: 'degraded_contact_heating',
+        topic: 'hazards',
+        topicName: 'Electrical Safety & Degraded Contact Heating',
+        generate() {
+          const variations = ['P_contact', 'deltaT'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const I = randFloat(8.0, 20.0, 1); // A
+          const R_contact = randFloat(0.2, 0.8, 2); // Ω
+          const P_contact = Number((I * I * R_contact).toFixed(1)); // W
+          const t_s = randInt(20, 60); // s
+          const mass_g = 50.0; // g
+          const mass_kg = 0.050;
+          const c_metal = 900; // J/(kg K)
+          const E_dep = P_contact * t_s;
+          const deltaT = Number((E_dep / (mass_kg * c_metal)).toFixed(1));
+
+          if (target === 'P_contact') {
+            return {
+              targetVar: 'P_contact',
+              targetUnit: 'W',
+              prompt: `A loose electrical connection carries a steady current \\(I = ${I}\\,\\text{A}\\) through a degraded contact resistance \\(R_{\\text{contact}} = ${R_contact}\\,\\Omega\\). Calculate the local thermal power generated at the loose contact in Watts.`,
+              params: [
+                { name: 'Current (I)', value: `${I} A` },
+                { name: 'Contact Resistance', value: `${R_contact} Ω` },
+                { name: 'Target Variable', value: 'Contact Heating Power (W)' }
+              ],
+              answer: P_contact,
+              solutionKaTeX: `$$P_{\\text{contact}} = I^2 R_{\\text{contact}} = (${I})^2 (${R_contact}) = ${P_contact}\\,\\text{W}$$`
+            };
+          } else {
+            return {
+              targetVar: 'ΔT',
+              targetUnit: '°C',
+              prompt: `The loose contact (\\(P = ${P_contact}\\,\\text{W}\\)) heats an adjacent \\(50.0\\,\\text{g}\\) metal terminal ($c = 900\\,\\text{J/(kg}\\cdot\\text{K)}$) for \\(${t_s}\\,\\text{s}\\). Assuming zero heat loss, calculate the adiabatic temperature rise (\\(\\Delta T\\)) in °C.`,
+              params: [
+                { name: 'Heating Power', value: `${P_contact} W` },
+                { name: 'Time & Mass', value: `${t_s} s, 50 g` },
+                { name: 'Target Variable', value: 'Temperature Rise ΔT (°C)' }
+              ],
+              answer: deltaT,
+              solutionKaTeX: `
+              $$\\mathcal{E} = P \\cdot t = (${P_contact}\\,\\text{W})(${t_s}\\,\\text{s}) = ${E_dep.toFixed(0)}\\,\\text{J}$$
+              $$\\Delta T = \\frac{\\mathcal{E}}{m c} = \\frac{${E_dep.toFixed(0)}}{(0.050)({900})} = ${deltaT}^\\circ\\text{C}$$`
+            };
+          }
+        }
+      },
+
+      // 19. Nerve Axon Membrane Capacitance & Field (E = Vm / d, ΔQ = Cm * ΔVm)
+      {
+        id: 'axon_membrane_electrostatics',
+        topic: 'biology_ecg',
+        topicName: 'Axon Membrane Field & Capacitive Charge',
+        generate() {
+          const variations = ['E_field', 'dQ_pC', 'N_ions'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const Vm_mV = -90.0; // mV resting
+          const Vm_V = 0.090;
+          const d_nm = 8.0; // nm
+          const d_m = 8.0e-9;
+          const E_field = Number((Vm_V / d_m).toPrecision(3)); // V/m
+
+          const dVm_mV = 120.0; // -90 to +30 mV
+          const dVm_V = 0.120;
+          const Cm_pF = randBetween(30.0, 80.0, 1); // pF
+          const Cm_F = Cm_pF * 1e-12;
+          const dQ_pC = Number((Cm_pF * dVm_V).toFixed(2));
+          const dQ_C = dQ_pC * 1e-12;
+          const N_ions = Number((dQ_C / E_CHARGE).toPrecision(3));
+
+          if (target === 'E_field') {
+            return {
+              targetVar: 'E_membrane',
+              targetUnit: 'V/m',
+              prompt: `A cell membrane maintains a resting potential magnitude \\(|V_m| = 90.0\\,\\text{mV}\\) across a thickness \\(d = 8.00\\,\\text{nm}\\). Model the electric field as uniform across the membrane and calculate its magnitude (\\(E\\)) in <strong>V/m</strong>.`,
+              params: [
+                { name: 'Membrane Voltage', value: '90.0 mV' },
+                { name: 'Thickness (d)', value: '8.00 nm' },
+                { name: 'Target Variable', value: 'Electric Field E (V/m)' }
+              ],
+              answer: E_field,
+              solutionKaTeX: `
+              Convert SI parameters: $|V_m| = 0.090\\,\\text{V}$, $d = 8.00 \\times 10^{-9}\\,\\text{m}$.
+              $$E = \\frac{|V_m|}{d} = \\frac{0.090}{8.00 \\times 10^{-9}} = ${formatSci(E_field)}\\,\\text{V/m}$$`
+            };
+          } else if (target === 'dQ_pC') {
+            return {
+              targetVar: 'ΔQ',
+              targetUnit: 'pC',
+              prompt: `A membrane patch has capacitance \\(C_m = ${Cm_pF}\\,\\text{pF}\\). During an action potential, its membrane voltage shifts by \\(\\Delta V_m = +120\\,\\text{mV}\\) (from \\(-90\\,\\text{mV}\\) to \\(+30\\,\\text{mV}\\)). Calculate the required capacitive charge change (\\(\\Delta Q\\)) in <strong>piconewtons/picocoulombs (pC)</strong>.`,
+              params: [
+                { name: 'Capacitance (Cm)', value: `${Cm_pF} pF` },
+                { name: 'Voltage Shift (ΔVm)', value: '+120 mV' },
+                { name: 'Target Variable', value: 'Capacitive Charge ΔQ (pC)' }
+              ],
+              answer: dQ_pC,
+              solutionKaTeX: `
+              $$\\Delta Q = C_m \\cdot \\Delta V_m = (${Cm_pF}\\,\\text{pF})(0.120\\,\\text{V}) = ${dQ_pC}\\,\\text{pC}$$`
+            };
+          } else {
+            return {
+              targetVar: 'N_ions',
+              targetUnit: 'ions',
+              prompt: `How many singly-charged positive ions (\\(N\\)) crossing the membrane patch (\\(C_m = ${Cm_pF}\\,\\text{pF}\\)) correspond to this \\(\\Delta Q = ${dQ_pC}\\,\\text{pC}\\) charge transfer?`,
+              params: [
+                { name: 'Charge Transfer (ΔQ)', value: `${dQ_pC} pC` },
+                { name: 'Ion Charge (e)', value: `${formatSciText(E_CHARGE)} C` },
+                { name: 'Target Variable', value: 'Ion Count N' }
+              ],
+              answer: N_ions,
+              solutionKaTeX: `
+              $$N = \\frac{\\Delta Q}{e} = \\frac{${formatSci(dQ_C)}\\,\\text{C}}{${formatSci(E_CHARGE)}\\,\\text{C}} = ${formatSci(N_ions)}\\,\\text{ions}$$`
+            };
+          }
+        }
+      },
+
+      // 20. ECG Lead Relationships & Heart Rate (VII = VI + VIII, BPM = 60 / TRR)
+      {
+        id: 'ecg_leads_heart_rate',
+        topic: 'biology_ecg',
+        topicName: 'ECG Lead Relationships & Heart Rate',
+        generate() {
+          const variations = ['lead_II', 'bpm', 'calib_voltage'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const V_I = randBetween(0.3, 0.7, 2); // mV
+          const V_III = randBetween(0.2, 0.6, 2); // mV
+          const V_II = Number((V_I + V_III).toFixed(2));
+
+          const speed_mm_s = 25.0; // mm/s
+          const RR_mm = randBetween(18.0, 25.0, 1); // mm
+          const TRR_s = Number((RR_mm / speed_mm_s).toFixed(3));
+          const bpm = Number((60 / TRR_s).toFixed(1));
+
+          if (target === 'lead_II') {
+            return {
+              targetVar: 'V_II',
+              targetUnit: 'mV',
+              prompt: `In a simplified Einthoven limb-lead ECG model at an instant, Lead I measures \\(V_I = +${V_I}\\,\\text{mV}\\) and Lead III measures \\(V_{III} = +${V_III}\\,\\text{mV}\\). Calculate the voltage recorded by Lead II (\\(V_{II}\\)) in <strong>mV</strong>.`,
+              params: [
+                { name: 'Lead I (VI)', value: `+${V_I} mV` },
+                { name: 'Lead III (VIII)', value: `+${V_III} mV` },
+                { name: 'Target Variable', value: 'Lead II Voltage V_II (mV)' }
+              ],
+              answer: V_II,
+              solutionKaTeX: `
+              According to Einthoven's limb-lead identity:
+              $$V_{II} = V_I + V_{III}$$
+              $$V_{II} = (+${V_I}\\,\\text{mV}) + (+${V_III}\\,\\text{mV}) = ${V_II}\\,\\text{mV}$$`
+            };
+          } else if (target === 'bpm') {
+            return {
+              targetVar: 'BPM',
+              targetUnit: 'beats/min',
+              prompt: `An ECG chart paper runs at standard speed \\(v = 25.0\\,\\text{mm/s}\\). The horizontal distance between consecutive R-wave peaks is \\(d_{RR} = ${RR_mm}\\,\\text{mm}\\). Calculate the patient's heart rate in <strong>beats per minute (BPM)</strong>.`,
+              params: [
+                { name: 'Paper Speed', value: '25.0 mm/s' },
+                { name: 'R-R Interval', value: `${RR_mm} mm` },
+                { name: 'Target Variable', value: 'Heart Rate (BPM)' }
+              ],
+              answer: bpm,
+              solutionKaTeX: `
+              Calculate R-R interval time:
+              $$T_{RR} = \\frac{d_{RR}}{v} = \\frac{${RR_mm}\\,\\text{mm}}{25.0\\,\\text{mm/s}} = ${TRR_s}\\,\\text{s}$$
+              Calculate heart rate:
+              $$\\text{BPM} = \\frac{60}{T_{RR}} = \\frac{60}{${TRR_s}} = ${bpm}\\,\\text{beats/min}$$`
+            };
+          } else {
+            return {
+              targetVar: 'V_peak',
+              targetUnit: 'mV',
+              prompt: `On the same ECG paper calibrated at \\(10.0\\,\\text{mm/mV}\\), an R-wave peak produces a vertical deflection height of \\(h = 12.5\\,\\text{mm}\\). Find the corresponding peak voltage in <strong>mV</strong>.`,
+              params: [
+                { name: 'Calibration', value: '10.0 mm/mV' },
+                { name: 'Deflection Height', value: '12.5 mm' },
+                { name: 'Target Variable', value: 'Peak Voltage (mV)' }
+              ],
+              answer: 1.25,
+              solutionKaTeX: `$$V_R = \\frac{\\text{height}}{\\text{calibration}} = \\frac{12.5\\,\\text{mm}}{10.0\\,\\text{mm/mV}} = 1.25\\,\\text{mV}$$`
+            };
+          }
+        }
+      }
+
+    ];
+
+    // --- Scoreboard & UI Helpers ---
+    function updateScoreboardUI() {
+      document.getElementById('statScore').textContent = State.score;
+      document.getElementById('statStreak').textContent = `${State.streak} ⚡`;
+      document.getElementById('statLastScore').textContent = State.lastScore;
+      document.getElementById('statHighScore').textContent = State.highScore;
+    }
+
+    
+    // Offline fallback: used ONLY when KaTeX failed to load (e.g. the CDN is blocked).
+    function cleanTexString(tex) {
+      let t = String(tex);
+      const sym = { times: '×', cdot: '·', Delta: 'Δ', theta: 'θ', tau: 'τ', mu: 'μ', kappa: 'κ', Omega: 'Ω',
+        alpha: 'α', rho: 'ρ', sigma: 'σ', varepsilon: 'ε', epsilon: 'ε', pi: 'π', lambda: 'λ', circ: '°',
+        pm: '±', approx: '≈', leq: '≤', geq: '≥', left: '', right: '', mathcal: '' };
+      for (let i = 0; i < 4; i++) {            // resolve nested groups, innermost first
+        t = t.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '($1)/($2)')
+             .replace(/\\sqrt\s*\{([^{}]*)\}/g, '√($1)')
+             .replace(/\\(?:text|mathrm|textbf|mathcal)\s*\{([^{}]*)\}/g, '$1')
+             .replace(/\^\{([^{}]*)\}/g, '<sup>$1</sup>')
+             .replace(/_\{([^{}]*)\}/g, '<sub>$1</sub>');
+      }
+      t = t.replace(/\\([A-Za-z]+)/g, (m, name) => (sym[name] !== undefined ? sym[name] : name))
+           .replace(/\\[,;:! ]/g, ' ')
+           .replace(/\\%/g, '%')
+           .replace(/\\\$/g, '$')
+           .replace(/\^([0-9A-Za-z°+\-])/g, '<sup>$1</sup>')
+           .replace(/_([0-9A-Za-z])/g, '<sub>$1</sub>')
+           .replace(/[{}]/g, '');
+      return t;
+    }
+
+    function applyKaTeXFallbackTransforms(container) {
+      if (!container) return;
+      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+      const nodes = [];
+      let n;
+      while ((n = walker.nextNode())) {
+        const v = n.nodeValue;
+        if (v && (v.includes('\\(') || v.includes('\\[') || v.includes('$'))) nodes.push(n);
+      }
+      const style = "font-family:'EB Garamond', Georgia, serif;";
+      const inl = (g) => `<span class="katex-inline-fallback" style="${style} font-style:italic;">${cleanTexString(g)}</span>`;
+      const dsp = (g) => `<div class="katex-display-fallback" style="${style} text-align:center; margin:8px 0;">${cleanTexString(g)}</div>`;
+      nodes.forEach(textNode => {
+        const content = textNode.nodeValue.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const formatted = content
+          .replace(/\$\$([\s\S]+?)\$\$/g, (m, g) => dsp(g))
+          .replace(/\\\[([\s\S]+?)\\\]/g, (m, g) => dsp(g))
+          .replace(/\\\(([\s\S]+?)\\\)/g, (m, g) => inl(g))
+          .replace(/\$([^$\n]+?)\$/g, (m, g) => inl(g));
+        if (formatted !== content) {
+          const span = document.createElement('span');
+          span.innerHTML = formatted;
+          textNode.parentNode.replaceChild(span, textNode);
+        }
+      });
+    }
+
+    function renderKaTeXMath(elem) {
+      const target = elem || document.body;
+      if (window.renderMathInElement) {
+        try {
+          renderMathInElement(target, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '\\(', right: '\\)', display: false },
+              { left: '$', right: '$', display: false }
+            ],
+            throwOnError: false
+          });
+        } catch (e) {
+          console.warn('KaTeX render error:', e);
+        }
+      } else {
+        applyKaTeXFallbackTransforms(target);   // KaTeX unavailable -> plain-text approximation
+      }
+    }
+
+    function getEligibleTemplates() {
+      if (State.topicFilter === 'all') {
+        return ProblemCatalog;
+      }
+      return ProblemCatalog.filter(p => p.topic === State.topicFilter);
+    }
+
+    function loadNextProblem() {
+      State.isAnswerSubmitted = false;
+      document.getElementById('solutionBox').style.display = 'none';
+      document.getElementById('submitBtn').style.display = 'block';
+      document.getElementById('skipBtn').style.display = 'block';
+      document.getElementById('answerInput').value = '';
+      document.getElementById('answerInput').disabled = false;
+      document.getElementById('answerInput').focus();
+
+      if (State.gameMode !== 'endless') {
+        const limit = parseInt(State.gameMode, 10);
+        if (State.currentQuestionIndex >= limit) {
+          showRoundSummary();
+          return;
+        }
+      }
+
+      State.currentQuestionIndex++;
+      const progressText = State.gameMode === 'endless' 
+        ? `Question ${State.currentQuestionIndex}` 
+        : `Question ${State.currentQuestionIndex} of ${State.gameMode}`;
+      document.getElementById('questionProgress').textContent = progressText;
+
+      // Select without repetition in the current set
+      let eligible = getEligibleTemplates();
+      let available = eligible.filter(t => !State.historyPool.includes(t.id));
+
+      if (available.length === 0) {
+        State.historyPool = [];
+        available = eligible;
+      }
+
+      const template = available[randInt(0, available.length - 1)];
+      State.historyPool.push(template.id);
+
+      const generated = template.generate();
+      State.currentProblem = {
+        templateId: template.id,
+        topicName: template.topicName,
+        ...generated
+      };
+
+      document.getElementById('topicBadge').textContent = State.currentProblem.topicName;
+      document.getElementById('variableBadge').textContent = `Target: ${State.currentProblem.targetVar}`;
+      document.getElementById('problemPrompt').innerHTML = State.currentProblem.prompt;
+      document.getElementById('unitTag').textContent = State.currentProblem.targetUnit;
+
+      const paramBox = document.getElementById('paramBox');
+      paramBox.innerHTML = '';
+      State.currentProblem.params.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'param-item';
+        item.innerHTML = `<span class="param-name">${p.name}</span><span class="param-value">${p.value}</span>`;
+        paramBox.appendChild(item);
+      });
+
+      renderKaTeXMath();
+    }
+
+    function checkAnswer() {
+      if (State.isAnswerSubmitted) return;
+
+      const userValStr = document.getElementById('answerInput').value.trim();
+      if (!userValStr) {
+        alert('Please enter your calculated answer before submitting.');
+        return;
+      }
+
+      const userVal = parseFloat(userValStr);
+      if (isNaN(userVal)) {
+        alert('Please enter a valid numeric answer.');
+        return;
+      }
+
+      State.isAnswerSubmitted = true;
+      document.getElementById('answerInput').disabled = true;
+      document.getElementById('submitBtn').style.display = 'none';
+      document.getElementById('skipBtn').style.display = 'none';
+
+      const correctVal = State.currentProblem.answer;
+      const relError = Math.abs((userVal - correctVal) / (correctVal !== 0 ? correctVal : 1));
+      const absError = Math.abs(userVal - correctVal);
+      const isCorrect = relError <= 0.035 || absError <= 0.05;
+
+      const solBox = document.getElementById('solutionBox');
+      const resBadge = document.getElementById('resultBadge');
+      const resIcon = document.getElementById('resultIcon');
+      const resText = document.getElementById('resultText');
+      const feedback = document.getElementById('userFeedback');
+
+      solBox.style.display = 'block';
+
+      if (isCorrect) {
+        solBox.className = 'solution-box correct';
+        resBadge.className = 'result-badge correct';
+        resIcon.textContent = '✓';
+        resText.textContent = 'Correct Answer!';
+        feedback.innerHTML = `Your answer: <strong>${userVal} ${State.currentProblem.targetUnit}</strong> matches expected value <strong>${correctVal} ${State.currentProblem.targetUnit}</strong>.`;
+        
+        State.score += 10;
+        State.streak++;
+        State.correctInRound++;
+        if (State.streak > State.maxStreak) {
+          State.maxStreak = State.streak;
+        }
+        if (State.score > State.highScore) {
+          State.highScore = State.score;
+          localStorage.setItem('current_high_score', State.highScore);
+        }
+      } else {
+        solBox.className = 'solution-box incorrect';
+        resBadge.className = 'result-badge incorrect';
+        resIcon.textContent = '✗';
+        resText.textContent = 'Incorrect';
+        feedback.innerHTML = `Your answer: <strong>${userVal} ${State.currentProblem.targetUnit}</strong>. Expected: <strong>${correctVal} ${State.currentProblem.targetUnit}</strong>.`;
+        State.streak = 0;
+      }
+
+      updateScoreboardUI();
+      document.getElementById('solutionSteps').innerHTML = State.currentProblem.solutionKaTeX;
+      renderKaTeXMath();
+    }
+
+    function skipProblem() {
+      if (State.isAnswerSubmitted) return;
+      State.isAnswerSubmitted = true;
+      document.getElementById('answerInput').disabled = true;
+      document.getElementById('submitBtn').style.display = 'none';
+      document.getElementById('skipBtn').style.display = 'none';
+      State.streak = 0;
+      updateScoreboardUI();
+
+      const solBox = document.getElementById('solutionBox');
+      solBox.className = 'solution-box incorrect';
+      document.getElementById('resultBadge').className = 'result-badge incorrect';
+      document.getElementById('resultIcon').textContent = '⏭';
+      document.getElementById('resultText').textContent = 'Problem Skipped';
+      document.getElementById('userFeedback').innerHTML = `Correct answer: <strong>${State.currentProblem.answer} ${State.currentProblem.targetUnit}</strong>.`;
+      solBox.style.display = 'block';
+
+      document.getElementById('solutionSteps').innerHTML = State.currentProblem.solutionKaTeX;
+      renderKaTeXMath();
+    }
+
+    function showRoundSummary() {
+      const modal = document.getElementById('summaryModal');
+      document.getElementById('sumFinalScore').textContent = State.score;
+      const total = parseInt(State.gameMode, 10);
+      const acc = total > 0 ? Math.round((State.correctInRound / total) * 100) : 0;
+      document.getElementById('sumAccuracy').textContent = `${acc}%`;
+      document.getElementById('sumCorrectCount').textContent = `${State.correctInRound} / ${total}`;
+      document.getElementById('sumMaxStreak').textContent = `${State.maxStreak} ⚡`;
+
+      State.lastScore = State.score;
+      localStorage.setItem('current_last_score', State.lastScore);
+      updateScoreboardUI();
+
+      modal.style.display = 'flex';
+    }
+
+    function resetRound() {
+      State.score = 0;
+      State.streak = 0;
+      State.maxStreak = 0;
+      State.correctInRound = 0;
+      State.currentQuestionIndex = 0;
+      State.historyPool = [];
+      updateScoreboardUI();
+      document.getElementById('summaryModal').style.display = 'none';
+      loadNextProblem();
+    }
+
+    // --- Scientific Calculator (standard draggable widget) ---
+    /* ---------- expression engine (no eval) ---------- */
+    function tokenize(s) {
+      const out = []; let i = 0;
+      while (i < s.length) {
+        const rest = s.slice(i); let m;
+        if (/^\s/.test(rest)) { i++; continue; }
+        if ((m = /^(\d+\.?\d*|\.\d+)(E[+-]?\d+)?/.exec(rest))) { out.push({ t: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue; }
+        if ((m = /^(asin|acos|atan|sin|cos|tan|ln|log|sqrt|pi|ans|e)/.exec(rest))) {
+          const w = m[1]; out.push({ t: (w === 'pi' || w === 'e' || w === 'ans') ? 'const' : 'fn', v: w }); i += w.length; continue;
+        }
+        if ('+-*/^()'.includes(rest[0])) { out.push({ t: 'op', v: rest[0] }); i++; continue; }
+        throw new Error('Syntax error');
+      }
+      return out;
+    }
+    function evaluate(str, opts) {
+      const tk = tokenize(str); let p = 0;
+      const peek = () => tk[p], nxt = () => tk[p++];
+      const isOp = (t, v) => t && t.t === 'op' && t.v === v;
+      const starts = (t) => t && (t.t === 'num' || t.t === 'const' || t.t === 'fn' || isOp(t, '('));
+      const toRad = (x) => (opts.deg ? x * Math.PI / 180 : x);
+      const fromRad = (x) => (opts.deg ? x * 180 / Math.PI : x);
+      const F = {
+        sin: (x) => Math.sin(toRad(x)), cos: (x) => Math.cos(toRad(x)), tan: (x) => Math.tan(toRad(x)),
+        asin: (x) => fromRad(Math.asin(x)), acos: (x) => fromRad(Math.acos(x)), atan: (x) => fromRad(Math.atan(x)),
+        ln: Math.log, log: Math.log10, sqrt: Math.sqrt,
+      };
+      function expr() {
+        let v = term();
+        while (isOp(peek(), '+') || isOp(peek(), '-')) { const o = nxt().v; const r = term(); v = o === '+' ? v + r : v - r; }
+        return v;
+      }
+      function term() {
+        let v = unary();
+        for (;;) {
+          const t = peek();
+          if (isOp(t, '*') || isOp(t, '/')) { nxt(); const r = unary(); v = t.v === '*' ? v * r : v / r; }
+          else if (starts(t)) v *= unary();
+          else return v;
+        }
+      }
+      function unary() {
+        if (isOp(peek(), '-')) { nxt(); return -unary(); }
+        if (isOp(peek(), '+')) { nxt(); return unary(); }
+        return power();
+      }
+      function power() {
+        const b = primary();
+        if (isOp(peek(), '^')) { nxt(); return Math.pow(b, unary()); }
+        return b;
+      }
+      function primary() {
+        const t = nxt();
+        if (!t) throw new Error('Incomplete');
+        if (t.t === 'num') return t.v;
+        if (t.t === 'const') return t.v === 'pi' ? Math.PI : t.v === 'e' ? Math.E : opts.ans;
+        if (t.t === 'fn') {
+          if (!isOp(peek(), '(')) throw new Error('Use ( after ' + t.v);
+          nxt(); const a = expr(); if (isOp(peek(), ')')) nxt();
+          return F[t.v](a);
+        }
+        if (isOp(t, '(')) { const v = expr(); if (isOp(peek(), ')')) nxt(); return v; }
+        throw new Error('Syntax error');
+      }
+      const v = expr();
+      if (p < tk.length) throw new Error('Syntax error');
+      if (!isFinite(v)) throw new Error('Math error');
+      return v;
+    }
+    function fmt(x) {
+      if (x === 0) return '0';
+      const a = Math.abs(x);
+      if (a >= 1e10 || a < 1e-6) return x.toExponential(6).replace(/\.?0+e/, 'e').replace('e+', 'e');
+      return String(Number(x.toPrecision(10)));
+    }
+    const pretty = (s) => s.replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−').replace(/pi/g, 'π').replace(/sqrt\(/g, '√(').replace(/asin\(/g, 'sin⁻¹(').replace(/acos\(/g, 'cos⁻¹(').replace(/atan\(/g, 'tan⁻¹(');
+
+    window.initCalculator = function (getLastInput) {
+      const st = { expr: '', deg: true, inv: false, ans: 0, done: false, err: '' };
+      const panel = document.getElementById('calc'), fab = document.getElementById('fab');
+      const K_ = (label, act, cls, extra) => ({ label, act, cls: cls || '', extra: extra || '' });
+      const rows = () => [
+        [K_('2nd', 'inv', st.inv ? 'on fn' : 'fn'), K_(st.deg ? 'DEG' : 'RAD', 'deg', 'fn'), K_('(', '('), K_(')', ')'), K_('⌫', 'back', 'clr')],
+        [K_(st.inv ? 'sin⁻¹' : 'sin', st.inv ? 'asin(' : 'sin(', 'fn'), K_(st.inv ? 'cos⁻¹' : 'cos', st.inv ? 'acos(' : 'cos(', 'fn'), K_(st.inv ? 'tan⁻¹' : 'tan', st.inv ? 'atan(' : 'tan(', 'fn'), K_(st.inv ? 'eˣ' : 'ln', st.inv ? 'e^(' : 'ln(', 'fn'), K_(st.inv ? '10ˣ' : 'log', st.inv ? '10^(' : 'log(', 'fn')],
+        [K_('√', 'sqrt(', 'fn'), K_('x²', '^2', 'fn'), K_('xʸ', '^', 'fn'), K_('π', 'pi', 'fn'), K_('e', 'e', 'fn')],
+        [K_('7', '7'), K_('8', '8'), K_('9', '9'), K_('÷', '/', 'op'), K_('C', 'clear', 'clr')],
+        [K_('4', '4'), K_('5', '5'), K_('6', '6'), K_('×', '*', 'op'), K_('Ans', 'ans', 'fn')],
+        [K_('1', '1'), K_('2', '2'), K_('3', '3'), K_('−', '-', 'op'), K_('EE', 'E', 'fn')],
+        [K_('0', '0'), K_('.', '.'), K_('+', '+', 'op'), K_('=', '=', 'eq', 'grid-column:span 2')],
+      ];
+      panel.innerHTML = `
+        <div class="calc-head" id="calcHead"><span class="grip"><span class="dots" aria-hidden="true">⠿</span>Calculator</span>
+          <button type="button" id="calcClose" aria-label="Close calculator">&times;</button></div>
+        <div class="disp"><div class="expr"><span id="cExpr"></span></div><div class="res" id="cRes">0</div>
+          <div class="meta"><span id="cMode"></span><span>drag the header to move</span></div></div>
+        <div class="keys" id="cKeys"></div>
+        <div class="calc-foot"><button type="button" class="btn teal" id="cUse">Use result in answer box</button></div>`;
+      const $ = (s) => panel.querySelector(s);
+      function preview() {
+        if (!st.expr.trim()) return { txt: '' };
+        try { return { txt: fmt(evaluate(st.expr, st)) }; } catch (e) { return { txt: '' }; }
+      }
+      function paint() {
+        const keys = $('#cKeys'), flat = rows().flat();
+        keys.innerHTML = flat.map((k, i) => `<button type="button" data-i="${i}" class="${k.cls}" style="${k.extra}">${k.label}</button>`).join('');
+        keys.onclick = (e) => { const b = e.target.closest('button'); if (b) press(flat[Number(b.dataset.i)].act); };
+        keys.onmousedown = (e) => e.preventDefault();
+        $('#cExpr').textContent = st.done ? pretty(st.shown) + ' =' : pretty(st.expr);
+        const r = $('#cRes');
+        if (st.err) r.textContent = st.err;
+        else if (st.done && !st.expr) r.textContent = fmt(st.ans);
+        else r.textContent = preview().txt || '0';
+        r.classList.toggle('err', !!st.err);
+        $('#cMode').textContent = (st.deg ? 'degrees' : 'radians') + (st.ans ? '   ans = ' + fmt(st.ans) : '');
+      }
+      function append(s) {
+        if (st.done) { st.done = false; st.expr = (/^[+\-*/^]/.test(s) ? 'ans' : '') + s; return; }
+        st.expr += s;
+      }
+      function press(a) {
+        st.err = '';
+        if (a === 'inv') st.inv = !st.inv;
+        else if (a === 'deg') st.deg = !st.deg;
+        else if (a === 'clear') { st.expr = ''; st.done = false; }
+        else if (a === 'back') {
+          if (st.done) { st.done = false; st.expr = ''; }
+          else st.expr = st.expr.replace(/(asin\(|acos\(|atan\(|sqrt\(|sin\(|cos\(|tan\(|log\(|ln\(|ans|pi|.)$/, '');
+        } else if (a === '=') {
+          if (st.expr.trim()) {
+            try { st.ans = evaluate(st.expr, st); st.shown = st.expr; st.expr = ''; st.done = true; }
+            catch (e) { st.err = e.message; }
+          }
+        } else append(a);
+        paint();
+      }
+      function setOpen(o) {
+        panel.hidden = !o; fab.setAttribute('aria-expanded', String(o));
+        fab.setAttribute('aria-label', o ? 'Close calculator' : 'Open calculator');
+        if (o) paint();
+      }
+      fab.onclick = () => setOpen(panel.hidden);
+      $('#calcClose').onclick = () => setOpen(false);
+      fab.setAttribute('aria-controls', 'calc'); setOpen(false);
+      $('#cUse').onclick = () => {
+        const inp = getLastInput && getLastInput();
+        let v = st.done ? st.ans : (() => { try { return evaluate(st.expr || '0', st); } catch (e) { return NaN; } })();
+        if (!isFinite(v) || !inp || !document.contains(inp) || inp.disabled) {
+          $('#cUse').textContent = inp && !inp.disabled ? 'Nothing to insert yet' : 'Tap an answer box first';
+          setTimeout(() => { $('#cUse').textContent = 'Use result in answer box'; }, 1400); return;
+        }
+        inp.value = String(Number(v.toPrecision(6)));
+        $('#cUse').textContent = 'Inserted';
+        setTimeout(() => { $('#cUse').textContent = 'Use result in answer box'; }, 1000);
+      };
+      document.addEventListener('keydown', (e) => {
+        if (panel.hidden || /^(INPUT|SELECT|TEXTAREA)$/.test((e.target.tagName || ''))) return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const k = e.key;
+        if (/^[0-9.]$/.test(k) || '+-*/^()'.includes(k)) { press(k); e.preventDefault(); }
+        else if (k === 'Enter' || k === '=') { press('='); e.preventDefault(); }
+        else if (k === 'Backspace') { press('back'); e.preventDefault(); }
+        else if (k === 'Escape') { setOpen(false); }
+        else if (k === 'p') press('pi'); else if (k === 'e') press('e');
+      });
+      const head = $('#calcHead'); let drag = null;
+      head.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('button')) return;
+        const r = panel.getBoundingClientRect();
+        drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+        panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px'; panel.style.right = 'auto'; panel.style.bottom = 'auto';
+        head.setPointerCapture(e.pointerId);
+      });
+      head.addEventListener('pointermove', (e) => {
+        if (!drag) return;
+        const w = panel.offsetWidth, h = panel.offsetHeight;
+        const x = Math.min(Math.max(4, e.clientX - drag.dx), window.innerWidth - w - 4);
+        const y = Math.min(Math.max(4, e.clientY - drag.dy), window.innerHeight - h - 4);
+        panel.style.left = x + 'px'; panel.style.top = y + 'px';
+      });
+      const end = () => { drag = null; };
+      head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
+      window.addEventListener('resize', () => {
+        if (panel.style.left) {
+          const r = panel.getBoundingClientRect();
+          panel.style.left = Math.min(Math.max(4, r.left), Math.max(4, window.innerWidth - r.width - 4)) + 'px';
+          panel.style.top = Math.min(Math.max(4, r.top), Math.max(4, window.innerHeight - r.height - 4)) + 'px';
+        }
+      });
+    };
+
+
+    // --- Event Listeners Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+      updateScoreboardUI();
+
+      // Theme toggle
+      document.getElementById('themeToggleBtn').addEventListener('click', () => {
+        const html = document.documentElement;
+        const nextTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', nextTheme);
+        document.getElementById('themeIcon').textContent = nextTheme === 'dark' ? '☀️' : '🌙';
+      });
+
+      // Formula Sheet Modal
+      const formulaModal = document.getElementById('formulaModal');
+      document.getElementById('formulaSheetBtn').addEventListener('click', () => {
+        formulaModal.style.display = 'flex';
+        renderKaTeXMath();
+      });
+      document.getElementById('closeFormulaModal').addEventListener('click', () => {
+        formulaModal.style.display = 'none';
+      });
+
+      // Controls: Game Mode & Topic Dropdown
+      const modeBtns = document.querySelectorAll('#modeSelector .seg-btn');
+      modeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          modeBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          State.gameMode = btn.getAttribute('data-mode');
+          resetRound();
+        });
+      });
+
+      document.getElementById('topicDropdown').addEventListener('change', (e) => {
+        State.topicFilter = e.target.value;
+        resetRound();
+      });
+
+      // Action Buttons
+      document.getElementById('submitBtn').addEventListener('click', checkAnswer);
+      document.getElementById('skipBtn').addEventListener('click', skipProblem);
+      document.getElementById('nextProblemBtn').addEventListener('click', loadNextProblem);
+      document.getElementById('startNewRoundBtn').addEventListener('click', resetRound);
+
+      // Enter key submits
+      document.getElementById('answerInput').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+          if (!State.isAnswerSubmitted) {
+            checkAnswer();
+          } else {
+            loadNextProblem();
+          }
+        }
+      });
+
+      // Calculator: standard widget; "Use result in answer box" targets the answer field
+      document.getElementById('fab').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="8" y="5.5" width="8" height="4" rx="1"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/></svg>';
+      window.initCalculator(() => document.getElementById('answerInput'));
+
+      // Load initial problem
+      loadNextProblem();
+    });
+  </script>
+</body>
+</html>
