@@ -1,0 +1,2519 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Oscillatory Motion & Waves Practice | Chapter 16</title>
+  
+  <!-- KaTeX CSS & JS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #151b28;
+      --card-border: #283347;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8; /* Wave cyan / blue */
+      --primary-hover: #0284c7;
+      --primary-light: rgba(56, 189, 248, 0.15);
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.15);
+      --danger: #f43f5e;
+      --danger-bg: rgba(244, 63, 94, 0.15);
+      --accent: #818cf8;
+      --accent-bg: rgba(129, 140, 248, 0.14);
+      --input-bg: #0b0f19;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --primary-light: rgba(2, 132, 199, 0.12);
+      --success: #059669;
+      --success-bg: rgba(5, 150, 105, 0.12);
+      --danger: #e11d48;
+      --danger-bg: rgba(225, 29, 72, 0.12);
+      --accent: #6366f1;
+      --accent-bg: rgba(99, 102, 241, 0.1);
+      --input-bg: #f8fafc;
+      --shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      line-height: 1.5;
+      transition: background-color 0.25s, color 0.25s;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 760px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-bottom: 95px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      font-size: 1.8rem;
+    }
+
+    .logo-text h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .logo-text p {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Scoreboard */
+    .scoreboard {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .stat-val {
+      font-size: 1.18rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .stat-streak {
+      color: #38bdf8;
+    }
+
+    /* Controls Bar: Mode & Topic Selector */
+    .controls-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .control-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .segmented-control {
+      display: flex;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .seg-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .seg-btn.active {
+      background: var(--primary);
+      color: #0b0f19;
+      font-weight: 700;
+    }
+
+    [data-theme="light"] .seg-btn.active {
+      color: #ffffff;
+    }
+
+    select.topic-dropdown {
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 0.82rem;
+      outline: none;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    /* Main Problem Card */
+    .problem-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px 16px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .problem-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 10px;
+    }
+
+    .topic-badge {
+      background: var(--accent-bg);
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .variable-badge {
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .q-progress {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .problem-prompt {
+      font-size: 1.02rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .problem-prompt strong {
+      color: var(--primary);
+    }
+
+    /* Parameter Box */
+    .param-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .param-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .param-name {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .param-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* Input & Submission */
+    .answer-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--card-border);
+      padding-top: 14px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .answer-input-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .answer-input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 1.15rem;
+      font-weight: 700;
+      padding: 11px 12px;
+      padding-right: 65px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .answer-input:focus {
+      border-color: var(--primary);
+    }
+
+    .unit-tag {
+      position: absolute;
+      right: 12px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+      pointer-events: none;
+    }
+
+    .action-btn-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 8px;
+    }
+
+    .submit-btn {
+      background: var(--primary);
+      color: #0b0f19;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    [data-theme="light"] .submit-btn {
+      color: #ffffff;
+    }
+
+    .submit-btn:hover {
+      background: var(--primary-hover);
+      color: #ffffff;
+    }
+
+    .submit-btn:active {
+      transform: scale(0.98);
+    }
+
+    .skip-btn {
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 12px;
+      cursor: pointer;
+    }
+
+    .skip-btn:hover {
+      border-color: var(--text-muted);
+    }
+
+    /* Solution Box (Locked until submitted) */
+    .solution-box {
+      margin-top: 8px;
+      border-radius: 12px;
+      padding: 14px;
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .solution-box.correct {
+      background: var(--success-bg);
+      border: 1px solid var(--success);
+    }
+
+    .solution-box.incorrect {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger);
+    }
+
+    .result-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 800;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .result-badge.correct { color: var(--success); }
+    .result-badge.incorrect { color: var(--danger); }
+
+    .solution-steps {
+      font-size: 0.92rem;
+      line-height: 1.6;
+      margin-top: 8px;
+      color: var(--text);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .next-problem-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .next-problem-btn:hover {
+      opacity: 0.92;
+    }
+
+    /* ===== Standard floating calculator ===== */
+    :root{--panel:var(--card-bg);--panel2:var(--bg);--line:var(--card-border);--ink:var(--text);--muted:var(--text-muted);--amber:var(--primary);--amber-ink:#0b0f19;--teal:var(--accent);--teal-ink:#0b0f19;--bad:var(--danger)}
+    [data-theme="light"]{--amber-ink:#ffffff;--teal-ink:#ffffff}
+    .fab{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;border:0;background:var(--amber);color:var(--amber-ink);box-shadow:var(--shadow);z-index:100;display:grid;place-items:center;touch-action:manipulation;cursor:pointer}
+    .fab svg{width:28px;height:28px}
+    .calc{position:fixed;z-index:105;right:12px;bottom:calc(86px + env(safe-area-inset-bottom,0px));width:min(330px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);user-select:none;-webkit-user-select:none;overflow:hidden;color:var(--ink)}
+    .calc[hidden]{display:none}
+    .calc-head{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 6px 12px;background:var(--panel2);cursor:grab;touch-action:none;font-size:12.5px;color:var(--muted)}
+    .calc-head:active{cursor:grabbing}
+    .calc-head .grip{display:flex;gap:8px;align-items:center}
+    .calc-head .dots{letter-spacing:2px}
+    .calc-head button{width:38px;height:38px;border:0;background:transparent;border-radius:8px;font-size:20px;line-height:1;color:var(--ink);cursor:pointer}
+    .calc .disp{padding:10px 14px 6px;text-align:right;min-height:92px;display:flex;flex-direction:column;justify-content:flex-end}
+    .calc .disp .expr{font-size:15px;color:var(--muted);min-height:22px;overflow-x:auto;white-space:nowrap;direction:rtl;text-align:left}
+    .calc .disp .expr span{direction:ltr;unicode-bidi:plaintext}
+    .calc .disp .res{font-size:30px;font-weight:600;overflow-x:auto;white-space:nowrap;line-height:1.25}
+    .calc .disp .res.err{color:var(--bad);font-size:18px}
+    .calc .disp .meta{font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between}
+    .calc .keys{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:8px 10px 10px}
+    .calc .keys button{min-height:46px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:16px;padding:0;touch-action:manipulation;cursor:pointer}
+    .calc .keys button:active{transform:translateY(1px);filter:brightness(1.15)}
+    .calc .keys .fn{font-size:13.5px;color:var(--teal)}
+    .calc .keys .op{color:var(--amber);font-weight:600}
+    .calc .keys .eq{background:var(--amber);color:var(--amber-ink);border-color:var(--amber);font-weight:700}
+    .calc .keys .clr{color:var(--bad)}
+    .calc .keys .on{background:var(--teal);color:var(--teal-ink);border-color:var(--teal)}
+    .calc-foot{padding:0 10px 10px}
+    .calc-foot .btn{width:100%;min-height:42px;font-size:13.5px;border-radius:10px;border:1px solid var(--teal);background:var(--teal);color:var(--teal-ink);font-weight:600;cursor:pointer}
+
+    /* ===== Step-by-step solution layout ===== */
+    .solution-steps .sol-step{display:flex;gap:10px;margin:0 0 14px}
+    .solution-steps .sol-step:last-child{margin-bottom:0}
+    .solution-steps .sol-n{flex:0 0 24px;width:24px;height:24px;border-radius:50%;background:var(--primary);color:#0b0f19;font-weight:800;font-size:0.8rem;display:grid;place-items:center;margin-top:1px}
+    [data-theme="light"] .solution-steps .sol-n{color:#ffffff}
+    .solution-steps .sol-body{flex:1;min-width:0}
+    .solution-steps .sol-text{font-weight:600;line-height:1.5;margin-bottom:2px;overflow-wrap:anywhere}
+    .solution-steps .sol-eq{overflow-x:auto;overflow-y:hidden}
+    .solution-steps .sol-eq .katex-display{font-size:0.95em}
+
+    @media (max-width: 480px) {
+      .solution-steps .sol-step{display:block}
+      .solution-steps .sol-n{display:inline-grid;vertical-align:middle;margin:0 8px 0 0}
+      .solution-steps .sol-body{display:contents}
+      .solution-steps .sol-text{display:inline;vertical-align:middle}
+      .solution-steps .sol-eq{display:block;margin-top:4px}
+      .solution-steps .sol-eq .katex-display{font-size:0.88em}
+    }
+
+    /* Modal (Formula Sheet & Results) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow);
+      animation: popIn 0.25s ease-out;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .modal-header h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .formula-section {
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .formula-section h3 {
+      font-size: 0.92rem;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    /* Summary Modal styling */
+    .summary-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .summary-card {
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .summary-val {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .summary-lbl {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    /* KaTeX equation display adjustments */
+    .katex-display {
+      margin: 0.5em 0 !important;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 4px 0;
+    }
+
+    @media (max-width: 480px) {
+      .app-container { padding-bottom: 110px; }
+      .action-btn-row { grid-template-columns: 1fr; }
+      .stat-val { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Header -->
+    <header>
+      <div class="logo-area">
+        <div class="logo-icon">🌊</div>
+        <div class="logo-text">
+          <h1>WaveMaster 16</h1>
+          <p>Oscillatory Motion & Waves Problem Practice Engine</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggleBtn" title="Toggle Dark/Light Mode">
+          <span id="themeIcon">☀️</span>
+        </button>
+        <button class="icon-btn" id="formulaSheetBtn">
+          <span>📐 Formulas</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Scoreboard -->
+    <div class="scoreboard">
+      <div class="stat-box">
+        <span class="stat-label">Score</span>
+        <span class="stat-val" id="statScore">0</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Streak</span>
+        <span class="stat-val stat-streak" id="statStreak">0 ⚡</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Last Score</span>
+        <span class="stat-val" id="statLastScore">-</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">High Score</span>
+        <span class="stat-val" id="statHighScore">0</span>
+      </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-card">
+      <div class="control-row">
+        <span class="control-label">Game Mode:</span>
+        <div class="segmented-control" id="modeSelector">
+          <button class="seg-btn" data-mode="5">5 Qs</button>
+          <button class="seg-btn active" data-mode="10">10 Qs</button>
+          <button class="seg-btn" data-mode="15">15 Qs</button>
+          <button class="seg-btn" data-mode="endless">Endless</button>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Topic Filter:</span>
+        <select class="topic-dropdown" id="topicDropdown">
+          <option value="all" selected>🎲 Random Mixture (All Chapter 16 Topics)</option>
+          <option value="hooke">16.1 Hooke's Law & Elastic Potential Energy</option>
+          <option value="period_freq">16.2 Period, Frequency & Angular Frequency</option>
+          <option value="shm">16.3 Simple Harmonic Motion Kinematics</option>
+          <option value="pendulum">16.4 Simple Pendulum & Gravitational Acceleration</option>
+          <option value="energy">16.5 Energy in SHM (Kinetic, Potential, Conservation)</option>
+          <option value="damping">16.7 Damped Harmonic Motion & Half-Life</option>
+          <option value="resonance">16.8 Forced Oscillations & Resonance</option>
+          <option value="traveling">16.9 Traveling Waves & Stretched Strings</option>
+          <option value="interference">16.10 Superposition, Standing Waves & Beats</option>
+          <option value="intensity">16.11 Wave Energy, Power & Intensity</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Problem Card -->
+    <div class="problem-card" id="problemCard">
+      <div class="problem-meta">
+        <span class="topic-badge" id="topicBadge">Topic Name</span>
+        <span class="variable-badge" id="variableBadge">Target: Variable</span>
+        <span class="q-progress" id="questionProgress">Question 1 of 10</span>
+      </div>
+
+      <div class="problem-prompt" id="problemPrompt">
+        Loading question...
+      </div>
+
+      <div class="param-box" id="paramBox">
+        <!-- Dynamic Parameter Badges -->
+      </div>
+
+      <div class="answer-section">
+        <div class="input-row">
+          <div class="answer-input-container">
+            <input type="number" step="any" class="answer-input" id="answerInput" placeholder="Enter calculated value" autocomplete="off">
+            <span class="unit-tag" id="unitTag">m</span>
+          </div>
+        </div>
+        <div class="action-btn-row">
+          <button class="submit-btn" id="submitBtn">Submit Answer</button>
+          <button class="skip-btn" id="skipBtn">Skip</button>
+        </div>
+      </div>
+
+      <!-- Solution Container (Strictly locked until submitted) -->
+      <div class="solution-box" id="solutionBox">
+        <div class="result-badge" id="resultBadge">
+          <span id="resultIcon">✓</span>
+          <span id="resultText">Correct!</span>
+        </div>
+        <div id="userFeedback" style="font-size:0.88rem; color:var(--text-muted); margin-bottom:6px;"></div>
+        
+        <div style="font-weight:700; font-size:0.85rem; color:var(--primary); margin-top:8px;">
+          📖 Step-by-Step Derivation & Solution:
+        </div>
+        <div class="solution-steps" id="solutionSteps">
+          <!-- KaTeX math and explanation rendered here -->
+        </div>
+
+        <button class="next-problem-btn" id="nextProblemBtn">Next Problem →</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Floating calculator -->
+  <button class="fab" id="fab" type="button" aria-label="Open calculator"></button>
+  <div class="calc" id="calc" role="dialog" aria-label="Calculator" hidden></div>
+
+  <!-- Formula Sheet Modal -->
+  <div class="modal-overlay" id="formulaModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📐 Chapter 16 Reference Formulas</h2>
+        <button class="icon-btn" id="closeFormulaModal">✕</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="formula-section">
+          <h3>1. Hooke's Law & Elastic Potential Energy</h3>
+          <p>Restoring force and elastic strain energy:</p>
+          $$F_s = -kx, \quad U_s = \frac{1}{2}kx^2$$
+          <p><small>• $k$: force/spring constant $(\text{N/m})$<br>• $x$: deformation from equilibrium position $(\text{m})$</small></p>
+        </div>
+
+        <div class="formula-section">
+          <h3>2. Period, Frequency & Angular Frequency</h3>
+          $$f = \frac{1}{T}, \quad T = \frac{1}{f}, \quad \omega = 2\pi f = \frac{2\pi}{T}$$
+          <p><small>• $T$: period $(\text{s})$, $f$: frequency $(\text{Hz})$, $\omega$: angular frequency $(\text{rad/s})$</small></p>
+        </div>
+
+        <div class="formula-section">
+          <h3>3. Simple Harmonic Motion (Mass-Spring System)</h3>
+          $$\omega_0 = \sqrt{\frac{k}{m}}, \quad T = 2\pi\sqrt{\frac{m}{k}}, \quad f_0 = \frac{1}{2\pi}\sqrt{\frac{k}{m}}$$
+          <p>Kinematics equations:</p>
+          $$x(t) = A\cos(\omega_0 t + \phi), \quad v(t) = -A\omega_0\sin(\omega_0 t + \phi), \quad a(t) = -A\omega_0^2\cos(\omega_0 t + \phi) = -\omega_0^2 x$$
+          $$v_{\max} = A\omega_0 = A\sqrt{\frac{k}{m}}, \quad |a|_{\max} = A\omega_0^2 = A\frac{k}{m}, \quad A = \sqrt{x_0^2 + \left(\frac{v_0}{\omega_0}\right)^2}$$
+        </div>
+
+        <div class="formula-section">
+          <h3>4. Simple Pendulum</h3>
+          <p>Small angular displacement limit $(\sin\theta \approx \theta)$:</p>
+          $$\omega_0 = \sqrt{\frac{g}{L}}, \quad T_0 = 2\pi\sqrt{\frac{L}{g}}, \quad g = \frac{4\pi^2 L}{T_0^2}$$
+          $$A_s = L\theta_0, \quad v_{\max} \approx \theta_0\sqrt{gL}$$
+        </div>
+
+        <div class="formula-section">
+          <h3>5. Energy in Simple Harmonic Motion</h3>
+          $$E = K + U = \frac{1}{2}mv^2 + \frac{1}{2}kx^2 = \frac{1}{2}kA^2 = \frac{1}{2}mv_{\max}^2$$
+          $$|v| = \omega_0\sqrt{A^2 - x^2} = \sqrt{\frac{k}{m}(A^2 - x^2)}$$
+          <p><small>• Energy equipartition: $K = U = \frac{1}{2}E$ occurs at $x = \pm \frac{A}{\sqrt{2}}$.</small></p>
+        </div>
+
+        <div class="formula-section">
+          <h3>6. Damped Harmonic Motion</h3>
+          <p>Equation of motion: $m\ddot x + b\dot x + kx = 0$, where $\beta = \frac{b}{2m}$:</p>
+          $$\text{Underdamped } (b < b_c): \quad \omega_d = \sqrt{\omega_0^2 - \beta^2}, \quad T_d = \frac{2\pi}{\omega_d}$$
+          $$\text{Critical damping: } b_c = 2\sqrt{mk}, \quad \zeta = \frac{b}{b_c} = \frac{\beta}{\omega_0}$$
+          $$\text{Amplitude envelope: } A_{\text{env}}(t) = A_0 e^{-\beta t}, \quad t_{1/2} = \frac{\ln 2}{\beta}$$
+        </div>
+
+        <div class="formula-section">
+          <h3>7. Forced Oscillations & Resonance</h3>
+          <p>Steady-state amplitude for driver $F_0\cos(\Omega t)$:</p>
+          $$X(\Omega) = \frac{F_0}{\sqrt{(k - m\Omega^2)^2 + (b\Omega)^2}}$$
+          $$\text{Resonance } (\Omega = \omega_0): \quad X_{\text{res}} = \frac{F_0}{b\omega_0}, \quad Q_{\text{qual}} = \frac{m\omega_0}{b}$$
+          $$\text{Average absorbed power: } \langle P\rangle = \frac{1}{2}b\Omega^2 X^2$$
+        </div>
+
+        <div class="formula-section">
+          <h3>8. Traveling Waves & Wave Speed</h3>
+          $$c = \lambda f = \frac{\lambda}{T} = \frac{\omega}{\kappa}, \quad \kappa = \frac{2\pi}{\lambda}, \quad \omega = 2\pi f$$
+          <p>Transverse wave speed on a stretched flexible string (tension $\mathcal T$, linear mass density $\mu$):</p>
+          $$c = \sqrt{\frac{\mathcal T}{\mu}}, \quad v_{y,\max} = A\omega$$
+        </div>
+
+        <div class="formula-section">
+          <h3>9. Interference, Standing Waves & Beats</h3>
+          <p>Resultant amplitude of two coherent waves with phase difference $\Delta\phi$:</p>
+          $$A_R = \sqrt{A_1^2 + A_2^2 + 2A_1 A_2 \cos\Delta\phi} \quad \xrightarrow{A_1=A_2=A} \quad A_R = 2A\left|\cos\frac{\Delta\phi}{2}\right|$$
+          <p>Standing waves on string fixed at both ends (length $L$):</p>
+          $$\lambda_n = \frac{2L}{n}, \quad f_n = \frac{nc}{2L} = n f_1 \quad (n = 1, 2, 3, \dots)$$
+          <p>Beat frequency (superposition of two nearby frequencies $f_1, f_2$):</p>
+          $$f_{\text{beat}} = |f_1 - f_2|, \quad f_{\text{avg}} = \frac{f_1 + f_2}{2}, \quad T_{\text{beat}} = \frac{1}{f_{\text{beat}}}$$
+        </div>
+
+        <div class="formula-section">
+          <h3>10. Wave Energy, Power & Intensity</h3>
+          <p>Average power transmitted along a stretched string:</p>
+          $$\langle P\rangle = \frac{1}{2}\mu\omega^2 A^2 c$$
+          <p>Intensity and 3D spherical inverse-square spreading:</p>
+          $$I = \frac{P}{\mathcal A}, \quad I(r) = \frac{P}{4\pi r^2}, \quad \frac{I_1}{I_2} = \left(\frac{r_2}{r_1}\right)^2$$
+          $$E = I\mathcal A\Delta t, \quad P_{\text{detected}} = I\mathcal A_{\text{detector}}$$
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- End of Set Summary Modal -->
+  <div class="modal-overlay" id="summaryModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🎉 Round Complete!</h2>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <p>Excellent job completing your Chapter 16 practice set!</p>
+        <div class="summary-stat-grid">
+          <div class="summary-card">
+            <div class="summary-val" id="sumFinalScore">0</div>
+            <div class="summary-lbl">Points Earned</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-val" id="sumAccuracy">0%</div>
+            <div class="summary-lbl">Accuracy</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-val" id="sumCorrectCount">0/10</div>
+            <div class="summary-lbl">Problems Solved</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-val" id="sumMaxStreak">0 ⚡</div>
+            <div class="summary-lbl">Max Streak</div>
+          </div>
+        </div>
+        <button class="next-problem-btn" id="startNewRoundBtn">Start New Round</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script>
+    // --- Global Application State & LocalStorage Persistence ---
+    const State = {
+      score: 0,
+      streak: 0,
+      maxStreak: 0,
+      lastScore: localStorage.getItem('wave_last_score') || '-',
+      highScore: parseInt(localStorage.getItem('wave_high_score') || '0', 10),
+      gameMode: '10', // '5', '10', '15', 'endless'
+      topicFilter: 'all',
+      currentQuestionIndex: 0,
+      totalQuestions: 10,
+      correctInRound: 0,
+      currentProblem: null,
+      isAnswerSubmitted: false,
+      historyPool: [] // IDs used in current set to prevent repetition
+    };
+
+    // Standard Gravitational Acceleration
+    const G_ACCEL = 9.81;
+
+    // Helper math functions
+    function randBetween(min, max, decimals = 1) {
+      const val = min + Math.random() * (max - min);
+      return Number(val.toFixed(decimals));
+    }
+
+    function randInt(min, max) {
+      return Math.floor(min + Math.random() * (max - min + 1));
+    }
+
+    // --- Chapter 16 Problem Templates Catalog (Switching Target Variables) ---
+    const ProblemCatalog = [
+
+      // 1. Hooke's Law: F = -k x (or magnitude |F| = k |x|)
+      {
+        id: 'hooke_law',
+        topic: 'hooke',
+        topicName: "Hooke's Law Restoring Force",
+        generate() {
+          const variations = ['F', 'k', 'x'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const k = randBetween(40, 250, 0); // N/m
+          const x_cm = randBetween(2.0, 15.0, 1); // cm
+          const x_m = Number((x_cm * 0.01).toFixed(4));
+          const F = Number((k * x_m).toFixed(2)); // N
+
+          if (target === 'F') {
+            return {
+              targetVar: '|F|',
+              targetUnit: 'N',
+              prompt: `A spring with a force constant of <strong>${k} N/m</strong> is stretched by <strong>${x_cm} cm</strong> from its equilibrium length. Calculate the magnitude of the restoring force (\\(|F|\\)) exerted by the spring in Newtons.`,
+              params: [
+                { name: 'Spring Constant (k)', value: `${k} N/m` },
+                { name: 'Displacement (x)', value: `${x_cm} cm` },
+                { name: 'Target Variable', value: 'Restoring Force |F|' }
+              ],
+              answer: F,
+              solutionKaTeX: `
+              According to Hooke's law:
+              $$F_s = -kx \\implies |F_s| = k|x|$$
+              Convert displacement to meters:
+              $$x = ${x_cm}\\,\\text{cm} = ${x_m}\\,\\text{m}$$
+              Substitute values:
+              $$|F_s| = (${k}\\,\\text{N/m})(${x_m}\\,\\text{m}) = ${F}\\,\\text{N}$$`
+            };
+          } else if (target === 'k') {
+            return {
+              targetVar: 'k',
+              targetUnit: 'N/m',
+              prompt: `A mass deforms a spring by <strong>${x_cm} cm</strong>, causing the spring to exert an opposing restoring force of <strong>${F} N</strong>. Determine the spring force constant (\\(k\\)) in <strong>N/m</strong>.`,
+              params: [
+                { name: 'Restoring Force (|F|)', value: `${F} N` },
+                { name: 'Deformation (x)', value: `${x_cm} cm` },
+                { name: 'Target Variable', value: 'Spring Constant k' }
+              ],
+              answer: k,
+              solutionKaTeX: `
+              Using Hooke's law:
+              $$|F| = k|x| \\implies k = \\frac{|F|}{|x|}$$
+              Convert $x = ${x_cm}\\,\\text{cm} = ${x_m}\\,\\text{m}$:
+              $$k = \\frac{${F}\\,\\text{N}}{${x_m}\\,\\text{m}} = ${k}\\,\\text{N/m}$$`
+            };
+          } else {
+            return {
+              targetVar: 'x',
+              targetUnit: 'cm',
+              prompt: `A spring with stiffness \\(k = ${k}\\,\\text{N/m}\\) exerts a restoring force of magnitude <strong>${F} N</strong>. Find the deformation distance (\\(x\\)) in <strong>centimeters (cm)</strong>.`,
+              params: [
+                { name: 'Spring Constant (k)', value: `${k} N/m` },
+                { name: 'Force Magnitude (|F|)', value: `${F} N` },
+                { name: 'Target Variable', value: 'Deformation x (cm)' }
+              ],
+              answer: x_cm,
+              solutionKaTeX: `
+              Rearranging Hooke's law for displacement:
+              $$|x| = \\frac{|F|}{k} = \\frac{${F}\\,\\text{N}}{${k}\\,\\text{N/m}} = ${x_m}\\,\\text{m}$$
+              Converting to centimeters:
+              $$x = (${x_m})\\times 100 = ${x_cm}\\,\\text{cm}$$`
+            };
+          }
+        }
+      },
+
+      // 2. Elastic Potential Energy: U = 0.5 k x^2
+      {
+        id: 'elastic_pe',
+        topic: 'hooke',
+        topicName: 'Elastic Potential Energy',
+        generate() {
+          const variations = ['U', 'k', 'x'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const k = randBetween(50, 300, 0); // N/m
+          const x_cm = randBetween(4.0, 20.0, 1); // cm
+          const x_m = Number((x_cm * 0.01).toFixed(4));
+          const U = Number((0.5 * k * x_m * x_m).toFixed(3)); // J
+
+          if (target === 'U') {
+            return {
+              targetVar: 'U_s',
+              targetUnit: 'J',
+              prompt: `A horizontal spring with constant <strong>${k} N/m</strong> is compressed by <strong>${x_cm} cm</strong> from equilibrium. How much elastic potential energy (\\(U_s\\)) is stored in the spring in Joules?`,
+              params: [
+                { name: 'Spring Constant (k)', value: `${k} N/m` },
+                { name: 'Compression (x)', value: `${x_cm} cm` },
+                { name: 'Target Variable', value: 'Potential Energy U_s' }
+              ],
+              answer: U,
+              solutionKaTeX: `
+              Stored elastic energy is given by:
+              $$U_s = \\frac{1}{2}kx^2$$
+              Convert compression: $x = ${x_cm}\\,\\text{cm} = ${x_m}\\,\\text{m}$.
+              $$U_s = \\frac{1}{2}(${k}\\,\\text{N/m})(${x_m}\\,\\text{m})^2 = 0.5\\times ${k}\\times ${(x_m*x_m).toFixed(6)} = ${U}\\,\\text{J}$$`
+            };
+          } else if (target === 'k') {
+            return {
+              targetVar: 'k',
+              targetUnit: 'N/m',
+              prompt: `Compressing a spring by <strong>${x_cm} cm</strong> stores <strong>${U} J</strong> of elastic strain energy. Determine the spring constant (\\(k\\)) in <strong>N/m</strong>.`,
+              params: [
+                { name: 'Stored Energy (U_s)', value: `${U} J` },
+                { name: 'Compression (x)', value: `${x_cm} cm` },
+                { name: 'Target Variable', value: 'Spring Constant k' }
+              ],
+              answer: k,
+              solutionKaTeX: `
+              Rearranging $U_s = \\frac{1}{2}kx^2$ for stiffness:
+              $$k = \\frac{2U_s}{x^2}$$
+              With $x = ${x_m}\\,\\text{m}$:
+              $$k = \\frac{2(${U}\\,\\text{J})}{(${x_m}\\,\\text{m})^2} = \\frac{${(2*U).toFixed(3)}}{${(x_m*x_m).toFixed(6)}} = ${k}\\,\\text{N/m}$$`
+            };
+          } else {
+            return {
+              targetVar: 'x',
+              targetUnit: 'cm',
+              prompt: `A spring with stiffness \\(k = ${k}\\,\\text{N/m}\\) stores <strong>${U} J</strong> of elastic energy when deformed. What is the displacement (\\(x\\)) in <strong>cm</strong>?`,
+              params: [
+                { name: 'Spring Constant (k)', value: `${k} N/m` },
+                { name: 'Stored Energy (U_s)', value: `${U} J` },
+                { name: 'Target Variable', value: 'Displacement x (cm)' }
+              ],
+              answer: x_cm,
+              solutionKaTeX: `
+              $$x = \\sqrt{\\frac{2U_s}{k}} = \\sqrt{\\frac{2(${U})}{${k}}} = \\sqrt{${((2*U)/k).toFixed(6)}} = ${x_m}\\,\\text{m}$$
+              In centimeters: $x = ${x_cm}\\,\\text{cm}$.`
+            };
+          }
+        }
+      },
+
+      // 3. Period, Frequency & Angular Frequency: f = 1/T, ω = 2π f
+      {
+        id: 'period_freq_angular',
+        topic: 'period_freq',
+        topicName: 'Period, Frequency & Angular Frequency',
+        generate() {
+          const variations = ['f', 'T', 'omega'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const f = randBetween(1.5, 12.0, 2); // Hz
+          const T = Number((1 / f).toFixed(4)); // s
+          const omega = Number((2 * Math.PI * f).toFixed(2)); // rad/s
+
+          if (target === 'f') {
+            return {
+              targetVar: 'f',
+              targetUnit: 'Hz',
+              prompt: `An oscillating cantilever completes one full cycle of vibration in a period of <strong>${T} s</strong>. Calculate its frequency of oscillation (\\(f\\)) in <strong>Hz</strong>.`,
+              params: [
+                { name: 'Period (T)', value: `${T} s` },
+                { name: 'Target Variable', value: 'Frequency f' }
+              ],
+              answer: f,
+              solutionKaTeX: `
+              By definition of frequency:
+              $$f = \\frac{1}{T} = \\frac{1}{${T}\\,\\text{s}} = ${f}\\,\\text{Hz}$$`
+            };
+          } else if (target === 'T') {
+            return {
+              targetVar: 'T',
+              targetUnit: 's',
+              prompt: `A tuning fork vibrates at a frequency of <strong>${f} Hz</strong>. What is the period of vibration (\\(T\\)) in seconds?`,
+              params: [
+                { name: 'Frequency (f)', value: `${f} Hz` },
+                { name: 'Target Variable', value: 'Period T' }
+              ],
+              answer: T,
+              solutionKaTeX: `
+              $$T = \\frac{1}{f} = \\frac{1}{${f}\\,\\text{Hz}} = ${T}\\,\\text{s}$$`
+            };
+          } else {
+            return {
+              targetVar: 'ω',
+              targetUnit: 'rad/s',
+              prompt: `A mechanical vibrator operates at a frequency of <strong>${f} Hz</strong>. Find its angular frequency (\\(\\omega\\)) in <strong>rad/s</strong>.`,
+              params: [
+                { name: 'Frequency (f)', value: `${f} Hz` },
+                { name: 'Target Variable', value: 'Angular Frequency ω' }
+              ],
+              answer: omega,
+              solutionKaTeX: `
+              Converting cyclic frequency to angular frequency:
+              $$\\omega = 2\\pi f = 2\\pi(${f}\\,\\text{s}^{-1}) = ${omega}\\,\\text{rad/s}$$`
+            };
+          }
+        }
+      },
+
+      // 4. Mass-Spring Simple Harmonic Motion: T = 2π √(m/k)
+      {
+        id: 'spring_mass_period',
+        topic: 'shm',
+        topicName: 'Mass-Spring SHM Period',
+        generate() {
+          const variations = ['T', 'm', 'k'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const m = randBetween(0.2, 2.5, 2); // kg
+          const k = randBetween(40, 200, 0); // N/m
+          const T = Number((2 * Math.PI * Math.sqrt(m / k)).toFixed(3)); // s
+
+          if (target === 'T') {
+            return {
+              targetVar: 'T',
+              targetUnit: 's',
+              prompt: `A <strong>${m} kg</strong> mass is attached to a horizontal spring with force constant <strong>${k} N/m</strong> on a frictionless surface. What is the period of oscillation (\\(T\\)) in seconds?`,
+              params: [
+                { name: 'Mass (m)', value: `${m} kg` },
+                { name: 'Spring Constant (k)', value: `${k} N/m` },
+                { name: 'Target Variable', value: 'Period T' }
+              ],
+              answer: T,
+              solutionKaTeX: `
+              For a mass-spring simple harmonic oscillator:
+              $$T = 2\\pi\\sqrt{\\frac{m}{k}}$$
+              $$T = 2\\pi\\sqrt{\\frac{${m}\\,\\text{kg}}{${k}\\,\\text{N/m}}} = 2\\pi\\sqrt{${(m/k).toFixed(5)}} = ${T}\\,\\text{s}$$`
+            };
+          } else if (target === 'm') {
+            return {
+              targetVar: 'm',
+              targetUnit: 'kg',
+              prompt: `An unknown mass attached to a spring of stiffness \\(k = ${k}\\,\\text{N/m}\\) oscillates with a measured period of <strong>${T} s</strong>. Find the mass (\\(m\\)) in <strong>kg</strong>.`,
+              params: [
+                { name: 'Measured Period (T)', value: `${T} s` },
+                { name: 'Spring Constant (k)', value: `${k} N/m` },
+                { name: 'Target Variable', value: 'Mass m' }
+              ],
+              answer: m,
+              solutionKaTeX: `
+              Squaring the period equation:
+              $$T^2 = 4\\pi^2\\frac{m}{k} \\implies m = \\frac{k T^2}{4\\pi^2}$$
+              $$m = \\frac{(${k}\\,\\text{N/m})(${T}\\,\\text{s})^2}{4\\pi^2} = \\frac{${(k * T * T).toFixed(3)}}{39.4784} = ${m}\\,\\text{kg}$$`
+            };
+          } else {
+            return {
+              targetVar: 'k',
+              targetUnit: 'N/m',
+              prompt: `A <strong>${m} kg</strong> object vibrates in simple harmonic motion with a period of <strong>${T} s</strong>. Determine the spring constant (\\(k\\)) in <strong>N/m</strong>.`,
+              params: [
+                { name: 'Mass (m)', value: `${m} kg` },
+                { name: 'Period (T)', value: `${T} s` },
+                { name: 'Target Variable', value: 'Spring Constant k' }
+              ],
+              answer: k,
+              solutionKaTeX: `
+              $$T^2 = 4\\pi^2\\frac{m}{k} \\implies k = \\frac{4\\pi^2 m}{T^2}$$
+              $$k = \\frac{4\\pi^2(${m}\\,\\text{kg})}{(${T}\\,\\text{s})^2} = \\frac{${(4 * Math.PI * Math.PI * m).toFixed(3)}}{${(T * T).toFixed(4)}} = ${k}\\,\\text{N/m}$$`
+            };
+          }
+        }
+      },
+
+      // 5. SHM Kinematics: vmax = A ω0, amax = A ω0^2
+      {
+        id: 'shm_max_v_a',
+        topic: 'shm',
+        topicName: 'SHM Velocity & Acceleration Limits',
+        generate() {
+          const variations = ['vmax', 'amax', 'A', 'omega0'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const A_cm = randBetween(3.0, 15.0, 1); // cm
+          const A_m = Number((A_cm * 0.01).toFixed(3));
+          const omega0 = randBetween(4.0, 16.0, 1); // rad/s
+          const vmax = Number((A_m * omega0).toFixed(3)); // m/s
+          const amax = Number((A_m * omega0 * omega0).toFixed(2)); // m/s^2
+
+          if (target === 'vmax') {
+            return {
+              targetVar: 'v_max',
+              targetUnit: 'm/s',
+              prompt: `A body undergoes simple harmonic motion with amplitude <strong>${A_cm} cm</strong> and angular frequency \\(\\omega_0 = ${omega0}\\,\\text{rad/s}\\). Find its maximum speed (\\(v_{\\max}\\)) in <strong>m/s</strong>.`,
+              params: [
+                { name: 'Amplitude (A)', value: `${A_cm} cm` },
+                { name: 'Angular Frequency (ω₀)', value: `${omega0} rad/s` },
+                { name: 'Target Variable', value: 'Maximum Speed v_max' }
+              ],
+              answer: vmax,
+              solutionKaTeX: `
+              Maximum speed occurs at equilibrium:
+              $$v_{\\max} = A\\omega_0$$
+              Convert $A = ${A_cm}\\,\\text{cm} = ${A_m}\\,\\text{m}$:
+              $$v_{\\max} = (${A_m}\\,\\text{m})(${omega0}\\,\\text{rad/s}) = ${vmax}\\,\\text{m/s}$$`
+            };
+          } else if (target === 'amax') {
+            return {
+              targetVar: '|a|_max',
+              targetUnit: 'm/s²',
+              prompt: `An object in simple harmonic motion has amplitude <strong>${A_cm} cm</strong> and oscillates at \\(\\omega_0 = ${omega0}\\,\\text{rad/s}\\). Find the magnitude of its maximum acceleration (\\(|a|_{\\max}\\)) in <strong>m/s²</strong>.`,
+              params: [
+                { name: 'Amplitude (A)', value: `${A_cm} cm` },
+                { name: 'Angular Frequency (ω₀)', value: `${omega0} rad/s` },
+                { name: 'Target Variable', value: 'Maximum Acceleration |a|_max' }
+              ],
+              answer: amax,
+              solutionKaTeX: `
+              Maximum acceleration magnitude occurs at maximum displacement (turning points):
+              $$|a|_{\\max} = A\\omega_0^2$$
+              $$|a|_{\\max} = (${A_m}\\,\\text{m})(${omega0}\\,\\text{rad/s})^2 = (${A_m})(${Number((omega0*omega0).toFixed(2))}) = ${amax}\\,\\text{m/s}^2$$`
+            };
+          } else if (target === 'A') {
+            return {
+              targetVar: 'A',
+              targetUnit: 'cm',
+              prompt: `An oscillator moving at \\(\\omega_0 = ${omega0}\\,\\text{rad/s}\\) attains a maximum velocity of <strong>${vmax} m/s</strong>. What is its oscillation amplitude (\\(A\\)) in <strong>cm</strong>?`,
+              params: [
+                { name: 'Max Speed (v_max)', value: `${vmax} m/s` },
+                { name: 'Angular Frequency (ω₀)', value: `${omega0} rad/s` },
+                { name: 'Target Variable', value: 'Amplitude A (cm)' }
+              ],
+              answer: A_cm,
+              solutionKaTeX: `
+              $$A = \\frac{v_{\\max}}{\\omega_0} = \\frac{${vmax}\\,\\text{m/s}}{${omega0}\\,\\text{rad/s}} = ${A_m}\\,\\text{m}$$
+              In centimeters: $A = ${A_cm}\\,\\text{cm}$.`
+            };
+          } else {
+            return {
+              targetVar: 'ω₀',
+              targetUnit: 'rad/s',
+              prompt: `An SHM oscillator with amplitude <strong>${A_cm} cm</strong> reaches a maximum acceleration of <strong>${amax} m/s²</strong>. What is its natural angular frequency (\\(\\omega_0\\)) in <strong>rad/s</strong>?`,
+              params: [
+                { name: 'Amplitude (A)', value: `${A_cm} cm` },
+                { name: 'Max Acceleration (|a|_max)', value: `${amax} m/s²` },
+                { name: 'Target Variable', value: 'Angular Frequency ω₀' }
+              ],
+              answer: omega0,
+              solutionKaTeX: `
+              $$|a|_{\\max} = A\\omega_0^2 \\implies \\omega_0 = \\sqrt{\\frac{|a|_{\\max}}{A}}$$
+              With $A = ${A_m}\\,\\text{m}$:
+              $$\\omega_0 = \\sqrt{\\frac{${amax}}{${A_m}}} = \\sqrt{${(amax/A_m).toFixed(2)}} = ${omega0}\\,\\text{rad/s}$$`
+            };
+          }
+        }
+      },
+
+      // 6. Simple Pendulum: T = 2π √(L/g)
+      {
+        id: 'pendulum_period',
+        topic: 'pendulum',
+        topicName: 'Simple Pendulum Dynamics',
+        generate() {
+          const variations = ['T', 'L', 'g'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const L = randBetween(0.40, 2.20, 2); // m
+          const g = randBetween(9.75, 9.85, 2); // m/s^2
+          const T = Number((2 * Math.PI * Math.sqrt(L / g)).toFixed(3)); // s
+
+          if (target === 'T') {
+            return {
+              targetVar: 'T',
+              targetUnit: 's',
+              prompt: `A simple pendulum consists of a small bob on a light string of length <strong>${L} m</strong>. Assuming small angular oscillations where \\(g = ${g}\\,\\text{m/s}^2\\), calculate the period of oscillation (\\(T\\)) in seconds.`,
+              params: [
+                { name: 'Length (L)', value: `${L} m` },
+                { name: 'Gravity (g)', value: `${g} m/s²` },
+                { name: 'Target Variable', value: 'Period T' }
+              ],
+              answer: T,
+              solutionKaTeX: `
+              For a simple pendulum in the small-angle approximation:
+              $$T = 2\\pi\\sqrt{\\frac{L}{g}}$$
+              $$T = 2\\pi\\sqrt{\\frac{${L}\\,\\text{m}}{${g}\\,\\text{m/s}^2}} = 2\\pi\\sqrt{${(L/g).toFixed(5)}} = ${T}\\,\\text{s}$$`
+            };
+          } else if (target === 'L') {
+            return {
+              targetVar: 'L',
+              targetUnit: 'm',
+              prompt: `A grandfather clock requires a simple pendulum with an oscillation period of <strong>${T} s</strong> where local gravity is \\(g = ${g}\\,\\text{m/s}^2\\). Determine the required pendulum length (\\(L\\)) in meters.`,
+              params: [
+                { name: 'Desired Period (T)', value: `${T} s` },
+                { name: 'Gravity (g)', value: `${g} m/s²` },
+                { name: 'Target Variable', value: 'Pendulum Length L' }
+              ],
+              answer: L,
+              solutionKaTeX: `
+              Rearranging $T = 2\\pi\\sqrt{L/g}$ for length:
+              $$L = \\frac{g T^2}{4\\pi^2} = \\frac{(${g})(${T})^2}{4\\pi^2} = \\frac{${(g*T*T).toFixed(3)}}{39.4784} = ${L}\\,\\text{m}$$`
+            };
+          } else {
+            return {
+              targetVar: 'g',
+              targetUnit: 'm/s²',
+              prompt: `A geology student uses a <strong>${L} m</strong> precision pendulum and measures a small-angle period of <strong>${T} s</strong>. Infer the local gravitational acceleration (\\(g\\)) in <strong>m/s²</strong>.`,
+              params: [
+                { name: 'Pendulum Length (L)', value: `${L} m` },
+                { name: 'Measured Period (T)', value: `${T} s` },
+                { name: 'Target Variable', value: 'Local Gravity g' }
+              ],
+              answer: g,
+              solutionKaTeX: `
+              Squaring the period equation and isolating $g$:
+              $$g = \\frac{4\\pi^2 L}{T^2} = \\frac{4\\pi^2(${L})}{(${T})^2} = \\frac{${(4*Math.PI*Math.PI*L).toFixed(3)}}{${(T*T).toFixed(4)}} = ${g}\\,\\text{m/s}^2$$`
+            };
+          }
+        }
+      },
+
+      // 7. Energy in SHM & Velocity at Displacement: E = 0.5 k A^2, v = ω √(A^2 - x^2)
+      {
+        id: 'shm_energy_conservation',
+        topic: 'energy',
+        topicName: 'Energy Conservation in SHM',
+        generate() {
+          const variations = ['E', 'v_at_x', 'A'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const m = randBetween(0.25, 1.20, 2); // kg
+          const k = randBetween(60, 240, 0); // N/m
+          const A_cm = randBetween(5.0, 12.0, 1); // cm
+          const A_m = Number((A_cm * 0.01).toFixed(3));
+          const E = Number((0.5 * k * A_m * A_m).toFixed(3)); // J
+          const omega0 = Math.sqrt(k / m);
+          // Pick x as 0.6 of A
+          const x_m = Number((0.6 * A_m).toFixed(3));
+          const x_cm = Number((x_m * 100).toFixed(1));
+          const v_at_x = Number((omega0 * Math.sqrt(A_m * A_m - x_m * x_m)).toFixed(3)); // m/s
+
+          if (target === 'E') {
+            return {
+              targetVar: 'E_total',
+              targetUnit: 'J',
+              prompt: `A <strong>${m} kg</strong> mass oscillates on a spring with \\(k = ${k}\\,\\text{N/m}\\) with an amplitude of <strong>${A_cm} cm</strong>. Find the total mechanical energy (\\(E\\)) of the oscillator in Joules.`,
+              params: [
+                { name: 'Spring Constant (k)', value: `${k} N/m` },
+                { name: 'Amplitude (A)', value: `${A_cm} cm` },
+                { name: 'Oscillator Mass (m)', value: `${m} kg` },
+                { name: 'Target Variable', value: 'Total Energy E' }
+              ],
+              answer: E,
+              solutionKaTeX: `
+              At the turning points, all energy is potential:
+              $$E = \\frac{1}{2}kA^2$$
+              Convert $A = ${A_cm}\\,\\text{cm} = ${A_m}\\,\\text{m}$:
+              $$E = \\frac{1}{2}(${k}\\,\\text{N/m})(${A_m}\\,\\text{m})^2 = ${E}\\,\\text{J}$$`
+            };
+          } else if (target === 'v_at_x') {
+            return {
+              targetVar: '|v|',
+              targetUnit: 'm/s',
+              prompt: `A <strong>${m} kg</strong> mass on a spring (\\(k = ${k}\\,\\text{N/m}\\)) vibrates with amplitude <strong>${A_cm} cm</strong>. What is the speed (\\(|v|\\)) of the mass when its position is <strong>${x_cm} cm</strong> from equilibrium?`,
+              params: [
+                { name: 'Mass (m)', value: `${m} kg` },
+                { name: 'Stiffness (k)', value: `${k} N/m` },
+                { name: 'Amplitude (A)', value: `${A_cm} cm` },
+                { name: 'Position (x)', value: `${x_cm} cm` },
+                { name: 'Target Variable', value: 'Speed |v| at x' }
+              ],
+              answer: v_at_x,
+              solutionKaTeX: `
+              From conservation of mechanical energy:
+              $$\\frac{1}{2}mv^2 + \\frac{1}{2}kx^2 = \\frac{1}{2}kA^2 \\implies |v| = \\sqrt{\\frac{k}{m}(A^2 - x^2)}$$
+              $$\\omega_0 = \\sqrt{\\frac{k}{m}} = \\sqrt{\\frac{${k}}{${m}}} = ${omega0.toFixed(3)}\\,\\text{rad/s}$$
+              $$A = ${A_m}\\,\\text{m}, \\quad x = ${x_m}\\,\\text{m}$$
+              $$\\sqrt{A^2 - x^2} = \\sqrt{${(A_m*A_m).toFixed(6)} - ${(x_m*x_m).toFixed(6)}} = ${(Math.sqrt(A_m*A_m - x_m*x_m)).toFixed(4)}\\,\\text{m}$$
+              $$|v| = (${omega0.toFixed(3)})(${(Math.sqrt(A_m*A_m - x_m*x_m)).toFixed(4)}) = ${v_at_x}\\,\\text{m/s}$$`
+            };
+          } else {
+            return {
+              targetVar: 'A',
+              targetUnit: 'cm',
+              prompt: `An oscillating system with spring constant \\(k = ${k}\\,\\text{N/m}\\) possesses <strong>${E} J</strong> of total mechanical energy. Determine the amplitude of vibration (\\(A\\)) in <strong>centimeters</strong>.`,
+              params: [
+                { name: 'Total Energy (E)', value: `${E} J` },
+                { name: 'Spring Constant (k)', value: `${k} N/m` },
+                { name: 'Target Variable', value: 'Amplitude A (cm)' }
+              ],
+              answer: A_cm,
+              solutionKaTeX: `
+              $$E = \\frac{1}{2}kA^2 \\implies A = \\sqrt{\\frac{2E}{k}}$$
+              $$A = \\sqrt{\\frac{2(${E})}{${k}}} = \\sqrt{${((2*E)/k).toFixed(6)}} = ${A_m}\\,\\text{m}$$
+              In centimeters: $A = ${A_cm}\\,\\text{cm}$.`
+            };
+          }
+        }
+      },
+
+      // 8. Vertical Spring Equilibrium & Release: z_e = mg/k
+      {
+        id: 'vertical_spring_equilibrium',
+        topic: 'energy',
+        topicName: 'Vertical Spring Equilibrium',
+        generate() {
+          const variations = ['ze', 'k', 'Fs_max'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const m = randBetween(0.20, 1.50, 2); // kg
+          const k = randBetween(50, 200, 0); // N/m
+          const ze_m = Number(((m * G_ACCEL) / k).toFixed(4));
+          const ze_cm = Number((ze_m * 100).toFixed(2));
+          // If released from unstretched position, amplitude A = ze, so max stretch is 2 ze, max spring force = 2 mg
+          const Fs_max = Number((2 * m * G_ACCEL).toFixed(2));
+
+          if (target === 'ze') {
+            return {
+              targetVar: 'z_e',
+              targetUnit: 'cm',
+              prompt: `A <strong>${m} kg</strong> mass hangs in static equilibrium from a vertical spring with \\(k = ${k}\\,\\text{N/m}\\). How far is the spring stretched (\\(z_e\\)) from its natural unstretched length in <strong>cm</strong>?`,
+              params: [
+                { name: 'Hanging Mass (m)', value: `${m} kg` },
+                { name: 'Spring Constant (k)', value: `${k} N/m` },
+                { name: 'Gravity (g)', value: '9.81 m/s²' },
+                { name: 'Target Variable', value: 'Equilibrium Stretch z_e' }
+              ],
+              answer: ze_cm,
+              solutionKaTeX: `
+              At static equilibrium, downward weight balances upward spring force:
+              $$mg = kz_e \\implies z_e = \\frac{mg}{k}$$
+              $$z_e = \\frac{(${m}\\,\\text{kg})(9.81\\,\\text{m/s}^2)}{${k}\\,\\text{N/m}} = \\frac{${(m*G_ACCEL).toFixed(3)}}{${k}} = ${ze_m}\\,\\text{m}$$
+              In centimeters: $z_e = ${ze_cm}\\,\\text{cm}$.`
+            };
+          } else if (target === 'k') {
+            return {
+              targetVar: 'k',
+              targetUnit: 'N/m',
+              prompt: `Attaching a <strong>${m} kg</strong> mass to a vertical spring causes it to stretch by <strong>${ze_cm} cm</strong> at rest. Calculate the spring stiffness (\\(k\\)) in <strong>N/m</strong>.`,
+              params: [
+                { name: 'Mass (m)', value: `${m} kg` },
+                { name: 'Static Stretch (z_e)', value: `${ze_cm} cm` },
+                { name: 'Gravity (g)', value: '9.81 m/s²' },
+                { name: 'Target Variable', value: 'Spring Constant k' }
+              ],
+              answer: k,
+              solutionKaTeX: `
+              $$k = \\frac{mg}{z_e} = \\frac{(${m})(9.81)}{${ze_m}\\,\\text{m}} = ${k}\\,\\text{N/m}$$`
+            };
+          } else {
+            return {
+              targetVar: 'F_s,max',
+              targetUnit: 'N',
+              prompt: `A <strong>${m} kg</strong> mass is attached to an unstretched vertical spring (\\(k = ${k}\\,\\text{N/m}\\)) and released from rest. Find the maximum upward spring force (\\(F_{s,\\max}\\)) exerted at the lowest point of oscillation.`,
+              params: [
+                { name: 'Mass (m)', value: `${m} kg` },
+                { name: 'Stiffness (k)', value: `${k} N/m` },
+                { name: 'Initial State', value: 'Released from rest at unstretched length' },
+                { name: 'Target Variable', value: 'Maximum Spring Force F_s,max' }
+              ],
+              answer: Fs_max,
+              solutionKaTeX: `
+              The equilibrium extension is $z_e = \\frac{mg}{k}$.
+              Since it is released from rest at $z=0$, the oscillation amplitude about equilibrium is $A = z_e$.
+              The lowest point has maximum extension:
+              $$z_{\\max} = z_e + A = 2z_e = 2\\left(\\frac{mg}{k}\\right)$$
+              The maximum spring force is:
+              $$F_{s,\\max} = k z_{\\max} = k\\left(\\frac{2mg}{k}\\right) = 2mg$$
+              $$F_{s,\\max} = 2(${m}\\,\\text{kg})(9.81\\,\\text{m/s}^2) = ${Fs_max}\\,\\text{N}$$`
+            };
+          }
+        }
+      },
+
+      // 9. Uniform Circular Motion Projection: x = A cos(θ), vx = -A ω sin(θ)
+      {
+        id: 'circular_motion_projection',
+        topic: 'shm',
+        topicName: 'Uniform Circular Motion & SHM Projection',
+        generate() {
+          const variations = ['x_proj', 'vx_proj', 'ax_proj'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const A_cm = randBetween(5.0, 20.0, 1); // cm
+          const A_m = Number((A_cm * 0.01).toFixed(3));
+          const omega = randBetween(2.0, 8.0, 1); // rad/s
+          const deg = randInt(30, 60);
+          const rad = Number((deg * (Math.PI / 180)).toFixed(4));
+          const x_cm = Number((A_cm * Math.cos(rad)).toFixed(2));
+          const vx = Number((-A_m * omega * Math.sin(rad)).toFixed(3));
+          const ax = Number((-A_m * omega * omega * Math.cos(rad)).toFixed(2));
+          const x_m_str = (A_m * Math.cos(rad)).toFixed(4);
+
+          if (target === 'x_proj') {
+            return {
+              targetVar: 'x',
+              targetUnit: 'cm',
+              prompt: `A peg on a turntable of radius <strong>${A_cm} cm</strong> rotates at a constant \\(\\omega = ${omega}\\,\\text{rad/s}\\). When its angular position is <strong>${deg}°</strong> from the horizontal axis, find the projected horizontal position (\\(x\\)) in <strong>cm</strong>.`,
+              params: [
+                { name: 'Radius / Amplitude (A)', value: `${A_cm} cm` },
+                { name: 'Angular Speed (ω)', value: `${omega} rad/s` },
+                { name: 'Angle (θ)', value: `${deg}°` },
+                { name: 'Target Variable', value: 'Projected Position x' }
+              ],
+              answer: x_cm,
+              solutionKaTeX: `
+              Projecting uniform circular motion onto the horizontal diameter:
+              $$x = A\\cos\\theta$$
+              $$x = (${A_cm}\\,\\text{cm})\\cos(${deg}^\\circ) = (${A_cm})(${Math.cos(rad).toFixed(4)}) = ${x_cm}\\,\\text{cm}$$`
+            };
+          } else if (target === 'vx_proj') {
+            return {
+              targetVar: 'v_x',
+              targetUnit: 'm/s',
+              prompt: `A point rotates in a circle of radius \\(A = ${A_cm}\\,\\text{cm}\\) at \\(\\omega = ${omega}\\,\\text{rad/s}\\). At an angle \\(\\theta = ${deg}^\\circ\\), find the projected horizontal velocity (\\(v_x\\)) in <strong>m/s</strong>.`,
+              params: [
+                { name: 'Radius (A)', value: `${A_cm} cm` },
+                { name: 'Angular Velocity (ω)', value: `${omega} rad/s` },
+                { name: 'Phase Angle (θ)', value: `${deg}°` },
+                { name: 'Target Variable', value: 'Horizontal Velocity v_x' }
+              ],
+              answer: vx,
+              solutionKaTeX: `
+              $$v_x = -A\\omega\\sin\\theta$$
+              Convert $A = ${A_m}\\,\\text{m}$:
+              $$v_x = -(${A_m}\\,\\text{m})(${omega}\\,\\text{rad/s})\\sin(${deg}^\\circ) = -(${A_m})(${omega})(${Math.sin(rad).toFixed(4)}) = ${vx}\\,\\text{m/s}$$`
+            };
+          } else {
+            return {
+              targetVar: 'a_x',
+              targetUnit: 'm/s²',
+              prompt: `For a circular motion projection with \\(A = ${A_cm}\\,\\text{cm}\\) and \\(\\omega = ${omega}\\,\\text{rad/s}\\), calculate the projected horizontal acceleration (\\(a_x\\)) in <strong>m/s²</strong> at angle \\(\\theta = ${deg}^\\circ\\).`,
+              params: [
+                { name: 'Radius (A)', value: `${A_cm} cm` },
+                { name: 'Angular Speed (ω)', value: `${omega} rad/s` },
+                { name: 'Angle (θ)', value: `${deg}°` },
+                { name: 'Target Variable', value: 'Horizontal Acceleration a_x' }
+              ],
+              answer: ax,
+              solutionKaTeX: `
+              $$a_x = -A\\omega^2\\cos\\theta = -\\omega^2 x$$
+              With $x = ${x_m_str}\\,\\text{m}$:
+              $$a_x = -(${omega}\\,\\text{rad/s})^2(${x_m_str}\\,\\text{m}) = ${ax}\\,\\text{m/s}^2$$`
+            };
+          }
+        }
+      },
+
+      // 10. Damped Harmonic Motion: β = b / 2m, ω_d = √(ω0^2 - β^2), b_c = 2 √(mk), t_half = ln(2)/β
+      {
+        id: 'damped_free_oscillator',
+        topic: 'damping',
+        topicName: 'Damped Harmonic Motion & Envelopes',
+        generate() {
+          const variations = ['beta', 'omega_d', 'bc', 't_half'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const m = randBetween(0.40, 1.00, 2); // kg
+          const k = randBetween(40, 100, 0); // N/m
+          const omega0 = Math.sqrt(k / m);
+          const bc = Number((2 * Math.sqrt(m * k)).toFixed(2)); // N s/m
+          // Choose b small for clear underdamping (zeta around 0.08 - 0.20)
+          const b = randBetween(0.4, Number((0.25 * bc).toFixed(1)), 2);
+          const beta = Number((b / (2 * m)).toFixed(3)); // s^-1
+          const omega_d = Number((Math.sqrt(omega0 * omega0 - beta * beta)).toFixed(3)); // rad/s
+          const t_half = Number((Math.log(2) / beta).toFixed(2)); // s
+
+          if (target === 'beta') {
+            return {
+              targetVar: 'β',
+              targetUnit: 's⁻¹',
+              prompt: `An underdamped oscillator has mass <strong>${m} kg</strong>, spring constant <strong>${k} N/m</strong>, and viscous damping coefficient \\(b = ${b}\\,\\text{kg/s}\\). Find the decay constant (\\(\\beta = \\frac{b}{2m}\\)) in <strong>s⁻¹</strong>.`,
+              params: [
+                { name: 'Mass (m)', value: `${m} kg` },
+                { name: 'Damping Coeff (b)', value: `${b} kg/s` },
+                { name: 'Spring Constant (k)', value: `${k} N/m` },
+                { name: 'Target Variable', value: 'Decay Constant β' }
+              ],
+              answer: beta,
+              solutionKaTeX: `
+              The decay rate parameter $\\beta$ is defined as:
+              $$\\beta = \\frac{b}{2m} = \\frac{${b}\\,\\text{kg/s}}{2(${m}\\,\\text{kg})} = ${beta}\\,\\text{s}^{-1}$$`
+            };
+          } else if (target === 'omega_d') {
+            return {
+              targetVar: 'ω_d',
+              targetUnit: 'rad/s',
+              prompt: `A mass \\(m = ${m}\\,\\text{kg}\\) on a spring \\(k = ${k}\\,\\text{N/m}\\) experiences viscous resistance resulting in decay parameter \\(\\beta = ${beta}\\,\\text{s}^{-1}\\). Calculate the damped angular frequency (\\(\\omega_d\\)) in <strong>rad/s</strong>.`,
+              params: [
+                { name: 'Natural Freq (ω₀)', value: `${omega0.toFixed(2)} rad/s` },
+                { name: 'Decay Rate (β)', value: `${beta} s⁻¹` },
+                { name: 'Target Variable', value: 'Damped Angular Frequency ω_d' }
+              ],
+              answer: omega_d,
+              solutionKaTeX: `
+              $$\\omega_0 = \\sqrt{\\frac{k}{m}} = \\sqrt{\\frac{${k}}{${m}}} = ${omega0.toFixed(3)}\\,\\text{rad/s}$$
+              The damped natural frequency is:
+              $$\\omega_d = \\sqrt{\\omega_0^2 - \\beta^2} = \\sqrt{${(omega0*omega0).toFixed(2)} - ${(beta*beta).toFixed(4)}} = ${omega_d}\\,\\text{rad/s}$$`
+            };
+          } else if (target === 'bc') {
+            return {
+              targetVar: 'b_c',
+              targetUnit: 'kg/s',
+              prompt: `A system comprises an inertia of <strong>${m} kg</strong> coupled to a suspension spring of <strong>${k} N/m</strong>. What damping coefficient (\\(b_c\\)) provides critical damping in <strong>kg/s</strong>?`,
+              params: [
+                { name: 'Mass (m)', value: `${m} kg` },
+                { name: 'Stiffness (k)', value: `${k} N/m` },
+                { name: 'Target Variable', value: 'Critical Damping Coeff b_c' }
+              ],
+              answer: bc,
+              solutionKaTeX: `
+              Critical damping occurs when $\\zeta = 1$, corresponding to:
+              $$b_c = 2\\sqrt{mk} = 2\\sqrt{(${m})(${k})} = 2\\sqrt{${(m*k).toFixed(2)}} = ${bc}\\,\\text{kg/s}$$`
+            };
+          } else {
+            return {
+              targetVar: 't_½',
+              targetUnit: 's',
+              prompt: `A damped harmonic oscillator exhibits an amplitude decay constant of \\(\\beta = ${beta}\\,\\text{s}^{-1}\\). Calculate the half-life of its oscillation amplitude (\\(t_{1/2}\\)) in seconds.`,
+              params: [
+                { name: 'Decay Constant (β)', value: `${beta} s⁻¹` },
+                { name: 'Target Variable', value: 'Amplitude Half-Life t_½' }
+              ],
+              answer: t_half,
+              solutionKaTeX: `
+              The amplitude envelope decays as $A(t) = A_0 e^{-\\beta t}$.
+              Setting $A(t_{1/2}) = \\frac{1}{2}A_0$:
+              $$e^{-\\beta t_{1/2}} = \\frac{1}{2} \\implies t_{1/2} = \\frac{\\ln 2}{\\beta}$$
+              $$t_{1/2} = \\frac{0.69315}{${beta}\\,\\text{s}^{-1}} = ${t_half}\\,\\text{s}$$`
+            };
+          }
+        }
+      },
+
+      // 11. Forced Oscillations & Resonance: X_res = F0 / (b ω0), Q_qual = m ω0 / b
+      {
+        id: 'forced_resonance',
+        topic: 'resonance',
+        topicName: 'Resonant Forced Oscillations',
+        generate() {
+          const variations = ['X_res', 'F0', 'Q_qual'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const m = randBetween(0.5, 2.0, 1); // kg
+          const omega0 = randBetween(5.0, 15.0, 1); // rad/s
+          const b = randBetween(0.5, 3.0, 1); // kg/s
+          const F0 = randBetween(2.0, 12.0, 1); // N
+          const X_res = Number((F0 / (b * omega0)).toFixed(3)); // m
+          const Q_qual = Number(((m * omega0) / b).toFixed(2));
+
+          if (target === 'X_res') {
+            return {
+              targetVar: 'X_res',
+              targetUnit: 'm',
+              prompt: `An oscillating system with damping \\(b = ${b}\\,\\text{kg/s}\\) and resonant frequency \\(\\omega_0 = ${omega0}\\,\\text{rad/s}\\) is driven at exact resonance by a sinusoidal force of amplitude <strong>${F0} N</strong>. Find the steady-state resonant displacement amplitude (\\(X_{\\text{res}}\\) in meters).`,
+              params: [
+                { name: 'Driving Force Amplitude (F₀)', value: `${F0} N` },
+                { name: 'Damping (b)', value: `${b} kg/s` },
+                { name: 'Resonant Frequency (ω₀)', value: `${omega0} rad/s` },
+                { name: 'Target Variable', value: 'Resonant Amplitude X_res' }
+              ],
+              answer: X_res,
+              solutionKaTeX: `
+              At resonance ($\\Omega = \\omega_0$), the elastic and inertial reactive forces cancel ($k - m\\omega_0^2 = 0$).
+              The displacement amplitude is limited solely by damping:
+              $$X_{\\text{res}} = \\frac{F_0}{b\\omega_0}$$
+              $$X_{\\text{res}} = \\frac{${F0}\\,\\text{N}}{(${b}\\,\\text{kg/s})(${omega0}\\,\\text{rad/s})} = \\frac{${F0}}{${(b*omega0).toFixed(2)}} = ${X_res}\\,\\text{m}$$`
+            };
+          } else if (target === 'F0') {
+            return {
+              targetVar: 'F₀',
+              targetUnit: 'N',
+              prompt: `At resonance (\\(\\omega_0 = ${omega0}\\,\\text{rad/s}\\)), a damped oscillator with \\(b = ${b}\\,\\text{kg/s}\\) reaches an amplitude of <strong>${X_res} m</strong>. What driving force amplitude (\\(F_0\\)) in Newtons is required?`,
+              params: [
+                { name: 'Resonant Amplitude (X_res)', value: `${X_res} m` },
+                { name: 'Damping (b)', value: `${b} kg/s` },
+                { name: 'Resonance Freq (ω₀)', value: `${omega0} rad/s` },
+                { name: 'Target Variable', value: 'Driving Force F₀' }
+              ],
+              answer: F0,
+              solutionKaTeX: `
+              $$F_0 = X_{\\text{res}} (b\\omega_0) = (${X_res}\\,\\text{m})(${b}\\,\\text{kg/s})(${omega0}\\,\\text{rad/s}) = ${F0}\\,\\text{N}$$`
+            };
+          } else {
+            return {
+              targetVar: 'Q_qual',
+              targetUnit: 'dimensionless',
+              prompt: `A vibrating machine with mass <strong>${m} kg</strong>, natural frequency \\(\\omega_0 = ${omega0}\\,\\text{rad/s}\\), and damping \\(b = ${b}\\,\\text{kg/s}\\) undergoes forced excitation. Calculate the quality factor (\\(Q_{\\text{qual}}\\)) of the resonance.`,
+              params: [
+                { name: 'Mass (m)', value: `${m} kg` },
+                { name: 'Natural Frequency (ω₀)', value: `${omega0} rad/s` },
+                { name: 'Damping Parameter (b)', value: `${b} kg/s` },
+                { name: 'Target Variable', value: 'Quality Factor Q' }
+              ],
+              answer: Q_qual,
+              solutionKaTeX: `
+              The quality factor for a linear viscous oscillator is:
+              $$Q_{\\text{qual}} = \\frac{m\\omega_0}{b} = \\frac{(${m}\\,\\text{kg})(${omega0}\\,\\text{rad/s})}{${b}\\,\\text{kg/s}} = ${Q_qual}$$`
+            };
+          }
+        }
+      },
+
+      // 12. Traveling Waves: c = λ f = λ / T
+      {
+        id: 'traveling_wave_speed',
+        topic: 'traveling',
+        topicName: 'Traveling Wave Phase Speed',
+        generate() {
+          const variations = ['c', 'lambda', 'f'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const f = randBetween(20, 200, 0); // Hz
+          const lambda = randBetween(0.8, 4.5, 2); // m
+          const c = Number((lambda * f).toFixed(2)); // m/s
+
+          if (target === 'c') {
+            return {
+              targetVar: 'c',
+              targetUnit: 'm/s',
+              prompt: `A sinusoidal traveling wave has a wavelength of <strong>${lambda} m</strong> and a frequency of <strong>${f} Hz</strong>. What is its propagation speed (\\(c\\)) in <strong>m/s</strong>?`,
+              params: [
+                { name: 'Wavelength (λ)', value: `${lambda} m` },
+                { name: 'Frequency (f)', value: `${f} Hz` },
+                { name: 'Target Variable', value: 'Wave Speed c' }
+              ],
+              answer: c,
+              solutionKaTeX: `
+              The fundamental phase speed relationship for periodic waves:
+              $$c = \\lambda f = (${lambda}\\,\\text{m})(${f}\\,\\text{s}^{-1}) = ${c}\\,\\text{m/s}$$`
+            };
+          } else if (target === 'lambda') {
+            return {
+              targetVar: 'λ',
+              targetUnit: 'm',
+              prompt: `A wave traveling at <strong>${c} m/s</strong> has a frequency of <strong>${f} Hz</strong>. Calculate its wavelength (\\(\\lambda\\)) in meters.`,
+              params: [
+                { name: 'Wave Speed (c)', value: `${c} m/s` },
+                { name: 'Frequency (f)', value: `${f} Hz` },
+                { name: 'Target Variable', value: 'Wavelength λ' }
+              ],
+              answer: lambda,
+              solutionKaTeX: `
+              $$\\lambda = \\frac{c}{f} = \\frac{${c}\\,\\text{m/s}}{${f}\\,\\text{Hz}} = ${lambda}\\,\\text{m}$$`
+            };
+          } else {
+            return {
+              targetVar: 'f',
+              targetUnit: 'Hz',
+              prompt: `An ocean swell propagates with speed \\(c = ${c}\\,\\text{m/s}\\) with crest-to-crest spacing of <strong>${lambda} m</strong>. What frequency (\\(f\\)) will a stationary observer record in <strong>Hz</strong>?`,
+              params: [
+                { name: 'Propagation Speed (c)', value: `${c} m/s` },
+                { name: 'Wavelength (λ)', value: `${lambda} m` },
+                { name: 'Target Variable', value: 'Frequency f' }
+              ],
+              answer: f,
+              solutionKaTeX: `
+              $$f = \\frac{c}{\\lambda} = \\frac{${c}\\,\\text{m/s}}{${lambda}\\,\\text{m}} = ${f}\\,\\text{Hz}$$`
+            };
+          }
+        }
+      },
+
+      // 13. Wave on a Stretched String: c = √(Tension / μ)
+      {
+        id: 'wave_on_string',
+        topic: 'traveling',
+        topicName: 'Waves on Stretched Strings',
+        generate() {
+          const variations = ['c', 'Tension', 'mu'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const Tension = randBetween(50, 250, 0); // N
+          const mu_g_m = randBetween(2.0, 10.0, 1); // g/m
+          const mu = Number((mu_g_m * 1e-3).toFixed(5)); // kg/m
+          const c = Number((Math.sqrt(Tension / mu)).toFixed(2)); // m/s
+
+          if (target === 'c') {
+            return {
+              targetVar: 'c',
+              targetUnit: 'm/s',
+              prompt: `A flexible string is stretched under a tension of <strong>${Tension} N</strong>. The linear mass density of the string is <strong>${mu_g_m} g/m</strong>. Find the transverse wave speed (\\(c\\)) along the string in <strong>m/s</strong>.`,
+              params: [
+                { name: 'Tension (T)', value: `${Tension} N` },
+                { name: 'Linear Density (μ)', value: `${mu_g_m} g/m` },
+                { name: 'Target Variable', value: 'Wave Speed c' }
+              ],
+              answer: c,
+              solutionKaTeX: `
+              Convert linear density to SI units:
+              $$\\mu = ${mu_g_m}\\,\\text{g/m} = ${mu}\\,\\text{kg/m}$$
+              Wave speed on an ideal string:
+              $$c = \\sqrt{\\frac{\\mathcal T}{\\mu}} = \\sqrt{\\frac{${Tension}\\,\\text{N}}{${mu}\\,\\text{kg/m}}} = \\sqrt{${(Tension/mu).toFixed(1)}} = ${c}\\,\\text{m/s}$$`
+            };
+          } else if (target === 'Tension') {
+            return {
+              targetVar: 'Tension',
+              targetUnit: 'N',
+              prompt: `A musician needs transverse pulses to travel down a string (\\(\\mu = ${mu_g_m}\\,\\text{g/m}\\)) at a speed of <strong>${c} m/s</strong>. What tension (\\(\\mathcal T\\)) must be applied in Newtons?`,
+              params: [
+                { name: 'Desired Speed (c)', value: `${c} m/s` },
+                { name: 'Linear Density (μ)', value: `${mu_g_m} g/m` },
+                { name: 'Target Variable', value: 'Tension T' }
+              ],
+              answer: Tension,
+              solutionKaTeX: `
+              $$\\mathcal T = \\mu c^2 = (${mu}\\,\\text{kg/m})(${c}\\,\\text{m/s})^2 = (${mu})(${(c*c).toFixed(1)}) = ${Tension}\\,\\text{N}$$`
+            };
+          } else {
+            return {
+              targetVar: 'μ',
+              targetUnit: 'g/m',
+              prompt: `A string held under <strong>${Tension} N</strong> of tension supports transverse waves that propagate at <strong>${c} m/s</strong>. Determine the linear mass density of the string (\\(\\mu\\)) in <strong>g/m</strong>.`,
+              params: [
+                { name: 'Tension (T)', value: `${Tension} N` },
+                { name: 'Wave Speed (c)', value: `${c} m/s` },
+                { name: 'Target Variable', value: 'Linear Density μ (g/m)' }
+              ],
+              answer: mu_g_m,
+              solutionKaTeX: `
+              $$\\mu = \\frac{\\mathcal T}{c^2} = \\frac{${Tension}\\,\\text{N}}{(${c}\\,\\text{m/s})^2} = ${mu}\\,\\text{kg/m}$$
+              In grams per meter: $\\mu = ${mu_g_m}\\,\\text{g/m}$.`
+            };
+          }
+        }
+      },
+
+      // 14. Standing Waves on a Fixed String: f_n = n c / (2L) = n f1
+      {
+        id: 'standing_wave_string',
+        topic: 'interference',
+        topicName: 'Standing Waves & Harmonics',
+        generate() {
+          const variations = ['fn', 'f1', 'L'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const L = randBetween(0.50, 1.20, 2); // m
+          const c = randBetween(120, 320, 0); // m/s
+          const f1 = Number((c / (2 * L)).toFixed(2)); // Hz
+          const n = randInt(2, 4); // harmonic number
+          const fn = Number((n * f1).toFixed(2));
+
+          if (target === 'fn') {
+            return {
+              targetVar: `f_${n}`,
+              targetUnit: 'Hz',
+              prompt: `A string of length <strong>${L} m</strong> clamped at both ends has a wave speed of <strong>${c} m/s</strong>. Calculate the frequency of the <strong>${n}th harmonic</strong> (\\(f_${n}\\)) in <strong>Hz</strong>.`,
+              params: [
+                { name: 'String Length (L)', value: `${L} m` },
+                { name: 'Wave Speed (c)', value: `${c} m/s` },
+                { name: 'Harmonic Number (n)', value: `${n}` },
+                { name: 'Target Variable', value: `Frequency of Harmonic n=${n}` }
+              ],
+              answer: fn,
+              solutionKaTeX: `
+              For a string fixed at both boundaries:
+              $$\\lambda_n = \\frac{2L}{n}, \\quad f_n = \\frac{nc}{2L} = n f_1$$
+              Fundamental frequency:
+              $$f_1 = \\frac{c}{2L} = \\frac{${c}\\,\\text{m/s}}{2(${L}\\,\\text{m})} = ${f1}\\,\\text{Hz}$$
+              The $n = ${n}$ harmonic frequency is:
+              $$f_${n} = ${n}\\times f_1 = ${n}\\times ${f1}\\,\\text{Hz} = ${fn}\\,\\text{Hz}$$`
+            };
+          } else if (target === 'f1') {
+            return {
+              targetVar: 'f_1',
+              targetUnit: 'Hz',
+              prompt: `On a fixed string, the <strong>${n}th harmonic</strong> mode is observed to resonate at <strong>${fn} Hz</strong>. What is the fundamental frequency (\\(f_1\\)) of this string in <strong>Hz</strong>?`,
+              params: [
+                { name: 'Harmonic Mode (n)', value: `${n}` },
+                { name: 'Resonant Frequency (f_n)', value: `${fn} Hz` },
+                { name: 'Target Variable', value: 'Fundamental Frequency f_1' }
+              ],
+              answer: f1,
+              solutionKaTeX: `
+              Since fixed string harmonics satisfy $f_n = n f_1$:
+              $$f_1 = \\frac{f_${n}}{${n}} = \\frac{${fn}\\,\\text{Hz}}{${n}} = ${f1}\\,\\text{Hz}$$`
+            };
+          } else {
+            return {
+              targetVar: 'L',
+              targetUnit: 'm',
+              prompt: `A string with wave speed \\(c = ${c}\\,\\text{m/s}\\) has its fundamental frequency tuned to <strong>${f1} Hz</strong>. Determine the active vibrating length (\\(L\\)) in meters.`,
+              params: [
+                { name: 'Fundamental (f_1)', value: `${f1} Hz` },
+                { name: 'Wave Speed (c)', value: `${c} m/s` },
+                { name: 'Target Variable', value: 'Length L' }
+              ],
+              answer: L,
+              solutionKaTeX: `
+              $$f_1 = \\frac{c}{2L} \\implies L = \\frac{c}{2f_1}$$
+              $$L = \\frac{${c}\\,\\text{m/s}}{2(${f1}\\,\\text{s}^{-1})} = ${L}\\,\\text{m}$$`
+            };
+          }
+        }
+      },
+
+      // 15. Beat Frequency: f_beat = |f1 - f2|, T_beat = 1 / f_beat
+      {
+        id: 'beat_frequency',
+        topic: 'interference',
+        topicName: 'Beat Frequency & Modulation',
+        generate() {
+          const variations = ['f_beat', 'f_unknown', 'T_beat'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const f1 = randBetween(350, 500, 0); // Hz
+          const f_beat = randInt(2, 7); // Hz
+          const f2 = f1 + f_beat; // Hz
+          const T_beat = Number((1 / f_beat).toFixed(3)); // s
+
+          if (target === 'f_beat') {
+            return {
+              targetVar: 'f_beat',
+              targetUnit: 'Hz',
+              prompt: `Two tuning forks with frequencies of <strong>${f1} Hz</strong> and <strong>${f2} Hz</strong> are struck simultaneously. What beat frequency (\\(f_{\\text{beat}}\\) in Hz) will an observer hear?`,
+              params: [
+                { name: 'Fork 1 Frequency (f₁)', value: `${f1} Hz` },
+                { name: 'Fork 2 Frequency (f₂)', value: `${f2} Hz` },
+                { name: 'Target Variable', value: 'Beat Frequency f_beat' }
+              ],
+              answer: f_beat,
+              solutionKaTeX: `
+              The beat frequency corresponds to the absolute frequency difference:
+              $$f_{\\text{beat}} = |f_1 - f_2| = |${f1}\\,\\text{Hz} - ${f2}\\,\\text{Hz}| = ${f_beat}\\,\\text{Hz}$$`
+            };
+          } else if (target === 'f_unknown') {
+            return {
+              targetVar: 'f_2',
+              targetUnit: 'Hz',
+              prompt: `A reference fork of <strong>${f1} Hz</strong> produces <strong>${f_beat} beats per second</strong> against a slightly higher-pitched guitar string. Find the exact frequency of the guitar string (\\(f_2\\)) in <strong>Hz</strong>.`,
+              params: [
+                { name: 'Reference Pitch (f₁)', value: `${f1} Hz` },
+                { name: 'Beat Rate (f_beat)', value: `${f_beat} Hz` },
+                { name: 'Condition', value: 'String is higher in pitch than reference' },
+                { name: 'Target Variable', value: 'String Frequency f₂' }
+              ],
+              answer: f2,
+              solutionKaTeX: `
+              Because the string has a higher pitch ($f_2 > f_1$):
+              $$f_{\\text{beat}} = f_2 - f_1 \\implies f_2 = f_1 + f_{\\text{beat}}$$
+              $$f_2 = ${f1}\\,\\text{Hz} + ${f_beat}\\,\\text{Hz} = ${f2}\\,\\text{Hz}$$`
+            };
+          } else {
+            return {
+              targetVar: 'T_beat',
+              targetUnit: 's',
+              prompt: `When two sound waves of frequencies <strong>${f1} Hz</strong> and <strong>${f2} Hz</strong> interfere, what is the time interval between successive loudness maxima (\\(T_{\\text{beat}}\\)) in seconds?`,
+              params: [
+                { name: 'Frequency 1 (f₁)', value: `${f1} Hz` },
+                { name: 'Frequency 2 (f₂)', value: `${f2} Hz` },
+                { name: 'Target Variable', value: 'Beat Period T_beat' }
+              ],
+              answer: T_beat,
+              solutionKaTeX: `
+              First find the beat frequency:
+              $$f_{\\text{beat}} = |${f2} - ${f1}| = ${f_beat}\\,\\text{Hz}$$
+              The time between loudness peaks is the period of the beat modulation:
+              $$T_{\\text{beat}} = \\frac{1}{f_{\\text{beat}}} = \\frac{1}{${f_beat}\\,\\text{Hz}} = ${T_beat}\\,\\text{s}$$`
+            };
+          }
+        }
+      },
+
+      // 16. Wave Intensity & Inverse Square Law: I = P / (4π r^2)
+      {
+        id: 'intensity_inverse_square',
+        topic: 'intensity',
+        topicName: 'Wave Intensity & Inverse Square Law',
+        generate() {
+          const variations = ['I', 'Power', 'r'];
+          const target = variations[randInt(0, variations.length - 1)];
+          const P = randBetween(10, 60, 0); // W
+          const r = randBetween(2.0, 8.0, 1); // m
+          const area = 4 * Math.PI * r * r;
+          const I = Number((P / area).toFixed(4)); // W/m^2
+
+          if (target === 'I') {
+            return {
+              targetVar: 'I',
+              targetUnit: 'W/m²',
+              prompt: `An isotropic point source radiates sound uniformly in all directions with an average acoustic power output of <strong>${P} W</strong>. Neglecting sound absorption, find the intensity (\\(I\\)) at a distance of <strong>${r} m</strong> in <strong>W/m²</strong>.`,
+              params: [
+                { name: 'Source Power (P)', value: `${P} W` },
+                { name: 'Distance (r)', value: `${r} m` },
+                { name: 'Target Variable', value: 'Intensity I' }
+              ],
+              answer: I,
+              solutionKaTeX: `
+              For spherical geometric spreading over area $\\mathcal A = 4\\pi r^2$:
+              $$I = \\frac{P}{4\\pi r^2}$$
+              $$I = \\frac{${P}\\,\\text{W}}{4\\pi (${r}\\,\\text{m})^2} = \\frac{${P}}{${area.toFixed(2)}} = ${I}\\,\\text{W/m}^2$$`
+            };
+          } else if (target === 'Power') {
+            return {
+              targetVar: 'P',
+              targetUnit: 'W',
+              prompt: `At a radial distance of <strong>${r} m</strong> from an isotropic sound source, the measured intensity is <strong>${I} W/m²</strong>. What is the total radiated power (\\(P\\)) of the source in Watts?`,
+              params: [
+                { name: 'Distance (r)', value: `${r} m` },
+                { name: 'Measured Intensity (I)', value: `${I} W/m²` },
+                { name: 'Target Variable', value: 'Radiated Power P' }
+              ],
+              answer: P,
+              solutionKaTeX: `
+              $$P = I\\mathcal A = I(4\\pi r^2) = (${I}\\,\\text{W/m}^2)(4\\pi)(${r}\\,\\text{m})^2 = ${P}\\,\\text{W}$$`
+            };
+          } else {
+            return {
+              targetVar: 'r',
+              targetUnit: 'm',
+              prompt: `An isotropic emitter emits <strong>${P} W</strong> of power. At what radial distance (\\(r\\)) from the source does the intensity drop to <strong>${I} W/m²</strong>?`,
+              params: [
+                { name: 'Source Power (P)', value: `${P} W` },
+                { name: 'Target Intensity (I)', value: `${I} W/m²` },
+                { name: 'Target Variable', value: 'Distance r' }
+              ],
+              answer: r,
+              solutionKaTeX: `
+              Rearranging $I = \\frac{P}{4\\pi r^2}$ for distance:
+              $$r = \\sqrt{\\frac{P}{4\\pi I}} = \\sqrt{\\frac{${P}}{4\\pi(${I})}} = \\sqrt{${(P / (4 * Math.PI * I)).toFixed(2)}} = ${r}\\,\\text{m}$$`
+            };
+          }
+        }
+      }
+
+    ];
+
+    // --- UI Update & KaTeX Rendering Helpers ---
+    function updateScoreboardUI() {
+      document.getElementById('statScore').textContent = State.score;
+      document.getElementById('statStreak').textContent = `${State.streak} ⚡`;
+      document.getElementById('statLastScore').textContent = State.lastScore;
+      document.getElementById('statHighScore').textContent = State.highScore;
+    }
+
+    function renderKaTeXMath() {
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '$', right: '$', display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    function getEligibleTemplates() {
+      if (State.topicFilter === 'all') {
+        return ProblemCatalog;
+      }
+      return ProblemCatalog.filter(p => p.topic === State.topicFilter);
+    }
+
+    function loadNextProblem() {
+      State.isAnswerSubmitted = false;
+      document.getElementById('solutionBox').style.display = 'none';
+      document.getElementById('submitBtn').style.display = 'block';
+      document.getElementById('skipBtn').style.display = 'block';
+      document.getElementById('answerInput').value = '';
+      document.getElementById('answerInput').disabled = false;
+      document.getElementById('answerInput').focus();
+
+      if (State.gameMode !== 'endless') {
+        const limit = parseInt(State.gameMode, 10);
+        if (State.currentQuestionIndex >= limit) {
+          showRoundSummary();
+          return;
+        }
+      }
+
+      State.currentQuestionIndex++;
+      const progressText = State.gameMode === 'endless' 
+        ? `Question ${State.currentQuestionIndex}` 
+        : `Question ${State.currentQuestionIndex} of ${State.gameMode}`;
+      document.getElementById('questionProgress').textContent = progressText;
+
+      // Select without repeating templates in the current set
+      let eligible = getEligibleTemplates();
+      let available = eligible.filter(t => !State.historyPool.includes(t.id));
+
+      if (available.length === 0) {
+        State.historyPool = [];
+        available = eligible;
+      }
+
+      const template = available[randInt(0, available.length - 1)];
+      State.historyPool.push(template.id);
+
+      const generated = template.generate();
+      State.currentProblem = {
+        templateId: template.id,
+        topicName: template.topicName,
+        ...generated
+      };
+
+      document.getElementById('topicBadge').textContent = State.currentProblem.topicName;
+      document.getElementById('variableBadge').textContent = `Target: ${State.currentProblem.targetVar}`;
+      document.getElementById('problemPrompt').innerHTML = State.currentProblem.prompt;
+      document.getElementById('unitTag').textContent = State.currentProblem.targetUnit;
+
+      const paramBox = document.getElementById('paramBox');
+      paramBox.innerHTML = '';
+      State.currentProblem.params.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'param-item';
+        item.innerHTML = `<span class="param-name">${p.name}</span><span class="param-value">${p.value}</span>`;
+        paramBox.appendChild(item);
+      });
+
+      renderKaTeXMath();
+    }
+
+    function checkAnswer() {
+      if (State.isAnswerSubmitted) return;
+
+      const userValStr = document.getElementById('answerInput').value.trim();
+      if (!userValStr) {
+        alert('Please enter your calculated answer before submitting.');
+        return;
+      }
+
+      const userVal = parseFloat(userValStr);
+      if (isNaN(userVal)) {
+        alert('Please enter a valid numeric answer.');
+        return;
+      }
+
+      State.isAnswerSubmitted = true;
+      document.getElementById('answerInput').disabled = true;
+      document.getElementById('submitBtn').style.display = 'none';
+      document.getElementById('skipBtn').style.display = 'none';
+
+      const correctVal = State.currentProblem.answer;
+      const relError = Math.abs((userVal - correctVal) / (correctVal !== 0 ? correctVal : 1));
+      const absError = Math.abs(userVal - correctVal);
+      // Allow 3.5% relative error or 0.05 absolute error for rounding differences
+      const isCorrect = relError <= 0.035 || absError <= 0.05;
+
+      const solBox = document.getElementById('solutionBox');
+      const resBadge = document.getElementById('resultBadge');
+      const resIcon = document.getElementById('resultIcon');
+      const resText = document.getElementById('resultText');
+      const feedback = document.getElementById('userFeedback');
+
+      solBox.style.display = 'block';
+
+      if (isCorrect) {
+        solBox.className = 'solution-box correct';
+        resBadge.className = 'result-badge correct';
+        resIcon.textContent = '✓';
+        resText.textContent = 'Correct Answer!';
+        feedback.innerHTML = `Your answer: <strong>${userVal} ${State.currentProblem.targetUnit}</strong> matches expected value <strong>${correctVal} ${State.currentProblem.targetUnit}</strong>.`;
+        
+        State.score += 10;
+        State.streak++;
+        State.correctInRound++;
+        if (State.streak > State.maxStreak) {
+          State.maxStreak = State.streak;
+        }
+        if (State.score > State.highScore) {
+          State.highScore = State.score;
+          localStorage.setItem('wave_high_score', State.highScore);
+        }
+      } else {
+        solBox.className = 'solution-box incorrect';
+        resBadge.className = 'result-badge incorrect';
+        resIcon.textContent = '✗';
+        resText.textContent = 'Incorrect';
+        feedback.innerHTML = `Your answer: <strong>${userVal} ${State.currentProblem.targetUnit}</strong>. Expected: <strong>${correctVal} ${State.currentProblem.targetUnit}</strong>.`;
+        State.streak = 0;
+      }
+
+      updateScoreboardUI();
+      document.getElementById('solutionSteps').innerHTML = formatSolution(State.currentProblem.solutionKaTeX);
+      renderKaTeXMath();
+    }
+
+    function skipProblem() {
+      if (State.isAnswerSubmitted) return;
+      State.isAnswerSubmitted = true;
+      document.getElementById('answerInput').disabled = true;
+      document.getElementById('submitBtn').style.display = 'none';
+      document.getElementById('skipBtn').style.display = 'none';
+      State.streak = 0;
+      updateScoreboardUI();
+
+      const solBox = document.getElementById('solutionBox');
+      solBox.className = 'solution-box incorrect';
+      document.getElementById('resultBadge').className = 'result-badge incorrect';
+      document.getElementById('resultIcon').textContent = '⏭';
+      document.getElementById('resultText').textContent = 'Problem Skipped';
+      document.getElementById('userFeedback').innerHTML = `Correct answer: <strong>${State.currentProblem.answer} ${State.currentProblem.targetUnit}</strong>.`;
+      solBox.style.display = 'block';
+
+      document.getElementById('solutionSteps').innerHTML = formatSolution(State.currentProblem.solutionKaTeX);
+      renderKaTeXMath();
+    }
+
+    function showRoundSummary() {
+      const modal = document.getElementById('summaryModal');
+      document.getElementById('sumFinalScore').textContent = State.score;
+      const total = parseInt(State.gameMode, 10);
+      const acc = total > 0 ? Math.round((State.correctInRound / total) * 100) : 0;
+      document.getElementById('sumAccuracy').textContent = `${acc}%`;
+      document.getElementById('sumCorrectCount').textContent = `${State.correctInRound} / ${total}`;
+      document.getElementById('sumMaxStreak').textContent = `${State.maxStreak} ⚡`;
+
+      State.lastScore = State.score;
+      localStorage.setItem('wave_last_score', State.lastScore);
+      updateScoreboardUI();
+
+      modal.style.display = 'flex';
+    }
+
+    function resetRound() {
+      State.score = 0;
+      State.streak = 0;
+      State.maxStreak = 0;
+      State.correctInRound = 0;
+      State.currentQuestionIndex = 0;
+      State.historyPool = [];
+      updateScoreboardUI();
+      document.getElementById('summaryModal').style.display = 'none';
+      loadNextProblem();
+    }
+
+    // --- Standard floating calculator ---
+    (function () {
+/* ---------- calculator expression engine (no eval) ---------- */
+function tokenize(s) {
+  const out = []; let i = 0;
+  while (i < s.length) {
+    const rest = s.slice(i); let m;
+    if (/^\s/.test(rest)) { i++; continue; }
+    if ((m = /^(\d+\.?\d*|\.\d+)(E[+-]?\d+)?/.exec(rest))) { out.push({ t: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue; }
+    if ((m = /^(asin|acos|atan|sin|cos|tan|ln|log|sqrt|pi|ans|e)/.exec(rest))) {
+      const w = m[1]; out.push({ t: (w === 'pi' || w === 'e' || w === 'ans') ? 'const' : 'fn', v: w }); i += w.length; continue;
+    }
+    if ('+-*/^()'.includes(rest[0])) { out.push({ t: 'op', v: rest[0] }); i++; continue; }
+    throw new Error('Syntax error');
+  }
+  return out;
+}
+function evaluate(str, opts) {
+  const tk = tokenize(str); let p = 0;
+  const peek = () => tk[p], nxt = () => tk[p++];
+  const isOp = (t, v) => t && t.t === 'op' && t.v === v;
+  const starts = (t) => t && (t.t === 'num' || t.t === 'const' || t.t === 'fn' || isOp(t, '('));
+  const toRad = (x) => (opts.deg ? x * Math.PI / 180 : x);
+  const fromRad = (x) => (opts.deg ? x * 180 / Math.PI : x);
+  const F = {
+    sin: (x) => Math.sin(toRad(x)), cos: (x) => Math.cos(toRad(x)), tan: (x) => Math.tan(toRad(x)),
+    asin: (x) => fromRad(Math.asin(x)), acos: (x) => fromRad(Math.acos(x)), atan: (x) => fromRad(Math.atan(x)),
+    ln: Math.log, log: Math.log10, sqrt: Math.sqrt,
+  };
+  function expr() {
+    let v = term();
+    while (isOp(peek(), '+') || isOp(peek(), '-')) { const o = nxt().v; const r = term(); v = o === '+' ? v + r : v - r; }
+    return v;
+  }
+  function term() {
+    let v = unary();
+    for (;;) {
+      const t = peek();
+      if (isOp(t, '*') || isOp(t, '/')) { nxt(); const r = unary(); v = t.v === '*' ? v * r : v / r; }
+      else if (starts(t)) v *= unary();
+      else return v;
+    }
+  }
+  function unary() {
+    if (isOp(peek(), '-')) { nxt(); return -unary(); }
+    if (isOp(peek(), '+')) { nxt(); return unary(); }
+    return power();
+  }
+  function power() {
+    const b = primary();
+    if (isOp(peek(), '^')) { nxt(); return Math.pow(b, unary()); }
+    return b;
+  }
+  function primary() {
+    const t = nxt();
+    if (!t) throw new Error('Incomplete');
+    if (t.t === 'num') return t.v;
+    if (t.t === 'const') return t.v === 'pi' ? Math.PI : t.v === 'e' ? Math.E : opts.ans;
+    if (t.t === 'fn') {
+      if (!isOp(peek(), '(')) throw new Error('Use ( after ' + t.v);
+      nxt(); const a = expr(); if (isOp(peek(), ')')) nxt();
+      return F[t.v](a);
+    }
+    if (isOp(t, '(')) { const v = expr(); if (isOp(peek(), ')')) nxt(); return v; }
+    throw new Error('Syntax error');
+  }
+  const v = expr();
+  if (p < tk.length) throw new Error('Syntax error');
+  if (!isFinite(v)) throw new Error('Math error');
+  return v;
+}
+function fmt(x) {
+  if (x === 0) return '0';
+  const a = Math.abs(x);
+  if (a >= 1e10 || a < 1e-6) return x.toExponential(6).replace(/\.?0+e/, 'e').replace('e+', 'e');
+  return String(Number(x.toPrecision(10)));
+}
+const pretty = (s) => s.replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−').replace(/pi/g, 'π').replace(/sqrt\(/g, '√(').replace(/asin\(/g, 'sin⁻¹(').replace(/acos\(/g, 'cos⁻¹(').replace(/atan\(/g, 'tan⁻¹(');
+
+window.initCalculator = function (getLastInput) {
+  const st = { expr: '', deg: true, inv: false, ans: 0, done: false, err: '' };
+  const panel = document.getElementById('calc'), fab = document.getElementById('fab');
+  const K = (label, act, cls, extra) => ({ label, act, cls: cls || '', extra: extra || '' });
+  const rows = () => [
+    [K('2nd', 'inv', st.inv ? 'on fn' : 'fn'), K(st.deg ? 'DEG' : 'RAD', 'deg', 'fn'), K('(', '('), K(')', ')'), K('⌫', 'back', 'clr')],
+    [K(st.inv ? 'sin⁻¹' : 'sin', st.inv ? 'asin(' : 'sin(', 'fn'), K(st.inv ? 'cos⁻¹' : 'cos', st.inv ? 'acos(' : 'cos(', 'fn'), K(st.inv ? 'tan⁻¹' : 'tan', st.inv ? 'atan(' : 'tan(', 'fn'), K(st.inv ? 'eˣ' : 'ln', st.inv ? 'e^(' : 'ln(', 'fn'), K(st.inv ? '10ˣ' : 'log', st.inv ? '10^(' : 'log(', 'fn')],
+    [K('√', 'sqrt(', 'fn'), K('x²', '^2', 'fn'), K('xʸ', '^', 'fn'), K('π', 'pi', 'fn'), K('e', 'e', 'fn')],
+    [K('7', '7'), K('8', '8'), K('9', '9'), K('÷', '/', 'op'), K('C', 'clear', 'clr')],
+    [K('4', '4'), K('5', '5'), K('6', '6'), K('×', '*', 'op'), K('Ans', 'ans', 'fn')],
+    [K('1', '1'), K('2', '2'), K('3', '3'), K('−', '-', 'op'), K('EE', 'E', 'fn')],
+    [K('0', '0'), K('.', '.'), K('+', '+', 'op'), K('=', '=', 'eq', 'grid-column:span 2')],
+  ];
+  panel.innerHTML = `
+    <div class="calc-head" id="calcHead"><span class="grip"><span class="dots" aria-hidden="true">⠿</span>Calculator</span>
+      <button type="button" id="calcClose" aria-label="Close calculator">&times;</button></div>
+    <div class="disp"><div class="expr"><span id="cExpr"></span></div><div class="res" id="cRes">0</div>
+      <div class="meta"><span id="cMode"></span><span>drag the header to move</span></div></div>
+    <div class="keys" id="cKeys"></div>
+    <div class="calc-foot"><button type="button" class="btn teal" id="cUse">Use result in answer box</button></div>`;
+  const $ = (s) => panel.querySelector(s);
+  function preview() {
+    if (!st.expr.trim()) return { txt: '' };
+    try { return { txt: fmt(evaluate(st.expr, st)) }; } catch (e) { return { txt: '' }; }
+  }
+  function paint() {
+    const keys = $('#cKeys'), flat = rows().flat();
+    keys.innerHTML = flat.map((k, i) => `<button type="button" data-i="${i}" class="${k.cls}" style="${k.extra}">${k.label}</button>`).join('');
+    keys.onclick = (e) => { const b = e.target.closest('button'); if (b) press(flat[Number(b.dataset.i)].act); };
+    keys.onmousedown = (e) => e.preventDefault();
+    $('#cExpr').textContent = st.done ? pretty(st.shown) + ' =' : pretty(st.expr);
+    const r = $('#cRes');
+    if (st.err) r.textContent = st.err;
+    else if (st.done && !st.expr) r.textContent = fmt(st.ans);
+    else r.textContent = preview().txt || '0';
+    r.classList.toggle('err', !!st.err);
+    $('#cMode').textContent = (st.deg ? 'degrees' : 'radians') + (st.ans ? '   ans = ' + fmt(st.ans) : '');
+  }
+  function append(s) {
+    if (st.done) { st.done = false; st.expr = (/^[+\-*/^]/.test(s) ? 'ans' : '') + s; return; }
+    st.expr += s;
+  }
+  function press(a) {
+    st.err = '';
+    if (a === 'inv') st.inv = !st.inv;
+    else if (a === 'deg') st.deg = !st.deg;
+    else if (a === 'clear') { st.expr = ''; st.done = false; }
+    else if (a === 'back') {
+      if (st.done) { st.done = false; st.expr = ''; }
+      else st.expr = st.expr.replace(/(asin\(|acos\(|atan\(|sqrt\(|sin\(|cos\(|tan\(|log\(|ln\(|ans|pi|.)$/, '');
+    } else if (a === '=') {
+      if (st.expr.trim()) {
+        try { st.ans = evaluate(st.expr, st); st.shown = st.expr; st.expr = ''; st.done = true; }
+        catch (e) { st.err = e.message; }
+      }
+    } else append(a);
+    paint();
+  }
+  function setOpen(o) {
+    panel.hidden = !o; fab.setAttribute('aria-expanded', String(o));
+    fab.setAttribute('aria-label', o ? 'Close calculator' : 'Open calculator');
+    if (o) paint();
+  }
+  fab.onclick = () => setOpen(panel.hidden);
+  $('#calcClose').onclick = () => setOpen(false);
+  fab.setAttribute('aria-controls', 'calc'); setOpen(false);
+  $('#cUse').onclick = () => {
+    const inp = getLastInput && getLastInput();
+    let v = st.done ? st.ans : (() => { try { return evaluate(st.expr || '0', st); } catch (e) { return NaN; } })();
+    if (!isFinite(v) || !inp || !document.contains(inp) || inp.disabled) {
+      $('#cUse').textContent = inp && !inp.disabled ? 'Nothing to insert yet' : 'Tap an answer box first';
+      setTimeout(() => { $('#cUse').textContent = 'Use result in answer box'; }, 1400); return;
+    }
+    inp.value = String(Number(v.toPrecision(6)));
+    $('#cUse').textContent = 'Inserted';
+    setTimeout(() => { $('#cUse').textContent = 'Use result in answer box'; }, 1000);
+  };
+  document.addEventListener('keydown', (e) => {
+    if (panel.hidden || /^(INPUT|SELECT|TEXTAREA)$/.test((e.target.tagName || ''))) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key;
+    if (/^[0-9.]$/.test(k) || '+-*/^()'.includes(k)) { press(k); e.preventDefault(); }
+    else if (k === 'Enter' || k === '=') { press('='); e.preventDefault(); }
+    else if (k === 'Backspace') { press('back'); e.preventDefault(); }
+    else if (k === 'Escape') { setOpen(false); }
+    else if (k === 'p') press('pi'); else if (k === 'e') press('e');
+  });
+  const head = $('#calcHead'); let drag = null;
+  head.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return;
+    const r = panel.getBoundingClientRect();
+    drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+    panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px'; panel.style.right = 'auto'; panel.style.bottom = 'auto';
+    head.setPointerCapture(e.pointerId);
+  });
+  head.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    panel.style.left = Math.min(Math.max(4, e.clientX - drag.dx), window.innerWidth - w - 4) + 'px';
+    panel.style.top = Math.min(Math.max(4, e.clientY - drag.dy), window.innerHeight - h - 4) + 'px';
+  });
+  const end = () => { drag = null; };
+  head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
+  window.addEventListener('resize', () => {
+    if (panel.style.left) {
+      const r = panel.getBoundingClientRect();
+      panel.style.left = Math.min(Math.max(4, r.left), Math.max(4, window.innerWidth - r.width - 4)) + 'px';
+      panel.style.top = Math.min(Math.max(4, r.top), Math.max(4, window.innerHeight - r.height - 4)) + 'px';
+    }
+  });
+};
+
+    })();
+
+    // --- Step-by-step solution formatter ---
+    function formatSolution(raw) {
+      const lines = String(raw).split('\n').map(s => s.trim()).filter(Boolean);
+      const steps = [];
+      let cur = null;
+      lines.forEach(l => {
+        if (l.startsWith('$$')) {
+          const tex = l.replace(/^\$\$/, '').replace(/\$\$?$/, '').trim();
+          if (!cur) { cur = { text: '', eqs: [] }; steps.push(cur); }
+          cur.eqs.push(tex);
+        } else {
+          cur = { text: l, eqs: [] };
+          steps.push(cur);
+        }
+      });
+      let n = 0;
+      return steps.map(s => {
+        const num = s.text ? `<span class="sol-n">${++n}</span>` : '<span class="sol-n" style="visibility:hidden"></span>';
+        const t = s.text ? `<div class="sol-text">${s.text}</div>` : '';
+        const e = s.eqs.map(x => `<div class="sol-eq">$$${x}$$</div>`).join('');
+        return `<div class="sol-step">${num}<div class="sol-body">${t}${e}</div></div>`;
+      }).join('');
+    }
+
+    // --- DOM Event Listeners & Bootstrapping ---
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // Initial score & stats
+      updateScoreboardUI();
+
+      // Theme toggle
+      const themeBtn = document.getElementById('themeToggleBtn');
+      const themeIcon = document.getElementById('themeIcon');
+      themeBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        themeIcon.textContent = newTheme === 'light' ? '🌙' : '☀️';
+      });
+
+      // Formula sheet modal
+      const formulaModal = document.getElementById('formulaModal');
+      document.getElementById('formulaSheetBtn').addEventListener('click', () => {
+        formulaModal.style.display = 'flex';
+        renderKaTeXMath();
+      });
+      document.getElementById('closeFormulaModal').addEventListener('click', () => {
+        formulaModal.style.display = 'none';
+      });
+      formulaModal.addEventListener('click', (e) => {
+        if (e.target === formulaModal) formulaModal.style.display = 'none';
+      });
+
+      // Mode selector
+      const modeBtns = document.querySelectorAll('#modeSelector .seg-btn');
+      modeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          modeBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          State.gameMode = btn.getAttribute('data-mode');
+          resetRound();
+        });
+      });
+
+      // Topic filter dropdown
+      const topicDropdown = document.getElementById('topicDropdown');
+      topicDropdown.addEventListener('change', () => {
+        State.topicFilter = topicDropdown.value;
+        resetRound();
+      });
+
+      // Submit and Skip
+      document.getElementById('submitBtn').addEventListener('click', checkAnswer);
+      document.getElementById('skipBtn').addEventListener('click', skipProblem);
+      document.getElementById('nextProblemBtn').addEventListener('click', loadNextProblem);
+
+      document.getElementById('answerInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          if (!State.isAnswerSubmitted) {
+            checkAnswer();
+          } else {
+            loadNextProblem();
+          }
+        }
+      });
+
+      // Summary modal restart
+      document.getElementById('startNewRoundBtn').addEventListener('click', resetRound);
+
+      // Floating calculator
+      document.getElementById('fab').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="8" y="5.5" width="8" height="4" rx="1"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/></svg>';
+      window.initCalculator(() => document.getElementById('answerInput'));
+
+      // Initial problem load
+      loadNextProblem();
+    });
+  </script>
+</body>
+</html>
