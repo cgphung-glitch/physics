@@ -1,0 +1,3482 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Coefficient of Friction · PHY 1510 Experiment 4a</title>
+<meta name="description" content="Interactive simulation of Experiment 4a (Coefficient of Friction): pull a wooden block with a spring scale on a level board and on an incline, with and without brass weights, and measure the static and kinetic coefficients." />
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('cof-theme');
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  })();
+</script>
+<style>
+/* ============================================================
+   Determining g on an Incline — theme + layout
+   ============================================================ */
+
+:root {
+  color-scheme: light;
+
+  --bg: #eef2f9;
+  --bg-glow: #dfe9fb;
+  --panel: #ffffff;
+  --panel-2: #f6f9fe;
+  --panel-3: #eef3fb;
+  --border: #dde5f1;
+  --border-strong: #c7d4e6;
+  --text: #0e1a2c;
+  --muted: #5a6b83;
+  --faint: #5f6f86;
+  --scene-ink: #45556c;
+  --scene-accent: #1f57d6;
+  --accent: #2563eb;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(37, 99, 235, 0.09);
+  --accent-2: #a34a08;
+  --accent-2-soft: rgba(194, 87, 11, 0.10);
+  --good: #08714f;
+  --good-soft: rgba(8, 113, 79, 0.10);
+  --grid: #e4ebf6;
+  --axis: #b3c2d6;
+  --glass: rgba(255, 255, 255, 0.78);
+  --shadow: 0 1px 2px rgba(16, 30, 54, 0.05), 0 18px 36px -26px rgba(16, 30, 54, 0.38);
+  --shadow-sm: 0 1px 2px rgba(16, 30, 54, 0.06);
+
+  --scene-top: #f8fbff;
+  --scene-bottom: #e7eefa;
+  --scene-floor: #c3d2e6;
+  --viz-track: #c8d4e4;
+  --viz-track-edge: #94a7bf;
+  --viz-track-hi: #f2f7ff;
+  --viz-cart: #ef9140;
+  --viz-cart-dark: #bd6619;
+  --viz-cart-light: #ffc684;
+  --viz-block: #dcb887;
+  --viz-block-edge: #b5895396;
+  --viz-block-line: #eed9b8;
+  --viz-detector: #485a74;
+  --viz-detector-face: #22324a;
+  --viz-wheel: #38455a;
+
+  --radius: 16px;
+  --radius-sm: 11px;
+  --topbar-h: 62px;
+  --page-pad: clamp(12px, 1.5vw, 22px);
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #070c15;
+  --bg-glow: #0d1728;
+  --panel: #0e1727;
+  --panel-2: #111d30;
+  --panel-3: #142238;
+  --border: #1d2c44;
+  --border-strong: #2a3d59;
+  --text: #e8f0fc;
+  --muted: #93a5bf;
+  --faint: #7e91ac;
+  --scene-ink: #93a5bf;
+  --scene-accent: #67a4ff;
+  --accent: #67a4ff;
+  --accent-ink: #061020;
+  --accent-soft: rgba(103, 164, 255, 0.13);
+  --accent-2: #ffb066;
+  --accent-2-soft: rgba(255, 176, 102, 0.12);
+  --good: #34d399;
+  --good-soft: rgba(52, 211, 153, 0.12);
+  --grid: #16243a;
+  --axis: #2b3e5b;
+  --glass: rgba(12, 21, 36, 0.72);
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.025) inset, 0 24px 44px -30px rgba(0, 0, 0, 0.85);
+  --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+
+  --scene-top: #0c1626;
+  --scene-bottom: #091120;
+  --scene-floor: #24354f;
+  --viz-track: #2f4260;
+  --viz-track-edge: #476083;
+  --viz-track-hi: #647fa3;
+  --viz-cart: #f2a45e;
+  --viz-cart-dark: #b86827;
+  --viz-cart-light: #ffd3a6;
+  --viz-block: #7d5d3b;
+  --viz-block-edge: #a98051;
+  --viz-block-line: #9a7449;
+  --viz-detector: #a2b5cd;
+  --viz-detector-face: #2b3b52;
+  --viz-wheel: #0d1623;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 620px at 8% -12%, var(--bg-glow), transparent 62%),
+    radial-gradient(900px 500px at 100% 0%, var(--accent-soft), transparent 60%),
+    var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 { margin: 0; letter-spacing: -0.015em; }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+em { font-style: italic; }
+strong { font-weight: 650; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------------- top bar ---------------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  height: var(--topbar-h);
+  padding: 0 var(--page-pad);
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  background: color-mix(in srgb, var(--panel) 72%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  position: relative;
+  z-index: 20;
+}
+
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+.brand-badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent-ink);
+  background: linear-gradient(150deg, var(--accent), color-mix(in srgb, var(--accent) 58%, var(--accent-2)));
+  box-shadow: 0 6px 16px -8px var(--accent);
+}
+
+.brand-text { min-width: 0; }
+.brand h1 {
+  font-size: clamp(15px, 1.5vw, 19px);
+  font-weight: 680;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.brand h1 em { font-family: Georgia, "Times New Roman", serif; }
+.brand p {
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: 0.015em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-right { display: flex; align-items: center; gap: 10px; flex: none; }
+
+.eq-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--muted);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13.5px;
+  letter-spacing: 0.01em;
+}
+
+.theme-btn {
+  display: grid;
+  place-items: center;
+  width: 38px; height: 38px;
+  padding: 0;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.theme-btn:hover { background: var(--panel-2); border-color: var(--border-strong); }
+.theme-btn:active { transform: scale(0.96); }
+.theme-btn .ico { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+html[data-theme="light"] .ico-sun { display: none; }
+html[data-theme="dark"] .ico-moon { display: none; }
+
+/* ---------------- layout ---------------- */
+
+.layout {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  padding: 14px var(--page-pad) 44px;
+}
+
+.panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.sidebar { display: grid; gap: 12px; align-content: start; min-width: 0; }
+
+/* stage */
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  overflow: hidden;
+}
+
+.panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.panel-head h2 { font-size: 14px; font-weight: 650; letter-spacing: 0.01em; }
+.panel-head .sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+.badge {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.badge::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.55;
+}
+.badge[data-state="running"] { color: var(--accent-2); background: var(--accent-2-soft); border-color: transparent; }
+.badge[data-state="running"]::before { opacity: 1; animation: pulse 1s ease-in-out infinite; }
+
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.75); } }
+
+.canvas-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 288px;
+  border-radius: 13px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background: var(--panel-2);
+  isolation: isolate;
+}
+#scene { position: absolute; inset: 0; display: block; width: 100%; height: 100%; touch-action: manipulation; }
+
+.hud {
+  position: absolute;
+  top: 10px;
+  display: flex;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+.hud-left { left: 10px; flex-direction: column; gap: 2px; }
+.hud-right { right: 10px; flex-direction: column; align-items: flex-end; gap: 1px; }
+
+.hud-metric { display: flex; align-items: baseline; gap: 5px; font-size: 11px; color: var(--muted); }
+.hud-metric span {
+  width: 26px;
+  font-style: italic;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 12px;
+  color: var(--faint);
+}
+.hud-metric strong { font-size: 14px; font-weight: 600; color: var(--text); letter-spacing: 0.01em; }
+.hud-metric small { font-size: 9.5px; color: var(--faint); }
+
+.hud-angle { font-size: 14px; font-weight: 650; letter-spacing: 0.01em; }
+.hud-sub { font-size: 10px; color: var(--muted); }
+.hud-sub span { font-variant-numeric: tabular-nums; }
+
+/* stage controls */
+
+.stage-controls { display: grid; gap: 11px; }
+.field { display: grid; gap: 6px; }
+.field-label {
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.field-label em {
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.block-options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.mode-options { grid-template-columns: repeat(2, 1fr); }
+
+.block-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.12s ease;
+}
+.block-btn:hover:not(:disabled) { border-color: var(--border-strong); color: var(--text); }
+.block-btn:active:not(:disabled) { transform: scale(0.975); }
+.block-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.block-btn.is-active {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.pips { display: flex; flex-direction: column-reverse; gap: 2px; }
+.pips i {
+  display: block;
+  width: 15px;
+  height: 3px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.55;
+}
+.block-btn.is-active .pips i { opacity: 0.95; }
+
+.action-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 15px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 620;
+  letter-spacing: 0.005em;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.12s ease, opacity 0.16s ease;
+}
+.btn:active:not(:disabled) { transform: translateY(1px) scale(0.995); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn .ico-sm { width: 15px; height: 15px; fill: currentColor; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: 0 8px 18px -12px var(--accent); }
+.btn-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 88%, var(--text)); }
+.btn-outline { background: var(--panel); border-color: var(--border-strong); color: var(--text); }
+.btn-outline:hover:not(:disabled) { background: var(--panel-2); }
+.btn-ghost { background: transparent; color: var(--muted); border-color: transparent; padding: 0 10px; }
+.btn-ghost:hover:not(:disabled) { background: var(--panel-2); color: var(--text); }
+.btn-quiet {
+  background: var(--panel-2);
+  border-color: var(--border);
+  color: var(--muted);
+}
+.btn-quiet:hover:not(:disabled) { border-color: var(--border-strong); color: var(--text); }
+.btn-sm { height: 32px; padding: 0 11px; font-size: 11.5px; border-radius: 9px; }
+
+.stage-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 2px;
+}
+.status {
+  flex: 1 1 200px;
+  min-height: 18px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.status strong { color: var(--text); }
+
+.speed { display: flex; align-items: center; gap: 3px; flex: none; }
+.speed-label { font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--faint); margin-right: 5px; }
+.speed button {
+  height: 26px;
+  min-width: 32px;
+  padding: 0 7px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.speed button:hover { background: var(--panel-2); color: var(--text); }
+.speed button.is-active { background: var(--panel-3); color: var(--text); border-color: var(--border); }
+
+/* ---------------- sidebar cards ---------------- */
+
+.card { padding: 15px 16px 16px; min-width: 0; }
+.card h2 { font-size: 13.5px; font-weight: 660; letter-spacing: 0.005em; }
+
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.card-text { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.card-text strong { color: var(--text); }
+
+.formula {
+  margin: 11px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+.formula em, .formula i { font-style: italic; }
+
+.objectives { margin: 11px 0 0; padding-left: 16px; font-size: 12px; color: var(--muted); display: grid; gap: 4px; }
+.objectives li::marker { color: var(--accent); }
+.objectives em { font-family: Georgia, "Times New Roman", serif; }
+
+.procedure { margin-top: 11px; border-top: 1px solid var(--border); padding-top: 10px; }
+.procedure summary {
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  user-select: none;
+}
+.procedure summary::-webkit-details-marker { display: none; }
+.procedure summary::after {
+  content: "+";
+  margin-left: auto;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--faint);
+  transition: transform 0.2s ease;
+}
+.procedure[open] summary::after { content: "−"; }
+.procedure summary:hover { color: var(--text); }
+.procedure ol { margin: 9px 0 0; padding-left: 17px; font-size: 11.5px; color: var(--muted); display: grid; gap: 5px; }
+.procedure li::marker { color: var(--faint); }
+
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat {
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--panel-2);
+  border: 1px solid transparent;
+  min-width: 0;
+}
+.stat span {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.015em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stat strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+}
+.stat-wide { grid-column: 1 / -1; }
+.stat-accent { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 18%, transparent); }
+.stat-accent strong { font-size: 19px; color: var(--accent); }
+
+.card-foot { margin-top: 11px; }
+.card-foot .btn { width: 100%; }
+
+.result-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 13px;
+  border-radius: 11px;
+  background: linear-gradient(120deg, var(--accent-2-soft), transparent 78%);
+  border: 1px solid var(--border);
+}
+.result-value span { display: block; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.result-value strong {
+  display: block;
+  font-size: clamp(24px, 3vw, 30px);
+  font-weight: 640;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  color: var(--accent-2);
+}
+.result-value strong small { font-size: 12px; font-weight: 550; letter-spacing: 0; color: var(--muted); margin-left: 3px; }
+
+.delta {
+  flex: none;
+  padding: 5px 9px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--good);
+  background: var(--good-soft);
+}
+.delta[data-tone="warn"] { color: var(--accent-2); background: var(--accent-2-soft); }
+
+.result-list { margin: 11px 0 0; display: grid; gap: 6px; }
+.result-list > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 11.5px; }
+.result-list dt { color: var(--muted); }
+.result-list dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.note {
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.table-wrap { overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.data-table th {
+  padding: 0 5px 5px;
+  text-align: right;
+  font-size: 9.5px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.data-table th:first-child { text-align: left; padding-left: 7px; }
+.data-table td {
+  padding: 6px 5px;
+  text-align: right;
+  border-top: 1px solid var(--border);
+  white-space: nowrap;
+  color: var(--text);
+}
+.data-table td:first-child {
+  text-align: left;
+  padding-left: 7px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.data-table tr.is-current td { background: var(--accent-soft); }
+.data-table tr.is-current td:first-child { border-radius: 7px 0 0 7px; color: var(--accent); }
+.data-table tr.is-current td:last-child { border-radius: 0 7px 7px 0; }
+.data-table td.empty { color: var(--faint); }
+.data-table td.avg { font-weight: 650; }
+.data-table tbody tr { cursor: pointer; }
+.data-table tbody tr:hover td { background: var(--panel-2); }
+.data-table tbody tr.is-current:hover td { background: var(--accent-soft); }
+
+.table-note { margin-top: 9px; font-size: 10.5px; line-height: 1.45; color: var(--faint); }
+
+/* ---------------- plots ---------------- */
+
+.plots { min-width: 0; }
+.plots-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 10px 2px 10px;
+}
+.plots-head h2 { font-size: 16px; font-weight: 660; }
+.plots-head p { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.plots-hint { font-size: 10.5px; color: var(--faint); }
+
+.plot-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+
+.chart-card { display: flex; flex-direction: column; padding: 13px 14px 11px; }
+.chart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.chart-head h3 { font-size: 12.5px; font-weight: 650; }
+.chart-head p { font-size: 10.5px; color: var(--muted); margin-top: 1px; font-variant-numeric: tabular-nums; }
+
+.export-group { display: flex; gap: 4px; flex: none; }
+.export-btn {
+  height: 25px;
+  padding: 0 8px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  cursor: pointer;
+  transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+}
+.export-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.export-btn:active { transform: translateY(1px); }
+
+.chart-frame { position: relative; height: 244px; margin-top: 6px; }
+.chart-frame-tall { height: 320px; }
+.chart-frame canvas { display: block; width: 100%; height: 100%; }
+
+.chart-note { margin-top: 4px; font-size: 10.5px; color: var(--faint); }
+
+/* ---------------- toast ---------------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  transform: translate(-50%, 16px);
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 550;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 60;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+}
+.toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------------- focus ---------------- */
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------------- responsive ---------------- */
+
+@media (max-width: 719px) {
+  .eq-chip { display: none; }
+  .brand-badge { width: 34px; height: 34px; font-size: 20px; border-radius: 10px; }
+  .brand p { font-size: 10.5px; }
+  .stage { padding: 12px; }
+  .canvas-wrap { min-height: 268px; }
+  .chart-frame { height: 224px; }
+  .chart-frame-tall { height: 290px; }
+  .plots-hint { display: none; }
+  .stat strong { font-size: 13px; }
+  .stat-accent strong { font-size: 17px; }
+}
+
+@media (max-width: 400px) {
+  .action-row .btn { flex: 1 1 auto; }
+  .action-row #pullBtn { flex-basis: 100%; }
+  .stage-foot { flex-direction: column; align-items: stretch; }
+  .status { flex: none; }
+  .speed { justify-content: flex-end; }
+}
+
+@media (min-width: 720px) {
+  .plot-grid { grid-template-columns: 1fr 1fr; }
+  .plot-grid .span-2 { grid-column: 1 / -1; }
+}
+
+@media (min-width: 1024px) {
+  :root { --topbar-h: 66px; }
+
+  .layout {
+    grid-template-columns: minmax(0, 1.42fr) minmax(360px, 1fr);
+    align-items: start;
+  }
+
+  .stage {
+    grid-column: 1;
+    height: calc(100dvh - var(--topbar-h) - 28px);
+    min-height: 596px;
+  }
+
+  .sidebar {
+    grid-column: 2;
+    height: calc(100dvh - var(--topbar-h) - 28px);
+    min-height: 596px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 3px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 7px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+
+  .plots { grid-column: 1 / -1; }
+}
+
+@media (min-width: 1500px) {
+  .layout { grid-template-columns: minmax(0, 1.35fr) minmax(400px, 0.95fr); }
+  .chart-frame { height: 264px; }
+  .chart-frame-tall { height: 356px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ============================================================
+   Moment of Inertia — scene palette + arrangement picker
+   ============================================================ */
+
+:root {
+  --viz-disk: #cfe0f4;
+  --viz-disk-hi: #f6fbff;
+  --viz-disk-edge: #8fa8c4;
+  --viz-disk-hub: #7c93ae;
+  --viz-ball: #62788f;
+  --viz-ball-hi: #e6eefb;
+  --viz-mark: #c2570b;
+}
+
+html[data-theme="dark"] {
+  --viz-disk: #2b3f59;
+  --viz-disk-hi: #46617f;
+  --viz-disk-edge: #4d6685;
+  --viz-disk-hub: #16233a;
+  --viz-ball: #9fb4cf;
+  --viz-ball-hi: #f0f7ff;
+  --viz-mark: #ffb066;
+}
+
+.case-options { grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); }
+
+.case-list { margin-top: 9px; display: grid; gap: 5px; border-top: 1px solid var(--border); padding-top: 9px; }
+.case-list > div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 11px; }
+.case-list dt { color: var(--muted); }
+.case-list dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.case-list .case-head { font-size: 10px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); }
+
+.data-table td.case-name { text-align: left; }
+
+/* ============================================================
+   Coefficient of friction — scene palette + part selector
+   ============================================================ */
+
+:root {
+  --viz-board: #dcb887;
+  --viz-board-edge: #b58953;
+  --viz-block: #e7cba3;
+  --viz-block-edge: #a97f4a;
+  --viz-brass: #c9963c;
+  --viz-brass-edge: #8c6620;
+  --viz-paper: #f6f9ff;
+  --viz-paper-edge: #c3d2e6;
+  --viz-scale: #e6eefa;
+  --viz-scale-edge: #96a9c4;
+  --viz-string: #6b7c93;
+}
+
+html[data-theme="dark"] {
+  --viz-board: #6d5433;
+  --viz-board-edge: #8a6b42;
+  --viz-block: #7a5f3c;
+  --viz-block-edge: #a8865c;
+  --viz-brass: #b8842f;
+  --viz-brass-edge: #d7a75a;
+  --viz-paper: #dfe8f5;
+  --viz-paper-edge: #9fb2cc;
+  --viz-scale: #1b2b44;
+  --viz-scale-edge: #33486a;
+  --viz-string: #7f93ad;
+}
+
+.part-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.part-options .block-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  padding: 8px 10px;
+}
+
+.part-name {
+  font-weight: 650;
+  font-size: 12.5px;
+  line-height: 1.15;
+}
+
+.part-sub {
+  font-size: 10.5px;
+  color: var(--faint);
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 560px) {
+  .part-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.table-wrap {
+  max-height: 380px;
+  overflow: auto;
+}
+
+.data-table tr.part-row td {
+  background: var(--panel-3);
+  font-weight: 650;
+  font-size: 11px;
+  padding-top: 8px;
+  padding-bottom: 7px;
+  border-top: 1px solid var(--border);
+}
+
+.data-table tr.part-row:first-child td { border-top: 0; }
+
+.part-row-name { margin-right: 8px; }
+
+.part-row-mu {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-weight: 550;
+}
+
+/* ---------------- pre-lab worksheet ---------------- */
+
+.worksheet {
+  grid-column: 1 / -1;
+}
+
+.worksheet .panel-head {
+  margin-bottom: 14px;
+}
+
+.ws-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .ws-grid { grid-template-columns: 1fr; }
+}
+
+.ws-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  min-width: 0;
+}
+
+.ws-card h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.ws-hint {
+  margin: 0 0 10px;
+  font-size: 11.5px;
+  color: var(--faint);
+  line-height: 1.45;
+}
+
+.ws-text {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.ws-text strong { color: var(--text); }
+
+.ws-terms {
+  display: grid;
+  gap: 12px;
+}
+
+.ws-term {
+  display: grid;
+  gap: 5px;
+}
+
+.ws-term-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ws-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  outline: none;
+}
+
+.ws-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.ws-input.ws-textarea {
+  line-height: 1.5;
+  resize: none;
+  overflow-y: hidden;
+}
+
+.ws-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 4px;
+}
+
+.ws-field > span {
+  min-width: 34px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.ws-field .ws-input { max-width: 130px; }
+
+.ws-feedback {
+  min-height: 16px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--faint);
+  margin: 0 0 8px;
+}
+
+.ws-feedback.is-good { color: var(--good); }
+.ws-feedback.is-bad { color: var(--accent-2); }
+
+.ws-model {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  background: var(--panel-3);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.ws-model strong { color: var(--text); }
+
+.ws-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.ws-actions a.btn { text-decoration: none; }
+
+@media (max-width: 560px) {
+  .ws-card { padding: 12px; }
+  .ws-field .ws-input { max-width: none; flex: 1; }
+}
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-badge" aria-hidden="true">µ</div>
+    <div class="brand-text">
+      <h1>Coefficient of Friction</h1>
+      <p>PHY 1510 · Experiment 4a · static &amp; kinetic friction</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="eq-chip" aria-hidden="true">f = µ&nbsp;n</span>
+    <button class="theme-btn" id="themeToggle" type="button" aria-label="Switch to dark theme" title="Toggle light / dark theme">
+      <svg class="ico ico-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.3 5.3l1.9 1.9M16.8 16.8l1.9 1.9M18.7 5.3l-1.9 1.9M7.2 16.8l-1.9 1.9"/></svg>
+      <svg class="ico ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.4A8.4 8.4 0 0 1 9.6 4a8.6 8.6 0 1 0 10.4 10.4z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ============ LEFT: apparatus ============ -->
+  <section class="panel stage" aria-labelledby="stageTitle">
+    <div class="panel-head">
+      <div>
+        <h2 id="stageTitle">Apparatus</h2>
+        <p class="sub">Friction board, wooden block, brass weights and spring scale</p>
+      </div>
+      <span class="badge" id="runBadge" data-state="idle">Idle</span>
+    </div>
+
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="scene" role="img" aria-label="Side view of the friction board with the wooden block, brass weights, spring scale and the applied and friction forces"></canvas>
+      <div class="hud hud-left" aria-hidden="true">
+        <div class="hud-metric"><span>F</span><strong id="hudF">—</strong><small>N</small></div>
+        <div class="hud-metric"><span>µ</span><strong id="hudMu">—</strong></div>
+        <div class="hud-metric"><span>load</span><strong id="hudLoad">0</strong><small>g</small></div>
+      </div>
+      <div class="hud hud-right" aria-hidden="true">
+        <div class="hud-angle" id="hudTheta">0.0°</div>
+        <div class="hud-sub">n = <span id="hudN">1.47</span> N</div>
+        <div class="hud-sub">W = <span id="hudW">1.47</span> N</div>
+      </div>
+    </div>
+
+    <div class="stage-controls">
+      <div class="field">
+        <span class="field-label">Experiment part <em id="partHint">largest face</em></span>
+        <div class="part-options" id="partOptions" role="group" aria-label="Experiment part"></div>
+      </div>
+
+      <div class="field">
+        <span class="field-label">Measurement</span>
+        <div class="action-row">
+          <button class="btn btn-primary" id="pullBtn" type="button">
+            <svg class="ico-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6L19 12z" fill="currentColor" stroke="none"/></svg>
+            <span id="pullBtnLabel">Pull block</span>
+          </button>
+          <button class="btn btn-outline" id="autoBtn" type="button">Pull all four loads</button>
+          <button class="btn btn-ghost" id="clearBtn" type="button" title="Erase every recorded force">Clear data</button>
+        </div>
+      </div>
+
+      <div class="stage-foot">
+        <p class="status" id="statusLine" aria-live="polite">Pick a part, then pull the block.</p>
+        <div class="speed" role="group" aria-label="Animation speed">
+          <span class="speed-label">Speed</span>
+          <button type="button" data-speed="0.5">0.5×</button>
+          <button type="button" data-speed="1" class="is-active">1×</button>
+          <button type="button" data-speed="2">2×</button>
+          <button type="button" data-speed="4">4×</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RIGHT: information panels ============ -->
+  <aside class="sidebar" aria-label="Experiment information">
+
+    <article class="panel card">
+      <div class="card-head">
+        <h2>Current part</h2>
+        <span class="pill" id="loadPill">No readings</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>Part</span><strong id="statPart">Static · level</strong></div>
+        <div class="stat"><span>Contact</span><strong id="statContact">wood · broad face</strong></div>
+        <div class="stat"><span>Incline angle θ</span><strong id="statTheta">0.0°</strong></div>
+        <div class="stat"><span>Normal force n (block only)</span><strong id="statN">1.47 N</strong></div>
+        <div class="stat stat-wide stat-accent"><span>Coefficient µ from this part</span><strong id="statMu">—</strong></div>
+        <div class="stat"><span>Loads recorded</span><strong id="statCount">0 / 4</strong></div>
+        <div class="stat"><span>Last scale reading</span><strong id="statF">—</strong></div>
+        <div class="stat"><span>Spread of µ (range)</span><strong id="statSpread">—</strong></div>
+      </div>
+      <div class="card-foot">
+        <button class="btn btn-quiet btn-sm" id="exportTraceBtn" type="button">Export pull trace (CSV)</button>
+      </div>
+    </article>
+
+    <article class="panel card result-card">
+      <div class="card-head">
+        <h2>Result</h2>
+        <span class="pill" id="resultPill">No data</span>
+      </div>
+      <div class="result-hero">
+        <div class="result-value">
+          <span id="resultLabel">Coefficient of friction, current part</span>
+          <strong id="resultMu">—</strong>
+        </div>
+        <div class="delta" id="resultDelta" hidden>—</div>
+      </div>
+      <dl class="result-list" id="resultList"></dl>
+      <p class="note" id="resultNote">Pull the block on the level board, then compare the surfaces, the contact area and the incline.</p>
+    </article>
+
+    <article class="panel card">
+      <div class="card-head">
+        <h2>Data table</h2>
+        <span class="pill" id="dataCount">0 readings</span>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">load</th>
+              <th scope="col">W (N)</th>
+              <th scope="col">n (N)</th>
+              <th scope="col">F (N)</th>
+              <th scope="col">µ</th>
+            </tr>
+          </thead>
+          <tbody id="dataBody"></tbody>
+        </table>
+      </div>
+      <p class="table-note">F is the spring-scale reading. On the incline, only F − W sin θ is friction; n = W cos θ.</p>
+      <div class="card-foot">
+        <button class="btn btn-quiet btn-sm" id="exportTableBtn" type="button">Export table (CSV)</button>
+      </div>
+    </article>
+
+    <article class="panel card">
+      <h2>About this experiment</h2>
+      <p class="card-text">
+        A block stays put until the pull reaches the maximum static friction, then it slides while a smaller
+        constant force keeps it moving. Both forces are proportional to the normal force, and the constants are
+        the two coefficients:
+      </p>
+      <p class="formula" id="modelFormula">f<em>s</em> = µ<em>s</em> n &nbsp;&nbsp;·&nbsp;&nbsp; f<em>k</em> = µ<em>k</em> n</p>
+      <p class="card-text">
+        On the level board <strong>n = W</strong>. On the incline the board is raised <strong>h = 15.0 cm</strong>
+        over <strong>L = 90.0 cm</strong>, so <strong>n = W cos θ</strong> and the block's own weight pulls it
+        <strong>W sin θ</strong> down the slope — that part of the reading is not friction.
+      </p>
+      <dl class="result-list">
+        <div><dt>Wooden block</dt><dd>150 g</dd></div>
+        <div><dt>Brass weights</dt><dd>3 × 100 g</dd></div>
+        <div><dt>Friction board</dt><dd>90.0 cm</dd></div>
+        <div><dt>Riser height h</dt><dd>15.0 cm</dd></div>
+        <div><dt>Incline angle θ</dt><dd>9.6°</dd></div>
+        <div><dt>Spring scale</dt><dd>5 N · 0.02 N</dd></div>
+      </dl>
+      <ul class="objectives">
+        <li>Find µ<em>s</em> from the reading just before the block moves.</li>
+        <li>Test whether contact area and normal force change the coefficient.</li>
+        <li>Repeat on an incline, where the normal force needs cos θ.</li>
+        <li>Compare µ<em>k</em> with µ<em>s</em> for the same surfaces.</li>
+      </ul>
+      <details class="procedure">
+        <summary>Procedure</summary>
+        <ol>
+          <li>Lay the board flat. Pull the block alone with the scale, increasing the force until it just moves; record that reading.</li>
+          <li>Add one brass weight at a time (up to three) and repeat.</li>
+          <li>Turn the block onto its narrow face, with the same surfaces touching, and repeat all four loads.</li>
+          <li>Raise one end of the board on the riser, measure h and L, and repeat on the incline.</li>
+          <li>Tape paper over the contact face and repeat the static pulls on the level board.</li>
+          <li>Pull the block at a steady speed on the level board, then on the incline, recording the constant force for all four loads.</li>
+        </ol>
+      </details>
+      <div class="card-foot">
+        <a class="btn btn-quiet btn-sm" href="#prelab">Open the pre-lab worksheet</a>
+      </div>
+    </article>
+
+  </aside>
+
+  <!-- ============ BELOW: plots ============ -->
+  <section class="plots" aria-labelledby="plotsTitle">
+    <div class="plots-head">
+      <div>
+        <h2 id="plotsTitle">Plots &amp; graphs</h2>
+        <p>Friction is proportional to the normal force, so every part is a straight line through the origin whose slope is µ.</p>
+      </div>
+      <p class="plots-hint">Every plot exports as PNG or SVG.</p>
+    </div>
+
+    <div class="plot-grid">
+      <article class="panel chart-card">
+        <div class="chart-head">
+          <div>
+            <h3>Friction vs normal force</h3>
+            <p id="fnMeta">No readings in this part yet</p>
+          </div>
+          <div class="export-group">
+            <button type="button" class="export-btn" data-chart="fn" data-format="png">PNG</button>
+            <button type="button" class="export-btn" data-chart="fn" data-format="svg">SVG</button>
+          </div>
+        </div>
+        <div class="chart-frame"><canvas id="chartFN" role="img" aria-label="Friction force versus normal force for the current part, with a best-fit line through the origin"></canvas></div>
+        <p class="chart-note">The slope of the fit is the coefficient of friction; the points are the four loads.</p>
+      </article>
+
+      <article class="panel chart-card">
+        <div class="chart-head">
+          <div>
+            <h3>Pull trace</h3>
+            <p id="traceMeta">No pull recorded yet</p>
+          </div>
+          <div class="export-group">
+            <button type="button" class="export-btn" data-chart="trace" data-format="png">PNG</button>
+            <button type="button" class="export-btn" data-chart="trace" data-format="svg">SVG</button>
+          </div>
+        </div>
+        <div class="chart-frame"><canvas id="chartTRACE" role="img" aria-label="Spring-scale reading versus time during the last pull, with the peak marked"></canvas></div>
+        <p class="chart-note">Static: the reading climbs to a peak and the block breaks free. Kinetic: it holds steady while the block slides.</p>
+      </article>
+
+      <article class="panel chart-card span-2">
+        <div class="chart-head">
+          <div>
+            <h3>Coefficient of friction by part</h3>
+            <p id="partsMeta">Record a pull to compare parts</p>
+          </div>
+          <div class="export-group">
+            <button type="button" class="export-btn" data-chart="parts" data-format="png">PNG</button>
+            <button type="button" class="export-btn" data-chart="parts" data-format="svg">SVG</button>
+          </div>
+        </div>
+        <div class="chart-frame chart-frame-tall"><canvas id="chartPARTS" role="img" aria-label="Bar chart of the coefficient of friction measured in each part, with error bars"></canvas></div>
+        <p class="chart-note">Static and kinetic runs should each be flat across the four loads; the two surfaces and the two situations differ.</p>
+      </article>
+    </div>
+  <!-- ============ BELOW: pre-lab worksheet ============ -->
+  <section class="panel worksheet" id="prelab" aria-labelledby="prelabTitle">
+    <div class="panel-head">
+      <div>
+        <h2 id="prelabTitle">Pre-lab worksheet</h2>
+        <p class="sub">Answer the assignment before you start pulling the block.</p>
+      </div>
+      <span class="badge" id="prelabScore" data-state="idle">0 of 2 correct</span>
+    </div>
+
+    <div class="ws-grid">
+      <article class="ws-card">
+        <h3>1 · Define the terms</h3>
+        <p class="ws-hint">One sentence each. The check counts the key ideas you mention; the model answer appears once you check.</p>
+        <div class="ws-terms" id="wsTerms"></div>
+        <div class="ws-actions">
+          <button class="btn btn-outline btn-sm" id="wsCheckTerms" type="button">Check definitions</button>
+        </div>
+      </article>
+
+      <article class="ws-card">
+        <h3>2 · A 1.50 kg object on glass</h3>
+        <p class="ws-text">A force of <strong>14.5 N</strong> is needed to start moving a 1.50 kg object on a glass surface. What is µ<em>s</em>?</p>
+        <label class="ws-field" for="wsMuS">
+          <span>µ<em>s</em></span>
+          <input class="ws-input" id="wsMuS" type="text" inputmode="decimal" placeholder="0.000" autocomplete="off" />
+        </label>
+        <div class="ws-feedback" id="wsMuSMsg" aria-live="polite"></div>
+
+        <p class="ws-text">Once it is moving, <strong>12.6 N</strong> keeps the same object moving at constant speed. What is µ<em>k</em>?</p>
+        <label class="ws-field" for="wsMuK">
+          <span>µ<em>k</em></span>
+          <input class="ws-input" id="wsMuK" type="text" inputmode="decimal" placeholder="0.000" autocomplete="off" />
+        </label>
+        <div class="ws-feedback" id="wsMuKMsg" aria-live="polite"></div>
+
+        <div class="ws-actions">
+          <button class="btn btn-primary btn-sm" id="wsCheckNums" type="button">Check answers</button>
+          <button class="btn btn-ghost btn-sm" id="wsReset" type="button">Clear worksheet</button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   ChartKit — dependency-free canvas charts with PNG / SVG export
+   Exposes: window.ChartKit.create(canvas, getConfig)
+   ============================================================ */
+(function (global) {
+  'use strict';
+
+  var FONT = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+  var measureCanvas = document.createElement('canvas');
+  var measureCtx = measureCanvas.getContext('2d');
+
+  function measureText(text, size, weight) {
+    measureCtx.font = (weight || 400) + ' ' + size + 'px ' + FONT;
+    return measureCtx.measureText(String(text)).width;
+  }
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function n(v) {
+    return Math.round(v * 100) / 100;
+  }
+
+  /* ---------------- scales & ticks ---------------- */
+
+  function niceTicks(min, max, target) {
+    if (!isFinite(min) || !isFinite(max) || max <= min) return [];
+    var span = max - min;
+    var raw = span / Math.max(1, target);
+    var mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    var step = mag;
+    var best = Infinity;
+    [1, 2, 2.5, 5, 10].forEach(function (c) {
+      var candidate = c * mag;
+      var count = span / candidate;
+      var score = Math.abs(count - target) + (count < 2.5 ? 1.2 : 0);
+      if (score < best) { best = score; step = candidate; }
+    });
+    var out = [];
+    var start = Math.ceil(min / step - 1e-9) * step;
+    for (var v = start, i = 0; v <= max + step * 1e-6 && i < 80; v += step, i++) {
+      out.push(Math.abs(v) < step * 1e-9 ? 0 : v);
+    }
+    return out;
+  }
+
+  function tickDecimals(step) {
+    var d = 0;
+    var s = Math.abs(step);
+    while (d < 4 && Math.abs(s - Math.round(s)) > 1e-6) { s *= 10; d++; }
+    return d;
+  }
+
+  function fmt(v, decimals) {
+    var s = v.toFixed(decimals);
+    if (s === '-0' || /^-0\.0+$/.test(s)) s = s.slice(1);
+    return s;
+  }
+
+  /* ---------------- renderers ---------------- */
+
+  function CanvasRenderer(ctx) {
+    this.ctx = ctx;
+    this.type = 'canvas';
+  }
+
+  CanvasRenderer.prototype = {
+    rect: function (x, y, w, h, fill, radius) {
+      var c = this.ctx;
+      c.save();
+      c.fillStyle = fill;
+      if (radius) roundRectPath(c, x, y, w, h, radius);
+      else { c.beginPath(); c.rect(x, y, w, h); }
+      c.fill();
+      c.restore();
+    },
+    line: function (x1, y1, x2, y2, o) {
+      o = o || {};
+      var c = this.ctx;
+      c.save();
+      c.strokeStyle = o.color || '#000';
+      c.lineWidth = o.width || 1;
+      c.globalAlpha = o.opacity == null ? 1 : o.opacity;
+      c.setLineDash(o.dash || []);
+      c.lineCap = 'round';
+      c.beginPath();
+      c.moveTo(x1, y1);
+      c.lineTo(x2, y2);
+      c.stroke();
+      c.restore();
+    },
+    polyline: function (pts, o) {
+      if (!pts || pts.length < 2) return;
+      o = o || {};
+      var c = this.ctx;
+      c.save();
+      c.strokeStyle = o.color || '#000';
+      c.lineWidth = o.width || 1.5;
+      c.globalAlpha = o.opacity == null ? 1 : o.opacity;
+      c.setLineDash(o.dash || []);
+      c.lineJoin = 'round';
+      c.lineCap = 'round';
+      c.beginPath();
+      c.moveTo(pts[0][0], pts[0][1]);
+      for (var i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
+      c.stroke();
+      c.restore();
+    },
+    circle: function (cx, cy, r, o) {
+      o = o || {};
+      var c = this.ctx;
+      c.save();
+      c.globalAlpha = o.opacity == null ? 1 : o.opacity;
+      c.beginPath();
+      c.arc(cx, cy, r, 0, Math.PI * 2);
+      if (o.fill) { c.fillStyle = o.fill; c.fill(); }
+      if (o.stroke) {
+        c.strokeStyle = o.stroke;
+        c.lineWidth = o.strokeWidth || 1.4;
+        c.stroke();
+      }
+      c.restore();
+    },
+    text: function (str, x, y, o) {
+      o = o || {};
+      var c = this.ctx;
+      c.save();
+      c.font = (o.weight || 400) + ' ' + (o.size || 10) + 'px ' + FONT;
+      c.fillStyle = o.color || '#000';
+      c.textAlign = o.align || 'left';
+      c.textBaseline = o.baseline || 'alphabetic';
+      c.globalAlpha = o.opacity == null ? 1 : o.opacity;
+      if (o.rotate) {
+        c.translate(x, y);
+        c.rotate(o.rotate);
+        c.fillText(str, 0, 0);
+      } else {
+        c.fillText(str, x, y);
+      }
+      c.restore();
+    },
+    clip: function (x, y, w, h) {
+      var c = this.ctx;
+      c.save();
+      c.beginPath();
+      c.rect(x, y, w, h);
+      c.clip();
+    },
+    unclip: function () { this.ctx.restore(); }
+  };
+
+  function SvgRenderer(w, h) {
+    this.w = w;
+    this.h = h;
+    this.parts = [];
+    this.defs = [];
+    this.openGroups = 0;
+    this.clipId = 0;
+    this.type = 'svg';
+  }
+
+  SvgRenderer.prototype = {
+    rect: function (x, y, w, h, fill, radius) {
+      if (radius) {
+        this.parts.push(
+          '<rect x="' + n(x) + '" y="' + n(y) + '" width="' + n(w) + '" height="' + n(h) +
+          '" rx="' + n(radius) + '" fill="' + esc(fill) + '"/>'
+        );
+      } else {
+        this.parts.push(
+          '<rect x="' + n(x) + '" y="' + n(y) + '" width="' + n(w) + '" height="' + n(h) +
+          '" fill="' + esc(fill) + '"/>'
+        );
+      }
+    },
+    line: function (x1, y1, x2, y2, o) {
+      o = o || {};
+      var attrs = 'x1="' + n(x1) + '" y1="' + n(y1) + '" x2="' + n(x2) + '" y2="' + n(y2) + '"';
+      attrs += ' stroke="' + esc(o.color || '#000') + '" stroke-width="' + n(o.width || 1) + '"';
+      attrs += ' stroke-linecap="round"';
+      if (o.dash && o.dash.length) attrs += ' stroke-dasharray="' + o.dash.join(' ') + '"';
+      if (o.opacity != null && o.opacity !== 1) attrs += ' stroke-opacity="' + o.opacity + '"';
+      this.parts.push('<line ' + attrs + '/>');
+    },
+    polyline: function (pts, o) {
+      if (!pts || pts.length < 2) return;
+      o = o || {};
+      var d = pts.map(function (p, i) { return (i ? 'L' : 'M') + n(p[0]) + ' ' + n(p[1]); }).join(' ');
+      var attrs = 'd="' + d + '" fill="none" stroke="' + esc(o.color || '#000') +
+        '" stroke-width="' + n(o.width || 1.5) + '" stroke-linecap="round" stroke-linejoin="round"';
+      if (o.dash && o.dash.length) attrs += ' stroke-dasharray="' + o.dash.join(' ') + '"';
+      if (o.opacity != null && o.opacity !== 1) attrs += ' stroke-opacity="' + o.opacity + '"';
+      this.parts.push('<path ' + attrs + '/>');
+    },
+    circle: function (cx, cy, r, o) {
+      o = o || {};
+      var attrs = 'cx="' + n(cx) + '" cy="' + n(cy) + '" r="' + n(r) + '"';
+      attrs += ' fill="' + esc(o.fill || 'none') + '"';
+      if (o.stroke) {
+        attrs += ' stroke="' + esc(o.stroke) + '" stroke-width="' + n(o.strokeWidth || 1.4) + '"';
+      }
+      if (o.opacity != null && o.opacity !== 1) attrs += ' opacity="' + o.opacity + '"';
+      this.parts.push('<circle ' + attrs + '/>');
+    },
+    text: function (str, x, y, o) {
+      o = o || {};
+      var attrs = 'x="' + n(x) + '" y="' + n(y) + '"';
+      attrs += ' fill="' + esc(o.color || '#000') + '"';
+      attrs += ' font-size="' + n(o.size || 10) + '"';
+      if (o.weight) attrs += ' font-weight="' + o.weight + '"';
+      if (o.align && o.align !== 'start') attrs += ' text-anchor="' + (o.align === 'right' ? 'end' : 'middle') + '"';
+      if (o.baseline === 'middle') attrs += ' dominant-baseline="middle"';
+      else if (o.baseline === 'hanging') attrs += ' dominant-baseline="hanging"';
+      if (o.opacity != null && o.opacity !== 1) attrs += ' fill-opacity="' + o.opacity + '"';
+      if (o.rotate) attrs += ' transform="rotate(' + (o.rotate * 180 / Math.PI) + ' ' + n(x) + ' ' + n(y) + ')"';
+      this.parts.push('<text ' + attrs + '>' + esc(str) + '</text>');
+    },
+    clip: function (x, y, w, h) {
+      var id = 'clip' + (++this.clipId);
+      this.defs.push(
+        '<clipPath id="' + id + '"><rect x="' + n(x) + '" y="' + n(y) + '" width="' +
+        n(w) + '" height="' + n(h) + '"/></clipPath>'
+      );
+      this.parts.push('<g clip-path="url(#' + id + ')">');
+      this.openGroups++;
+    },
+    unclip: function () {
+      if (this.openGroups > 0) {
+        this.parts.push('</g>');
+        this.openGroups--;
+      }
+    }
+  };
+
+  function roundRectPath(ctx, x, y, w, h, r) {
+    r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  /* ---------------- chart drawing ---------------- */
+
+  function drawChart(r, W, H, cfg) {
+    var c = cfg.colors || {};
+    var series = (cfg.series || []).filter(function (s) { return s && s.points && s.points.length; });
+
+    var pad = { l: 54, r: 20, t: 16, b: 46 };
+    if (W < 380) pad.l = 46;
+
+    // ---- legend ----
+    var legendItems = series.filter(function (s) { return s.label; });
+    var legendAt = [];
+    var legendBottom = 0;
+    if (legendItems.length) {
+      var lx = pad.l;
+      var ly = 15;
+      for (var i = 0; i < legendItems.length; i++) {
+        var it = legendItems[i];
+        var tw = measureText(it.label, 9.5, 500);
+        var iw = 16 + 5 + tw + 15;
+        if (lx + iw > W - pad.r && lx > pad.l) { lx = pad.l; ly += 16; }
+        legendAt.push({ item: it, x: lx, y: ly });
+        lx += iw;
+        legendBottom = Math.max(legendBottom, ly);
+      }
+      pad.t = legendBottom + 18;
+    }
+
+    var plot = {
+      x: pad.l,
+      y: pad.t,
+      w: Math.max(10, W - pad.l - pad.r),
+      h: Math.max(10, H - pad.t - pad.b)
+    };
+
+    var xMin = Number(cfg.xMin);
+    var xMax = Number(cfg.xMax);
+    var yMin = Number(cfg.yMin);
+    var yMax = Number(cfg.yMax);
+    if (!isFinite(xMin) || !isFinite(xMax) || xMax <= xMin) { xMin = 0; xMax = 1; }
+    if (!isFinite(yMin) || !isFinite(yMax) || yMax <= yMin) { yMin = 0; yMax = 1; }
+
+    var sx = function (v) { return plot.x + (v - xMin) / (xMax - xMin) * plot.w; };
+    var sy = function (v) { return plot.y + plot.h - (v - yMin) / (yMax - yMin) * plot.h; };
+
+    // ---- grid ----
+    var xTicks = niceTicks(xMin, xMax, Math.max(3, Math.min(7, Math.round(plot.w / 74))));
+    var yTicks = niceTicks(yMin, yMax, Math.max(3, Math.min(6, Math.round(plot.h / 52))));
+    var xStep = xTicks.length > 1 ? xTicks[1] - xTicks[0] : (xMax - xMin);
+    var yStep = yTicks.length > 1 ? yTicks[1] - yTicks[0] : (yMax - yMin);
+    var xDec = tickDecimals(xStep);
+    var yDec = tickDecimals(yStep);
+
+    xTicks.forEach(function (t) {
+      var px = sx(t);
+      if (px < plot.x - 0.5 || px > plot.x + plot.w + 0.5) return;
+      r.line(px, plot.y, px, plot.y + plot.h, { color: c.grid, width: 1 });
+      r.text(fmt(t, xDec), px, plot.y + plot.h + 16, {
+        color: c.muted, size: 9.5, align: 'center', weight: 450
+      });
+    });
+
+    yTicks.forEach(function (t) {
+      var py = sy(t);
+      if (py < plot.y - 0.5 || py > plot.y + plot.h + 0.5) return;
+      r.line(plot.x, py, plot.x + plot.w, py, { color: c.grid, width: 1 });
+      r.text(fmt(t, yDec), plot.x - 9, py, {
+        color: c.muted, size: 9.5, align: 'right', baseline: 'middle', weight: 450
+      });
+    });
+
+    // ---- axes ----
+    r.line(plot.x, plot.y, plot.x, plot.y + plot.h, { color: c.axis, width: 1.2 });
+    r.line(plot.x, plot.y + plot.h, plot.x + plot.w, plot.y + plot.h, { color: c.axis, width: 1.2 });
+
+    // ---- axis labels ----
+    if (cfg.xLabel) {
+      r.text(cfg.xLabel, plot.x + plot.w / 2, H - 10, {
+        color: c.muted, size: 10.5, align: 'center', weight: 500
+      });
+    }
+    if (cfg.yLabel) {
+      r.text(cfg.yLabel, 13, plot.y + plot.h / 2, {
+        color: c.muted, size: 10.5, align: 'center', baseline: 'middle', weight: 500, rotate: -Math.PI / 2
+      });
+    }
+
+    var hasData = series.some(function (s) { return s.points.length > 0; });
+
+    if (!hasData && cfg.emptyText) {
+      r.text(cfg.emptyText, plot.x + plot.w / 2, plot.y + plot.h / 2, {
+        color: c.faint, size: 10.5, align: 'center', baseline: 'middle', weight: 450
+      });
+      drawLegend(r, legendAt, c);
+      return;
+    }
+
+    // ---- series ----
+    r.clip(plot.x, plot.y, plot.w, plot.h);
+    series.forEach(function (s) {
+      var color = s.color || c.accent;
+
+      if (s.type === 'bar') {
+        var zero = sy(Math.max(0, yMin));
+        var bw = s.width || 22;
+        s.points.forEach(function (p) {
+          var px = sx(p[0]);
+          var py = sy(p[1]);
+          r.rect(px - bw / 2, Math.min(py, zero), bw, Math.abs(zero - py), color, s.radius || 3);
+          if (p.yerr > 0) {
+            var hi = sy(p[1] + p.yerr);
+            var lo = sy(p[1] - p.yerr);
+            r.line(px, hi, px, lo, { color: color, width: 1.2 });
+            r.line(px - 4, hi, px + 4, hi, { color: color, width: 1.2 });
+            r.line(px - 4, lo, px + 4, lo, { color: color, width: 1.2 });
+          }
+        });
+        return;
+      }
+
+      if (s.type === 'line') {
+        var line = s.points.map(function (p) { return [sx(p[0]), sy(p[1])]; });
+        r.polyline(line, { color: color, width: s.width || 2, dash: s.dash, opacity: s.opacity });
+        return;
+      }
+
+      if (s.type === 'error') {
+        s.points.forEach(function (p) {
+          var px = sx(p[0]);
+          var py = sy(p[1]);
+          var err = p.yerr || 0;
+          if (err > 0) {
+            var hi = sy(p[1] + err);
+            var lo = sy(p[1] - err);
+            r.line(px, hi, px, lo, { color: color, width: s.width || 1.3, opacity: 0.9 });
+            r.line(px - 3.5, hi, px + 3.5, hi, { color: color, width: s.width || 1.3, opacity: 0.9 });
+            r.line(px - 3.5, lo, px + 3.5, lo, { color: color, width: s.width || 1.3, opacity: 0.9 });
+          }
+          r.circle(px, py, s.radius || 4, {
+            fill: s.fill || c.panel,
+            stroke: color,
+            strokeWidth: 1.8,
+            opacity: s.opacity == null ? 1 : s.opacity
+          });
+        });
+        return;
+      }
+
+      // points
+      var radius = s.radius || 2.6;
+      var hollow = !!s.hollow;
+      s.points.forEach(function (p) {
+        r.circle(sx(p[0]), sy(p[1]), radius, {
+          fill: hollow ? (s.fill || c.panel) : color,
+          stroke: hollow ? color : undefined,
+          strokeWidth: 1.8,
+          opacity: s.opacity == null ? 1 : s.opacity
+        });
+      });
+    });
+    r.unclip();
+
+    if (cfg.inset) drawInset(r, cfg.inset, plot, c);
+
+    // ---- annotations ----
+    (cfg.annotations || []).forEach(function (a) {
+      r.text(a.text, sx(a.x) + (a.dx || 0), sy(a.y) + (a.dy || 0), {
+        color: a.color || c.text,
+        size: a.size || 10.5,
+        align: a.align || 'left',
+        baseline: a.baseline || 'alphabetic',
+        weight: a.weight || 550
+      });
+    });
+
+    drawLegend(r, legendAt, c);
+  }
+
+  function drawInset(r, inset, plot, c) {
+    var w = Math.min(inset.width || 196, Math.max(120, plot.w * 0.4));
+    var h = inset.height || 116;
+    var x = plot.x + 14;
+    var y = plot.y + 14;
+    var ix = x + 34;
+    var iy = y + 24;
+    var iw = w - 46;
+    var ih = h - 46;
+
+    r.rect(x, y, w, h, c.panel, 7);
+    r.line(x, y, x + w, y, { color: c.axis, width: 1 });
+    r.line(x, y + h, x + w, y + h, { color: c.axis, width: 1 });
+    r.line(x, y, x, y + h, { color: c.axis, width: 1 });
+    r.line(x + w, y, x + w, y + h, { color: c.axis, width: 1 });
+
+    r.text(inset.title || 'data close-up', x + 9, y + 13, {
+      color: c.muted, size: 8, weight: 650
+    });
+
+    var xMin = inset.xMin, xMax = inset.xMax, yMin = inset.yMin, yMax = inset.yMax;
+    var px = function (v) { return ix + (v - xMin) / (xMax - xMin) * iw; };
+    var py = function (v) { return iy + ih - (v - yMin) / (yMax - yMin) * ih; };
+
+    var xt = niceTicks(xMin, xMax, 2);
+    var yt = niceTicks(yMin, yMax, 2);
+    var xd = xt.length > 1 ? tickDecimals(xt[1] - xt[0]) : 2;
+    var yd = yt.length > 1 ? tickDecimals(yt[1] - yt[0]) : 1;
+
+    yt.forEach(function (t) {
+      r.line(ix, py(t), ix + iw, py(t), { color: c.grid, width: 0.8 });
+      r.text(fmt(t, yd), ix - 5, py(t), {
+        color: c.faint, size: 7.5, align: 'right', baseline: 'middle'
+      });
+    });
+    xt.forEach(function (t) {
+      r.text(fmt(t, xd), px(t), iy + ih + 10, {
+        color: c.faint, size: 7.5, align: 'center'
+      });
+    });
+    r.line(ix, iy, ix, iy + ih, { color: c.axis, width: 1 });
+    r.line(ix, iy + ih, ix + iw, iy + ih, { color: c.axis, width: 1 });
+
+    r.clip(ix, iy, iw, ih);
+    (inset.series || []).forEach(function (s) {
+      var color = s.color || c.accent;
+      if (s.type === 'line') {
+        r.polyline(s.points.map(function (p) { return [px(p[0]), py(p[1])]; }), {
+          color: color, width: s.width || 1.4, dash: s.dash
+        });
+        return;
+      }
+      s.points.forEach(function (p) {
+        if (p.yerr > 0) {
+          r.line(px(p.x), py(p.y - p.yerr), px(p.x), py(p.y + p.yerr), { color: color, width: 1 });
+        }
+        r.circle(px(p.x), py(p.y), s.radius || 3, {
+          fill: c.panel, stroke: color, strokeWidth: 1.6
+        });
+      });
+    });
+    r.unclip();
+  }
+
+  function drawLegend(r, legendAt, c) {
+    legendAt.forEach(function (entry) {
+      var it = entry.item;
+      var color = it.color || c.accent;
+      var y = entry.y;
+      if (it.type === 'line') {
+        r.line(entry.x, y - 3, entry.x + 14, y - 3, { color: color, width: 2, dash: it.dash });
+      } else if (it.type === 'error') {
+        r.circle(entry.x + 7, y - 3, 3.2, { fill: it.fill || c.panel, stroke: color, strokeWidth: 1.6 });
+      } else {
+        r.circle(entry.x + 7, y - 3, 3, { fill: color, opacity: it.opacity == null ? 1 : it.opacity });
+      }
+      r.text(it.label, entry.x + 20, y, { color: c.muted, size: 9.5, weight: 500 });
+    });
+  }
+
+  /* ---------------- downloads ---------------- */
+
+  function saveBlob(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  }
+
+  /* ---------------- public API ---------------- */
+
+  function create(canvas, getConfig) {
+    var lastCfg = null;
+    var lastW = 0;
+    var lastH = 0;
+    var raf = 0;
+
+    function draw() {
+      var cfg = getConfig();
+      if (!cfg) return;
+      var parent = canvas.parentElement;
+      var rect = parent ? parent.getBoundingClientRect() : canvas.getBoundingClientRect();
+      var w = Math.max(240, Math.round(rect.width));
+      var h = Math.max(150, Math.round(rect.height));
+      var dpr = Math.min(global.devicePixelRatio || 1, 2);
+
+      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+      }
+
+      var ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      drawChart(new CanvasRenderer(ctx), w, h, cfg);
+
+      lastCfg = cfg;
+      lastW = w;
+      lastH = h;
+    }
+
+    function schedule() {
+      if (raf) return;
+      raf = global.requestAnimationFrame(function () { raf = 0; draw(); });
+    }
+
+    function exportPNG(baseName) {
+      if (!lastCfg) draw();
+      if (!lastCfg) return;
+      var w = lastW || 640;
+      var h = lastH || 260;
+      var scale = 3;
+      var out = document.createElement('canvas');
+      out.width = w * scale;
+      out.height = h * scale;
+      var ctx = out.getContext('2d');
+      ctx.scale(scale, scale);
+      ctx.fillStyle = lastCfg.colors.panel;
+      ctx.fillRect(0, 0, w, h);
+      drawChart(new CanvasRenderer(ctx), w, h, lastCfg);
+      var name = (baseName || 'plot') + '.png';
+      if (out.toBlob) {
+        out.toBlob(function (blob) { if (blob) saveBlob(blob, name); }, 'image/png');
+      } else {
+        var link = document.createElement('a');
+        link.href = out.toDataURL('image/png');
+        link.download = name;
+        link.click();
+      }
+    }
+
+    function svgString() {
+      if (!lastCfg) draw();
+      if (!lastCfg) return '';
+      var w = lastW || 640;
+      var h = lastH || 260;
+      var r = new SvgRenderer(w, h);
+      drawChart(r, w, h, lastCfg);
+      while (r.openGroups > 0) r.parts.push('</g>'), r.openGroups--;
+      return (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h +
+        '" viewBox="0 0 ' + w + ' ' + h + '" font-family="' + esc(FONT) + '">\n' +
+        '<rect width="' + w + '" height="' + h + '" fill="' + esc(lastCfg.colors.panel) + '"/>\n' +
+        (r.defs.length ? '<defs>' + r.defs.join('') + '</defs>\n' : '') +
+        r.parts.join('\n') + '\n</svg>\n'
+      );
+    }
+
+    function exportSVG(baseName) {
+      var svg = svgString();
+      if (!svg) return;
+      saveBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), (baseName || 'plot') + '.svg');
+    }
+
+    if (global.ResizeObserver && canvas.parentElement) {
+      new ResizeObserver(schedule).observe(canvas.parentElement);
+    } else {
+      global.addEventListener('resize', schedule);
+    }
+    global.addEventListener('orientationchange', schedule);
+    schedule();
+
+    return {
+      draw: draw,
+      schedule: schedule,
+      exportPNG: exportPNG,
+      exportSVG: exportSVG,
+      svgString: svgString,
+      getConfig: function () { return lastCfg; }
+    };
+  }
+
+  global.ChartKit = { create: create };
+})(window);
+
+</script>
+<script>
+/* ============================================================
+   Coefficient of Friction — PHY 1510 Experiment 4a
+   Static and kinetic friction on a level board and on an incline,
+   read from a spring scale.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var each = function (list, fn) { Array.prototype.forEach.call(list, fn); };
+
+  /* ---------------- apparatus ---------------- */
+
+  var G = 9.81;
+  var BLOCK_MASS = 0.150;      // kg, wooden block
+  var WEIGHT_MASS = 0.100;     // kg, each brass weight
+  var LOADS = [0, 1, 2, 3];    // number of weights on the block
+  var BOARD_LENGTH = 0.900;    // m
+  var BOARD_HEIGHT = 0.150;    // m, riser under the high end
+  var SIN_T = BOARD_HEIGHT / BOARD_LENGTH;
+  var COS_T = Math.sqrt(1 - SIN_T * SIN_T);
+  var THETA_DEG = Math.asin(SIN_T) * 180 / Math.PI;
+  var SCALE_CAPACITY = 5;      // N
+  var SCALE_STEP = 0.02;       // N readability
+  var SCALE_SIGMA = { stat: 0.018, kin: 0.026 };
+
+  var MU = {
+    wood: { stat: 0.42, kin: 0.30 },
+    paper: { stat: 0.58, kin: 0.45 }
+  };
+
+  var PARTS = [
+    { id: 's-level',   name: 'Static · level',       short: 's level',   mode: 'static',  incline: false, surface: 'wood',  face: 'broad',  q: 'A(I) · largest face' },
+    { id: 's-narrow',  name: 'Static · narrow face', short: 's narrow',  mode: 'static',  incline: false, surface: 'wood',  face: 'narrow', q: 'A(I) · side face' },
+    { id: 's-incline', name: 'Static · incline',     short: 's incline', mode: 'static',  incline: true,  surface: 'wood',  face: 'broad',  q: 'A(II) · θ = 9.6°' },
+    { id: 's-paper',   name: 'Static · paper',       short: 's paper',   mode: 'static',  incline: false, surface: 'paper', face: 'broad',  q: 'A(III) · taped paper' },
+    { id: 'k-level',   name: 'Kinetic · level',      short: 'k level',   mode: 'kinetic', incline: false, surface: 'wood',  face: 'broad',  q: 'B(I) · steady pull' },
+    { id: 'k-incline', name: 'Kinetic · incline',    short: 'k incline', mode: 'kinetic', incline: true,  surface: 'wood',  face: 'broad',  q: 'B(II) · steady pull' }
+  ];
+
+  function partById(id) {
+    for (var i = 0; i < PARTS.length; i++) if (PARTS[i].id === id) return PARTS[i];
+    return PARTS[0];
+  }
+
+  function muKind(part) { return part.mode === 'static' ? 'stat' : 'kin'; }
+
+  /* ---------------- physics ---------------- */
+
+  function totalMass(k) { return BLOCK_MASS + k * WEIGHT_MASS; }
+  function totalWeight(k) { return totalMass(k) * G; }
+  function normalForce(part, k) { return totalWeight(k) * (part.incline ? COS_T : 1); }
+  function alongSlope(part, k) { return part.incline ? totalWeight(k) * SIN_T : 0; }
+  function trueMu(part) { return MU[part.surface][muKind(part)]; }
+  function frictionTrue(part, k) { return trueMu(part) * normalForce(part, k); }
+  function trueReading(part, k) { return frictionTrue(part, k) + alongSlope(part, k); }
+  function kineticReading(part, k) {
+    return MU[part.surface].kin * normalForce(part, k) + alongSlope(part, k);
+  }
+
+  function randn() {
+    var u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  function quantize(v, step) { return Math.round(v / step) * step; }
+
+  function measure(part, k) {
+    var sigma = SCALE_SIGMA[muKind(part)];
+    var v = trueReading(part, k) + randn() * sigma;
+    v = quantize(v, SCALE_STEP);
+    return Math.max(0, Math.min(SCALE_CAPACITY, v));
+  }
+
+  function muFrom(part, k, F) {
+    var n = normalForce(part, k);
+    if (!n) return 0;
+    return part.incline ? (F - alongSlope(part, k)) / n : F / n;
+  }
+
+  /* ---------------- state ---------------- */
+
+  var state = {
+    partId: PARTS[0].id,
+    speed: 1,
+    forces: {},
+    lastTrace: null
+  };
+  PARTS.forEach(function (p) { state.forces[p.id] = [null, null, null, null]; });
+
+  var sim = {
+    running: false,
+    partId: null,
+    load: 0,
+    t: 0,
+    dur: 1,
+    slip: 0,
+    F: 0,
+    Frec: 0,
+    peak: 0,
+    blockShift: 0,
+    trace: [],
+    queue: []
+  };
+
+  /* ---------------- DOM ---------------- */
+
+  var SLIP_PX = 30;    // most the block travels along the board during a run
+  var canvas = $('scene');
+  var hudRight = document.querySelector('.hud-right');
+  var ctx = canvas.getContext('2d');
+  var canvasWrap = $('canvasWrap');
+  var themeToggle = $('themeToggle');
+  var charts = {};
+  var scene = { w: 640, h: 380 };
+  var chartClock = 0;
+
+  function setBadge(text, kind) {
+    var el = $('runBadge');
+    el.textContent = text;
+    el.dataset.state = kind || 'idle';
+  }
+
+  /* ---------------- theme ---------------- */
+
+  var scenePal = null;
+  var chartPal = null;
+
+  function applyTheme(t) {
+    document.documentElement.dataset.theme = t;
+    themeToggle.setAttribute('aria-label', t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    scenePal = null;
+    chartPal = null;
+  }
+
+  themeToggle.addEventListener('click', function () {
+    var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('cof-theme', next); } catch (e) {}
+    drawScene();
+    drawCharts();
+  });
+
+  function cssVar(name, fallback) {
+    var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+
+  function sceneColors() {
+    if (scenePal) return scenePal;
+    scenePal = {
+      top: cssVar('--scene-top', '#f8fbff'),
+      bottom: cssVar('--scene-bottom', '#e7eefa'),
+      board: cssVar('--viz-board', '#dcb887'),
+      boardEdge: cssVar('--viz-board-edge', '#b58953'),
+      block: cssVar('--viz-block', '#e7cba3'),
+      blockEdge: cssVar('--viz-block-edge', '#a97f4a'),
+      brass: cssVar('--viz-brass', '#c9963c'),
+      brassEdge: cssVar('--viz-brass-edge', '#8c6620'),
+      paper: cssVar('--viz-paper', '#f6f9ff'),
+      paperEdge: cssVar('--viz-paper-edge', '#c3d2e6'),
+      scale: cssVar('--viz-scale', '#e6eefa'),
+      scaleEdge: cssVar('--viz-scale-edge', '#96a9c4'),
+      string: cssVar('--viz-string', '#6b7c93'),
+      floor: cssVar('--scene-floor', '#c3d2e6'),
+      muted: cssVar('--scene-ink', '#45556c'),
+      accent: cssVar('--scene-accent', '#1f57d6'),
+      accent2: cssVar('--accent-2', '#c2570b'),
+      panel: cssVar('--panel', '#ffffff')
+    };
+    return scenePal;
+  }
+
+  function palette() {
+    if (chartPal) return chartPal;
+    chartPal = {
+      panel: cssVar('--panel', '#ffffff'),
+      grid: cssVar('--grid', '#e4ebf6'),
+      axis: cssVar('--axis', '#b3c2d6'),
+      muted: cssVar('--muted', '#5a6b83'),
+      faint: cssVar('--faint', '#8795a9'),
+      text: cssVar('--text', '#0e1a2c'),
+      accent: cssVar('--accent', '#2563eb'),
+      accent2: cssVar('--accent-2', '#c2570b'),
+      good: cssVar('--good', '#0f8f6d')
+    };
+    return chartPal;
+  }
+
+  /* ---------------- helpers ---------------- */
+
+  function recorded(part) { return state.forces[part.id]; }
+
+  function recordedCount(part) {
+    return recorded(part).filter(function (v) { return v !== null; }).length;
+  }
+
+  function totalRecorded() {
+    return PARTS.reduce(function (n, p) { return n + recordedCount(p); }, 0);
+  }
+
+  function nextLoadIndex(part) {
+    var rec = recorded(part);
+    for (var k = 0; k < rec.length; k++) if (rec[k] === null) return k;
+    return rec.length - 1;
+  }
+
+  function lastReading(part) {
+    var rec = recorded(part);
+    for (var k = rec.length - 1; k >= 0; k--) if (rec[k] !== null) return { load: k, F: rec[k] };
+    return null;
+  }
+
+  function loadLabel(k) {
+    return k === 0 ? 'block alone' : '+' + (k * 100) + ' g';
+  }
+
+  function partSummary(part) {
+    var rec = recorded(part);
+    var mus = [];
+    rec.forEach(function (F, k) { if (F !== null) mus.push(muFrom(part, k, F)); });
+    var n = mus.length;
+    if (!n) return { count: 0, mu: 0, sd: 0, sem: 0, min: 0, max: 0, mus: mus };
+    var mean = mus.reduce(function (a, b) { return a + b; }, 0) / n;
+    var variances = mus.reduce(function (a, b) { return a + (b - mean) * (b - mean); }, 0);
+    var sd = n > 1 ? Math.sqrt(variances / (n - 1)) : 0;
+    return {
+      count: n,
+      mu: mean,
+      sd: sd,
+      sem: sd / Math.sqrt(n),
+      min: Math.min.apply(null, mus),
+      max: Math.max.apply(null, mus),
+      mus: mus
+    };
+  }
+
+  /* ---------------- part selector ---------------- */
+
+  function buildPartButtons() {
+    var host = $('partOptions');
+    host.innerHTML = '';
+    PARTS.forEach(function (p) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'block-btn';
+      b.dataset.partId = p.id;
+      b.title = p.name + ' — ' + p.q;
+      b.innerHTML = '<span class="part-name">' + p.name + '</span><span class="part-sub">' + p.q + '</span>';
+      host.appendChild(b);
+    });
+  }
+
+  function selectPart(id) {
+    if (sim.running || sim.queue.length) return;
+    if (!partById(id)) return;
+    state.partId = id;
+    renderAll();
+    drawScene();
+  }
+
+  /* ---------------- run engine ---------------- */
+
+  function startPull(k) {
+    if (sim.running) return;
+    var part = partById(state.partId);
+    sim.running = true;
+    sim.partId = part.id;
+    sim.load = k;
+    sim.Frec = measure(part, k);
+    sim.F = 0;
+    sim.peak = 0;
+    sim.t = 0;
+    sim.dur = part.mode === 'static' ? 1.15 : 1.45;
+    sim.slip = part.mode === 'static' ? 0.45 : 0.6;
+    sim.blockShift = 0;
+    sim.trace = [];
+    setBadge(part.mode === 'static' ? 'Pulling' : 'Sliding', 'run');
+    $('statusLine').textContent = (part.mode === 'static'
+      ? 'Pulling ' + loadLabel(k) + ' — watch the scale until the block just moves.'
+      : 'Pulling ' + loadLabel(k) + ' at a steady speed — the reading should hold.');
+    updateRunUI();
+    drawScene();
+  }
+
+  function advanceSim(dt) {
+    var part = partById(sim.partId);
+    var slip = scene.slipPx;
+    var total = sim.dur + sim.slip;
+    sim.t += dt;
+
+    var F;
+    if (sim.t <= sim.dur) {
+      var p = sim.t / sim.dur;
+      if (part.mode === 'kinetic') {
+        F = sim.Frec * Math.min(1, p * 4) + randn() * 0.006;
+        sim.blockShift = (sim.t / total) * slip;
+      } else {
+        F = sim.Frec * Math.pow(p, 1.2) + randn() * 0.004;
+        if (F > sim.Frec) F = sim.Frec;
+        sim.blockShift = 0;
+      }
+    } else {
+      var q = (sim.t - sim.dur) / sim.slip;
+      if (part.mode === 'kinetic') {
+        F = sim.Frec + randn() * 0.01;
+        sim.blockShift = slip;
+      } else {
+        F = kineticReading(part, sim.load) + randn() * 0.03;
+        sim.blockShift = Math.min(slip, q * 170);
+      }
+    }
+
+    sim.F = Math.max(0, Math.min(SCALE_CAPACITY, F));
+    sim.peak = Math.max(sim.peak, sim.F);
+    if (sim.trace.length < 420) sim.trace.push([sim.t, sim.F]);
+
+    if (sim.t >= total) finishRun();
+  }
+
+  function finishRun() {
+    var part = partById(sim.partId);
+    var k = sim.load;
+    var F = Math.round(sim.Frec * 100) / 100;
+    state.forces[part.id][k] = F;
+    state.lastTrace = {
+      partId: part.id,
+      partName: part.name,
+      load: k,
+      mode: part.mode,
+      peak: sim.Frec,
+      mu: muFrom(part, k, F),
+      points: sim.trace.slice()
+    };
+    sim.running = false;
+    setBadge('Idle', 'idle');
+    renderAll();
+    drawScene();
+    toast('Scale reads ' + F.toFixed(2) + ' N → µ = ' + muFrom(part, k, F).toFixed(3));
+
+    if (sim.queue.length) {
+      var next = sim.queue.shift();
+      setTimeout(function () { startPull(next); }, 240);
+    } else {
+      $('statusLine').textContent = partStatus(part);
+    }
+  }
+
+  function partStatus(part) {
+    if (part.mode === 'kinetic') {
+      return part.incline
+        ? 'Pull the block up the incline at a steady speed; the constant reading is f\u2096 + W sin θ.'
+        : 'Pull the block along the level board at a steady speed; the constant reading is f\u2096.';
+    }
+    if (part.incline) {
+      return 'Raised board: read the scale just before the block slides up the slope, then subtract W sin θ.';
+    }
+    if (part.surface === 'paper') {
+      return 'Paper is taped to the block face: read the scale just before the block moves.';
+    }
+    if (part.face === 'narrow') {
+      return 'The block is on its narrow face — same surfaces, smaller contact area. Read the peak force.';
+    }
+    return 'Pull with steadily increasing force; the reading just before the block moves is the maximum static friction.';
+  }
+
+  /* ---------------- drawing ---------------- */
+
+  function roundRect(c, x, y, w, h, r) {
+    r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.lineTo(x + w - r, y);
+    c.quadraticCurveTo(x + w, y, x + w, y + r);
+    c.lineTo(x + w, y + h - r);
+    c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    c.lineTo(x + r, y + h);
+    c.quadraticCurveTo(x, y + h, x, y + h - r);
+    c.lineTo(x, y + r);
+    c.quadraticCurveTo(x, y, x + r, y);
+    c.closePath();
+  }
+
+  function arrow(x, y, dx, dy, color, width) {
+    var len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 1) return;
+    var ux = dx / len, uy = dy / len;
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = width || 2;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + dx - ux * 7, y + dy - uy * 7);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + dx, y + dy);
+    ctx.lineTo(x + dx - ux * 9 - uy * 4.5, y + dy - uy * 9 + ux * 4.5);
+    ctx.lineTo(x + dx - ux * 9 + uy * 4.5, y + dy - uy * 9 - ux * 4.5);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /* longest force arrow that fits: broad-face block at full slip on a level board */
+  function arrowMaxFor(Lpx, w) {
+    var scaleEdge = Lpx * 0.26 + slipPxFor(Lpx) + Lpx * 0.23 + stringGapFor(Lpx) + scaleWidth(Lpx);
+    var room = w - w * 0.13 - scaleEdge - 17;   // 17 = gap + 'F' + margin
+    return Math.max(0, Math.min(54, Math.floor(room)));
+  }
+
+  /* travel, not measurement: shrink it with the board so narrow scenes keep arrow room */
+  function slipPxFor(Lpx) {
+    return Math.min(SLIP_PX, Math.round(Lpx * 0.12));
+  }
+
+  function stringGapFor(Lpx) {
+    return Math.round(Lpx * 0.13);
+  }
+
+  function scaleWidth(Lpx) {
+    return Math.max(64, Math.min(108, Lpx * 0.30));
+  }
+
+  function resizeScene() {
+    // measure the wrap itself: the canvas must never feed its height back in
+    var w = Math.max(280, canvasWrap.clientWidth);
+    var h = Math.max(240, canvasWrap.clientHeight);
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    scene.w = w;
+    scene.h = h;
+    var Lpx = Math.min(w * 0.66, h * 1.9);
+    scene.arrowMax = arrowMaxFor(Lpx, w);
+    scene.slipPx = slipPxFor(Lpx);
+    scene.cardBottom = hudRight ? hudRight.getBoundingClientRect().bottom - canvas.getBoundingClientRect().top : 0;
+    drawScene();
+  }
+
+  function drawScene() {
+    var w = scene.w, h = scene.h;
+    var C = sceneColors();
+    var part = partById(state.partId);
+    var loadIndex = sim.running ? sim.load : nextLoadIndex(part);
+
+    var bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, C.top);
+    bg.addColorStop(1, C.bottom);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    var ang = part.incline ? (15 * Math.PI / 180) : 0;
+    var Lpx = Math.round(Math.min(w * 0.66, h * 1.9));
+    var T = 14;
+    var ox = Math.round(w * 0.13);
+    var oy = Math.round(h * 0.68);
+    var floorY = oy + T + 5;
+    var hx = ox + Math.cos(ang) * Lpx;
+    var hy = oy - Math.sin(ang) * Lpx;
+
+    /* floor */
+    ctx.strokeStyle = C.floor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(w * 0.02, floorY);
+    ctx.lineTo(w * 0.98, floorY);
+    ctx.stroke();
+    ctx.globalAlpha = 0.55;
+    ctx.lineWidth = 1;
+    for (var fx = w * 0.04; fx < w * 0.97; fx += 20) {
+      ctx.beginPath();
+      ctx.moveTo(fx, floorY);
+      ctx.lineTo(fx - 8, floorY + 10);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    /* riser + height dimension */
+    if (part.incline) {
+      var topY = hy + T;
+      ctx.fillStyle = C.board;
+      ctx.strokeStyle = C.boardEdge;
+      ctx.lineWidth = 1.4;
+      roundRect(ctx, hx - 26, topY, 30, floorY - topY, 4);
+      ctx.fill();
+      ctx.stroke();
+
+      var dimX = Math.min(w - 18, hx + 26);
+      ctx.strokeStyle = C.muted;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(dimX, hy + 4);
+      ctx.lineTo(dimX, floorY - 2);
+      ctx.stroke();
+      ctx.fillStyle = C.muted;
+      ctx.font = '600 10.5px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.save();
+      ctx.translate(dimX + 13, (hy + floorY) / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = 'center';
+      ctx.fillText('h = 15.0 cm', 0, 0);
+      ctx.restore();
+
+    }
+
+    /* board + everything on it, in board coordinates */
+    ctx.save();
+    ctx.translate(ox, oy);
+    ctx.rotate(-ang);
+
+    ctx.fillStyle = C.board;
+    ctx.strokeStyle = C.boardEdge;
+    ctx.lineWidth = 1.4;
+    roundRect(ctx, 0, 0, Lpx, T, 5);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = C.boardEdge;
+    ctx.lineWidth = 1;
+    for (var gx = 16; gx < Lpx - 8; gx += 26) {
+      ctx.beginPath();
+      ctx.moveTo(gx, 3);
+      ctx.lineTo(gx + 10, T - 3);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    /* length dimension under the board */
+    ctx.strokeStyle = C.muted;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, T + 20);
+    ctx.lineTo(Lpx, T + 20);
+    ctx.stroke();
+    ctx.fillStyle = C.muted;
+    ctx.font = '600 10.5px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+    ctx.textAlign = 'center';
+    /* on the incline the caption's low end would cut through the floor line, so it rides higher */
+    ctx.fillText('L = 90.0 cm', Lpx / 2, part.incline ? T + 16 : T + 36);
+
+    /* block */
+    var bw = Math.round(part.face === 'narrow' ? Lpx * 0.14 : Lpx * 0.23);
+    var bh = Math.round(part.face === 'narrow' ? Lpx * 0.21 : Lpx * 0.145);
+    var bx = Math.round(Lpx * 0.26) + sim.blockShift;
+
+    if (part.surface === 'paper') {
+      ctx.fillStyle = C.paper;
+      ctx.strokeStyle = C.paperEdge;
+      ctx.lineWidth = 1.2;
+      roundRect(ctx, bx - 7, -4, bw + 14, 5, 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = C.block;
+    ctx.strokeStyle = C.blockEdge;
+    ctx.lineWidth = 1.6;
+    roundRect(ctx, bx, -bh, bw, bh, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.4;
+    ctx.strokeStyle = C.blockEdge;
+    ctx.lineWidth = 1;
+    for (var gy = -bh + 11; gy < -8; gy += 12) {
+      ctx.beginPath();
+      ctx.moveTo(bx + 7, gy);
+      ctx.lineTo(bx + bw - 7, gy);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    /* brass weights */
+    var discW = Math.min(bw * 0.46, 48);
+    var discH = 9;
+    for (var i = 0; i < loadIndex; i++) {
+      var wy = -bh - discH * (i + 1);
+      ctx.fillStyle = C.brass;
+      ctx.strokeStyle = C.brassEdge;
+      ctx.lineWidth = 1.2;
+      roundRect(ctx, bx + bw / 2 - discW / 2, wy, discW, discH - 1, 3);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(bx + bw / 2, wy + 2, 1.7, 0, Math.PI * 2);
+      ctx.fillStyle = C.brassEdge;
+      ctx.fill();
+    }
+
+    if (part.incline) {
+      ctx.fillStyle = C.muted;
+      ctx.font = '600 10.5px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('θ = ' + THETA_DEG.toFixed(1) + '°', bx - 6, -46);
+    }
+
+    /* string + spring scale */
+    var hookY = -bh * 0.55;
+    var scX = bx + bw + stringGapFor(Lpx);
+    var scW = scaleWidth(Lpx);
+    var scH = 26;
+
+    ctx.strokeStyle = C.string;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(bx + bw, hookY);
+    ctx.lineTo(scX, hookY);
+    ctx.stroke();
+
+    ctx.fillStyle = C.scale;
+    ctx.strokeStyle = C.scaleEdge;
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, scX, hookY - scH / 2, scW, scH, 7);
+    ctx.fill();
+    ctx.stroke();
+
+    var liveF = sim.running ? sim.F : (lastReading(part) ? lastReading(part).F : 0);
+    var frac = Math.max(0, Math.min(1, liveF / SCALE_CAPACITY));
+
+    ctx.strokeStyle = C.scaleEdge;
+    ctx.lineWidth = 1;
+    for (var s = 0; s <= 10; s++) {
+      var tx = scX + 11 + (s / 10) * (scW - 22);
+      ctx.beginPath();
+      ctx.moveTo(tx, hookY - scH / 2 + 2);
+      ctx.lineTo(tx, hookY - scH / 2 + (s % 5 === 0 ? 8 : 5));
+      ctx.stroke();
+    }
+    ctx.strokeStyle = C.accent2;
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(scX + 11 + frac * (scW - 22), hookY - scH / 2 + 3);
+    ctx.lineTo(scX + 11 + frac * (scW - 22), hookY + scH / 2 - 3);
+    ctx.stroke();
+
+    /* applied force: length encodes the force, never the block's position */
+    var pullLen = scene.arrowMax * (0.45 + 0.55 * frac);
+    arrow(scX + scW, hookY, pullLen, 0, C.accent, 2.2);
+    ctx.fillStyle = C.accent;
+    ctx.font = '700 12px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+    ctx.textAlign = 'left';
+    var fX = scX + scW + pullLen + 6;
+    var fY = hookY + 4;
+    var fBelowCard = (scene.cardBottom + 14 - oy + Math.sin(ang) * fX) / Math.cos(ang);
+    if (fY < fBelowCard) fY = fBelowCard;
+    ctx.fillText('F', fX, fY);
+
+    /* friction force, drawn in the gap before the block */
+    var fNow = Math.max(0, liveF - alongSlope(part, loadIndex));
+    var fTarget = Math.max(0.2, normalForce(part, loadIndex) * (part.mode === 'kinetic' ? MU[part.surface].kin : MU[part.surface].stat));
+    var fLen = 14 + 30 * Math.min(1.4, fNow / fTarget);
+    arrow(bx - 10, -bh * 0.5, -fLen, 0, C.accent2, 2);
+    ctx.fillStyle = C.accent2;
+    ctx.textAlign = 'right';
+    ctx.fillText('f', bx - fLen - 14, -bh * 0.5 + 4);
+
+    ctx.restore();
+
+    /* surface caption */
+    ctx.fillStyle = C.muted;
+    ctx.font = '600 10.5px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(part.surface === 'paper' ? 'paper taped to the block' : 'wood on wood', w * 0.04, h - 12);
+  }
+
+  /* ---------------- panel updates ---------------- */
+
+  function updateHud() {
+    var part = partById(state.partId);
+    var k = sim.running ? sim.load : nextLoadIndex(part);
+    var last = lastReading(part);
+
+    var showF = sim.running ? sim.F : (last ? last.F : null);
+    var showMu = showF === null ? null : muFrom(part, last && !sim.running ? last.load : k, showF);
+
+    $('hudF').textContent = showF === null ? '—' : showF.toFixed(2);
+    $('hudMu').textContent = showMu === null ? '—' : showMu.toFixed(3);
+    $('hudLoad').textContent = String(k * 100);
+    $('hudTheta').textContent = part.incline ? THETA_DEG.toFixed(1) + '°' : '0.0°';
+    $('hudN').textContent = normalForce(part, k).toFixed(2);
+    $('hudW').textContent = totalWeight(k).toFixed(2);
+  }
+
+  function updateRunUI() {
+    var part = partById(state.partId);
+    var label = $('pullBtnLabel');
+    var btn = $('pullBtn');
+    if (sim.running) {
+      label.textContent = 'Pulling…';
+      btn.disabled = true;
+      $('autoBtn').disabled = true;
+    } else {
+      var idx = nextLoadIndex(part);
+      var retake = recorded(part)[idx] !== null;
+      label.textContent = (retake ? 'Retake ' : 'Pull ') + (idx === 0 ? 'block alone' : '+' + (idx * 100) + ' g');
+      btn.disabled = sim.queue.length > 0;
+      $('autoBtn').disabled = sim.queue.length > 0;
+    }
+    each(document.querySelectorAll('#partOptions .block-btn'), function (b) {
+      b.disabled = sim.running || sim.queue.length > 0;
+    });
+  }
+
+  function updatePartUI() {
+    var part = partById(state.partId);
+    var rec = recorded(part);
+    var sum = partSummary(part);
+    var last = lastReading(part);
+
+    each(document.querySelectorAll('#partOptions .block-btn'), function (b) {
+      b.classList.toggle('is-active', b.dataset.partId === part.id);
+    });
+
+    $('partHint').textContent = part.surface === 'paper'
+      ? 'paper face'
+      : (part.face === 'narrow' ? 'narrow face' : 'largest face');
+
+    $('statPart').textContent = part.name;
+    $('statContact').textContent = part.surface + ' · ' + part.face + ' face';
+    $('statTheta').textContent = part.incline ? THETA_DEG.toFixed(1) + '°' : '0.0°';
+    $('statN').textContent = normalForce(part, 0).toFixed(2) + ' N';
+    $('statMu').textContent = sum.count ? 'µ = ' + sum.mu.toFixed(3) : '—';
+    $('statCount').textContent = sum.count + ' / 4';
+    $('statF').textContent = last ? last.F.toFixed(2) + ' N (' + loadLabel(last.load) + ')' : '—';
+    $('statSpread').textContent = sum.count > 1 ? (sum.max - sum.min).toFixed(3) : '—';
+
+    $('loadPill').textContent = sum.count ? sum.count + ' of 4 loads' : 'No readings';
+    if (!sim.running) $('statusLine').textContent = partStatus(part);
+
+    if (!sim.running) updateRunUI();
+  }
+
+  function renderResults() {
+    var part = partById(state.partId);
+    var sum = partSummary(part);
+    var list = $('resultList');
+    list.innerHTML = '';
+
+    PARTS.forEach(function (p) {
+      var s = partSummary(p);
+      var row = document.createElement('div');
+      var label = p.mode === 'static' ? 'µ\u209B · ' : 'µ\u2096 · ';
+      row.innerHTML = '<dt>' + label + p.name.replace(/^Static · |^Kinetic · /, '') + '</dt><dd>' +
+        (s.count ? s.mu.toFixed(3) : '—') + '</dd>';
+      list.appendChild(row);
+    });
+
+    $('resultLabel').textContent = part.name + ' · coefficient';
+    $('resultMu').textContent = sum.count ? sum.mu.toFixed(3) : '—';
+
+    var delta = $('resultDelta');
+    if (sum.count > 1) {
+      delta.hidden = false;
+      delta.textContent = '± ' + sum.sem.toFixed(3) + ' (n = ' + sum.count + ')';
+    } else {
+      delta.hidden = true;
+    }
+
+    var partsDone = PARTS.filter(function (p) { return recordedCount(p) > 0; }).length;
+    $('resultPill').textContent = partsDone + ' / ' + PARTS.length + ' parts';
+
+    var notes = comparisonNotes();
+    $('resultNote').textContent = notes.length
+      ? notes.join(' ')
+      : 'Record a part, then compare the contact area, the incline, the paper surface and the kinetic runs.';
+  }
+
+  function comparisonNotes() {
+    var s = {};
+    PARTS.forEach(function (p) { s[p.id] = partSummary(p); });
+    var out = [];
+    var base = s['s-level'].count ? s['s-level'].mu : null;
+
+    if (base) {
+      if (s['s-narrow'].count) {
+        var dArea = Math.abs(s['s-narrow'].mu - base) / base * 100;
+        out.push('Narrow face: µ\u209B = ' + s['s-narrow'].mu.toFixed(3) + ', ' + dArea.toFixed(1) +
+          '% from the broad face — the contact area does not change the coefficient.');
+      }
+      if (s['s-incline'].count) {
+        var dInc = Math.abs(s['s-incline'].mu - base) / base * 100;
+        out.push('Incline: µ\u209B = ' + s['s-incline'].mu.toFixed(3) + ' once W sin θ is subtracted, ' +
+          dInc.toFixed(1) + '% from the level board.');
+      }
+      if (s['s-paper'].count) {
+        out.push('Paper: µ\u209B = ' + s['s-paper'].mu.toFixed(3) + ', the roughest surface here.');
+      }
+      if (s['k-level'].count) {
+        var r = s['k-level'].mu / base;
+        out.push('µ\u2096 is ' + r.toFixed(2) + ' × µ\u209B, so kinetic friction is ' +
+          ((1 - r) * 100).toFixed(0) + '% smaller than the maximum static friction.');
+      }
+    }
+    if (s['k-incline'].count && s['k-level'].count) {
+      out.push('Kinetic on the incline: µ\u2096 = ' + s['k-incline'].mu.toFixed(3) + ' vs ' +
+        s['k-level'].mu.toFixed(3) + ' on the level board.');
+    }
+    return out;
+  }
+
+  function renderTable() {
+    var body = $('dataBody');
+    body.innerHTML = '';
+    var shown = 0;
+
+    PARTS.forEach(function (p) {
+      var rec = recorded(p);
+      var count = recordedCount(p);
+      if (!count && p.id !== state.partId) return;
+      shown++;
+
+      var sum = partSummary(p);
+      var head = document.createElement('tr');
+      head.className = 'part-row';
+      head.dataset.partId = p.id;
+      head.innerHTML = '<td colspan="5"><span class="part-row-name">' + p.name +
+        '</span><span class="part-row-mu">' + (count ? 'µ = ' + sum.mu.toFixed(3) : 'no readings') + '</span></td>';
+      body.appendChild(head);
+
+      LOADS.forEach(function (k) {
+        var F = rec[k];
+        var tr = document.createElement('tr');
+        if (p.id === state.partId) tr.className = 'is-current';
+        tr.dataset.partId = p.id;
+        tr.innerHTML =
+          '<td class="case-name">' + loadLabel(k) + '</td>' +
+          '<td>' + totalWeight(k).toFixed(2) + '</td>' +
+          '<td>' + normalForce(p, k).toFixed(2) + '</td>' +
+          '<td>' + (F === null ? '—' : F.toFixed(2)) + '</td>' +
+          '<td>' + (F === null ? '—' : muFrom(p, k, F).toFixed(3)) + '</td>';
+        body.appendChild(tr);
+      });
+    });
+
+    if (!shown) {
+      var empty = document.createElement('tr');
+      empty.innerHTML = '<td class="empty" colspan="5">Pull the block to record the first reading.</td>';
+      body.appendChild(empty);
+    }
+
+    $('dataCount').textContent = totalRecorded() + ' / 24 readings';
+  }
+
+  function renderAll() {
+    updatePartUI();
+    updateHud();
+    renderResults();
+    renderTable();
+    updateChartMeta();
+    drawCharts();
+  }
+
+  function updateChartMeta() {
+    var part = partById(state.partId);
+    var sum = partSummary(part);
+    $('fnMeta').textContent = sum.count
+      ? part.name + ' · ' + sum.count + ' loads · slope ' + sum.mu.toFixed(3)
+      : 'No readings in this part yet';
+
+    var tr = state.lastTrace;
+    $('traceMeta').textContent = tr
+      ? tr.partName + ' · ' + loadLabel(tr.load) + ' · ' + tr.peak.toFixed(2) + ' N'
+      : 'No pull recorded yet';
+
+    var done = PARTS.filter(function (p) { return recordedCount(p) > 0; }).length;
+    $('partsMeta').textContent = done ? done + ' of ' + PARTS.length + ' parts recorded' : 'Record a pull to compare parts';
+  }
+
+  /* ---------------- charts ---------------- */
+
+  function cfgFN() {
+    var P = palette();
+    var part = partById(state.partId);
+    var rec = recorded(part);
+    var pts = [];
+    var nMax = 0, fMax = 0;
+
+    rec.forEach(function (F, k) {
+      if (F === null) return;
+      var n = normalForce(part, k);
+      var f = Math.max(0, F - alongSlope(part, k));
+      pts.push({ x: n, y: f });
+      nMax = Math.max(nMax, n);
+      fMax = Math.max(fMax, f);
+    });
+
+    var muFit = 0;
+    if (pts.length) {
+      muFit = pts.reduce(function (a, p) { return a + p.y / p.x; }, 0) / pts.length;
+    }
+
+    var series = [];
+    if (pts.length) {
+      series.push({
+        type: 'line',
+        label: 'fit · slope = µ',
+        color: P.accent2,
+        width: 1.6,
+        dash: [5, 4],
+        points: [[0, 0], [nMax * 1.12, muFit * nMax * 1.12]]
+      });
+      series.push({ type: 'error', label: 'measured', color: P.accent, radius: 4.5, fill: P.panel, points: pts });
+    }
+
+    return {
+      colors: P,
+      xLabel: 'Normal force n (N)',
+      yLabel: 'Friction force f (N)',
+      xMin: 0,
+      xMax: Math.max(0.6, nMax * 1.22),
+      yMin: 0,
+      yMax: Math.max(0.5, fMax * 1.35),
+      series: series,
+      emptyText: 'Pull the block to plot friction against normal force.',
+      annotations: pts.length ? [{
+        x: nMax * 0.05, y: fMax * 1.24, dx: 4, dy: 0,
+        text: 'µ = ' + muFit.toFixed(3), color: P.accent2, size: 10.5
+      }] : []
+    };
+  }
+
+  function cfgTRACE() {
+    var P = palette();
+    var tr = state.lastTrace;
+    if (!tr || !tr.points.length) {
+      return {
+        colors: P,
+        xLabel: 'Time (s)',
+        yLabel: 'Scale reading (N)',
+        xMin: 0,
+        xMax: 1,
+        yMin: 0,
+        yMax: 1,
+        series: [],
+        emptyText: 'Pull the block to record a force trace.'
+      };
+    }
+
+    var pts = tr.points;
+    var tMax = pts[pts.length - 1][0] || 1;
+    var peakT = 0, peakF = 0;
+    pts.forEach(function (p) { if (p[1] >= peakF) { peakF = p[1]; peakT = p[0]; } });
+
+    var series = [{
+      type: 'line',
+      label: tr.mode === 'static' ? 'pull until it slips' : 'steady pull',
+      color: P.accent,
+      width: 2,
+      points: pts
+    }];
+
+    var annotations = [];
+    if (tr.mode === 'static') {
+      series.push({
+        type: 'points', label: 'maximum', color: P.accent2, radius: 4.5,
+        hollow: true, fill: P.panel, points: [[peakT, peakF]]
+      });
+      annotations.push({
+        x: peakT, y: peakF, dx: -9, dy: -12, align: 'right',
+        text: 'block starts to move · ' + tr.peak.toFixed(2) + ' N', color: P.accent2, size: 9.5
+      });
+    } else {
+      series.push({
+        type: 'line', label: 'constant reading', color: P.accent2, width: 1.6, dash: [5, 4],
+        points: [[0, tr.peak], [tMax, tr.peak]]
+      });
+      annotations.push({
+        x: tMax * 0.5, y: tr.peak, dx: 0, dy: -11, align: 'center',
+        text: 'f\u2096 = ' + tr.peak.toFixed(2) + ' N', color: P.accent2, size: 9.5
+      });
+    }
+
+    return {
+      colors: P,
+      xLabel: 'Time (s)',
+      yLabel: 'Scale reading (N)',
+      xMin: 0,
+      xMax: Math.max(0.4, tMax * 1.04),
+      yMin: 0,
+      yMax: Math.max(0.5, peakF * 1.3),
+      series: series,
+      annotations: annotations
+    };
+  }
+
+  function cfgPARTS() {
+    var P = palette();
+    var statPts = [], kinPts = [];
+    var annotations = [];
+    var yMax = 0.35;
+
+    PARTS.forEach(function (p, i) {
+      var s = partSummary(p);
+      if (!s.count) return;
+      yMax = Math.max(yMax, s.mu + s.sem);
+      var point = { x: i + 1, y: s.mu, yerr: s.sem };
+      if (p.mode === 'static') statPts.push(point);
+      else kinPts.push(point);
+      annotations.push({
+        x: i + 1, y: s.mu + s.sem, dx: 0, dy: -8, align: 'center',
+        text: p.short, size: 8.5, color: P.muted
+      });
+    });
+
+    var series = [];
+    if (statPts.length) series.push({ type: 'bar', label: 'static', color: P.accent, width: 30, radius: 4, points: statPts });
+    if (kinPts.length) series.push({ type: 'bar', label: 'kinetic', color: P.accent2, width: 30, radius: 4, points: kinPts });
+
+    return {
+      colors: P,
+      xLabel: 'Experiment part (labels above the bars)',
+      yLabel: 'Coefficient µ',
+      xMin: 0.3,
+      xMax: PARTS.length + 0.7,
+      yMin: 0,
+      yMax: Math.ceil(yMax * 1.35 * 100) / 100,
+      series: series,
+      annotations: annotations,
+      emptyText: 'Record a pull to compare the parts.'
+    };
+  }
+
+  function drawCharts() {
+    if (charts.fn) charts.fn.schedule();
+    if (charts.trace) charts.trace.schedule();
+    if (charts.parts) charts.parts.schedule();
+  }
+
+  /* ---------------- exports ---------------- */
+
+  function downloadText(text, filename, mime) {
+    var blob = new Blob([text], { type: mime || 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  }
+
+  function buildTableCSV() {
+    var lines = [
+      '# Coefficient of friction — PHY 1510 Experiment 4a',
+      '# block ' + (BLOCK_MASS * 1000).toFixed(0) + ' g, brass weights ' + (WEIGHT_MASS * 1000).toFixed(0) + ' g each',
+      '# board ' + (BOARD_LENGTH * 100).toFixed(1) + ' cm, riser ' + (BOARD_HEIGHT * 100).toFixed(1) + ' cm (theta = ' + THETA_DEG.toFixed(2) + ' deg)',
+      'part,contact,incline_deg,load_g,total_mass_g,weight_N,normal_N,scale_F_N,friction_N,mu'
+    ];
+    PARTS.forEach(function (p) {
+      recorded(p).forEach(function (F, k) {
+        if (F === null) return;
+        var n = normalForce(p, k);
+        var f = Math.max(0, F - alongSlope(p, k));
+        lines.push([
+          p.name,
+          p.surface + ' ' + p.face,
+          p.incline ? THETA_DEG.toFixed(1) : '0.0',
+          k * 100,
+          (totalMass(k) * 1000).toFixed(0),
+          totalWeight(k).toFixed(3),
+          n.toFixed(3),
+          F.toFixed(2),
+          f.toFixed(3),
+          muFrom(p, k, F).toFixed(4)
+        ].join(','));
+      });
+    });
+    return lines.join('\n') + '\n';
+  }
+
+  function buildTraceCSV() {
+    var tr = state.lastTrace;
+    if (!tr) return '';
+    var lines = [
+      '# pull trace — ' + tr.partName + ', ' + loadLabel(tr.load),
+      '# peak ' + tr.peak.toFixed(2) + ' N, mu ' + tr.mu.toFixed(4),
+      'time_s,force_N'
+    ];
+    tr.points.forEach(function (p) { lines.push(p[0].toFixed(3) + ',' + p[1].toFixed(3)); });
+    return lines.join('\n') + '\n';
+  }
+
+  /* ---------------- toast ---------------- */
+
+  var toastTimer = null;
+  function toast(msg) {
+    var el = $('toast');
+    el.textContent = msg;
+    el.classList.add('is-visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove('is-visible'); }, 2400);
+  }
+
+  /* ---------------- pre-lab worksheet ---------------- */
+
+  var PRELAB_KEY = 'cof-prelab';
+
+  var PRELAB_TERMS = [
+    {
+      name: 'Friction force',
+      placeholder: 'A force that …',
+      groups: [
+        { any: ['parallel', 'tangent', 'along'], hint: 'that it acts parallel to the surfaces' },
+        { any: ['oppos', 'resist', 'prevent', 'hinder', 'against'], hint: 'that it opposes relative motion' },
+        { any: ['contact', 'between', 'interface'], hint: 'that it acts between surfaces in contact' }
+      ],
+      model: 'The force two surfaces in contact exert on each other, parallel to the surfaces, opposing their relative sliding.'
+    },
+    {
+      name: 'Static friction',
+      placeholder: 'The friction that …',
+      groups: [
+        { any: ['at rest', 'stationary', 'not moving', 'not slid', 'from moving', 'no motion', 'still', 'rest'], hint: 'that it holds a stationary object in place' },
+        { any: ['oppos', 'resist', 'balanc', 'cancel', 'applied'], hint: 'that it opposes the applied force' },
+        { any: ['maximum', 'max', 'up to', 'just before', 'threshold', 'limiting'], hint: 'that it has a maximum, reached just before the object moves' }
+      ],
+      model: 'The friction that keeps a stationary object from moving: it matches the applied force up to a maximum, and the object starts to slide once that maximum is exceeded.'
+    },
+    {
+      name: 'Coefficient of static friction',
+      placeholder: 'The ratio …',
+      groups: [
+        { any: ['ratio', 'quotient', 'divided by', 'f/n', 'fs/n'], hint: 'that it is the ratio of maximum static friction to the normal force' },
+        { any: ['normal', 'weight'], hint: 'the normal force it is divided by' },
+        { any: ['unitless', 'no units', 'dimensionless', 'surface', 'material'], hint: 'that it is unitless and fixed by the two surfaces' }
+      ],
+      model: 'µs = fs,max / n: a unitless number, fixed by the pair of surfaces, giving the maximum static friction per newton of normal force.'
+    },
+    {
+      name: 'Kinetic friction',
+      placeholder: 'The friction that …',
+      groups: [
+        { any: ['slid', 'slip', 'moving', 'in motion'], hint: 'that it acts while the object is sliding' },
+        { any: ['oppos', 'resist', 'against', 'opposite'], hint: 'that it opposes the sliding' },
+        { any: ['constant', 'steady', 'proportional'], hint: 'that it is nearly constant and proportional to the normal force' }
+      ],
+      model: 'The friction acting on an object that is already sliding: it opposes the motion and is roughly constant, proportional to the normal force.'
+    },
+    {
+      name: 'Coefficient of kinetic friction',
+      placeholder: 'The ratio …',
+      groups: [
+        { any: ['ratio', 'quotient', 'divided by', 'f/n', 'fk/n'], hint: 'that it is the ratio of kinetic friction to the normal force' },
+        { any: ['normal', 'weight'], hint: 'the normal force it is divided by' },
+        { any: ['unitless', 'no units', 'dimensionless', 'surface', 'material', 'smaller', 'less than'], hint: 'that it is unitless, depends on the surfaces and is smaller than µs' }
+      ],
+      model: 'µk = fk / n: unitless, fixed by the pair of surfaces, and smaller than µs — which is why the block keeps moving once it starts.'
+    }
+  ];
+
+  function normalize(text) {
+    return String(text || '').toLowerCase().replace(/[^a-z0-9\u00b5\/\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  function termScore(text, groups) {
+    var t = normalize(text);
+    var hits = 0;
+    var missing = [];
+    groups.forEach(function (g) {
+      var ok = g.any.some(function (word) { return t.indexOf(normalize(word)) > -1; });
+      if (ok) hits++;
+      else missing.push(g.hint);
+    });
+    return { hits: hits, total: groups.length, missing: missing };
+  }
+
+  function judgeMu(raw, kind) {
+    var force = kind === 's' ? 14.5 : 12.6;
+    var ref = force / (1.5 * 9.81);
+    var entry = String(raw == null ? '' : raw).trim();
+    // tolerate a label in front of the number: "µs = 0.985", "= 0.985", "about 0.99"
+    var v = parseFloat(entry.replace(',', '.').replace(/^[^\d.+-]+/, ''));
+    var formula = 'µ' + kind + ' = ' + force + ' N / (1.50 kg × 9.81 m/s²) = ' + ref.toFixed(3);
+
+    if (!entry) return { state: 'empty', msg: 'Enter a number.' };
+    if (!isFinite(v)) return { state: 'bad', msg: 'That does not look like a number.' };
+    if (Math.abs(v - ref) <= 0.01) return { state: 'good', msg: '✓ ' + v.toFixed(3) + ' — ' + formula };
+    if (Math.abs(v - force / 1.5) < 0.4) {
+      return { state: 'bad', msg: 'You divided by the mass. The normal force is the weight: n = m g = 1.50 × 9.81 = 14.7 N.' };
+    }
+    if (v > 1 && Math.abs(v - 1 / ref) <= 0.05) {
+      return { state: 'bad', msg: 'Upside down: µ = f / n, the force divided by the normal force.' };
+    }
+    if (v > 5) return { state: 'bad', msg: 'µ is a ratio, usually below 1 — divide the force by the weight.' };
+    return { state: 'bad', msg: 'Not quite. ' + formula };
+  }
+
+  function growTermBox(el) {
+    el.style.height = 'auto';
+    el.style.height = (el.scrollHeight + el.offsetHeight - el.clientHeight) + 'px';
+  }
+
+  function sizeTermBoxes() {
+    PRELAB_TERMS.forEach(function (t, i) {
+      var el = $('wsTerm' + i);
+      if (el) growTermBox(el);
+    });
+  }
+
+  function buildPrelab() {
+    var host = $('wsTerms');
+    host.innerHTML = '';
+    PRELAB_TERMS.forEach(function (term, i) {
+      var wrap = document.createElement('div');
+      wrap.className = 'ws-term';
+
+      var label = document.createElement('label');
+      label.className = 'ws-term-label';
+      label.setAttribute('for', 'wsTerm' + i);
+      label.textContent = (i + 1) + '. ' + term.name;
+
+      var input = document.createElement('textarea');
+      input.id = 'wsTerm' + i;
+      input.className = 'ws-input ws-textarea';
+      input.placeholder = term.placeholder;
+      input.addEventListener('input', function () { growTermBox(this); });
+
+      var msg = document.createElement('div');
+      msg.className = 'ws-feedback';
+      msg.id = 'wsTermMsg' + i;
+      msg.setAttribute('aria-live', 'polite');
+
+      var model = document.createElement('div');
+      model.className = 'ws-model';
+      model.id = 'wsTermModel' + i;
+      model.hidden = true;
+      model.innerHTML = '<strong>Model answer:</strong> ' + term.model;
+
+      wrap.appendChild(label);
+      wrap.appendChild(input);
+      wrap.appendChild(msg);
+      wrap.appendChild(model);
+      host.appendChild(wrap);
+    });
+  }
+
+  function savePrelab() {
+    try {
+      localStorage.setItem(PRELAB_KEY, JSON.stringify({
+        terms: PRELAB_TERMS.map(function (t, i) { return $('wsTerm' + i).value; }),
+        s: $('wsMuS').value,
+        k: $('wsMuK').value
+      }));
+    } catch (e) {}
+  }
+
+  function restorePrelab() {
+    try {
+      var data = JSON.parse(localStorage.getItem(PRELAB_KEY) || 'null');
+      if (!data) return;
+      if (data.terms) {
+        data.terms.forEach(function (v, i) {
+          var el = $('wsTerm' + i);
+          if (el) el.value = v || '';
+        });
+      }
+      $('wsMuS').value = data.s || '';
+      $('wsMuK').value = data.k || '';
+    } catch (e) {}
+  }
+
+  function checkTerms() {
+    var answered = 0;
+    PRELAB_TERMS.forEach(function (term, i) {
+      var input = $('wsTerm' + i);
+      var msg = $('wsTermMsg' + i);
+      var model = $('wsTermModel' + i);
+      var text = input.value.trim();
+
+      if (!text) {
+        msg.className = 'ws-feedback';
+        msg.textContent = 'Write an answer first — one sentence is enough.';
+        if (model) model.hidden = true;
+        return;
+      }
+      answered++;
+      var s = termScore(text, term.groups);
+      if (model) model.hidden = false;
+      if (s.hits === s.total) {
+        msg.className = 'ws-feedback is-good';
+        msg.textContent = '✓ All ' + s.total + ' key ideas are there.';
+      } else {
+        msg.className = 'ws-feedback is-bad';
+        msg.textContent = s.hits + ' of ' + s.total + ' key ideas — also mention ' + s.missing[0] + '.';
+      }
+    });
+    savePrelab();
+    if (answered) toast('Definitions checked');
+  }
+
+  function checkNums() {
+    var pairs = [['wsMuS', 's', 'wsMuSMsg'], ['wsMuK', 'k', 'wsMuKMsg']];
+    var good = 0;
+    pairs.forEach(function (p) {
+      var result = judgeMu($(p[0]).value, p[1]);
+      var msg = $(p[2]);
+      msg.className = 'ws-feedback' + (result.state === 'good' ? ' is-good' : (result.state === 'bad' ? ' is-bad' : ''));
+      msg.textContent = result.msg;
+      if (result.state === 'good') good++;
+    });
+
+    var score = $('prelabScore');
+    score.textContent = good + ' of 2 correct';
+    score.dataset.state = good === 2 ? 'run' : 'idle';
+    savePrelab();
+    toast(good === 2 ? 'Both coefficients correct' : good + ' of 2 correct');
+  }
+
+  function resetPrelab() {
+    PRELAB_TERMS.forEach(function (t, i) {
+      $('wsTerm' + i).value = '';
+      $('wsTermMsg' + i).textContent = '';
+      $('wsTermMsg' + i).className = 'ws-feedback';
+      $('wsTermModel' + i).hidden = true;
+    });
+    sizeTermBoxes();
+    $('wsMuS').value = '';
+    $('wsMuK').value = '';
+    $('wsMuSMsg').textContent = '';
+    $('wsMuKMsg').textContent = '';
+    $('wsMuSMsg').className = 'ws-feedback';
+    $('wsMuKMsg').className = 'ws-feedback';
+    $('prelabScore').textContent = '0 of 2 correct';
+    $('prelabScore').dataset.state = 'idle';
+    try { localStorage.removeItem(PRELAB_KEY); } catch (e) {}
+    toast('Worksheet cleared');
+  }
+
+  $('wsCheckTerms').addEventListener('click', checkTerms);
+  $('wsCheckNums').addEventListener('click', checkNums);
+  $('wsReset').addEventListener('click', resetPrelab);
+
+  // text-only zoom rewraps answers without firing resize: re-measure as soon as the
+  // worksheet is touched, with a slow poll as the backstop when nothing is touched
+  ['pointerdown', 'focusin'].forEach(function (type) {
+    $('prelab').addEventListener(type, sizeTermBoxes);
+  });
+
+  var termFontSig = '';
+  setInterval(function () {
+    var el = $('wsTerm0');
+    if (!el) return;
+    var cs = getComputedStyle(el);
+    var sig = cs.fontSize + '/' + cs.lineHeight;
+    if (sig === termFontSig) return;
+    termFontSig = sig;
+    sizeTermBoxes();
+  }, 1000);
+
+  /* ---------------- wiring ---------------- */
+
+  $('partOptions').addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('[data-part-id]') : null;
+    if (!btn) return;
+    selectPart(btn.dataset.partId);
+  });
+
+  $('dataBody').addEventListener('click', function (e) {
+    var row = e.target.closest ? e.target.closest('[data-part-id]') : null;
+    if (!row) return;
+    selectPart(row.dataset.partId);
+  });
+
+  $('pullBtn').addEventListener('click', function () {
+    if (sim.running || sim.queue.length) return;
+    startPull(nextLoadIndex(partById(state.partId)));
+  });
+
+  $('autoBtn').addEventListener('click', function () {
+    if (sim.running || sim.queue.length) return;
+    var part = partById(state.partId);
+    var todo = [];
+    LOADS.forEach(function (k) { if (recorded(part)[k] === null) todo.push(k); });
+    if (!todo.length) todo = LOADS.slice();
+    if (!todo.length) return;
+    startPull(todo.shift());
+    sim.queue = todo;
+    updateRunUI();
+  });
+
+  $('clearBtn').addEventListener('click', function () {
+    PARTS.forEach(function (p) { state.forces[p.id] = [null, null, null, null]; });
+    state.lastTrace = null;
+    sim.queue = [];
+    renderAll();
+    drawScene();
+    toast('All readings cleared');
+  });
+
+  each(document.querySelectorAll('.speed [data-speed]'), function (btn) {
+    btn.addEventListener('click', function () {
+      state.speed = parseFloat(btn.dataset.speed);
+      each(document.querySelectorAll('.speed [data-speed]'), function (b) {
+        b.classList.toggle('is-active', b === btn);
+      });
+    });
+  });
+
+  each(document.querySelectorAll('.export-btn'), function (btn) {
+    btn.addEventListener('click', function () {
+      var key = btn.dataset.chart;
+      var chart = charts[key];
+      if (!chart) return;
+      var name = 'friction-' + key;
+      if (btn.dataset.format === 'svg') chart.exportSVG(name);
+      else chart.exportPNG(name);
+      toast('Plot exported as ' + btn.dataset.format.toUpperCase());
+    });
+  });
+
+  $('exportTableBtn').addEventListener('click', function () {
+    downloadText(buildTableCSV(), 'friction-data.csv');
+    toast('Data table exported');
+  });
+
+  $('exportTraceBtn').addEventListener('click', function () {
+    var csv = buildTraceCSV();
+    if (!csv) { toast('Pull the block first'); return; }
+    downloadText(csv, 'friction-trace.csv');
+    toast('Pull trace exported');
+  });
+
+  /* ---------------- loop ---------------- */
+
+  var lastFrame = performance.now();
+
+  function frame(now) {
+    var dt = Math.min(0.25, (now - lastFrame) / 1000) * state.speed;
+    lastFrame = now;
+
+    if (sim.running) {
+      advanceSim(dt);
+      drawScene();
+      updateHud();
+      chartClock += dt;
+      if (chartClock > 0.1) {
+        chartClock = 0;
+        if (charts.trace) charts.trace.schedule();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------------- init ---------------- */
+
+  function init() {
+    buildPartButtons();
+
+    charts.fn = ChartKit.create($('chartFN'), cfgFN);
+    charts.trace = ChartKit.create($('chartTRACE'), cfgTRACE);
+    charts.parts = ChartKit.create($('chartPARTS'), cfgPARTS);
+
+    applyTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
+
+    buildPrelab();
+    restorePrelab();
+    sizeTermBoxes();
+    window.addEventListener('resize', sizeTermBoxes);
+
+    resizeScene();
+    if (window.ResizeObserver) new ResizeObserver(resizeScene).observe(canvasWrap);
+    else window.addEventListener('resize', resizeScene);
+    window.addEventListener('orientationchange', function () { setTimeout(resizeScene, 120); });
+
+    renderAll();
+    drawScene();
+    requestAnimationFrame(frame);
+  }
+
+  init();
+})();
+
+</script>
+</body>
+</html>
